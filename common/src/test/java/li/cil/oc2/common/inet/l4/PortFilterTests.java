@@ -53,7 +53,7 @@ public class PortFilterTests {
     }
 
     @Test
-    public void anUnenforceableRuleRefusesToStart() {
+    public void unenforceableRuleRefusesToStart() {
         assertThrows(IllegalArgumentException.class, () -> denying("70000"));
         assertThrows(IllegalArgumentException.class, () -> denying("-1"));
         assertThrows(IllegalArgumentException.class, () -> denying("not a port"));
@@ -69,7 +69,7 @@ public class PortFilterTests {
     }
 
     @Test
-    public void theShippedDefaultsCloseTheCommonlyAbusedPorts() {
+    public void shippedDefaultsCloseTheCommonlyAbusedPorts() {
         final PortFilter filter = new PortFilter(Config.internetDeniedPorts);
 
         for (final int port : new int[]{25, 465, 587, 137, 138, 139, 445, 1900, 3389, 11211}) {

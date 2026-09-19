@@ -37,7 +37,6 @@ public class ThrottledLoggerTests {
         throttled.info("Opened {}.", "d");
         throttled.info("Other {}.", "y");
 
-        // Mockito hands varargs over flattened: message first, then each argument.
         assertEquals(4, lines.size(), "one line per key per second");
         assertEquals(List.of("Opened {}.", "a"), Arrays.asList(lines.get(0)));
         assertEquals(List.of("Other {}.", "x"), Arrays.asList(lines.get(1)));

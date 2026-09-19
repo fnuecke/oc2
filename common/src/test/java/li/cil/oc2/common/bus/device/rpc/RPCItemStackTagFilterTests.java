@@ -2,25 +2,19 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
-import net.minecraft.SharedConstants;
+import li.cil.oc2.MinecraftBootstrap;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MinecraftBootstrap.class)
 public class RPCItemStackTagFilterTests {
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
-
     @Test
     public void pathIsCopiedFromTheSource() {
         final RPCItemStackTagFilter filter = filterFor("kept");
@@ -100,7 +94,6 @@ public class RPCItemStackTagFilterTests {
     }
 
     private static Object paths(final RPCItemStackTagFilter filter) {
-        // Only used here, so let's just grab it with reflection...
         try {
             final Field field = RPCItemStackTagFilter.class.getDeclaredField("paths");
             field.setAccessible(true);

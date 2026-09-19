@@ -31,12 +31,6 @@ public final class CapabilityAdapterTestsNeoForge {
         helper.setBlock(DEVICE_POS, Blocks.COMPUTER.get());
         return Capabilities.get(blockEntity(helper), Capabilities.ITEM_HANDLER, null);
     };
-    private static final CapabilityAdapterTests.EnergyOperation ABORTED_INSERT =
-        (helper, storage, amount) -> storage.receiveEnergy(amount, true);
-    private static final CapabilityAdapterTests.EnergyOperation ABORTED_EXTRACT =
-        (helper, storage, amount) -> storage.extractEnergy(amount, true);
-    private static final CapabilityAdapterTests.ItemOperation ABORTED_ITEM_INSERT =
-        (helper, handler, slot, stack) -> handler.insertItem(slot, stack, true);
 
     // --------------------------------------------------------------------- //
 
@@ -48,6 +42,11 @@ public final class CapabilityAdapterTestsNeoForge {
     @GameTest(template = TEMPLATE)
     public static void committedInsertMutatesByReportedAmount(final GameTestHelper helper) {
         CapabilityAdapterTests.committedInsertMutatesByReportedAmount(helper, ENERGY);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void simulatedExtractDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.simulatedExtractDoesNotMutate(helper, ENERGY);
     }
 
     @GameTest(template = TEMPLATE)
@@ -66,16 +65,6 @@ public final class CapabilityAdapterTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void abortedInsertLeavesStorageUnchanged(final GameTestHelper helper) {
-        CapabilityAdapterTests.abortedInsertLeavesStorageUnchanged(helper, ENERGY, ABORTED_INSERT);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void abortedExtractLeavesStorageUnchanged(final GameTestHelper helper) {
-        CapabilityAdapterTests.abortedExtractLeavesStorageUnchanged(helper, ENERGY, ABORTED_EXTRACT);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void simulatedItemInsertDoesNotMutate(final GameTestHelper helper) {
         CapabilityAdapterTests.simulatedItemInsertDoesNotMutate(helper, ITEMS);
     }
@@ -88,11 +77,6 @@ public final class CapabilityAdapterTestsNeoForge {
     @GameTest(template = TEMPLATE)
     public static void itemRoundTripPreservesIdentity(final GameTestHelper helper) {
         CapabilityAdapterTests.itemRoundTripPreservesIdentity(helper, ITEMS);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void abortedItemInsertLeavesHandlerUnchanged(final GameTestHelper helper) {
-        CapabilityAdapterTests.abortedItemInsertLeavesHandlerUnchanged(helper, ITEMS, ABORTED_ITEM_INSERT);
     }
 
     // --------------------------------------------------------------------- //

@@ -15,12 +15,12 @@ public final class NetworkConnectorTestsFabric {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public void aConnectorResolvesTheNetworkCardOfTheComputerItIsOn(final GameTestHelper helper) {
-        NetworkConnectorTests.aConnectorResolvesTheNetworkCardOfTheComputerItIsOn(helper);
+    public void connectorResolvesNetworkCard(final GameTestHelper helper) {
+        NetworkConnectorTests.connectorResolvesNetworkCard(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public void aConnectorNoticesTheNetworkCardBeingRemoved(final GameTestHelper helper) {
-        NetworkConnectorTests.aConnectorNoticesTheNetworkCardBeingRemoved(helper);
+    public void connectorDropsRemovedCard(final GameTestHelper helper) {
+        NetworkConnectorTests.connectorDropsRemovedCard(helper);
     }
 }

@@ -72,11 +72,10 @@ public final class RPCBlobChannelTests {
     }
 
     @Test
-    public void theReplyStaysSmallHoweverBigThePayloadIs() {
+    public void replyStaysSmallHoweverBigThePayloadIs() {
         final JsonObject large = invoke("readLarge");
 
-        assertTrue(large.toString().length() < 200,
-            "message size must not track payload size: " + large);
+        assertTrue(large.toString().length() < 200, "message grew with the payload: " + large);
         assertEquals(64 * 1024, blobDevice.drainAsVM().length);
     }
 
@@ -95,8 +94,7 @@ public final class RPCBlobChannelTests {
     public void deviceDataCannotForgeAPayloadReference() {
         final JsonObject reply = invoke("readForgedReference");
 
-        assertFalse(reply.has("blob"),
-            "no payload was sent, so the message must not announce one: " + reply);
+        assertFalse(reply.has("blob"), "message announced a payload that was never sent: " + reply);
         assertEquals(0, blobDevice.drainAsVM().length);
     }
 
@@ -106,7 +104,6 @@ public final class RPCBlobChannelTests {
         assertEquals("error", reply.get("type").getAsString(), reply.toString());
         assertEquals(0, blobDevice.drainAsVM().length, "a refused message must send no bytes");
 
-        // The staged payload must not leak into the next message.
         final JsonObject next = invoke("readBlob");
         assertEquals(PAYLOAD.length, next.getAsJsonObject("blob").get("length").getAsInt());
         assertArrayEquals(PAYLOAD, blobDevice.drainAsVM());

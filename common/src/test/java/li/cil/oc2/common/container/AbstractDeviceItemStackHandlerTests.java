@@ -2,28 +2,22 @@
 
 package li.cil.oc2.common.container;
 
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MinecraftBootstrap.class)
 public final class AbstractDeviceItemStackHandlerTests {
     private AbstractItemDeviceBusElement busElement;
     private AbstractDeviceItemStackHandler handler;
-
-    @BeforeAll
-    public static void setupAll() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
 
     @BeforeEach
     public void setupEach() {

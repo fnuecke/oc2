@@ -42,27 +42,27 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void theShippedDefaultsBlockEverythingTheyClaimTo() {
+    public void shippedDefaultsBlockEverythingTheyClaimTo() {
         final AddressFilter filter =
             AddressFilter.withBuiltInDenials(Config.internetAllowedHosts, Config.internetDeniedHosts, false);
 
         final String[] mustBeBlocked = {
-            "127.0.0.1",       // Loopback: anything this server itself is listening on.
+            "127.0.0.1",
             "127.1.2.3",
-            "10.0.0.1",        // The three private ranges.
+            "10.0.0.1",
             "172.16.0.1",
             "172.31.255.254",
             "192.168.1.1",
-            "100.64.0.1",      // Carrier-grade NAT.
-            "169.254.169.254", // Cloud instance metadata, and credentials with it.
+            "100.64.0.1",
+            "169.254.169.254",
             "169.254.0.1",
             "0.0.0.0",
-            "192.0.0.1",       // IETF protocol assignments.
-            "198.18.0.1",      // Benchmarking.
-            "224.0.0.1",       // Multicast.
+            "192.0.0.1",
+            "198.18.0.1",
+            "224.0.0.1",
             "239.255.255.250",
-            "240.0.0.1",       // Reserved.
-            "255.255.255.255", // Broadcast.
+            "240.0.0.1",
+            "255.255.255.255",
         };
         for (final String address : mustBeBlocked) {
             assertFalse(filter.isAllowed(ip(address)), address + " must not be reachable by default");
@@ -75,12 +75,11 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void theShippedDefaultsNameNoHostsSoNoLookupIsNeededAtStartup() {
+    public void shippedDefaultsNeedNoDnsLookup() {
         final AddressFilter filter =
             new AddressFilter(Config.internetAllowedHosts, Config.internetDeniedHosts, false);
 
-        assertFalse(filter.needsPeriodicRefresh(),
-            "the shipped rules should all be literal addresses, so server start never waits on DNS");
+        assertFalse(filter.needsPeriodicRefresh(), "shipped rules should be literal addresses");
     }
 
     @Test
@@ -102,14 +101,13 @@ public class AddressFilterTests {
 
     @Test
     public void cloudMetadataIsBlockedByTheDefaultRules() {
-        // The address every major cloud provider serves instance credentials from.
         final AddressFilter filter = denying("169.254.0.0/16");
 
         assertFalse(filter.isAllowed(ip("169.254.169.254")));
     }
 
     @Test
-    public void anAllowListPermitsOnlyWhatItNames() {
+    public void allowListPermitsOnlyWhatItNames() {
         final AddressFilter filter = allowing("8.8.8.8", "1.1.1.0/24");
 
         assertTrue(filter.isAllowed(ip("8.8.8.8")));
@@ -146,7 +144,7 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void anUnparsableDenyRuleRefusesToStart() {
+    public void unparsableDenyRuleRefusesToStart() {
         assertThrows(IllegalArgumentException.class,
             () -> denying("10.0.0.0/8", "10.0.0.0\\8", "192.168.0.0/16"));
         assertThrows(IllegalArgumentException.class, () -> denying("10.0.0.0/33"));
@@ -154,7 +152,7 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void anUnparsableAllowRuleIsSkippedNotFatal() {
+    public void unparsableAllowRuleIsSkippedNotFatal() {
         final AddressFilter filter = allowing("8.8.8.8", "10.0.0.0/33");
 
         assertTrue(filter.isAllowed(ip("8.8.8.8")));
@@ -170,7 +168,7 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void aRuleDenyingEverythingBlocksEverything() {
+    public void ruleDenyingEverythingBlocksEverything() {
         final AddressFilter filter = denying("0.0.0.0/0");
 
         assertFalse(filter.isAllowed(ip("8.8.8.8")));
@@ -179,7 +177,7 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void aHostNameContainingHyphensIsTreatedAsAHostName() {
+    public void hostNameContainingHyphensIsTreatedAsAHostName() {
         final AddressFilter filter = allowing("my-internal-host.example.invalid");
 
         assertTrue(filter.needsPeriodicRefresh(),
@@ -187,7 +185,7 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void aRangeIsStillRecognisedAsARange() {
+    public void rangeIsStillRecognisedAsARange() {
         final AddressFilter filter = denying("1.2.3.10-1.2.3.20");
 
         assertFalse(filter.needsPeriodicRefresh());
@@ -195,7 +193,7 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void anAllowListWhoseRulesAllFailToParseDeniesEverything() {
+    public void unparsableAllowListDeniesAll() {
         final AddressFilter filter = allowing("10.0.0.0/33", "not an address");
 
         assertFalse(filter.isAllowed(ip("8.8.8.8")));
@@ -204,14 +202,14 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void anAllowListOfOnlyBlanksAndCommentsIsNotAnAllowList() {
+    public void allowListOfOnlyBlanksAndCommentsIsNotAnAllowList() {
         final AddressFilter filter = allowing("", "  ", "# nothing here");
 
         assertTrue(filter.isAllowed(ip("8.8.8.8")));
     }
 
     @Test
-    public void aPartlyValidAllowListStillAppliesTheValidEntries() {
+    public void partlyValidAllowListStillAppliesTheValidEntries() {
         final AddressFilter filter = allowing("8.8.8.8", "garbage/99");
 
         assertTrue(filter.isAllowed(ip("8.8.8.8")));
@@ -228,12 +226,12 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void aDenyHostNameThatDoesNotResolveRefusesToStart() {
+    public void denyHostNameThatDoesNotResolveRefusesToStart() {
         assertThrows(IllegalArgumentException.class, () -> denying("this-name-does-not-exist.invalid"));
     }
 
     @Test
-    public void anAllowHostNameThatDoesNotResolveMatchesNothing() {
+    public void allowHostNameThatDoesNotResolveMatchesNothing() {
         final AddressFilter filter = allowing("this-name-does-not-exist.invalid");
 
         assertFalse(filter.isAllowed(ip("8.8.8.8")));

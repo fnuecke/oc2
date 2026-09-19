@@ -49,6 +49,18 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
+    public static void simulatedExtractDoesNotMutate(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
+        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+        storage.receiveEnergy(AMOUNT, false);
+        final long before = storage.getEnergyStored();
+
+        final long extracted = storage.extractEnergy(AMOUNT, true);
+
+        assertEquals("simulated extract should report the extracted amount", AMOUNT, extracted);
+        assertEquals("simulated extract must not change stored energy", before, storage.getEnergyStored());
+        helper.succeed();
+    }
+
     public static void committedExtractMutatesByReportedAmount(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
         final EnergyStorage storage = require(energy.apply(helper), "energy storage");
         storage.receiveEnergy(AMOUNT, false);
@@ -174,8 +186,7 @@ public final class CapabilityAdapterTests {
 
         final ItemStack remainder = abortedInsert.apply(helper, handler, slot, stack.copy());
 
-        assertEquals("an aborted insert should still report what it would have moved",
-            0, remainder.getCount());
+        assertEquals("aborted insert should report what it would move", 0, remainder.getCount());
         if (!ItemStack.matches(before, handler.getStackInSlot(slot))) {
             throw new GameTestAssertException("an aborted insert must leave slot " + slot
                 + " untouched, found " + handler.getStackInSlot(slot));

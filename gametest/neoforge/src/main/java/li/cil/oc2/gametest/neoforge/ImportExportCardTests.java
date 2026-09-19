@@ -27,11 +27,11 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class ImportExportCardTests {
+    private static final int KEEP_ALIVE_EXPIRY_BUDGET_TICKS = 60_000;
     private static final BlockPos KEYBOARD_POS = CABLE_POS.above();
-    private static final long KEEP_ALIVE_LAPSE = 2500; /* In milliseconds, must exceed the keyboard's expiry. */
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void importExportCardSurvivesBlockEntityReload(final GameTestHelper helper) {
+    public static void importExportCardSurvivesReload(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.place(helper);
 
         helper.startSequence()
@@ -43,33 +43,7 @@ public final class ImportExportCardTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void keyboardUserCountsAsTerminalUser(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.UP);
-        place(helper, player, new ItemStack(Items.KEYBOARD.get()), KEYBOARD_POS);
-
-        helper.startSequence()
-            .thenExecuteAfter(80, () -> {
-                assertKeyboardOnBus(computer);
-                if (isTerminalUser(computer, player)) {
-                    throw new GameTestAssertException(
-                        "a player who never touched the keyboard already counts as a terminal user");
-                }
-            })
-            .thenExecute(() -> keyboard(helper).handleUsedBy(player))
-            .thenExecute(() -> {
-                if (!isTerminalUser(computer, player)) {
-                    throw new GameTestAssertException(
-                        "a player using the keyboard is not a terminal user of the computer, "
-                            + "so the import/export card has nobody to prompt");
-                }
-            })
-            .thenSucceed();
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    @GameTest(template = TEMPLATE, timeoutTicks = KEEP_ALIVE_EXPIRY_BUDGET_TICKS)
     public static void keyboardUserExpiresWithoutKeepAlive(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
@@ -78,9 +52,19 @@ public final class ImportExportCardTests {
 
         helper.startSequence()
             .thenExecuteAfter(80, () -> assertKeyboardOnBus(computer))
-            .thenExecute(() -> keyboard(helper).handleUsedBy(player))
             .thenExecute(() -> {
-                sleep(KEEP_ALIVE_LAPSE);
+                if (isTerminalUser(computer, player)) {
+                    throw new GameTestAssertException("precondition: a player who never used the keyboard is "
+                        + "not a terminal user");
+                }
+
+                keyboard(helper).handleUsedBy(player);
+                if (!isTerminalUser(computer, player)) {
+                    throw new GameTestAssertException("precondition: using the keyboard makes the player a "
+                        + "terminal user");
+                }
+            })
+            .thenWaitUntil(() -> {
                 if (isTerminalUser(computer, player)) {
                     throw new GameTestAssertException(
                         "a player who stopped sending keep-alives is still a terminal user");
@@ -90,15 +74,6 @@ public final class ImportExportCardTests {
     }
 
     // --------------------------------------------------------------------- //
-
-    private static void sleep(final long durationInMilliseconds) {
-        try {
-            Thread.sleep(durationInMilliseconds);
-        } catch (final InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new GameTestAssertException("interrupted while waiting: " + e);
-        }
-    }
 
     private static KeyboardBlockEntity keyboard(final GameTestHelper helper) {
         return helper.getBlockEntity(KEYBOARD_POS);
@@ -127,7 +102,6 @@ public final class ImportExportCardTests {
             .findFirst()
             .orElseThrow(() -> new GameTestAssertException("the import/export card is not on the bus"));
 
-        // Only used here, so let's just grab it with reflection...
         final Object userProvider;
         try {
             final Field field = FileImportExportCardItemDevice.class.getDeclaredField("userProvider");
@@ -138,8 +112,7 @@ public final class ImportExportCardTests {
         }
 
         if (userProvider != computer.blockEntity()) {
-            throw new GameTestAssertException(
-                "the card is bound to a terminal user provider that is not the computer it sits in");
+            throw new GameTestAssertException("card is bound to another terminal user provider");
         }
     }
 

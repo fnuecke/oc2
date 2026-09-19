@@ -26,7 +26,7 @@ public final class RpcRoundtripTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void guestClientsTalkToTheRealHost(final GameTestHelper helper) {
+    public static void rpcRoundtripSuitePasses(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);

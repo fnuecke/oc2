@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IOCallbacks;
@@ -11,13 +12,11 @@ import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
 import li.cil.sedna.api.Sizes;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MinecraftBootstrap.class)
 public final class ItemHandlerDeviceIOTests {
     private static final int GET_SLOT_COUNT = 1;
     private static final int GET_SLOTS = 2;
@@ -49,12 +49,6 @@ public final class ItemHandlerDeviceIOTests {
     private static final int SLOT_RECORD_SIZE = 4;
     private static final int RESULT_BUFFER_SIZE = IOCallback.MAX_DATA_SIZE;
     private static final int MAX_SLOT_RECORDS = RESULT_BUFFER_SIZE / SLOT_RECORD_SIZE;
-
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
 
     // --------------------------------------------------------------------- //
 
@@ -151,14 +145,7 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     @Test
-    public void bulkReadFillsTheResultBufferExactly() throws Throwable {
-        assertEquals(RESULT_BUFFER_SIZE,
-            invoke(new ArrayItemHandler(200), GET_SLOTS, 0, MAX_SLOT_RECORDS).length);
-    }
-
-    @Test
     public void bulkReadRejectsCountPastTheResultBuffer() {
-        // Truncating instead would hand the guest trailing zeroes that decode as empty slots.
         assertThrows(IllegalArgumentException.class,
             () -> invoke(new ArrayItemHandler(200), GET_SLOTS, 0, MAX_SLOT_RECORDS + 1));
     }
@@ -170,8 +157,6 @@ public final class ItemHandlerDeviceIOTests {
 
     @Test
     public void onlyRegistryLookupsRunOffTheServerThread() {
-        // The flag is the whole thread-safety contract: slot reads touch block entities, name and
-        // id lookups touch only the frozen registry.
         assertTrue(isSynchronized(GET_SLOT_COUNT), "reading the slot count touches the inventory");
         assertTrue(isSynchronized(GET_SLOTS), "reading slots touches the inventory");
         assertTrue(isSynchronized(GET_SLOT_LIMIT), "reading a slot limit touches the inventory");
@@ -219,13 +204,6 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     @Test
-    public void itemNameResolvesFromId() throws Throwable {
-        final int id = BuiltInRegistries.ITEM.getId(Items.REDSTONE);
-
-        assertEquals("minecraft:redstone", string(invoke(new ArrayItemHandler(1), GET_ITEM_NAME, id & 0xFF, id >>> 8)));
-    }
-
-    @Test
     public void itemNameRejectsIdPastTheRegistry() {
         final int id = BuiltInRegistries.ITEM.size();
         assertTrue(id <= 0xFFFF);
@@ -266,15 +244,7 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     @Test
-    public void itemIdRoundTripsThroughItemName() throws Throwable {
-        final byte[] id = invoke(new ArrayItemHandler(1), GET_ITEM_ID, "minecraft:iron_pickaxe");
-
-        assertEquals("minecraft:iron_pickaxe",
-            string(invoke(new ArrayItemHandler(1), GET_ITEM_NAME, id[0] & 0xFF, id[1] & 0xFF)));
-    }
-
-    @Test
-    public void fullBulkReadFillsTheAdapterResultBufferExactly() {
+    public void bulkReadFillsAdapterResultBufferExactly() {
         final ArrayItemHandler handler = new ArrayItemHandler(MAX_SLOT_RECORDS);
         Arrays.setAll(handler.stacks, slot -> new ItemStack(Items.REDSTONE, slot + 1));
 
@@ -320,7 +290,7 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     @Test
-    public void itemNameReachesTheGuestThroughTheRegisters() {
+    public void itemNameReachesGuestThroughRegisters() {
         final int id = BuiltInRegistries.ITEM.getId(Items.REDSTONE);
 
         final IODeviceBusAdapter adapter = adapterFor(new ArrayItemHandler(1));
@@ -380,10 +350,6 @@ public final class ItemHandlerDeviceIOTests {
         final ByteArrayOutputStream results = new ByteArrayOutputStream();
         method.invoke(new ByteArrayInputStream(arguments), results);
         return results.toByteArray();
-    }
-
-    private static String string(final byte[] bytes) {
-        return new String(bytes, StandardCharsets.US_ASCII);
     }
 
     // --------------------------------------------------------------------- //

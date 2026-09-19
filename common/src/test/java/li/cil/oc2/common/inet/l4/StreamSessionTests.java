@@ -34,7 +34,6 @@ public class StreamSessionTests {
     }
 
     // --------------------------------------------------------------------- //
-    // Handshake
 
     @Test
     public void handshakeWaitsForTheHostSocket() {
@@ -44,7 +43,7 @@ public class StreamSessionTests {
     @Test
     public void connectionRefusedBeforeTheHandshakeSendsReset() {
         fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
-        session.close(); // What the session layer does when the host socket is refused.
+        session.close();
 
         final Segment reset = expectSegment();
         assertTrue(reset.header().rst);
@@ -58,7 +57,6 @@ public class StreamSessionTests {
         final Segment first = expectSegment();
         expectNothingToSend();
 
-        // The guest never saw it and asks again.
         fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
         final Segment second = expectSegment();
 
@@ -68,7 +66,7 @@ public class StreamSessionTests {
     }
 
     @Test
-    public void aSegmentHalfTheSequenceSpaceAwayIsDroppedWithAnAck() {
+    public void segmentHalfTheSequenceSpaceAwayIsDroppedWithAnAck() {
         establish();
 
         fromGuest(TcpHeader.FLAG_ACK, guestSequence + 0x80000000, sessionSequence, 8192, new byte[10]);
@@ -156,22 +154,19 @@ public class StreamSessionTests {
         assertEquals(10, first.payload().length);
         expectNothingToSend();
 
-        // Acknowledging and reopening the window lets the rest through.
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence + 10, 100, new byte[0]);
         final Segment second = expectSegment();
         assertEquals(90, second.payload().length);
     }
 
     @Test
-    public void aClosedWindowIsProbedRatherThanDeadlocked() {
+    public void closedWindowIsProbedRatherThanDeadlocked() {
         establish();
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 0, new byte[0]);
         fromRemote("probe me");
 
-        // Nothing may go out while the window is shut.
         expectNothingToSend();
 
-        // Once the retransmission timer fires, a single byte goes out to draw a window update.
         advance(RTO_MS + 1);
         final Segment probe = expectSegment();
         assertEquals(1, probe.payload().length);
@@ -203,7 +198,6 @@ public class StreamSessionTests {
         advance(RTO_MS + 1);
         expectSegment();
 
-        // The timeout has doubled, so the original interval is no longer enough.
         advance(RTO_MS + 1);
         expectNothingToSend();
 
@@ -212,7 +206,7 @@ public class StreamSessionTests {
     }
 
     @Test
-    public void aConnectionThatNeverAcknowledgesIsReset() {
+    public void connectionThatNeverAcknowledgesIsReset() {
         establish();
         fromRemote("gone");
 
@@ -234,7 +228,6 @@ public class StreamSessionTests {
     public void outOfOrderDataIsRefusedButAcknowledged() {
         establish();
 
-        // A segment from the future, as if the one before it was lost.
         fromGuest(TcpHeader.FLAG_ACK, guestSequence + 10, sessionSequence, 8192,
             "future".getBytes(StandardCharsets.UTF_8));
 
@@ -247,7 +240,7 @@ public class StreamSessionTests {
     }
 
     @Test
-    public void aRetransmissionOverlappingKnownDataIsTrimmed() {
+    public void retransmissionOverlappingKnownDataIsTrimmed() {
         establish();
 
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 8192,
@@ -255,7 +248,6 @@ public class StreamSessionTests {
         assertEquals("abcde", drainToRemote());
         expectSegment();
 
-        // The guest missed our acknowledgment and resends from three bytes back.
         fromGuest(TcpHeader.FLAG_ACK, guestSequence + 2, sessionSequence, 8192,
             "cdefg".getBytes(StandardCharsets.UTF_8));
         assertEquals("fg", drainToRemote(), "only the genuinely new bytes should be taken");
@@ -277,7 +269,7 @@ public class StreamSessionTests {
     }
 
     @Test
-    public void anAcknowledgmentForUnsentDataIsRefused() {
+    public void acknowledgmentForUnsentDataIsRefused() {
         establish();
 
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence + 5000, 8192,
@@ -290,7 +282,6 @@ public class StreamSessionTests {
     }
 
     // --------------------------------------------------------------------- //
-    // Shutdown
 
     @Test
     public void guestFinIsAcknowledgedAndHalfClosesTheStream() {
@@ -327,7 +318,6 @@ public class StreamSessionTests {
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence + 5, 8192, new byte[0]);
         assertEquals(SessionState.ESTABLISHED, session.getState());
 
-        // The guest closes its half too, finishing the exchange.
         fromGuest(TcpHeader.FLAG_ACK | TcpHeader.FLAG_FIN, guestSequence, sessionSequence + 5, 8192, new byte[0]);
         expectSegment();
         assertTrue(session.isFinished());
@@ -338,7 +328,7 @@ public class StreamSessionTests {
         establish();
 
         fromGuest(TcpHeader.FLAG_ACK | TcpHeader.FLAG_FIN, guestSequence, sessionSequence, 8192, new byte[0]);
-        expectSegment(); // Our acknowledgment of the guest's FIN.
+        expectSegment();
 
         session.finishReceiving();
         final Segment fin = expectSegment();
@@ -381,29 +371,19 @@ public class StreamSessionTests {
     }
 
     // --------------------------------------------------------------------- //
-    // Regressions
 
-    /**
-     * A guest that acknowledges a SYN-ACK we never sent must not be believed. Taking it on trust
-     * moved the send pointer behind the buffer's base and drove a negative buffer index, which
-     * poisoned the session and stalled every other session on the same stack.
-     */
     @Test
-    public void anAcknowledgmentBeforeTheSynAckIsIgnored() {
-        // Run the whole space of initial sequence numbers the session might have picked, since the
-        // original defect only bit for roughly half of them.
+    public void acknowledgmentBeforeTheSynAckIsIgnored() {
         for (int attempt = 0; attempt < 64; ++attempt) {
             setUp();
             fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
 
-            // The host socket has not connected, so no SYN-ACK has gone out yet.
             fromGuest(TcpHeader.FLAG_ACK, guestSequence + 1, attempt * 0x04000000, 8192, new byte[0]);
 
             assertEquals(SessionState.NEW, session.getState(),
                 "an unsolicited acknowledgment must not establish the connection");
             expectNothingToSend();
 
-            // The real handshake still works afterwards.
             session.connect();
             final Segment synAck = expectSegment();
             assertTrue(synAck.header().syn);
@@ -411,7 +391,7 @@ public class StreamSessionTests {
     }
 
     @Test
-    public void anAcknowledgmentBeyondWhatWeSentIsIgnored() {
+    public void acknowledgmentBeyondWhatWeSentIsIgnored() {
         fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
         session.connect();
         final Segment synAck = expectSegment();
@@ -421,12 +401,8 @@ public class StreamSessionTests {
         assertEquals(SessionState.NEW, session.getState());
     }
 
-    /**
-     * A lost FIN has to be resent. Retransmission clears the sent flag but leaves the state where
-     * the FIN put it, so the state machine has to allow the resend from there too.
-     */
     @Test
-    public void aLostFinIsRetransmitted() {
+    public void lostFinIsRetransmitted() {
         establish();
         session.finishReceiving();
 
@@ -434,7 +410,6 @@ public class StreamSessionTests {
         assertTrue(fin.header().fin);
         expectNothingToSend();
 
-        // The guest never saw it.
         advance(RTO_MS + 1);
         final Segment again = expectSegment();
         assertTrue(again.header().fin, "the FIN must go out again");
@@ -445,7 +420,7 @@ public class StreamSessionTests {
     }
 
     @Test
-    public void aFinLostRepeatedlyStillEventuallyArrives() {
+    public void finLostRepeatedlyStillEventuallyArrives() {
         establish();
         session.finishReceiving();
 
@@ -461,15 +436,10 @@ public class StreamSessionTests {
         assertTrue(finsSeen >= 3, "a FIN that is never acknowledged should keep being retransmitted");
     }
 
-    /**
-     * A window that reopens has to be announced. The guest stops sending on a zero window and will
-     * not retry until its own persist timer fires, which backs off into tens of seconds.
-     */
     @Test
     public void reopeningTheWindowIsAnnouncedToTheGuest() {
         establish();
 
-        // Fill the buffer the guest sends into, so the window we advertise closes.
         final int capacity = session.getSendBuffer().capacity();
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 8192, new byte[capacity]);
         guestSequence += capacity;
@@ -478,7 +448,6 @@ public class StreamSessionTests {
         assertEquals(0, shut.header().window, "the window should be closed once the buffer is full");
         expectNothingToSend();
 
-        // The session layer drains it to the host socket.
         drainToRemote();
 
         final Segment reopened = expectSegment();
@@ -486,17 +455,12 @@ public class StreamSessionTests {
         assertTrue(reopened.header().ack);
     }
 
-    /**
-     * A peer holding its window shut is not a broken peer, so probing it must not count toward
-     * giving up on the connection (RFC 1122 4.2.2.17).
-     */
     @Test
-    public void aPeerHoldingTheWindowShutIsNotResetForIt() {
+    public void peerHoldingTheWindowShutIsNotResetForIt() {
         establish();
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 0, new byte[0]);
         fromRemote("waiting on you");
 
-        // Well past MAX_RETRANSMISSIONS worth of probes, but inside the persist timeout.
         for (int i = 0; i < 20; ++i) {
             advance(1000);
             final Segment segment = toGuest();
@@ -509,12 +473,8 @@ public class StreamSessionTests {
         assertEquals(SessionState.ESTABLISHED, session.getState());
     }
 
-    /**
-     * It must not probe forever either: a guest advertising a zero window and answering one probe a
-     * minute would otherwise pin a session slot, a host socket and its buffers for good.
-     */
     @Test
-    public void aWindowHeldShutForeverIsEventuallyGivenUpOn() {
+    public void windowHeldShutForeverIsEventuallyGivenUpOn() {
         establish();
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 0, new byte[0]);
         fromRemote("waiting on you");
@@ -531,19 +491,16 @@ public class StreamSessionTests {
     }
 
     // --------------------------------------------------------------------- //
-    // Sequence wrapping
 
     @Test
     public void sequenceNumbersWrapWithoutStallingTheConnection() {
-        // Start the guest just below the wrap so its numbering rolls over mid-transfer.
         guestSequence = Integer.MAX_VALUE - 2;
         establish();
 
         fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 8192,
             "abcdef".getBytes(StandardCharsets.UTF_8));
 
-        assertEquals("abcdef", drainToRemote(),
-            "data must still be accepted across the sequence number wrap");
+        assertEquals("abcdef", drainToRemote(), "data was refused across the sequence wrap");
 
         final Segment ack = expectSegment();
         assertEquals(guestSequence + 6, ack.header().acknowledgmentNumber);
@@ -600,7 +557,6 @@ public class StreamSessionTests {
 
     private void establish() {
         fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
-        // Nothing goes out until the host socket is up.
         expectNothingToSend();
 
         session.connect();

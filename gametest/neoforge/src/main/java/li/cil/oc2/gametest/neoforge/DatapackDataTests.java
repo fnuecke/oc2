@@ -49,8 +49,7 @@ public final class DatapackDataTests {
         }
 
         if (BlockDeviceDataRegistry.firmwareValues().map(BlockDeviceDataRegistry::getKey).noneMatch(FIRMWARE::equals)) {
-            throw new GameTestAssertException("datapack firmware is missing from the registry listing, "
-                + "so it would not show up in the creative tab");
+            throw new GameTestAssertException("datapack firmware is missing from the registry listing");
         }
 
         helper.succeed();

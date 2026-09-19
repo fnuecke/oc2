@@ -27,11 +27,9 @@ public final class RecipeTests {
     private static final int GRID_WIDTH = 3;
     private static final int GRID_HEIGHT = 3;
 
-    // CraftingMenu holds the result in slot 0 and the crafting grid in the slots right after it.
     private static final int FIRST_GRID_SLOT = 1;
 
     private static final Set<String> ITEMS_WITHOUT_RECIPE = Set.of(
-        // Creative only.
         "creative_energy"
     );
 
@@ -258,7 +256,6 @@ public final class RecipeTests {
 
     private static boolean overlaps(final Layout a, final Layout b) {
         if (!a.isShapeless() && !b.isShapeless()) {
-            // Shaped recipes match mirrored as well, so both orientations have to be ruled out.
             return shapedOverlaps(a, b, false) || shapedOverlaps(a, b, true);
         }
         return anyOrderOverlaps(a.occupiedCells(), b.occupiedCells());
@@ -312,8 +309,6 @@ public final class RecipeTests {
 
     // --------------------------------------------------------------------- //
 
-    // Cells hold the items each grid slot accepts; an empty set is an empty slot. Shapeless
-    // recipes have no dimensions and carry only their ingredients.
     private record Layout(int width, int height, List<Set<Item>> cells) {
         boolean isShapeless() {
             return width == 0;

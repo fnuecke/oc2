@@ -47,9 +47,6 @@ public final class GuestTestPortDevice extends IdentityProxy<ItemStack> implemen
 
     // --------------------------------------------------------------------- //
 
-    /**
-     * The host end of the port, once the device has been mounted into a running machine.
-     */
     @Nullable
     public GuestTestChannel getChannel() {
         return channel;

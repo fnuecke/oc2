@@ -15,18 +15,18 @@ import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 @PrefixGameTestTemplate(false)
 public final class SerialInterfaceTestsNeoForge {
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void aConnectorResolvesTheSerialCardOfTheComputerItIsOn(final GameTestHelper helper) {
-        SerialInterfaceTests.aConnectorResolvesTheSerialCardOfTheComputerItIsOn(helper);
+    public static void connectorResolvesSerialCard(final GameTestHelper helper) {
+        SerialInterfaceTests.connectorResolvesSerialCard(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void aDisabledSideCarriesNoSerialTraffic(final GameTestHelper helper) {
-        SerialInterfaceTests.aDisabledSideCarriesNoSerialTraffic(helper);
+    public static void disabledSideExposesNoInterface(final GameTestHelper helper) {
+        SerialInterfaceTests.disabledSideExposesNoInterface(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void theCardHearsTheSegmentItIsOn(final GameTestHelper helper) {
-        SerialInterfaceTests.theCardHearsTheSegmentItIsOn(helper);
+    public static void cardDoesNotEchoItsOwnFrame(final GameTestHelper helper) {
+        SerialInterfaceTests.cardDoesNotEchoItsOwnFrame(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)

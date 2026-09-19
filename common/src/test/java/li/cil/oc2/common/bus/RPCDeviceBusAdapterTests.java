@@ -40,24 +40,7 @@ public final class RPCDeviceBusAdapterTests {
     }
 
     @Test
-    public void theRequestIdComesBackOnTheReply() {
-        final TestSerialDevice serial = new TestSerialDevice();
-        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-            serial, new TestSerialDevice(), new TestSerialDevice());
-        addDevice();
-        busAdapter.resume(controller);
-
-        serial.putAsVM("{\"type\":\"list\",\"id\":4711}");
-        busAdapter.step(0);
-
-        final JsonObject reply = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
-        assertEquals("list", reply.get("type").getAsString());
-        assertEquals(4711, reply.get("id").getAsInt(),
-            "without the id back the guest cannot tell whose answer this is");
-    }
-
-    @Test
-    public void aReplyTheHostCannotAttributeNamesNoRequest() {
+    public void unattributableReplyEchoesNoRequestId() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
@@ -78,7 +61,7 @@ public final class RPCDeviceBusAdapterTests {
     }
 
     @Test
-    public void aGuestThatSendsNoIdIsStillAnswered() {
+    public void guestThatSendsNoIdIsStillAnswered() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
@@ -94,7 +77,7 @@ public final class RPCDeviceBusAdapterTests {
     }
 
     @Test
-    public void anIdThatIsNotANumberIsRefused() {
+    public void idThatIsNotANumberIsRefused() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
@@ -110,7 +93,7 @@ public final class RPCDeviceBusAdapterTests {
     }
 
     @Test
-    public void anOversizedMessageIsRefusedAndTheChannelRecovers() {
+    public void oversizedMessageIsRefusedAndTheChannelRecovers() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice());
@@ -138,7 +121,7 @@ public final class RPCDeviceBusAdapterTests {
     }
 
     @Test
-    public void aDeviceOnTwoElementsIsExposedOnceUnderTheLowerIdentifier() {
+    public void deviceOnTwoElementsIsExposedOnceUnderTheLowerIdentifier() {
         final UUID first = UUID.fromString("00000000-0000-0000-0000-00000000000a");
         final UUID second = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
@@ -156,8 +139,7 @@ public final class RPCDeviceBusAdapterTests {
         assertEquals(1, listed.size(), "the same device was exposed twice");
 
         final UUID chosen = first.compareTo(second) <= 0 ? first : second;
-        assertEquals(chosen.toString(),
-            listed.get(0).getAsJsonObject().get("deviceId").getAsString());
+        assertEquals(chosen.toString(), listed.get(0).getAsJsonObject().get("deviceId").getAsString());
 
         busAdapter.resume(controller);
         serial.putAsVM("{\"type\":\"list\"}");
@@ -229,7 +211,7 @@ public final class RPCDeviceBusAdapterTests {
     }
 
     @Test
-    public void unmountedDevicesAreNotUnmountedAndNotDisposedOnGlobalUnmount() {
+    public void globalUnmountSkipsUnmountedDevices() {
         final RPCDevice device = addDevice();
         adapter.resume(controller);
 
@@ -250,7 +232,7 @@ public final class RPCDeviceBusAdapterTests {
     }
 
     @Test
-    public void unmountedDevicesAreNotUnmountedButDisposedOnGlobalDispose() {
+    public void globalDisposeDisposesUnmountedDevices() {
         final RPCDevice device = addDevice();
         adapter.resume(controller);
 

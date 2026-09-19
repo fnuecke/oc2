@@ -2,12 +2,11 @@
 
 package li.cil.oc2.common.network;
 
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
+import li.cil.oc2.MinecraftBootstrap;
 import net.minecraft.server.level.ServerPlayer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,19 +16,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
+@ExtendWith(MinecraftBootstrap.class)
 public final class StreamingLoadBalancerTests {
     private static final int PLENTY_OF_BUDGET = 1024 * 1024;
     private static final long CACHE_EXPIRY_MILLIS = 2000;
 
     private final AtomicLong now = new AtomicLong();
     private final List<String> sent = new ArrayList<>();
-    private final List<ServerPlayer> players = new ArrayList<>(); // weak refs keep-alive
-
-    @BeforeAll
-    public static void setUpAll() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
+    private final List<ServerPlayer> players = new ArrayList<>();
 
     @BeforeEach
     public void setUp() {
@@ -41,7 +35,7 @@ public final class StreamingLoadBalancerTests {
     // --------------------------------------------------------------------- //
 
     @Test
-    public void aWatchedSourceSendsToPlayers() {
+    public void watchedSourceSendsToPlayers() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
         final ServerPlayer player = playerAtOrigin();
         balancer.update("a", player);
@@ -53,7 +47,7 @@ public final class StreamingLoadBalancerTests {
     }
 
     @Test
-    public void aSourceWithNothingToSendSendsNothing() {
+    public void sourceWithNothingToSendSendsNothing() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
         balancer.update("a", playerAtOrigin());
         balancer.entry("a").ready = false;
@@ -64,7 +58,7 @@ public final class StreamingLoadBalancerTests {
     }
 
     @Test
-    public void aSourceIsForgottenOnceItsCachesExpire() {
+    public void sourceIsForgottenOnceItsCachesExpire() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
         balancer.update("a", playerAtOrigin());
 
@@ -149,7 +143,7 @@ public final class StreamingLoadBalancerTests {
     }
 
     @Test
-    public void aNewSourceIsServedNext() {
+    public void newSourceIsServedNext() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
         final ServerPlayer player = playerAtOrigin();
         balancer.update("a", player);
@@ -164,7 +158,7 @@ public final class StreamingLoadBalancerTests {
     }
 
     @Test
-    public void aSingleWatcherCostsASourceNothing() {
+    public void singleWatcherCostsASourceNothing() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
         balancer.update("a", playerAtOrigin());
 
@@ -195,15 +189,14 @@ public final class StreamingLoadBalancerTests {
 
     @Test
     public void everyWatcherIsChargedForWhatItReceives() {
-        // Budget caps at 225, and 22 comes back per tick, so nothing lands exactly on zero.
         final TestBalancer balancer = new TestBalancer(450, 1);
         balancer.update("a", playerAtOrigin());
         balancer.update("a", playerAtOrigin());
-        balancer.entry("a").payloadSize = 100; // 200 a send, with two watchers to send to
+        balancer.entry("a").payloadSize = 100;
 
-        balancer.tick(); // sends
-        balancer.tick(); // the second watcher's skipped round
-        balancer.tick(); // sends again, overdrawing the budget
+        balancer.tick();
+        balancer.tick();
+        balancer.tick();
         assertEquals(2, sent.size(), "the budget covers two sends before it goes negative");
         assertEquals(2, balancer.entry("a").recipients.get(0).size(), "both watchers were sent to");
 
@@ -222,7 +215,7 @@ public final class StreamingLoadBalancerTests {
         final ServerPlayer player = playerAtOrigin();
         for (final String key : List.of("a", "b", "c")) {
             balancer.update(key, player);
-            balancer.entry(key).payloadSize = 150; // overdraws repeatedly, so sending keeps pausing
+            balancer.entry(key).payloadSize = 150;
         }
 
         for (int i = 0; i < 60; i++) {
@@ -238,8 +231,7 @@ public final class StreamingLoadBalancerTests {
     }
 
     @Test
-    public void aChargeLandingAfterTheSendStillPausesIt() {
-        // Projectors charge from their encoder thread, well after the send was decided.
+    public void chargeLandingAfterTheSendStillPausesIt() {
         final TestBalancer balancer = new TestBalancer(450, 1);
         balancer.update("a", playerAtOrigin());
         balancer.entry("a").payloadSize = 0;
@@ -247,14 +239,13 @@ public final class StreamingLoadBalancerTests {
         balancer.tick();
         assertEquals(1, sent.size());
 
-        balancer.consumeBudget(1000); // the encode finishes and settles up
+        balancer.consumeBudget(1000);
         balancer.tick();
         assertEquals(1, sent.size(), "a charge that lands late still has to stop the next send");
     }
 
     @Test
     public void spendingTheBudgetPausesSending() {
-        // Budget caps at 200, and 20 comes back per tick.
         final TestBalancer balancer = new TestBalancer(400, 1);
         balancer.update("a", playerAtOrigin());
         balancer.entry("a").payloadSize = 1000;

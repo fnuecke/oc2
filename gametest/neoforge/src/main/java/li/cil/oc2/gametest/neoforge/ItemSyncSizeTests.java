@@ -35,7 +35,7 @@ public final class ItemSyncSizeTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
-    public static void storageItemsSyncByHandleNotByPayload(final GameTestHelper helper) {
+    public static void storageItemsSyncByHandle(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -70,8 +70,6 @@ public final class ItemSyncSizeTests {
                 assertSyncSize(registries, "hard drive", hardDrive, MAX_DEVICE_STACK_BYTES);
                 assertSyncSize(registries, "floppy", floppy, MAX_DEVICE_STACK_BYTES);
 
-                // Breaking a computer folds its whole device inventory into the dropped item, so
-                // this stack is the sum of everything above plus the block entity's own state.
                 final ItemStack computerStack = new ItemStack(Items.COMPUTER.get());
                 computer.blockEntity().exportToItemStack(computerStack);
                 assertSyncSize(registries, "computer item", computerStack, MAX_COMPUTER_STACK_BYTES);

@@ -16,13 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public final class CompoundNetworkInterfaceTests {
     @Test
-    public void aSideWithoutAnyCardHasNoInterface() {
+    public void sideWithoutAnyCardHasNoInterface() {
         assertNull(CompoundNetworkInterface.of(List.of(), Direction.UP));
         assertNull(CompoundNetworkInterface.of(List.of(new Card(Direction.NORTH)), Direction.UP));
     }
 
     @Test
-    public void aLoneCardIsItsOwnInterface() {
+    public void loneCardIsItsOwnInterface() {
         final Card card = new Card(Direction.UP);
 
         assertSame(card.networkInterface, CompoundNetworkInterface.of(List.of(card), Direction.UP));
@@ -45,7 +45,7 @@ public final class CompoundNetworkInterfaceTests {
     }
 
     @Test
-    public void aCardHearsWhatTheOthersOnItsSideSend() {
+    public void cardHearsWhatTheOthersOnItsSideSend() {
         final Card first = new Card(Direction.UP);
         final Card second = new Card(Direction.UP);
         final Card elsewhere = new Card(Direction.NORTH);

@@ -64,6 +64,11 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(template = TEMPLATE)
+    public void simulatedExtractDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.simulatedExtractDoesNotMutate(helper, ENERGY);
+    }
+
+    @GameTest(template = TEMPLATE)
     public void committedExtractMutatesByReportedAmount(final GameTestHelper helper) {
         CapabilityAdapterTests.committedExtractMutatesByReportedAmount(helper, ENERGY);
     }

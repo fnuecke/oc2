@@ -74,9 +74,6 @@ public final class ConnectorFixture {
         return networkInterface;
     }
 
-    /**
-     * Private state, but the only place the "did it notice the card" question can be answered.
-     */
     @Nullable
     public Object adjacentInterface() {
         try {

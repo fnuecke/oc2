@@ -35,7 +35,7 @@ public class TransportLayerTests {
     // --------------------------------------------------------------------- //
 
     @Test
-    public void aStreamSegmentStartsAtTheStartOfTheMessage() {
+    public void streamSegmentStartsAtTheStartOfTheMessage() {
         final StreamSession stream = establishStream();
         stream.getReceiveBuffer().put("hello".getBytes(StandardCharsets.UTF_8));
 
@@ -45,7 +45,7 @@ public class TransportLayerTests {
     }
 
     @Test
-    public void aWithdrawnClaimLeavesTheMessageBufferUntouched() {
+    public void withdrawnClaimLeavesTheMessageBufferUntouched() {
         sendUdp();
         final AbstractSession datagram = sessionLayer.lastDatagram;
         assertNotNull(datagram, "the transport layer should have opened a datagram session");
@@ -70,7 +70,7 @@ public class TransportLayerTests {
     }
 
     @Test
-    public void aSegmentForAnUnknownConnectionIsAnsweredWithAReset() {
+    public void segmentForAnUnknownConnectionIsAnsweredWithAReset() {
         sendTcp(TcpHeader.FLAG_ACK, guestSequence, 12345);
 
         assertNull(sessionLayer.lastStream, "a stray segment must not cost a session");
@@ -164,7 +164,7 @@ public class TransportLayerTests {
         final ByteBuffer buffer = ByteBuffer.allocate(32);
         buffer.putShort(GUEST_PORT);
         buffer.putShort((short) 53);
-        buffer.putShort((short) 12); // Length: header plus four bytes.
+        buffer.putShort((short) 12);
         buffer.putShort((short) 0);
         buffer.put("ping".getBytes(StandardCharsets.UTF_8));
         buffer.flip();

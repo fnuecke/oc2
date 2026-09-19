@@ -10,12 +10,12 @@ import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
 
 public final class SerialInterfaceTestsFabric {
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public void aConnectorResolvesTheSerialCardOfTheComputerItIsOn(final GameTestHelper helper) {
-        SerialInterfaceTests.aConnectorResolvesTheSerialCardOfTheComputerItIsOn(helper);
+    public void connectorResolvesSerialCard(final GameTestHelper helper) {
+        SerialInterfaceTests.connectorResolvesSerialCard(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public void aDisabledSideCarriesNoSerialTraffic(final GameTestHelper helper) {
-        SerialInterfaceTests.aDisabledSideCarriesNoSerialTraffic(helper);
+    public void disabledSideExposesNoInterface(final GameTestHelper helper) {
+        SerialInterfaceTests.disabledSideExposesNoInterface(helper);
     }
 }

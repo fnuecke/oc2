@@ -49,7 +49,7 @@ public final class RPCMethodTests {
         final JsonObject request = new JsonObject();
         request.addProperty("type", "list");
         serialDevice.putAsVM(request.toString());
-        rpcAdapter.step(0); // process message
+        rpcAdapter.step(0);
 
         final String message = serialDevice.readMessageAsVM();
         assertNotNull(message);
@@ -66,7 +66,7 @@ public final class RPCMethodTests {
     }
 
     @Test
-    public void simpleMethod() {
+    public void invokePassesArgument() {
         final VoidIntMethod method = new VoidIntMethod();
         final TestRPCDevice device = new TestRPCDevice(method);
         setDevice(device, DEVICE_UUID);
@@ -77,7 +77,7 @@ public final class RPCMethodTests {
     }
 
     @Test
-    public void returningMethod() {
+    public void invokeReturnsResult() {
         final IntLongMethod method = new IntLongMethod();
         final TestRPCDevice device = new TestRPCDevice(method);
         setDevice(device, DEVICE_UUID);
@@ -89,7 +89,7 @@ public final class RPCMethodTests {
     }
 
     @Test
-    public void annotatedObject() {
+    public void annotatedObjectMethodIsInvocable() {
         final SimpleObject object = new SimpleObject();
         final ObjectDevice device = new ObjectDevice(object);
         setDevice(device, DEVICE_UUID);
@@ -121,7 +121,6 @@ public final class RPCMethodTests {
         when(busController.getDevices()).thenReturn(singleton(device));
         when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
 
-        // trigger device cache rebuild
         rpcAdapter.resume(busController);
     }
 

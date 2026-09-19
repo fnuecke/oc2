@@ -39,8 +39,7 @@ public final class NetworkingTests {
                 final int after = link.hubB.framesReceived();
                 if (after <= before) {
                     throw new GameTestAssertException(
-                        "a frame sent from the connector's own adjacent interface never reached "
-                            + "the far end of the cable (hub frame count " + before + " -> " + after + ")");
+                        "frame from the connector's own interface did not reach the far end (hub frame count " + before + " -> " + after + ")");
                 }
             })
             .thenSucceed();
@@ -77,8 +76,7 @@ public final class NetworkingTests {
                     .writeEthernetFrame(link.hubA.blockEntity(), FRAME, 12);
 
                 if (link.hubA.framesReceived() != before) {
-                    throw new GameTestAssertException(
-                        "a frame was echoed back to the interface it came from");
+                    throw new GameTestAssertException("frame was echoed back to its source");
                 }
             })
             .thenSucceed();
@@ -109,7 +107,7 @@ public final class NetworkingTests {
         final HubFixture hubA = HubFixture.place(helper, player, HUB_A);
         final HubFixture hubB = HubFixture.place(helper, player, HUB_B);
 
-        player.setXRot(90); // look down
+        player.setXRot(90);
         final ConnectorFixture connectorA = ConnectorFixture.place(helper, player, HUB_A.above());
         final ConnectorFixture connectorB = ConnectorFixture.place(helper, player, HUB_B.above());
 

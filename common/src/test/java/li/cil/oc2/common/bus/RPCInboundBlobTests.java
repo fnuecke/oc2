@@ -70,7 +70,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void aCorruptedPayloadIsRefusedAndTheChannelKeepsWorking() {
+    public void corruptedPayloadIsRefusedAndTheChannelKeepsWorking() {
         final byte[] corrupted = PAYLOAD.clone();
         corrupted[3] ^= 0x01;
 
@@ -81,7 +81,6 @@ public final class RPCInboundBlobTests {
         assertNull(sink.received, "a corrupted payload must not reach the callback");
         assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_CORRUPT, reply().get("data").getAsString());
 
-        // And the next call still works, so a bad payload is not fatal to the channel.
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM(invocation(PAYLOAD.length, CHECKSUM));
         adapter.step(0);
@@ -89,7 +88,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void anImplausibleLengthIsRefused() {
+    public void implausibleLengthIsRefused() {
         serialDevice.putAsVM(invocation(Integer.MAX_VALUE, 0));
         adapter.step(0);
 
@@ -115,7 +114,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void anUnderSentPayloadDoesNotWedgeTheBus() {
+    public void underSentPayloadDoesNotWedgeTheBus() {
         blobDevice.putRawAsVM(new byte[]{PAYLOAD[0]});
         serialDevice.putAsVM(invocation(PAYLOAD.length, CHECKSUM));
         adapter.step(0);
@@ -123,14 +122,13 @@ public final class RPCInboundBlobTests {
         assertNull(sink.received);
         assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, reply().get("data").getAsString());
 
-        // An unrelated request is still answered, which is the point.
         serialDevice.putAsVM("{\"type\":\"list\"}");
         adapter.step(0);
         assertEquals("list", reply().get("type").getAsString(), "the bus stopped answering");
     }
 
     @Test
-    public void anOverSentPayloadIsRefusedAndTheChannelRecovers() {
+    public void overSentPayloadIsRefusedAndTheChannelRecovers() {
         final byte[] tooMuch = new byte[PAYLOAD.length + 3];
         System.arraycopy(PAYLOAD, 0, tooMuch, 0, PAYLOAD.length);
         blobDevice.putRawAsVM(tooMuch);
@@ -147,7 +145,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void aPayloadOnANonInvocationIsRefused() {
+    public void payloadOnANonInvocationIsRefused() {
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM("{\"type\":\"list\",\"blob\":{\"length\":" + PAYLOAD.length
             + ",\"checksum\":" + CHECKSUM + "}}");
@@ -157,7 +155,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void aZeroLengthPayloadIsAccepted() {
+    public void zeroLengthPayloadIsAccepted() {
         serialDevice.putAsVM(invocation(0, 0));
         adapter.step(0);
 
@@ -178,7 +176,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void aBinaryParameterOnASynchronizedCallbackIsRefusedClearly() {
+    public void binaryParameterOnASynchronizedCallbackIsRefusedClearly() {
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":{\"length\":" + PAYLOAD.length
             + ",\"checksum\":" + CHECKSUM + "},\"data\":{\"deviceId\":\"" + deviceId
@@ -191,7 +189,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void aMalformedPayloadReferenceIsRefused() {
+    public void malformedPayloadReferenceIsRefused() {
         for (final String blob : new String[]{"{\"checksum\":0}", "{\"length\":\"x\",\"checksum\":0}", "5"}) {
             setupEach();
             serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":" + blob
@@ -205,7 +203,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void anInlineByteArrayParameterIsRefused() {
+    public void inlineByteArrayParameterIsRefused() {
         serialDevice.putAsVM("{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
             + "\",\"name\":\"writeBlob\",\"parameters\":[[1,2,3]]}}");
         adapter.step(0);
@@ -215,7 +213,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void aMarkerWithNoPayloadIsRefused() {
+    public void markerWithNoPayloadIsRefused() {
         serialDevice.putAsVM("{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
             + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
         adapter.step(0);
@@ -277,7 +275,7 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void aPayloadPastTheCapIsRefusedAndTheChannelRecovers() {
+    public void payloadPastTheCapIsRefusedAndTheChannelRecovers() {
         final byte[] tooMuch = new byte[Constants.RPC_MAX_PAYLOAD_SIZE + 1];
         blobDevice.putRawAsVM(tooMuch);
         adapter.step(0);

@@ -2,25 +2,19 @@
 
 package li.cil.oc2.common.util;
 
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.util.Side;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.Direction;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MinecraftBootstrap.class)
 public final class HorizontalBlockUtilsTests {
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
-
     @Test
     public void absoluteSidesIgnoreFacing() {
         for (final Direction facing : Direction.Plane.HORIZONTAL) {
@@ -59,7 +53,7 @@ public final class HorizontalBlockUtilsTests {
     }
 
     @Test
-    public void toLocalInvertsToGlobal() {
+    public void toLocalOfGlobalMatchesToLocalOfSide() {
         for (final Direction facing : Direction.Plane.HORIZONTAL) {
             final BlockState blockState = facing(facing);
             for (final Side side : Side.values()) {

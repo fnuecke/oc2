@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.TerminalBlockEntity;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
@@ -39,7 +40,7 @@ public final class TerminalTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void terminalAndAGuestTalkOverTheWire(final GameTestHelper helper) {
+    public static void terminalRelaysGuestIo(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -60,10 +61,9 @@ public final class TerminalTests {
                     .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
                     .install(DeviceTypes.CARD.get(), card);
 
-                // The screen looks east, so the wire goes on its west face.
                 placeTerminal(helper, player, terminalPos, Direction.EAST);
 
-                player.setYRot(90); // looking west, so the connector hangs on the computer's east side
+                player.setYRot(90);
                 final ConnectorFixture atComputer = ConnectorFixture.place(helper, player, computer.pos().east());
                 final ConnectorFixture atTerminal = placeConnectorOn(helper, player, terminalPos, Direction.WEST);
                 atComputer.linkTo(atTerminal);
@@ -119,7 +119,7 @@ public final class TerminalTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
-    public static void terminalIsConnectedWhileAConnectorPollsIt(final GameTestHelper helper) {
+    public static void terminalTracksConnector(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
         final BlockPos firstPos = COMPUTER_POS.east(2);
@@ -164,7 +164,7 @@ public final class TerminalTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
-    public static void terminalsSharingAnAddressDoNotHearEachOther(final GameTestHelper helper) {
+    public static void sameAddressTerminalsStaySilent(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
         final BlockPos firstPos = COMPUTER_POS.east(2);
@@ -205,7 +205,7 @@ public final class TerminalTests {
     private static ConnectorFixture placeConnectorOn(final GameTestHelper helper, final Player player, final BlockPos pos, final Direction face) {
         final BlockPos connectorPos = pos.relative(face);
         TestSupport.useOn(helper, player, new ItemStack(Items.NETWORK_CONNECTOR.get()), pos, face);
-        if (!helper.getBlockState(connectorPos).is(li.cil.oc2.common.block.Blocks.NETWORK_CONNECTOR.get())) {
+        if (!helper.getBlockState(connectorPos).is(Blocks.NETWORK_CONNECTOR.get())) {
             throw new GameTestAssertException("no connector at " + connectorPos);
         }
         return ConnectorFixture.at(helper, connectorPos);

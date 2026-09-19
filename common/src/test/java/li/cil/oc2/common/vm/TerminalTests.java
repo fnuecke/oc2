@@ -2,11 +2,10 @@
 
 package li.cil.oc2.common.vm;
 
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -17,16 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@ExtendWith(MinecraftBootstrap.class)
 public class TerminalTests {
     private static final int COLOR_BLACK = 0;
     private static final int COLOR_RED = 1;
     private static final int COLOR_BLUE = 4;
-
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
 
     @Test
     public void asciiIsUnchanged() {
@@ -44,7 +38,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aSequenceMayStraddleTwoWrites() {
+    public void sequenceMayStraddleTwoWrites() {
         final Terminal terminal = new Terminal();
         final byte[] bytes = "ä".getBytes(StandardCharsets.UTF_8);
 
@@ -55,7 +49,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aSequenceSurvivesSaveAndLoad() {
+    public void sequenceSurvivesSaveAndLoad() {
         final byte[] bytes = "ä".getBytes(StandardCharsets.UTF_8);
 
         final Terminal saved = new Terminal();
@@ -183,7 +177,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void eraseToStartOfLineAtTheRightMarginLeavesTheNextLineAlone() {
+    public void eraseLineStartAtMarginSparesNextLine() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[2;1HZ\033[1;1H");
         write(terminal, fill(Terminal.WIDTH));
@@ -194,7 +188,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void eraseToStartOfLineAtTheRightMarginOfTheLastLineStaysInBounds() {
+    public void eraseLineStartAtLastCellInBounds() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[24;1H");
         write(terminal, fill(Terminal.WIDTH));
@@ -205,7 +199,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void eraseToStartOfScreenAtTheRightMarginOfTheLastLineStaysInBounds() {
+    public void eraseScreenStartAtLastCellInBounds() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[24;1H");
         write(terminal, fill(Terminal.WIDTH));
@@ -321,10 +315,9 @@ public class TerminalTests {
     }
 
     @Test
-    public void anExtendedColorTruncatedByTheArgumentLimitIsIgnored() {
+    public void extendedColorTruncatedByTheArgumentLimitIsIgnored() {
         final Terminal terminal = new Terminal();
 
-        // More parameters than we keep, so the trailing color index is never seen.
         write(terminal, "\033[1;1;1;1;1;1;38;5;196mX");
 
         final int cell = terminal.getCell(0);
@@ -526,7 +519,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void anUnterminatedStringIsRecoveredByReset() {
+    public void unterminatedStringIsRecoveredByReset() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033]0;never terminated");
 
@@ -648,7 +641,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theLineDrawingSetCanBeMappedIntoG0() {
+    public void lineDrawingSetCanBeMappedIntoG0() {
         final Terminal terminal = new Terminal();
 
         write(terminal, "\033(0lqk");
@@ -719,9 +712,9 @@ public class TerminalTests {
     }
 
     @Test
-    public void aSaturatedCursorForwardStopsAtTheLastColumn() {
+    public void saturatedCursorForwardStopsAtTheLastColumn() {
         final Terminal terminal = new Terminal();
-        write(terminal, "\033[1;2H"); // Not column 0, or the addition would not overflow.
+        write(terminal, "\033[1;2H");
 
         write(terminal, "\033[2147483647C");
 
@@ -729,9 +722,9 @@ public class TerminalTests {
     }
 
     @Test
-    public void aSaturatedCursorDownStopsAtTheLastRow() {
+    public void saturatedCursorDownStopsAtTheLastRow() {
         final Terminal terminal = new Terminal();
-        write(terminal, "\033[2;1H"); // Not row 0, or the addition would not overflow.
+        write(terminal, "\033[2;1H");
 
         write(terminal, "\033[2147483647B");
 
@@ -739,7 +732,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aSaturatedCursorPositionStopsAtTheLastRow() {
+    public void saturatedCursorPositionStopsAtTheLastRow() {
         final Terminal terminal = new Terminal();
 
         write(terminal, "\033[2147483647;2147483647H");
@@ -749,7 +742,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aSaturatedCursorPositionStopsAtTheBottomMarginInOriginMode() {
+    public void saturatedCursorPositionClampsToBottomMarginInOriginMode() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[5;20r\033[?6h");
 
@@ -830,7 +823,7 @@ public class TerminalTests {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[5;20r");
 
-        write(terminal, "\033[6h\033[H"); // ANSI mode 6, not DECOM.
+        write(terminal, "\033[6h\033[H");
 
         assertEquals(0, terminal.getCursorY(), "setting an ANSI mode must not turn on origin mode");
     }
@@ -839,7 +832,7 @@ public class TerminalTests {
     public void resettingAnAnsiModeLeavesTheDecPrivateModeAlone() {
         final Terminal terminal = new Terminal();
 
-        write(terminal, "\033[7l"); // ANSI mode 7, not DECAWM.
+        write(terminal, "\033[7l");
 
         write(terminal, fill(Terminal.WIDTH + 5));
         assertEquals(fill(5) + " ".repeat(Terminal.WIDTH - 5), readLine(terminal, 1),
@@ -850,7 +843,7 @@ public class TerminalTests {
     public void highModeNumbersDoNotAliasOntoLowOnes() {
         final Terminal terminal = new Terminal();
 
-        write(terminal, "\033[?2004h"); // Bracketed paste; a plain shift by 2004 would land on bit 20.
+        write(terminal, "\033[?2004h");
 
         write(terminal, "abc\n");
         assertEquals(3, terminal.getCursorX(), "a line feed must not have turned into a new line");
@@ -867,7 +860,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theCursorColumnNeverLeavesTheScreen() {
+    public void cursorColumnNeverLeavesTheScreen() {
         final Terminal terminal = new Terminal();
 
         write(terminal, fill(Terminal.WIDTH));
@@ -876,9 +869,9 @@ public class TerminalTests {
     }
 
     @Test
-    public void aTabPastTheLastStopMovesToTheRightMargin() {
+    public void tabPastTheLastStopMovesToTheRightMargin() {
         final Terminal terminal = new Terminal();
-        write(terminal, fill(72)); // The last tab stop.
+        write(terminal, fill(72));
 
         write(terminal, "\tX");
 
@@ -887,7 +880,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aPendingWrapSurvivesSaveAndLoad() {
+    public void pendingWrapSurvivesSaveAndLoad() {
         final Terminal saved = new Terminal();
         write(saved, fill(Terminal.WIDTH));
 
@@ -899,7 +892,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aControlSequenceSurvivesSaveAndLoad() {
+    public void controlSequenceSurvivesSaveAndLoad() {
         final Terminal saved = new Terminal();
         write(saved, "\033[2");
 
@@ -912,7 +905,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theSavedCursorRestoresTheCharacterSet() {
+    public void savedCursorRestoresTheCharacterSet() {
         final Terminal terminal = new Terminal();
 
         write(terminal, "\033(0\0337\033(B\0338l");
@@ -921,7 +914,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theSavedCursorRestoresOriginMode() {
+    public void savedCursorRestoresOriginMode() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[5;20r\033[?6h");
 
@@ -931,7 +924,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theSavedCursorRestoresAPendingWrap() {
+    public void savedCursorRestoresAPendingWrap() {
         final Terminal terminal = new Terminal();
         write(terminal, fill(Terminal.WIDTH));
 
@@ -941,7 +934,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theSavedCursorSurvivesSaveAndLoad() {
+    public void savedCursorSurvivesSaveAndLoad() {
         final Terminal saved = new Terminal();
         write(saved, "\033[6;7H\0337\033[1;1H");
 
@@ -954,7 +947,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aScrollRegionPastTheLastRowIsClamped() {
+    public void scrollRegionPastTheLastRowIsClamped() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[5;10r");
 
@@ -964,7 +957,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aDegenerateScrollRegionCoversTheScreen() {
+    public void degenerateScrollRegionCoversTheScreen() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[5;10r");
 
@@ -1161,14 +1154,14 @@ public class TerminalTests {
     }
 
     @Test
-    public void theCursorIsVisibleByDefault() {
+    public void cursorIsVisibleByDefault() {
         final Terminal terminal = new Terminal();
 
         assertTrue(terminal.isCursorVisible());
     }
 
     @Test
-    public void theCursorCanBeHiddenAndShown() {
+    public void cursorCanBeHiddenAndShown() {
         final Terminal terminal = new Terminal();
 
         write(terminal, "\033[?25l");
@@ -1179,7 +1172,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aResetMakesTheCursorVisibleAgain() {
+    public void resetMakesTheCursorVisibleAgain() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?25l");
 
@@ -1229,7 +1222,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aResetTurnsBracketedPasteOff() {
+    public void resetTurnsBracketedPasteOff() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?2004h");
 
@@ -1242,7 +1235,7 @@ public class TerminalTests {
     public void unimplementedHighModesLeaveLowOnesAlone() {
         final Terminal terminal = new Terminal();
 
-        write(terminal, "\033[?39l"); // A plain shift by 39 would land on DECAWM and turn wrapping off.
+        write(terminal, "\033[?39l");
 
         write(terminal, fill(Terminal.WIDTH + 5));
 
@@ -1250,7 +1243,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aPasteIsBracketedWhenTheGuestAsksForIt() {
+    public void pasteIsBracketedWhenTheGuestAsksForIt() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?2004h");
 
@@ -1260,7 +1253,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aPasteIsPlainWhenTheGuestDidNotAskForBracketing() {
+    public void pasteIsPlainWhenTheGuestDidNotAskForBracketing() {
         final Terminal terminal = new Terminal();
 
         terminal.putPaste("hi");
@@ -1269,7 +1262,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aPasteCannotCloseItsOwnBracket() {
+    public void pasteCannotCloseItsOwnBracket() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?2004h");
 
@@ -1279,7 +1272,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void anOversizedPasteStillGetsItsTerminator() {
+    public void oversizedPasteStillGetsItsTerminator() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?2004h");
 
@@ -1344,7 +1337,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aBrightBackgroundIsKeptWhenErasing() {
+    public void brightBackgroundIsKeptWhenErasing() {
         final Terminal terminal = new Terminal();
 
         write(terminal, "\033[104m\033[2J");
@@ -1364,7 +1357,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aBrightForegroundSurvivesSaveAndLoad() {
+    public void brightForegroundSurvivesSaveAndLoad() {
         final Terminal saved = new Terminal();
         write(saved, "\033[91mA");
 
@@ -1376,7 +1369,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theAltBufferIsInactiveByDefault() {
+    public void altBufferIsInactiveByDefault() {
         final Terminal terminal = new Terminal();
 
         assertFalse(terminal.isAltBufferActive());
@@ -1407,7 +1400,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theLegacyAltBufferModeAlsoRestoresTheScreen() {
+    public void legacyAltBufferModeAlsoRestoresTheScreen() {
         final Terminal terminal = new Terminal();
         write(terminal, "shell");
 
@@ -1422,7 +1415,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theAltBufferRestoresColorsAndStyles() {
+    public void altBufferRestoresColorsAndStyles() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[91;44mX\033[0m");
 
@@ -1433,7 +1426,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theAltBufferWithCursorRestoresTheCursor() {
+    public void altBufferWithCursorRestoresTheCursor() {
         final Terminal terminal = new Terminal();
         write(terminal, "abc");
 
@@ -1444,7 +1437,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theLegacyAltBufferModeLeavesTheCursorAlone() {
+    public void legacyAltBufferModeLeavesTheCursorAlone() {
         final Terminal terminal = new Terminal();
         write(terminal, "abc");
 
@@ -1470,7 +1463,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aResetLeavesTheAltBuffer() {
+    public void resetLeavesTheAltBuffer() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?1049h");
 
@@ -1480,7 +1473,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theAltBufferSurvivesSaveAndLoad() {
+    public void altBufferSurvivesSaveAndLoad() {
         final Terminal saved = new Terminal();
         write(saved, "shell\033[?1049heditor");
 
@@ -1504,7 +1497,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theClearingAltBufferModeAlsoRestoresTheScreen() {
+    public void clearingAltBufferModeAlsoRestoresTheScreen() {
         final Terminal terminal = new Terminal();
         write(terminal, "shell");
 
@@ -1517,7 +1510,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theCursorIsRestoredByWhicheverModeLeavesTheAltBuffer() {
+    public void cursorIsRestoredByWhicheverModeLeavesTheAltBuffer() {
         final Terminal terminal = new Terminal();
         write(terminal, "abc");
 
@@ -1529,7 +1522,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aCursorIsOnlyRestoredIfTheAltBufferSavedOne() {
+    public void cursorIsOnlyRestoredIfTheAltBufferSavedOne() {
         final Terminal terminal = new Terminal();
         write(terminal, "abc\0337\033[20;40Hxyz");
 
@@ -1553,7 +1546,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theAltBufferContentsSurviveSaveAndLoad() {
+    public void altBufferContentsSurviveSaveAndLoad() {
         final Terminal saved = new Terminal();
         write(saved, "shell\033[?1049h\033[1;1Heditor");
 
@@ -1594,7 +1587,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theLegacyEncodingReportsOneCodeForEveryRelease() {
+    public void legacyEncodingReportsOneCodeForEveryRelease() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?1000h");
 
@@ -1604,7 +1597,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theSgrEncodingKeepsPressAndReleaseApart() {
+    public void sgrEncodingKeepsPressAndReleaseApart() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?1000h\033[?1006h");
 
@@ -1639,7 +1632,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theWheelDoesNothingOnTheNormalScreen() {
+    public void wheelDoesNothingOnTheNormalScreen() {
         final Terminal terminal = new Terminal();
 
         assertFalse(terminal.putScroll(true, 3), "there is no scrollback to move, so the GUI keeps the event");
@@ -1647,7 +1640,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theWheelSendsCursorKeysOnTheAltScreen() {
+    public void wheelSendsCursorKeysOnTheAltScreen() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?1049h");
 
@@ -1657,7 +1650,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theWheelSendsDownForNegativeScroll() {
+    public void wheelSendsDownForNegativeScroll() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?1049h");
 
@@ -1667,7 +1660,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void theWheelFollowsApplicationCursorKeyMode() {
+    public void wheelFollowsApplicationCursorKeyMode() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?1049h\033[?1h");
 
@@ -1686,7 +1679,7 @@ public class TerminalTests {
     }
 
     @Test
-    public void aResetTurnsAlternateScrollBackOn() {
+    public void resetTurnsAlternateScrollBackOn() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[?1007l");
 
@@ -1696,10 +1689,10 @@ public class TerminalTests {
     }
 
     @Test
-    public void theCursorShapeSequenceIsNotADeviceAttributesRequest() {
+    public void cursorShapeSequenceIsNotADeviceAttributesRequest() {
         final Terminal terminal = new Terminal();
 
-        write(terminal, "\033[?25h\033[?0c"); // The linux terminfo's cnorm, sent on every refresh.
+        write(terminal, "\033[?25h\033[?0c");
 
         assertEquals(0, drainInput(terminal), "answering this would type the reply into whatever is running");
     }
@@ -1746,7 +1739,6 @@ public class TerminalTests {
     }
 
     private static int maxInputSize() {
-        // Only used here, so let's just grab it with reflection...
         try {
             final Field field = Terminal.class.getDeclaredField("MAX_INPUT_SIZE");
             field.setAccessible(true);
@@ -1784,7 +1776,6 @@ public class TerminalTests {
     }
 
     private static String read(final Terminal terminal, final int offset, final int length) {
-        // Only used here, so let's just grab it with reflection...
         try {
             final Field field = Terminal.class.getDeclaredField("buffer");
             field.setAccessible(true);

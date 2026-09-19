@@ -12,7 +12,7 @@ public final class MuLawTests {
     public void everyCodeSurvivesARoundTrip() {
         for (int code = 0; code < 256; code++) {
             if (code == 0x7F) {
-                continue; // Negative zero; encoding zero yields the positive one.
+                continue;
             }
             assertEquals((byte) code, MuLaw.encode(MuLaw.decode((byte) code)), "code " + code);
         }

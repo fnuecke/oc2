@@ -100,8 +100,7 @@ public final class ComputerTests {
                 helper.useBlock(computer.pos(), player);
 
                 if (computer.runState() == VMRunState.STOPPED) {
-                    throw new GameTestAssertException(
-                        "a sneaking interaction should have started the computer");
+                    throw new GameTestAssertException("sneak interaction should start the computer");
                 }
             })
             .thenSucceed();

@@ -40,9 +40,6 @@ public final class HubFixture {
         return helper.getBlockEntity(pos);
     }
 
-    /**
-     * Private state, but the only observation point that can witness a delivery without a guest to ask.
-     */
     public int framesReceived() {
         try {
             final Field field = NetworkHubBlockEntity.class.getDeclaredField("frameCount");

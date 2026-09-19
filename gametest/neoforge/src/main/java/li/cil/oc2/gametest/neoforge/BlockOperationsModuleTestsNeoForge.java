@@ -71,7 +71,7 @@ public final class BlockOperationsModuleTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void wearsOutTheToolRatherThanTheModule(final GameTestHelper helper) {
+    public static void excavateDamagesTheTool(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final BlockOperationsModuleDevice module = moduleFor(robot);
         robot.give(new ItemStack(net.minecraft.world.item.Items.IRON_PICKAXE));
@@ -95,7 +95,7 @@ public final class BlockOperationsModuleTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void hardBlocksCostMoreThanTheBaseCooldown(final GameTestHelper helper) {
+    public static void hardBlocksExtendCooldown(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final BlockOperationsModuleDevice module = moduleFor(robot);
         robot.give(new ItemStack(net.minecraft.world.item.Items.DIAMOND_PICKAXE));

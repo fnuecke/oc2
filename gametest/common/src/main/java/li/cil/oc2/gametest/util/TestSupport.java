@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.util;
 
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.serialization.BlobReference;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -16,6 +17,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.util.UUID;
+
+import static java.util.Objects.requireNonNull;
 
 public final class TestSupport {
     public static final String MOD_ID = "oc2_gametest";
@@ -27,8 +32,18 @@ public final class TestSupport {
     public static final BlockPos COMPUTER_POS = new BlockPos(2, WORK_Y, 2);
     public static final BlockPos CABLE_POS = new BlockPos(3, WORK_Y, 2);
     public static final BlockPos DEVICE_POS = new BlockPos(4, WORK_Y, 2);
+    public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
 
     public static final int BOOT_TIMEOUT_TICKS = 300_000;
+
+    public static UUID createBlob(final BlobReference blob) throws IOException {
+        blob.open();
+        return requireNonNull(blob.getHandle());
+    }
+
+    public static String script(final String... lines) {
+        return String.join("\n", lines) + "\n";
+    }
 
     public static GameTestAssertException failure(final GameTestHelper helper, final String message) {
         return new GameTestAssertException(message);

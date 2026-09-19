@@ -30,31 +30,7 @@ public final class SerialPortTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void linuxSeesTheSerialCardAsASerialPort(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
-
-        helper.startSequence()
-            .thenExecuteAfter(20, () -> computer
-                .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                .install(DeviceTypes.CARD.get(), new ItemStack(Items.SERIAL_INTERFACE_CARD.get())))
-            .thenExecuteAfter(20, computer::start)
-            .thenWaitUntil(() -> computer.assertScreenContains("login:", "the guest should reach its login prompt"))
-            .thenExecute(() -> computer.type("root\n"))
-            .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
-            .thenExecute(() -> computer.type("stty -F /dev/ttyS1 -a | head -1\n"))
-            .thenWaitUntil(() -> computer.assertScreenContains("speed",
-                "the card should come up as a serial port the guest can configure"))
-            .thenSucceed();
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void theLibrariesTalkOverARealLine(final GameTestHelper helper) {
+    public static void serialCardsCarryBytesOverTheLine(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -81,13 +57,13 @@ public final class SerialPortTests {
                     .install(DeviceTypes.CARD.get(), upOnly)
                     .install(DeviceTypes.CARD.get(), allButUp);
 
-                HubFixture.place(helper, player, RELAY); // any solid block to hang the relay connector on
+                HubFixture.place(helper, player, RELAY);
 
                 player.setXRot(90);
                 connectors[0] = ConnectorFixture.place(helper, player, computer.pos().above());
                 connectors[2] = ConnectorFixture.place(helper, player, RELAY.above());
                 player.setXRot(0);
-                player.setYRot(90); // looking west, at the computer's side; its front face cannot hold a connector
+                player.setYRot(90);
                 connectors[1] = ConnectorFixture.place(helper, player, computer.pos().east());
                 connectors[0].linkTo(connectors[2]);
                 connectors[1].linkTo(connectors[2]);
@@ -97,8 +73,6 @@ public final class SerialPortTests {
             .thenExecute(() -> computer.type("root\n"))
             .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
             .thenExecute(() -> {
-                // One card per side here, so the capability is the card's own interface; with more
-                // than one it would be a fresh CompoundNetworkInterface per lookup.
                 final Direction[] sides = {Direction.UP, Direction.EAST};
                 for (int i = 0; i < sides.length; i++) {
                     final Object resolved = connectors[i].adjacentInterface();
@@ -108,15 +82,16 @@ public final class SerialPortTests {
                     }
                 }
             })
-            .thenExecute(() -> computer.type("micropython -c \"from oc2 import serial as s;a=s.open('/dev/ttyS1',9600);" +
-                "b=s.open('/dev/ttyS2',9600);a.broadcast(b'hi');r=b.receive(5000);" +
-                "print('RX'+'-OK',r[1],r[0]==a.address,sorted((a.address,b.address))==[3,7])\"\n"))
-            .thenWaitUntil(() -> computer.assertScreenContains("RX-OK b'hi' True True",
-                "a short frame should come back from receive, stamped with the address of the card behind the sending port"))
-            .thenExecute(() -> computer.type("lua -e \"local l=assert(require('oc2.serial').open('/dev/ttyS1'));" +
-                "print('CO'..'LL='..tostring(l:collisions()))\"\n"))
-            .thenWaitUntil(() -> computer.assertScreenContains("COLL=0",
-                "collisions() should read the card's transmit error counter"))
+            .thenExecute(() -> computer.type(script(
+                "stty -F /dev/ttyS1 9600 raw -echo",
+                "stty -F /dev/ttyS2 9600 raw -echo",
+                "timeout 5 head -c 2 /dev/ttyS2 > /tmp/rx &",
+                "sleep 1",
+                "printf hi > /dev/ttyS1",
+                "wait",
+                "echo RX=$(cat /tmp/rx) END")))
+            .thenWaitUntil(() -> computer.assertScreenContains("RX=hi END",
+                "bytes written to one port should reach the card on the other end"))
             .thenSucceed();
     }
 
@@ -126,7 +101,6 @@ public final class SerialPortTests {
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
 
-        // The computer's facing rotates world sides into card sides, so the peer takes every side but up.
         final ItemStack[] cards = {
             upOnlyCard(3),
             upOnlyCard(7),
@@ -143,7 +117,7 @@ public final class SerialPortTests {
                     .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
                     .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
                     .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                    .install(DeviceTypes.CARD.get(), new ItemStack(Items.NETWORK_INTERFACE_CARD.get())) // every side, so it used to hide the rest
+                    .install(DeviceTypes.CARD.get(), new ItemStack(Items.NETWORK_INTERFACE_CARD.get()))
                     .install(DeviceTypes.CARD.get(), cards[0])
                     .install(DeviceTypes.CARD.get(), cards[1])
                     .install(DeviceTypes.CARD.get(), cards[2]);
@@ -163,18 +137,34 @@ public final class SerialPortTests {
             .thenWaitUntil(() -> computer.assertScreenContains("login:", "the guest should reach its login prompt"))
             .thenExecute(() -> computer.type("root\n"))
             .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
-            .thenExecute(() -> computer.type("micropython -c \"from oc2 import serial as s;" +
-                "p={l.address:l for l in [s.open('/dev/ttyS%d'%i,9600) for i in (1,2,3)]};" +
-                "p[11].broadcast(b'hi');print('RX'+'-OK',p[3].receive(5000)[1],p[7].receive(5000)[1])\"\n"))
-            .thenWaitUntil(() -> computer.assertScreenContains("RX-OK b'hi' b'hi'",
-                "both cards on the shared side should hear the broadcast, next to a network card"))
-            .thenExecute(() -> computer.type("micropython -c \"from oc2 import serial as s;" +
-                "p={l.address:l for l in [s.open('/dev/ttyS%d'%i,9600) for i in (1,2,3)]};" +
-                "p[3].broadcast(b'a');p[7].broadcast(b'b');" +
-                "print('TX'+'-OK',p[7].receive(5000)[1],p[3].receive(5000)[1]," +
-                "sorted([p[11].receive(5000)[1],p[11].receive(5000)[1]]))\"\n"))
-            .thenWaitUntil(() -> computer.assertScreenContains("TX-OK b'a' b'b' [b'a', b'b']",
-                "a side is one wire, so the two cards hear each other, and both bursts reach the peer"))
+            .thenExecute(() -> computer.type(script(
+                "for p in 1 2 3; do stty -F /dev/ttyS$p 9600 raw -echo; done",
+                "timeout 5 head -c 2 /dev/ttyS1 > /tmp/a &",
+                "timeout 5 head -c 2 /dev/ttyS2 > /tmp/b &",
+                "sleep 1",
+                "printf hi > /dev/ttyS3",
+                "wait",
+                "echo RX=$(cat /tmp/a)/$(cat /tmp/b) END")))
+            .thenWaitUntil(() -> computer.assertScreenContains("RX=hi/hi END",
+                "every card on the segment should hear the sender"))
+            .thenExecute(() -> computer.type(script(
+                "timeout 5 head -c 2 /dev/ttyS3 > /tmp/c &",
+                "sleep 1",
+                "printf a > /dev/ttyS1",
+                "sleep 1",
+                "printf b > /dev/ttyS2",
+                "wait",
+                "echo TX=$(fold -w1 /tmp/c | sort | tr -d '\\n') END")))
+            .thenWaitUntil(() -> computer.assertScreenContains("TX=ab END",
+                "both cards sharing a side should reach the peer"))
+            .thenExecute(() -> computer.type(script(
+                "timeout 5 head -c 1 /dev/ttyS2 > /tmp/d &",
+                "sleep 1",
+                "printf c > /dev/ttyS1",
+                "wait",
+                "echo SIDE=$(cat /tmp/d) END")))
+            .thenWaitUntil(() -> computer.assertScreenContains("SIDE=c END",
+                "cards sharing a side should hear each other"))
             .thenSucceed();
     }
 

@@ -43,7 +43,7 @@ public final class RobotCrushTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
-    public static void keepsTheWaterOfAWaterloggedBlock(final GameTestHelper helper) {
+    public static void crushKeepsWaterlogging(final GameTestHelper helper) {
         final BlockPos target = RobotFixture.place(helper, ROBOT_POS).blockPos();
         helper.getLevel().setBlockAndUpdate(target, Blocks.OAK_SLAB.defaultBlockState()
             .setValue(BlockStateProperties.WATERLOGGED, true));
@@ -55,8 +55,7 @@ public final class RobotCrushTestsNeoForge {
                     throw new GameTestAssertException("the robot did not clear the slab it was inside of");
                 }
                 if (!after.getFluidState().is(Fluids.WATER)) {
-                    throw new GameTestAssertException(
-                        "the water the slab was logged with is gone; got " + after);
+                    throw new GameTestAssertException("waterlogging is gone; got " + after);
                 }
             })
             .thenSucceed();

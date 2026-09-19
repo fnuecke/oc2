@@ -26,7 +26,7 @@ public final class GuestLibraryTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void guestLibrariesPassTheirOwnTests(final GameTestHelper helper) {
+    public static void guestLibrarySuitePasses(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);

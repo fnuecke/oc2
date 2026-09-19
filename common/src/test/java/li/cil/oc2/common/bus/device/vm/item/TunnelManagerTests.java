@@ -68,7 +68,6 @@ public class TunnelManagerTests {
 
     @SuppressWarnings("unchecked")
     private static Map<UUID, ? extends java.util.Collection<NetworkInterface>> tunnels() {
-        // Only used here, so let's just grab it with reflection...
         try {
             final Field field = NetworkTunnelDevice.TunnelManager.class.getDeclaredField("TUNNELS");
             field.setAccessible(true);

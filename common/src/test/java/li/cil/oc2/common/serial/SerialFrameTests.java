@@ -40,7 +40,7 @@ public final class SerialFrameTests {
     }
 
     @Test
-    public void aFullFrameRoundTrips() {
+    public void fullFrameRoundTrips() {
         final byte[] data = new byte[SerialFrame.MAX_DATA_SIZE];
         for (int i = 0; i < data.length; i++) {
             data[i] = (byte) i;

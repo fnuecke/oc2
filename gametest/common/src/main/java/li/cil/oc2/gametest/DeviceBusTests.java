@@ -53,15 +53,29 @@ public final class DeviceBusTests {
     public static void busRediscoversReplacedNeighbor(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerAndCable(helper);
 
+        final int[] baseline = new int[1];
         final int[] attached = new int[1];
         helper.startSequence()
-            .thenExecuteAfter(40, () -> placeDevice(helper))
-            .thenExecuteAfter(60, () -> attached[0] = computer.deviceCount())
+            .thenExecuteAfter(60, () -> baseline[0] = computer.deviceCount())
+            .thenExecute(() -> placeDevice(helper))
+            .thenExecuteAfter(60, () -> {
+                attached[0] = computer.deviceCount();
+                if (attached[0] <= baseline[0]) {
+                    throw new GameTestAssertException("precondition: the device never attached, count stayed at "
+                        + baseline[0]);
+                }
+            })
             .thenExecute(() -> breakBlock(helper, DEVICE_POS))
-            .thenExecuteAfter(60, () -> placeDevice(helper))
+            .thenExecuteAfter(60, () -> {
+                if (computer.deviceCount() != baseline[0]) {
+                    throw new GameTestAssertException("breaking the neighbour left its devices on the bus: "
+                        + computer.deviceCount() + ", expected " + baseline[0]);
+                }
+            })
+            .thenExecute(() -> placeDevice(helper))
             .thenExecuteAfter(60, () -> {
                 final int rediscovered = computer.deviceCount();
-                if (rediscovered < attached[0]) {
+                if (rediscovered != attached[0]) {
                     throw new GameTestAssertException(
                         "neighbour not rediscovered after being replaced: first attach="
                             + attached[0] + ", after replace=" + rediscovered);
@@ -70,7 +84,7 @@ public final class DeviceBusTests {
             .thenSucceed();
     }
 
-    public static void busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(final GameTestHelper helper) {
+    public static void busDropsNeighborWithoutBlockUpdate(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerAndCable(helper);
 
         final int[] base = new int[1];
@@ -93,7 +107,7 @@ public final class DeviceBusTests {
                 final int after = computer.deviceCount();
                 if (after != base[0]) {
                     throw new GameTestAssertException(
-                        "bus did not notice its neighbour's capability going away without a block update: alone="
+                        "bus kept the device after its capability went away: alone="
                             + base[0] + ", attached=" + attached[0] + ", after=" + after);
                 }
             })
@@ -131,7 +145,7 @@ public final class DeviceBusTests {
             .thenSucceed();
     }
 
-    public static void blockVmDeviceIsReachableFromItsMountingFaceOnly(final GameTestHelper helper) {
+    public static void blockDeviceMountsFromOfferingFaceOnly(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
         final BlockPos drivePos = CABLE_POS.above();
@@ -155,8 +169,7 @@ public final class DeviceBusTests {
                 }
                 if (countFlashDrives(bystander) != 0) {
                     throw new GameTestAssertException(
-                        "a bus touching a side face sees the drive, so two bus controllers mount the same "
-                            + "device and both open its blob: " + bystander.describe());
+                        "drive is visible from a side face: " + bystander.describe());
                 }
             })
             .thenSucceed();

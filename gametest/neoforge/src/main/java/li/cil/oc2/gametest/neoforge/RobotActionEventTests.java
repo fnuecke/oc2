@@ -28,7 +28,7 @@ public final class RobotActionEventTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void aCompletedActionIsAnnouncedToTheGuest(final GameTestHelper helper) {
+    public static void guestReceivesActionEvents(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final GuestTests tests = robot.guestTests();
 

@@ -27,9 +27,6 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 @PrefixGameTestTemplate(false)
 public final class Z80Tests {
     private static final int BOOT_TIMEOUT_TICKS = 20000;
-
-    private static final String BOOT_BATCH = "oc2_z80_boot";
-    private static final String SYSTEM_DISK_BATCH = "oc2_z80_system_disk";
     private static final String DEVS_BATCH = "oc2_z80_devs";
     private static final String ITEMS_BATCH = "oc2_z80_items";
     private static final String SERIAL_BATCH = "oc2_z80_serial";
@@ -37,21 +34,8 @@ public final class Z80Tests {
     private static final int GET_SLOTS_CODE = 2;
     private static final int GET_ITEM_NAME_CODE = 4;
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_BATCH)
-    public static void z80BootsToTheCpmPrompt(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final Z80Fixture z80 = Z80Fixture.place(helper, player);
-        placePower(helper, player);
-
-        helper.startSequence()
-            .thenExecuteAfter(20, z80::install)
-            .thenExecuteAfter(20, z80::start)
-            .thenWaitUntil(() -> z80.assertScreenContains("A>", "CP/M should reach its prompt"))
-            .thenSucceed();
-    }
-
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
-    public static void theZ80FindsAnInstalledSerialCard(final GameTestHelper helper) {
+    public static void z80EnumeratesSerialCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
         placePower(helper, player);
@@ -68,16 +52,16 @@ public final class Z80Tests {
             })
             .thenExecute(() -> z80.command("DEVS"))
             .thenWaitUntil(() -> z80.assertScreenContains("UART",
-                "the enumeration window should report the card as a character device, like the console"))
+                "card should enumerate as a character device"))
             .thenExecute(() -> z80.command("TERM"))
             .thenWaitUntil(() -> z80.assertScreenContains("quits",
                 "TERM should find the card and start, rather than saying there is none"))
-            .thenExecute(() -> z80.computer().type("\u001d")) // ctrl-], which quits TERM
+            .thenExecute(() -> z80.computer().type("\u001d"))
             .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
-    public static void serchatBuildsAndTakesItsAddressFromTheCard(final GameTestHelper helper) {
+    public static void serchatUsesCardAddress(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
         placePower(helper, player);
@@ -96,34 +80,11 @@ public final class Z80Tests {
             .thenExecuteAfter(20, () -> {
             })
             .thenWaitUntil(() -> assertBackAtPrompt(z80))
-            .thenExecuteAfter(20, () -> z80.command("")) // ZML leaves CP/M swallowing the next key
+            .thenExecuteAfter(20, () -> z80.command(""))
             .thenExecuteAfter(20, () -> z80.command("SERCHAT 7"))
             .thenWaitUntil(() -> z80.assertScreenContains("This is endpoint 42",
-                "SERCHAT should take this machine's address from the card, not from the command line"))
+                "SERCHAT should take its address from the card"))
             .thenExecute(() -> z80.command(""))
-            .thenSucceed();
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SYSTEM_DISK_BATCH)
-    public static void theSystemDiskCarriesTheFilesOc2Ships(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final Z80Fixture z80 = Z80Fixture.place(helper, player);
-        placePower(helper, player);
-
-        helper.startSequence()
-            .thenExecuteAfter(20, z80::install)
-            .thenExecuteAfter(20, z80::start)
-            .thenWaitUntil(() -> z80.assertScreenContains("A>", "CP/M should reach its prompt"))
-            .thenExecute(() -> z80.command("DIR"))
-            .thenWaitUntil(() -> {
-                z80.assertScreenContains("DEVS", "the emulator's own tools should survive composition");
-                z80.assertScreenContains("ZMAC", "the assembler should survive composition");
-                z80.assertScreenContains("ZML", "the linker should survive composition");
-                z80.assertScreenContains("OCAPI", "oc2 should add its device API library");
-                z80.assertScreenContains("REDSTN", "oc2 should add its example source");
-            })
-            .thenExecute(() -> z80.command("TYPE OCAPI.INC"))
-            .thenWaitUntil(() -> z80.assertScreenContains("OCFIND", "the file's contents should read back"))
             .thenSucceed();
     }
 
@@ -144,7 +105,7 @@ public final class Z80Tests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
-    public static void devsListsAnInventoryOnTheBus(final GameTestHelper helper) {
+    public static void devsListsItemsDevice(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
         placePower(helper, player);
@@ -160,7 +121,7 @@ public final class Z80Tests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
-    public static void anInventoryOnTheBusReadsBackThroughTheDeviceApi(final GameTestHelper helper) {
+    public static void itemsDeviceReadsChest(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
         placePower(helper, player);

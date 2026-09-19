@@ -48,7 +48,7 @@ public final class RPCSynchronizedCallTests {
     // --------------------------------------------------------------------- //
 
     @Test
-    public void aSynchronizedCallIsAnsweredOnlyOnTheNextTick() {
+    public void synchronizedCallAnsweredOnNextTick() {
         serialDevice.putAsVM(invocation("bump"));
         adapter.step(0);
 
@@ -72,14 +72,14 @@ public final class RPCSynchronizedCallTests {
         adapter.tick();
         assertEquals(1, counter.bumps, "the second request was dispatched while the first was pending");
 
-        adapter.step(0); // writes the first reply
-        adapter.step(0); // reads the second request, schedules it
+        adapter.step(0);
+        adapter.step(0);
         adapter.tick();
         assertEquals(2, counter.bumps, "the second request was never picked up");
     }
 
     @Test
-    public void theReplyIsWrittenBeforeTheNextCallIsAccepted() {
+    public void replyIsWrittenBeforeTheNextCallIsAccepted() {
         serialDevice.putAsVM(invocation("bump"));
         adapter.step(0);
         adapter.tick();
@@ -92,7 +92,7 @@ public final class RPCSynchronizedCallTests {
     }
 
     @Test
-    public void anUnsynchronizedCallDoesNotWaitForATick() {
+    public void unsynchronizedCallDoesNotWaitForATick() {
         serialDevice.putAsVM(invocation("bumpNow"));
         adapter.step(0);
 

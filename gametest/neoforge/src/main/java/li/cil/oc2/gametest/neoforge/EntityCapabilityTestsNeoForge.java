@@ -37,7 +37,7 @@ public final class EntityCapabilityTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void robotIsVisibleToNeoForgeCapabilities(final GameTestHelper helper) {
+    public static void robotIsVisibleToPlatformCapabilities(final GameTestHelper helper) {
         EntityCapabilityTests.robotIsVisibleToPlatformCapabilities(helper, HAS_ITEM_HANDLER, HAS_ENERGY_STORAGE);
     }
 

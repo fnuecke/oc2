@@ -2,6 +2,7 @@
 
 package li.cil.oc2.gametest.neoforge;
 
+import li.cil.oc2.common.item.CreativeTabItemProvider;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.core.HolderLookup;
@@ -21,10 +22,6 @@ import java.util.List;
 import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
 import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
-/**
- * Recipes yield plain items, and recipe viewers tell variants apart by their contents. So the plain
- * item has to be in the creative tab, or looking up what the tab offers finds no recipe for it.
- */
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class CreativeTabTests {
@@ -48,8 +45,7 @@ public final class CreativeTabTests {
             ItemStackUtils.getBlockEntityDataTag(stack).isEmpty()
                 && ItemStackUtils.getModDataTag(stack).isEmpty());
         if (!hasPlain) {
-            throw new GameTestAssertException("every " + what + " in the creative tab comes with parts in it, "
-                + "so recipe viewers find no recipe for what the tab offers");
+            throw new GameTestAssertException("every " + what + " in the creative tab comes with parts in it");
         }
     }
 
@@ -59,7 +55,7 @@ public final class CreativeTabTests {
         final CreativeModeTab.ItemDisplayParameters parameters =
             new CreativeModeTab.ItemDisplayParameters(FeatureFlags.DEFAULT_FLAGS, true, holders);
 
-        ((li.cil.oc2.common.item.CreativeTabItemProvider) item).addCreativeTabItems(parameters,
+        ((CreativeTabItemProvider) item).addCreativeTabItems(parameters,
             (stack, visibility) -> stacks.add(stack));
 
         return stacks;

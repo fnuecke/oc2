@@ -11,10 +11,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class Levels {
-    /**
-     * As close to what a world reload does to a single block entity as we can get in a game test: save it,
-     * remove it from the level, then bring a fresh instance back from that data.
-     */
     public static void reloadBlockEntity(final GameTestHelper helper, final BlockPos relativePos) {
         final ServerLevel level = helper.getLevel();
         final BlockPos pos = helper.absolutePos(relativePos);

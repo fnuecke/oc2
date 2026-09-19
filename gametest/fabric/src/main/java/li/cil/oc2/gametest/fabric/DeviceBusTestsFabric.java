@@ -20,8 +20,8 @@ public final class DeviceBusTestsFabric {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public void busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(final GameTestHelper helper) {
-        DeviceBusTests.busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(helper);
+    public void busDropsNeighborWithoutBlockUpdate(final GameTestHelper helper) {
+        DeviceBusTests.busDropsNeighborWithoutBlockUpdate(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)

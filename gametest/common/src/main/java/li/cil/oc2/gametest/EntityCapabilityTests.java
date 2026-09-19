@@ -33,8 +33,7 @@ public final class EntityCapabilityTests {
 
         final TerminalUserProvider provider = Capabilities.get(robot, Capabilities.TERMINAL_USER_PROVIDER, null);
         if (provider == null) {
-            throw new GameTestAssertException("robot does not expose a terminal user provider; " +
-                "the import/export card cannot work inside one");
+            throw new GameTestAssertException("robot exposes no terminal user provider");
         }
 
         helper.succeed();
@@ -51,8 +50,7 @@ public final class EntityCapabilityTests {
         if (Config.robotsUseEnergy()) {
             final EnergyStorage energy = Capabilities.get(robot, Capabilities.ENERGY_STORAGE, Direction.DOWN);
             if (energy == null) {
-                throw new GameTestAssertException("robot energy is not reachable through the capability, " +
-                    "so the charger cannot charge it");
+                throw new GameTestAssertException("robot energy is not reachable through the capability");
             }
         }
 
@@ -81,8 +79,7 @@ public final class EntityCapabilityTests {
 
         final ItemHandler inventory = Capabilities.get(minecart, Capabilities.ITEM_HANDLER, Direction.DOWN);
         if (inventory == null) {
-            throw new GameTestAssertException("inventory of a non-OC2 entity is not reachable; " +
-                "the lookup is not bridging to the platform's capabilities");
+            throw new GameTestAssertException("inventory of a non-oc2 entity is not reachable");
         }
 
         if (inventory.getStackInSlot(0).getCount() != 3) {

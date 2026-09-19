@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SessionLimitsTests {
     @Test
-    public void aLoneGatewayGetsTheFullPerGatewayCap() {
+    public void loneGatewayGetsTheFullPerGatewayCap() {
         final SessionLimits limits = new SessionLimits(16, 128);
 
         assertEquals(16, limits.shareFor(1));
@@ -16,7 +16,7 @@ public class SessionLimitsTests {
     }
 
     @Test
-    public void theShareShrinksAsGatewaysAppear() {
+    public void shareShrinksAsGatewaysAppear() {
         final SessionLimits limits = new SessionLimits(16, 128);
 
         assertEquals(16, limits.shareFor(8));
@@ -35,7 +35,7 @@ public class SessionLimitsTests {
     @Test
     public void oneOperatorCannotStarveTheRest() {
         final SessionLimits limits = new SessionLimits(16, 128);
-        final int gateways = 9; // Eight built by an attacker, one belonging to somebody else.
+        final int gateways = 9;
 
         int taken = 0;
         for (int gateway = 0; gateway < 8; ++gateway) {
@@ -52,7 +52,7 @@ public class SessionLimitsTests {
     }
 
     @Test
-    public void theGlobalCapStillBinds() {
+    public void globalCapStillBinds() {
         final SessionLimits limits = new SessionLimits(16, 4);
 
         assertTrue(limits.tryAcquire(0, 1));

@@ -37,7 +37,7 @@ public class TerminalParserTests {
     }
 
     @Test
-    public void thePrivateMarkerIsReported() {
+    public void privateMarkerIsReported() {
         assertEquals(List.of("csi:h?(7)"), parse("\033[?7h"));
     }
 

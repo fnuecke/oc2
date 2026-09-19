@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -103,14 +104,12 @@ public final class IOCallbacksTests {
 
         assertArrayEquals(new byte[]{0x78, 0x56}, invoke(function(target, 2), new byte[0]),
             "results should write low byte first");
-        assertArrayEquals("hi".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
-            invoke(function(target, 3), "hi".getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+        assertArrayEquals("hi".getBytes(StandardCharsets.US_ASCII),
+            invoke(function(target, 3), "hi".getBytes(StandardCharsets.US_ASCII)));
     }
 
     @Test
     public void plainStreamSignaturesStillGetTheRicherType() throws Throwable {
-        // Existing devices declare plain streams; they must keep working, and the object handed
-        // over is the richer one either way.
         final AllSignatures target = new AllSignatures();
         invoke(function(target, 2), new byte[]{42});
         assertEquals(42, target.readArgument);

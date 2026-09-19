@@ -9,7 +9,6 @@ import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VMRunState;
@@ -26,13 +25,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static li.cil.oc2.gametest.util.TestSupport.COMPUTER_POS;
 import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
 
-public final class ComputerFixture {
+public final class ComputerFixture implements MachineFixture {
     private final GameTestHelper helper;
     private final BlockPos pos;
 
@@ -51,6 +49,13 @@ public final class ComputerFixture {
         return new ComputerFixture(helper, pos);
     }
 
+    public static ComputerFixture placePowered(final GameTestHelper helper, final BlockPos pos) {
+        final Player player = fakePlayer(helper);
+        final ComputerFixture computer = place(helper, player, pos);
+        TestSupport.place(helper, player, new ItemStack(Items.CREATIVE_ENERGY.get()), pos.west());
+        return computer;
+    }
+
     public static ComputerFixture at(final GameTestHelper helper, final BlockPos pos) {
         return new ComputerFixture(helper, pos);
     }
@@ -65,10 +70,20 @@ public final class ComputerFixture {
         return pos;
     }
 
-    public ComputerBlockEntity blockEntity() {
-        return helper.getBlockEntity(pos);
+    @Override
+    public Terminal terminal() {
+        return blockEntity().getTerminal();
     }
 
+    public ComputerBlockEntity blockEntity() {
+        final ComputerBlockEntity blockEntity = helper.getBlockEntity(pos);
+        if (blockEntity == null) {
+            throw new GameTestAssertException("no computer at " + pos);
+        }
+        return blockEntity;
+    }
+
+    @Override
     public VirtualMachine virtualMachine() {
         return blockEntity().getVirtualMachine();
     }
@@ -85,14 +100,6 @@ public final class ComputerFixture {
         blockEntity().stop();
     }
 
-    public void assertRunState(final VMRunState expected, final String what) {
-        final VirtualMachine vm = virtualMachine();
-        if (vm.getRunState() != expected) {
-            throw new GameTestAssertException(what + ": computer is " + vm.getRunState()
-                + ", expected " + expected + ", bootError=" + vm.getBootError());
-        }
-    }
-
     public void assertBootError(final String key, final String what) {
         final Component expected = Component.translatable(key);
         if (!expected.equals(virtualMachine().getBootError())) {
@@ -107,14 +114,9 @@ public final class ComputerFixture {
         }
     }
 
-    public void assertNoError() {
-        if (virtualMachine().getError() != null) {
-            throw new GameTestAssertException("VM reported an error: " + virtualMachine().getError());
-        }
-    }
-
     // --------------------------------------------------------------------- //
 
+    @Override
     public ItemHandler handler(final DeviceType type) {
         return blockEntity().getItemStackHandlers().getItemHandler(type)
             .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
@@ -124,15 +126,10 @@ public final class ComputerFixture {
         return handler(type).getStackInSlot(0);
     }
 
+    @Override
     public ComputerFixture install(final DeviceType type, final ItemStack stack) {
-        final ItemHandler handler = handler(type);
-        for (int slot = 0; slot < handler.getSlots(); slot++) {
-            if (handler.insertItem(slot, stack, false).isEmpty()) {
-                return this;
-            }
-        }
-        throw new GameTestAssertException("could not install " + stack + " as " + type
-            + "; all " + handler.getSlots() + " slot(s) rejected it");
+        installInto(type, stack);
+        return this;
     }
 
     public ItemStack uninstall(final DeviceType type) {
@@ -180,40 +177,7 @@ public final class ComputerFixture {
 
     // --------------------------------------------------------------------- //
 
-    public String screen() {
-        final Terminal terminal = blockEntity().getTerminal();
-        final CompoundTag tag;
-        synchronized (terminal) {
-            tag = NBTSerialization.serialize(terminal);
-        }
-        final byte[] buffer = tag.getByteArray("buffer");
-        final StringBuilder text = new StringBuilder();
-        for (int row = 0; row < Terminal.HEIGHT; row++) {
-            for (int column = 0; column < Terminal.WIDTH; column++) {
-                final int index = row * Terminal.WIDTH + column;
-                final byte value = index < buffer.length ? buffer[index] : 0;
-                text.append(value == 0 ? ' ' : (char) (value & 0xFF));
-            }
-            text.append('\n');
-        }
-        return text.toString();
-    }
-
-    public void type(final String text) {
-        final Terminal terminal = blockEntity().getTerminal();
-        for (final byte value : text.getBytes(StandardCharsets.US_ASCII)) {
-            terminal.putInput(value);
-        }
-    }
-
-    public void assertScreenContains(final String expected, final String what) {
-        final String text = screen();
-        if (!text.contains(expected)) {
-            throw new GameTestAssertException(what + ": screen does not hold [" + expected + "]; "
-                + describe() + "\n" + text);
-        }
-    }
-
+    @Override
     public String describe() {
         final VirtualMachine vm = virtualMachine();
         return "runState=" + vm.getRunState()
@@ -223,23 +187,6 @@ public final class ComputerFixture {
             + ", cycles=" + guestInstructions()
             + ", energy=" + energy()
             + ", deviceList=" + devices().stream().map(d -> d.getClass().getSimpleName()).sorted().toList();
-    }
-
-    public GuestTests guestTests() {
-        return GuestTests.of(virtualMachine());
-    }
-
-    public void assertNoGuestPanic() {
-        final String text = screen();
-        for (final String marker : new String[]{"Kernel panic", "Oops", "BUG:", "Call Trace"}) {
-            if (text.contains(marker)) {
-                throw new GameTestAssertException("guest reported '" + marker + "':\n" + text);
-            }
-        }
-    }
-
-    public long guestInstructions() {
-        return ((AbstractVirtualMachine) virtualMachine()).getInstructionsRetired();
     }
 
     // --------------------------------------------------------------------- //

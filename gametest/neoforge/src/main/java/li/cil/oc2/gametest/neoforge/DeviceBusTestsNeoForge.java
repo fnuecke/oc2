@@ -25,8 +25,8 @@ public final class DeviceBusTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(final GameTestHelper helper) {
-        DeviceBusTests.busNoticesNeighborCapabilityInvalidatedWithoutBlockUpdate(helper);
+    public static void busDropsNeighborWithoutBlockUpdate(final GameTestHelper helper) {
+        DeviceBusTests.busDropsNeighborWithoutBlockUpdate(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
@@ -35,8 +35,8 @@ public final class DeviceBusTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void blockVmDeviceIsReachableFromItsMountingFaceOnly(final GameTestHelper helper) {
-        DeviceBusTests.blockVmDeviceIsReachableFromItsMountingFaceOnly(helper);
+    public static void blockDeviceMountsFromOfferingFaceOnly(final GameTestHelper helper) {
+        DeviceBusTests.blockDeviceMountsFromOfferingFaceOnly(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)

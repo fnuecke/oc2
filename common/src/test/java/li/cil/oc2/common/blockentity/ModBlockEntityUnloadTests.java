@@ -2,17 +2,17 @@
 
 package li.cil.oc2.common.blockentity;
 
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.common.capabilities.Capabilities;
-import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,31 +20,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MinecraftBootstrap.class)
 public class ModBlockEntityUnloadTests {
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
+    private static final Map<String, Consumer<CountingBlockEntity>> UNLOADS = Map.of(
+        "level unload", CountingBlockEntity::onWorldUnloaded,
+        "chunk unload", CountingBlockEntity::handleChunkUnloaded);
 
     @Test
-    public void levelUnloadFollowedByRemovalUnloadsOnlyOnce() {
-        withBlockEntity(blockEntity -> {
-            blockEntity.onWorldUnloaded();
+    public void unloadFollowedByRemovalUnloadsOnlyOnce() {
+        UNLOADS.forEach((path, unload) -> withBlockEntity(blockEntity -> {
+            unload.accept(blockEntity);
             blockEntity.setRemoved();
 
-            assertEquals(1, blockEntity.unloadCount);
-        });
-    }
-
-    @Test
-    public void chunkUnloadFollowedByRemovalUnloadsOnlyOnce() {
-        withBlockEntity(blockEntity -> {
-            blockEntity.handleChunkUnloaded();
-            blockEntity.setRemoved();
-
-            assertEquals(1, blockEntity.unloadCount);
-        });
+            assertEquals(1, blockEntity.unloadCount, path + " followed by removal should unload once");
+        }));
     }
 
     @Test

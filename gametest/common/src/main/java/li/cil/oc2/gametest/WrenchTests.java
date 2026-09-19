@@ -76,12 +76,10 @@ public final class WrenchTests {
         useWrench(helper, DEVICE_POS, Direction.UP, true);
 
         if (helper.getBlockState(DEVICE_POS).isAir()) {
-            throw new GameTestAssertException("sneak-wrenching a facaded cable broke the block, which means "
-                + "block interaction was bypassed and the wrench's own break path ran instead");
+            throw new GameTestAssertException("sneak-wrenching a facaded cable broke the block");
         }
         if (!busCable(helper, DEVICE_POS).getFacade().isEmpty()) {
-            throw new GameTestAssertException("sneak-wrenching should have removed the facade, so the "
-                + "block's interaction handler evidently never ran");
+            throw new GameTestAssertException("sneak-wrenching should have removed the facade");
         }
         helper.succeed();
     }

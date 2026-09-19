@@ -159,8 +159,6 @@ public final class InternetGatewayTests {
         helper.startSequence()
             .thenExecute(() -> energy.receiveEnergy(Config.internetGatewayEnergyPerPacket, false))
             .thenExecuteAfter(2, () -> {
-                // Read first, then put the server back, so a failed assertion cannot leak the
-                // manager into the tests that run after this one.
                 final boolean isOperational = gateway.isOperational();
                 restoreInternetAccess(wasEnabled);
                 assertTrue(helper, "a powered gateway with internet access should show as operational",
@@ -176,8 +174,6 @@ public final class InternetGatewayTests {
         breakBlock(helper, GATEWAY_POS);
 
         assertTrue(helper, "the block should be gone", helper.getBlockState(GATEWAY_POS).isAir());
-        // Straight to the level: the helper's accessor throws for a missing block entity rather
-        // than reporting one.
         assertTrue(helper, "no block entity should remain",
             helper.getLevel().getBlockEntity(helper.absolutePos(GATEWAY_POS)) == null);
 
@@ -186,9 +182,6 @@ public final class InternetGatewayTests {
 
     // --------------------------------------------------------------------- //
 
-    /**
-     * @return the previous setting, to hand back to {@link #restoreInternetAccess}
-     */
     private static boolean withInternetAccess(final boolean enabled) {
         final boolean wasEnabled = Config.internetEnabled;
         Config.internetEnabled = enabled;

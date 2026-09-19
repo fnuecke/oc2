@@ -36,7 +36,7 @@ public class CommonDeviceBusControllerTests {
     }
 
     @Test
-    public void scanPendingWhenBlockEntityNotLoaded() {
+    public void scanIncompleteWhileNeighborsUnknown() {
         busController.scan();
         assertEquals(CommonDeviceBusController.BusState.INCOMPLETE, busController.getState());
     }
@@ -50,7 +50,7 @@ public class CommonDeviceBusControllerTests {
     }
 
     @Test
-    public void scanSuccessfulWithLocalElement() {
+    public void scanCollectsLocalDevices() {
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
 
         final RPCDevice device = mock(RPCDevice.class);
@@ -96,8 +96,6 @@ public class CommonDeviceBusControllerTests {
         final ArrayList<ArchitectureType> reported = new ArrayList<>();
         busController.onArchitectureChanged.add(reported::add);
 
-        // The first scan reports a change, coming from no architecture at all. Machines
-        // restoring their state rely on this not being mistaken for a cpu swap.
         busController.scan();
         assertEquals(singletonList(ArchitectureType.RISCV), reported);
 
@@ -137,8 +135,6 @@ public class CommonDeviceBusControllerTests {
 
     @Test
     public void scanSuccessfulWithMultipleElements() {
-        // topology: controller <-> element 1 <-> element 2
-
         final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
         final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
 

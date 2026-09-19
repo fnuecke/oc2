@@ -22,11 +22,11 @@ import static li.cil.oc2.gametest.util.TestSupport.placePower;
 
 public final class SerialInterfaceTests {
     private static final byte[] PEER_MAC = {0x02, 0x6F, 0x63, 0x7E, 0x7E, 0x7E};
-    private static final int DEFAULT_DIVISOR = 12; // 9600 baud
+    private static final int DEFAULT_DIVISOR = 12;
 
     // --------------------------------------------------------------------- //
 
-    public static void aConnectorResolvesTheSerialCardOfTheComputerItIsOn(final GameTestHelper helper) {
+    public static void connectorResolvesSerialCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -54,7 +54,7 @@ public final class SerialInterfaceTests {
             .thenSucceed();
     }
 
-    public static void aDisabledSideCarriesNoSerialTraffic(final GameTestHelper helper) {
+    public static void disabledSideExposesNoInterface(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -66,18 +66,16 @@ public final class SerialInterfaceTests {
             .thenExecuteAfter(40, () -> computer.install(DeviceTypes.CARD.get(), card))
             .thenExecuteAfter(80, () -> {
                 if (computer.networkInterface(Direction.UP) != null) {
-                    throw new GameTestAssertException(
-                        "a side the card is configured off must carry no traffic");
+                    throw new GameTestAssertException("a side configured off should carry nothing");
                 }
                 if (computer.networkInterface(Direction.NORTH) == null) {
-                    throw new GameTestAssertException(
-                        "the sides that are left on must still carry traffic");
+                    throw new GameTestAssertException("a side left on should carry traffic");
                 }
             })
             .thenSucceed();
     }
 
-    public static void theCardHearsTheSegmentItIsOn(final GameTestHelper helper) {
+    public static void cardDoesNotEchoItsOwnFrame(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);

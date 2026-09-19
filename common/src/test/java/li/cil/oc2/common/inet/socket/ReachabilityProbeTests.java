@@ -19,7 +19,7 @@ public class ReachabilityProbeTests {
     // --------------------------------------------------------------------- //
 
     @Test
-    public void aRepeatedProbeIsAnsweredFromTheCache() {
+    public void repeatedProbeIsAnsweredFromTheCache() {
         final CountingExecutor executor = new CountingExecutor();
         final ReachabilityProbe probe = new ReachabilityProbe(executor, 500);
 
@@ -36,7 +36,7 @@ public class ReachabilityProbeTests {
     }
 
     @Test
-    public void anAddressIsNotProbedTwiceAtOnce() {
+    public void addressIsNotProbedTwiceAtOnce() {
         final DeferredExecutor executor = new DeferredExecutor();
         final ReachabilityProbe probe = new ReachabilityProbe(executor, 500);
 
@@ -51,7 +51,7 @@ public class ReachabilityProbeTests {
     }
 
     @Test
-    public void aRejectedProbeDoesNotLeaveTheAddressPending() {
+    public void rejectedProbeDoesNotLeaveTheAddressPending() {
         final CountingExecutor executor = new CountingExecutor();
         final ReachabilityProbe probe = new ReachabilityProbe(executor, 500);
 

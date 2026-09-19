@@ -45,7 +45,7 @@ public final class RPCBusGenerationTests {
     }
 
     @Test
-    public void listReplyCarriesGeneration() {
+    public void generationStableWithoutChanges() {
         addDevice("redstone");
         adapter.resume(busController);
 
@@ -123,7 +123,6 @@ public final class RPCBusGenerationTests {
         assertEquals(before, generation(), "reset must leave the generation exactly where it was");
     }
 
-
     @Test
     public void resultReplyCarriesGeneration() {
         addDevice("redstone");
@@ -138,7 +137,7 @@ public final class RPCBusGenerationTests {
     }
 
     @Test
-    public void failedRebuildNeitherWedgesTheAdapterNorMovesTheGeneration() {
+    public void failedRebuildKeepsGenerationAndAdapter() {
         addDevice("redstone");
         adapter.resume(busController);
         final int before = generation();
@@ -150,8 +149,7 @@ public final class RPCBusGenerationTests {
         doReturn(devices).when(busController).getDevices();
         assertEquals("list", request("list").get("type").getAsString(),
             "the adapter stayed paused after a failed rebuild, so the machine is wedged");
-        assertEquals(before, generation(),
-            "generation moved even though the rebuild failed; guests would cache a list that was never published");
+        assertEquals(before, generation(), "generation moved although the rebuild failed");
     }
 
     @Test

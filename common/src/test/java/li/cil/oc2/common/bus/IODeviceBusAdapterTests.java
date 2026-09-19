@@ -189,7 +189,7 @@ public final class IODeviceBusAdapterTests {
     }
 
     @Test
-    public void aRescanDoesNotRetargetASelectedDevice() {
+    public void rescanDoesNotRetargetASelectedDevice() {
         write(REG_SELECT, 0);
 
         final ObjectDevice other = new ObjectDevice(new OtherTarget(), "other");

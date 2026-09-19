@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
@@ -11,11 +12,9 @@ import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
 import li.cil.oc2.common.bus.device.rpc.item.BlockOperationsModuleDevice;
 import li.cil.oc2.common.bus.device.rpc.item.InventoryOperationsModuleDevice;
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,13 +23,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MinecraftBootstrap.class)
 public class RPCDeviceDocumentationTests {
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
-
     @Test
     public void itemHandlerSlotParametersAreNamed() {
         final List<RPCMethodGroup> groups = new ObjectDevice(new ItemHandlerDevice(new EmptyItemHandler())).getMethodGroups();

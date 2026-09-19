@@ -16,7 +16,6 @@ public final class GameTestsFabric implements FabricRegistrationInitializer {
     public void registerObjects() {
         GuestTestDevices.initialize();
 
-        // Make sure our reporter wins.
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             final String report = System.getProperty(REPORT_FILE_PROPERTY);
             GameTestReporting.install(report == null || report.isEmpty() ? null : new File(report));

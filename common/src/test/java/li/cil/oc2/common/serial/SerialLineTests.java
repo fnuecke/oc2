@@ -87,8 +87,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void theLineRateCapsHowMuchATickCarries() {
-        // 9600 baud is 480 bits, so 48 bytes of the 100 offered.
+    public void lineRateCapsHowMuchATickCarries() {
         a.write("x".repeat(100));
         segment(a, b);
 
@@ -99,7 +98,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aSlowLineStillGetsAByteOut() {
+    public void slowLineStillGetsAByteOut() {
         final Endpoint slowA = new Endpoint(1, B300);
         final Endpoint slowB = new Endpoint(2, B300);
 
@@ -115,11 +114,11 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aFullBurstAtALowRateArrivesClean() {
+    public void fullBurstAtALowRateArrivesClean() {
         final Endpoint slowA = new Endpoint(1, B300);
         final Endpoint slowB = new Endpoint(2, B300);
 
-        slowA.write("ab"); // two bytes are twenty bits; a tick at 300 baud is fifteen, plus a partial byte
+        slowA.write("ab");
         segment(slowA, slowB);
 
         assertEquals("ab", slowB.read());
@@ -127,7 +126,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void anEndpointStrappedToAnotherRateHearsNoise() {
+    public void endpointStrappedToAnotherRateHearsNoise() {
         final Endpoint fast = new Endpoint(2, B19200);
 
         a.write("hello");
@@ -138,7 +137,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aMismatchedRateArrivesAsGarbageOfTheLengthThisPortSamples() {
+    public void mismatchedRateArrivesAsGarbageOfTheLengthThisPortSamples() {
         final Endpoint slow = new Endpoint(2, B1200);
 
         a.write("x".repeat(48));
@@ -151,7 +150,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aFasterPeerAtTheWrongRateIsNoiseNotAnOverload() {
+    public void fasterPeerAtTheWrongRateIsNoiseNotAnOverload() {
         final Endpoint fast = new Endpoint(3, B19200);
 
         fast.write("x".repeat(96));
@@ -162,8 +161,8 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aGuestProgrammingTheWrongDivisorHearsNoise() {
-        b.setBaudRate(B1200); // The guest ran stty with the wrong number.
+    public void guestProgrammingTheWrongDivisorHearsNoise() {
+        b.setBaudRate(B1200);
 
         a.write("hello");
         segment(a, b);
@@ -240,7 +239,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aRateChangeAfterSendingDoesNotChangeTheVerdict() {
+    public void rateChangeAfterSendingDoesNotChangeTheVerdict() {
         a.write("hello");
         b.write("world");
 
@@ -249,7 +248,7 @@ public final class SerialLineTests {
         final List<byte[]> fromB = new ArrayList<>();
         collect(fromB, b);
 
-        a.setBaudRate(B19200); // a's guest switches right after its burst went out
+        a.setBaudRate(B19200);
 
         fromB.forEach(a::receive);
         fromA.forEach(b::receive);
@@ -262,7 +261,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aRateChangeBeforeTheTickIsOverDoesNotChangeTheVerdict() {
+    public void rateChangeBeforeTheTickIsOverDoesNotChangeTheVerdict() {
         final Endpoint c = new Endpoint(3, B9600);
 
         a.write("x".repeat(48));
@@ -354,7 +353,7 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aGuestThatReadsEveryTickLosesNothing() {
+    public void guestThatReadsEveryTickLosesNothing() {
         for (int i = 0; i < 4; i++) {
             a.write("x".repeat(48));
             segment(a, b);
@@ -365,13 +364,12 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void aGuestThatDoesNotReadForTwoTicksLosesBytes() {
+    public void guestThatDoesNotReadForTwoTicksLosesBytes() {
         for (int i = 0; i < 4; i++) {
             a.write("x".repeat(48));
             segment(a, b);
         }
 
-        // The uart's fifo holds sixteen bytes, the port two ticks' worth; the rest of four ticks is gone.
         assertEquals(80, b.overrunCount());
         assertEquals("x".repeat(112), b.read(), "what was kept is the oldest data, not a mix");
     }
@@ -413,7 +411,7 @@ public final class SerialLineTests {
 
     @Test
     public void foreignTrafficIsIgnored() {
-        b.line.writeEthernetFrame(new byte[64]); // Zeroed; not our ethertype.
+        b.line.writeEthernetFrame(new byte[64]);
         tick++;
 
         assertEquals("", b.read());
@@ -467,7 +465,7 @@ public final class SerialLineTests {
     }
 
     private static void collect(final List<byte[]> frames, final Endpoint endpoint) {
-        endpoint.port.step(0); // the guest's machine keeps running between ticks
+        endpoint.port.step(0);
         final byte[] frame = endpoint.line.frameForTick();
         if (frame != null) {
             frames.add(frame);
@@ -512,8 +510,6 @@ public final class SerialLineTests {
         }
 
         private void write(final String value) {
-            // A byte at a time with a step between, because that is what a guest watching THRE does
-            // and because the transmit fifo holds sixteen bytes, not a whole burst.
             for (final byte b : value.getBytes(StandardCharsets.UTF_8)) {
                 port.store(UART_THR_OFFSET, b, Sizes.SIZE_8_LOG2);
                 port.step(0);
@@ -521,14 +517,14 @@ public final class SerialLineTests {
         }
 
         private String read() {
-            line.currentTick(); // what the last tick carried is delivered once this interface is in the next one
+            line.currentTick();
             final StringBuilder result = new StringBuilder();
             port.step(0);
             int status = lineStatus(port);
             while ((status & UART_LSR_DR) != 0) {
                 framingErrorSeen |= (status & UART_LSR_FE) != 0;
                 result.append((char) (port.load(UART_RBR_OFFSET, Sizes.SIZE_8_LOG2) & 0xFF));
-                port.step(0); // A guest reading promptly keeps the fifo moving.
+                port.step(0);
                 status = lineStatus(port);
             }
             framingErrorSeen |= (status & UART_LSR_FE) != 0;

@@ -8,11 +8,11 @@ import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
+import li.cil.oc2.gametest.fixture.Hardware;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -22,20 +22,16 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class VirtualMachineTests {
-    // Tests within a batch run simultaneously, batches run one after another. The two tests that
-    // wait on real boot progress get a batch each. Since tests tick at ludicrous speeds, running
-    // too many VMs at once makes the tests flaky.
-    private static final String BOOT_BATCH = "oc2_boot";
     private static final String BOOT_RELOAD_BATCH = "oc2_boot_reload";
 
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void computerWithHardwareRunsAndStops(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(300, () -> computer.assertRunState(VMRunState.RUNNING, "after start"))
             .thenExecute(computer::stop)
@@ -45,7 +41,7 @@ public final class VirtualMachineTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void computerWithoutProcessorRefusesToStart(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
@@ -68,10 +64,10 @@ public final class VirtualMachineTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void removingProcessorStopsComputer(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(300, () -> {
                 computer.assertRunState(VMRunState.RUNNING, "precondition");
@@ -86,10 +82,10 @@ public final class VirtualMachineTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void swappingProcessorStopsComputer(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(300, () -> {
                 computer.assertRunState(VMRunState.RUNNING, "precondition");
@@ -105,11 +101,11 @@ public final class VirtualMachineTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void runningComputerConsumesEnergy(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         final long[] charged = new long[1];
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(200, () -> {
                 charged[0] = computer.energy();
@@ -130,10 +126,10 @@ public final class VirtualMachineTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 1200)
     public static void runningStateSurvivesNbtRoundTrip(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(300, () -> {
                 computer.assertRunState(VMRunState.RUNNING, "precondition");
@@ -143,8 +139,6 @@ public final class VirtualMachineTests {
                     throw new GameTestAssertException("saved tag carries no VM state");
                 }
 
-                // Immediate load to make sure VM doesn't tick; RAM and drive blob files
-                // could desync otherwise. Open todo to see if we can snapshot those...
                 computer.load(saved);
             })
             .thenExecuteAfter(200, () -> {
@@ -154,28 +148,16 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_BATCH)
-    public static void computerBootsGuestKernel(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
-        helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
-            .thenExecuteAfter(20, computer::start)
-            .thenWaitUntil(() -> requireBooted(computer))
-            .thenSucceed();
-    }
-
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_RELOAD_BATCH)
     public static void bootedGuestSurvivesSaveAndLoad(final GameTestHelper helper) {
-        final ComputerFixture computer = placeMachine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         final long[] instructionsAtReload = new long[1];
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenWaitUntil(() -> requireBooted(computer))
             .thenExecute(() -> {
-                // Immediate load to make sure VM doesn't tick; RAM and drive blob files
-                // could desync otherwise. Open todo to see if we can snapshot those...
                 computer.load(computer.save());
                 instructionsAtReload[0] = computer.guestInstructions();
             })
@@ -197,20 +179,6 @@ public final class VirtualMachineTests {
         if (!text.contains("Mounted root") || !text.contains("Run /sbin/init")) {
             throw new GameTestAssertException("guest has not handed off to userspace; screen:\n" + text);
         }
-    }
-
-    private static ComputerFixture placeMachine(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
-        return computer;
-    }
-
-    private static void installHardware(final ComputerFixture computer) {
-        computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-            .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-            .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-            .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()));
     }
 
     // --------------------------------------------------------------------- //

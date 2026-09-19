@@ -12,6 +12,7 @@ import li.cil.oc2.common.bus.device.vm.item.MemoryDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.ResetRecipe;
 import li.cil.oc2.common.item.crafting.ToolRecipe;
+import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
@@ -51,7 +52,7 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 @PrefixGameTestTemplate(false)
 public final class MountFailureTests {
     @GameTest(template = TEMPLATE)
-    public static void missingMemoryBlobIsPermanentAndReleasesTheHandle(final GameTestHelper helper) {
+    public static void missingMemoryBlobReleasesHandle(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final VMDeviceBusAdapter adapter = adapter();
         final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
@@ -64,13 +65,11 @@ public final class MountFailureTests {
             throw new GameTestAssertException("Mounting memory whose blob is gone should fail");
         }
         if (!first.isPermanent()) {
-            throw new GameTestAssertException("A blob that no longer exists never comes back, so retrying "
-                + "every ten seconds forever only hides the failure");
+            throw new GameTestAssertException("missing blob should fail permanently");
         }
 
         if (!adapter.mountDevices().wasSuccessful()) {
-            throw new GameTestAssertException("Memory must release a handle it cannot open, or the computer "
-                + "can never be started again by any means");
+            throw new GameTestAssertException("memory should release a handle it cannot open");
         }
 
         adapter.disposeDevices();
@@ -81,9 +80,9 @@ public final class MountFailureTests {
 
     @GameTest(template = TEMPLATE)
     public static void memoryBlobInUseIsPermanent(final GameTestHelper helper) {
-        final UUID handle = BlobStorage.allocateHandle();
+        final BlobReference blob = new BlobReference();
         try {
-            BlobStorage.open(handle, true);
+            final UUID handle = createBlob(blob);
 
             final VMDeviceBusAdapter adapter = adapter();
             final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
@@ -92,22 +91,21 @@ public final class MountFailureTests {
 
             final VMDeviceLoadResult result = adapter.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent()) {
-                throw new GameTestAssertException("Waiting for the other holder to let go would just hand it "
-                    + "the blob next, so the two overwrite each other in turn");
+                throw new GameTestAssertException("memory blob in use should fail permanently");
             }
 
             adapter.disposeDevices();
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
         } finally {
-            release(handle);
+            release(blob);
         }
 
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)
-    public static void missingDriveBlobIsPermanentAndKeepsTheHandle(final GameTestHelper helper) {
+    public static void missingDriveBlobKeepsHandle(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
         final VMDeviceBusAdapter adapter = adapter();
@@ -118,17 +116,46 @@ public final class MountFailureTests {
 
         final VMDeviceLoadResult result = adapter.mountDevices();
         if (result.wasSuccessful() || !result.isPermanent()) {
-            throw new GameTestAssertException("A drive whose blob is gone stops the machine; its data is not "
-                + "coming back on a retry");
+            throw new GameTestAssertException("missing drive blob should fail permanently");
         }
         if (!isCorrupted(stack)) {
-            throw new GameTestAssertException("Unlike memory, a drive keeps its handle and is flagged, so "
-                + "wiping it stays the player's decision");
+            throw new GameTestAssertException("drive should keep its handle and be flagged");
         }
 
         adapter.disposeDevices();
         StorageItemUtils.clearBlobData(stack);
         release(handle);
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void driveBlobInUseStaysWithItsHolder(final GameTestHelper helper) {
+        final BlobReference blob = new BlobReference();
+        final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
+        try {
+            final UUID handle = createBlob(blob);
+
+            final VMDeviceBusAdapter adapter = adapter();
+            final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
+            device.deserializeNBT(tagReferencing(handle));
+            adapter.addDevices(List.of(device));
+
+            final VMDeviceLoadResult result = adapter.mountDevices();
+            if (result.wasSuccessful() || !result.isPermanent() || !isCorrupted(stack)) {
+                throw new GameTestAssertException("A drive whose blob another device holds is a duplicate");
+            }
+
+            adapter.disposeDevices();
+            if (!BlobStorage.isOpen(handle)) {
+                throw new GameTestAssertException("failed mount released the blob of the device holding it");
+            }
+        } catch (final IOException e) {
+            throw new GameTestAssertException("Unexpected failure: " + e);
+        } finally {
+            StorageItemUtils.clearBlobData(stack);
+            release(blob);
+        }
 
         helper.succeed();
     }
@@ -150,8 +177,10 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("Mounting should fail while blob storage is full");
             }
             if (result.isPermanent()) {
-                throw new GameTestAssertException("A full store frees up once blobs age past the grace "
-                    + "period, so this one is worth retrying");
+                throw new GameTestAssertException("full storage should be retryable");
+            }
+            if (isCorrupted(stack)) {
+                throw new GameTestAssertException("full storage should not flag the drive");
             }
 
             adapter.disposeDevices();
@@ -165,7 +194,7 @@ public final class MountFailureTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void staleFlashMemoryRefusesToMountUntilAcknowledged(final GameTestHelper helper) {
+    public static void staleFlashNeedsAcknowledgement(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final ItemStack stack = new ItemStack(Items.FLASH_MEMORY.get());
         try {
@@ -179,8 +208,7 @@ public final class MountFailureTests {
 
             final VMDeviceLoadResult refused = refusing.mountDevices();
             if (refused.wasSuccessful() || !refused.isPermanent()) {
-                throw new GameTestAssertException("A chip that was mapped when the process died must not "
-                    + "quietly mount, same as a hard drive");
+                throw new GameTestAssertException("stale flash memory should not mount unacknowledged");
             }
             if (StorageItemUtils.getState(stack) != State.INCONSISTENT) {
                 throw new GameTestAssertException("The item carries the warning; got "
@@ -195,13 +223,10 @@ public final class MountFailureTests {
             accepting.addDevices(List.of(retry));
 
             if (!accepting.mountDevices().wasSuccessful()) {
-                throw new GameTestAssertException("Once the player has accepted it, the chip mounts. Refusing "
-                    + "here strands the chip forever: the mount bails before the blob is ever opened, so the "
-                    + "marker is never cleared and the acknowledgement is overwritten every time");
+                throw new GameTestAssertException("acknowledged flash memory should mount");
             }
             if (StorageItemUtils.getState(stack) != State.OK) {
-                throw new GameTestAssertException("The acknowledgement is spent on the mount that uses it, so "
-                    + "a later crash asks again; got " + StorageItemUtils.getState(stack));
+                throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it; got " + StorageItemUtils.getState(stack));
             }
 
             accepting.disposeDevices();
@@ -216,7 +241,7 @@ public final class MountFailureTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void staleDriveRefusesToMountUntilAcknowledged(final GameTestHelper helper) {
+    public static void staleDriveNeedsAcknowledgement(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
         try {
@@ -230,8 +255,7 @@ public final class MountFailureTests {
 
             final VMDeviceLoadResult refused = refusing.mountDevices();
             if (refused.wasSuccessful() || !refused.isPermanent()) {
-                throw new GameTestAssertException("A drive that was mapped when the process died must not "
-                    + "quietly mount; booting into a damaged filesystem is what the flag exists to prevent");
+                throw new GameTestAssertException("stale drive should not mount unacknowledged");
             }
             if (StorageItemUtils.getState(stack) != State.INCONSISTENT) {
                 throw new GameTestAssertException("The item carries the warning, so it survives the player "
@@ -252,8 +276,7 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("Once the player has accepted it, the drive mounts");
             }
             if (StorageItemUtils.getState(stack) != State.OK) {
-                throw new GameTestAssertException("The acknowledgement is spent on the mount that uses it, so "
-                    + "a later crash asks again instead of waving the drive through");
+                throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it");
             }
 
             accepting.disposeDevices();
@@ -268,7 +291,7 @@ public final class MountFailureTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void staleMemoryIsDiscardedSoTheMachineComesUpCold(final GameTestHelper helper) {
+    public static void staleMemoryIsDiscarded(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         try {
             markStale(handle);
@@ -280,15 +303,12 @@ public final class MountFailureTests {
 
             final VMDeviceLoadResult result = adapter.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent()) {
-                throw new GameTestAssertException("Resuming a CPU state against memory that ran on past it "
-                    + "is what panics the guest, so this has to stop the machine");
+                throw new GameTestAssertException("stale memory should stop the machine");
             }
             if (BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("Memory is volatile and worthless once its CPU state is "
-                    + "gone; keeping the blob only wastes the storage budget");
+                throw new GameTestAssertException("discarded memory should not keep its blob");
             }
 
-            // Handle released with the blob, so a manual start comes up cold rather than failing again.
             if (!adapter.mountDevices().wasSuccessful()) {
                 throw new GameTestAssertException("The machine has to be startable again afterwards");
             }
@@ -304,13 +324,13 @@ public final class MountFailureTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void resetKeepsTheDataOfAnUnverifiedDrive(final GameTestHelper helper) {
+    public static void resetAcknowledgesUnverifiedDrive(final GameTestHelper helper) {
         final ResetRecipe recipe = new ResetRecipe(CraftingBookCategory.MISC);
-        final UUID handle = BlobStorage.allocateHandle();
+        final BlobReference blob = new BlobReference();
         final ItemStack drive = new ItemStack(Items.HARD_DRIVE_SMALL.get());
         try {
-            BlobStorage.open(handle, true);
-            BlobStorage.close(handle);
+            final UUID handle = createBlob(blob);
+            blob.close();
             if (!BlobStorage.exists(handle)) {
                 throw new GameTestAssertException("Precondition: the drive has data to keep");
             }
@@ -334,8 +354,7 @@ public final class MountFailureTests {
                     + StorageItemUtils.getState(result));
             }
             if (!ItemDeviceUtils.getItemDeviceData(result).getCompound("oc2:hard_drive").hasUUID("blob")) {
-                throw new GameTestAssertException("Unlike the corrupted reset, this one keeps the handle: "
-                    + "keeping the data is the entire point of it");
+                throw new GameTestAssertException("reset of an unverified drive should keep the handle");
             }
 
             recipe.getRemainingItems(input);
@@ -346,7 +365,7 @@ public final class MountFailureTests {
             throw new GameTestAssertException("Unexpected failure: " + e);
         } finally {
             StorageItemUtils.clearBlobData(drive);
-            release(handle);
+            release(blob);
         }
 
         helper.succeed();
@@ -365,15 +384,14 @@ public final class MountFailureTests {
 
         if (recipe.matches(CraftingInput.of(2, 1, List.of(drive, new ItemStack(Items.WRENCH.get()))),
             helper.getLevel())) {
-            throw new GameTestAssertException("Converting deletes the blob, and the reset recipe matches the "
-                + "same inputs, so this one has to stand aside until the drive is dealt with");
+            throw new GameTestAssertException("tool recipe should not match an unverified drive");
         }
 
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
-    public static void permanentFailureStopsTheComputerInsteadOfRetrying(final GameTestHelper helper) {
+    public static void permanentMountFailureStopsComputer(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -393,8 +411,7 @@ public final class MountFailureTests {
                 .install(DeviceTypes.HARD_DRIVE.get(), drive))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(100, () -> {
-                computer.assertRunState(VMRunState.STOPPED, "a drive whose data is gone is not worth "
-                    + "retrying every ten seconds for the rest of the session");
+                computer.assertRunState(VMRunState.STOPPED, "a drive whose data is gone should fail permanently");
                 assertBootError(computer, "gui.oc2.computer.error.storage_corrupted");
             })
             .thenSucceed();
@@ -434,8 +451,15 @@ public final class MountFailureTests {
         Files.createFile(directory.resolve(handle + ".dirty"));
     }
 
+    private static void release(final BlobReference blob) {
+        final UUID handle = blob.getHandle();
+        blob.close();
+        if (handle != null) {
+            release(handle);
+        }
+    }
+
     private static void release(final UUID handle) {
-        BlobStorage.close(handle);
         BlobStorage.delete(handle);
         BlobStorage.handleSaved();
 

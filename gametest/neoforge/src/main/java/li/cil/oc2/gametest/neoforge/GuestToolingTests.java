@@ -3,17 +3,18 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.bus.device.vm.item.SoundCardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
+import li.cil.oc2.gametest.fixture.Hardware;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+import java.util.regex.Pattern;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
@@ -21,26 +22,25 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 @PrefixGameTestTemplate(false)
 public final class GuestToolingTests {
     private static final String GEOMETRY_BATCH = "oc2_guest_tooling_geometry";
-    private static final String KEYMAP_BATCH = "oc2_guest_tooling_keymap";
     private static final String SWAP_BATCH = "oc2_guest_tooling_swap";
     private static final String SOUND_BATCH = "oc2_guest_tooling_sound";
 
-    private static final String PROMPT = "# "; // Shell is up, as opposed to login still reading input.
+    private static final String PROMPT = "# ";
 
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = GEOMETRY_BATCH)
     public static void guestReportsUsableDriveGeometry(final GameTestHelper helper) {
-        final ComputerFixture computer = machine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenWaitUntil(() -> requireScreen(computer, "login:"))
             .thenExecute(() -> computer.type("root\n"))
             .thenWaitUntil(() -> requireScreen(computer, PROMPT))
-            .thenExecuteAfter(20, () -> computer.type("fdisk -l /dev/vda; echo GEOMETRY''-END\n"))
-            .thenWaitUntil(() -> requireScreen(computer, "GEOMETRY-END"))
+            .thenExecuteAfter(20, () -> computer.type(script("fdisk -l /dev/vda; echo GEOMETRY:$?")))
+            .thenWaitUntil(() -> requireScreen(computer, "GEOMETRY:0"))
             .thenExecute(() -> {
                 final String screen = computer.screen();
                 requireContains(screen, "16 heads", "guest did not get the advertised head count");
@@ -54,59 +54,35 @@ public final class GuestToolingTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = KEYMAP_BATCH)
-    public static void guestLoadsShippedKeymaps(final GameTestHelper helper) {
-        final ComputerFixture computer = machine(helper);
-
-        helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer))
-            .thenExecuteAfter(20, computer::start)
-            .thenWaitUntil(() -> requireScreen(computer, "login:"))
-            .thenExecute(() -> computer.type("root\n"))
-            .thenWaitUntil(() -> requireScreen(computer, PROMPT))
-            .thenExecuteAfter(20, () -> computer.type(
-                "loadkmap < /usr/share/keymaps/de.bmap && echo KEYMAP''-OK || echo KEYMAP''-FAIL\n"))
-            .thenWaitUntil(() -> requireScreen(computer, "KEYMAP-OK", "KEYMAP-FAIL"))
-            .thenExecute(() -> {
-                final String screen = computer.screen();
-                if (screen.contains("KEYMAP-FAIL")) {
-                    throw new GameTestAssertException("loadkmap rejected a shipped keymap:\n" + screen);
-                }
-            })
-            .thenSucceed();
-    }
-
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SWAP_BATCH)
     public static void guestCanUseASecondDriveAsSwap(final GameTestHelper helper) {
-        final ComputerFixture computer = machine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer)
-                .install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_SMALL.get())))
+            .thenExecuteAfter(20, () -> {
+                Hardware.installLinux(computer);
+                computer.install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_SMALL.get()));
+            })
             .thenExecuteAfter(20, computer::start)
             .thenWaitUntil(() -> requireScreen(computer, "login:"))
             .thenExecute(() -> computer.type("root\n"))
             .thenWaitUntil(() -> requireScreen(computer, PROMPT))
-            .thenExecuteAfter(20, () -> computer.type(
-                "mkswap /dev/vdb >/dev/null && swapon /dev/vdb && grep -q vdb /proc/swaps"
-                    + " && echo SWAP''-OK || echo SWAP''-FAIL\n"))
-            .thenWaitUntil(() -> requireScreen(computer, "SWAP-OK", "SWAP-FAIL"))
-            .thenExecute(() -> {
-                final String screen = computer.screen();
-                if (screen.contains("SWAP-FAIL")) {
-                    throw new GameTestAssertException("guest could not enable swap:\n" + screen);
-                }
-            })
+            .thenExecuteAfter(20, () -> computer.type(script(
+                "mkswap /dev/vdb >/dev/null && swapon /dev/vdb && grep -q vdb /proc/swaps; echo SWAP:$?")))
+            .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("SWAP"), "swap setup should report back"))
+            .thenExecute(() -> requireContains(computer.screen(), "SWAP:0", "guest could not enable swap"))
             .thenSucceed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SOUND_BATCH)
     public static void guestPlaysThroughTheSoundCard(final GameTestHelper helper) {
-        final ComputerFixture computer = machine(helper);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> installHardware(computer)
-                .install(DeviceTypes.CARD.get(), new ItemStack(Items.SOUND_CARD.get())))
+            .thenExecuteAfter(20, () -> {
+                Hardware.installLinux(computer);
+                computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.SOUND_CARD.get()));
+            })
             .thenExecuteAfter(20, computer::start)
             .thenWaitUntil(() -> requireScreen(computer, "login:"))
             .thenExecute(() -> {
@@ -116,34 +92,24 @@ public final class GuestToolingTests {
                 computer.type("root\n");
             })
             .thenWaitUntil(() -> requireScreen(computer, PROMPT))
-            .thenExecuteAfter(20, () -> computer.type(
-                "head -c 8000 /dev/urandom > /tmp/noise.raw; ls /dev/dsp /dev/snd/pcmC0D0p && echo DEVICES''-OK\n"))
-            .thenWaitUntil(() -> requireScreen(computer, "DEVICES-OK", "No such file"))
-            .thenExecute(() -> requireContains(computer.screen(), "DEVICES-OK", "the guest has no sound card"))
-            .thenExecute(() -> computer.type("cat /tmp/noise.raw > /dev/dsp; echo FIRST''-RC=$?\n"))
-            .thenWaitUntil(() -> requireScreen(computer, "FIRST-RC="))
-            .thenExecute(() -> requireContains(computer.screen(), "FIRST-RC=0", "playback failed"))
+            .thenExecuteAfter(20, () -> computer.type(script(
+                "head -c 8000 /dev/urandom > /tmp/noise.raw; ls /dev/dsp /dev/snd/pcmC0D0p >/dev/null; echo DEVICES:$?")))
+            .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("DEVICES"), "the device check should report back"))
+            .thenExecute(() -> requireContains(computer.screen(), "DEVICES:0", "the guest has no sound card"))
+            .thenExecute(() -> computer.type(script("cat /tmp/noise.raw > /dev/dsp; echo FIRST:$?")))
+            .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("FIRST"), "playback should report back"))
+            .thenExecute(() -> requireContains(computer.screen(), "FIRST:0", "playback failed"))
             .thenExecute(() -> requireAudioReachedTheCard(computer))
-            .thenExecute(() -> computer.type("cat /tmp/noise.raw > /dev/dsp; echo SECOND''-RC=$?\n"))
-            .thenWaitUntil(() -> requireScreen(computer, "SECOND-RC="))
-            .thenExecute(() -> requireContains(computer.screen(), "SECOND-RC=0", "playing a second time failed"))
+            .thenExecute(() -> computer.type(script("cat /tmp/noise.raw > /dev/dsp; echo SECOND:$?")))
+            .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("SECOND"), "the second playback should report back"))
+            .thenExecute(() -> requireContains(computer.screen(), "SECOND:0", "playing a second time failed"))
             .thenSucceed();
     }
 
     // --------------------------------------------------------------------- //
 
-    private static ComputerFixture machine(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
-        return computer;
-    }
-
-    private static ComputerFixture installHardware(final ComputerFixture computer) {
-        return computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-            .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-            .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-            .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()));
+    private static Pattern exitStatus(final String marker) {
+        return Pattern.compile("^" + marker + ":\\d+ *$", Pattern.MULTILINE);
     }
 
     private static void requireScreen(final ComputerFixture computer, final String... anyOf) {

@@ -39,11 +39,9 @@ public final class NetworkConnectorTests {
         helper.setBlock(WALL, Blocks.COBBLESTONE_WALL);
         helper.setBlock(MIDAIR.below(), Blocks.AIR);
 
-        // Neither has a full face, but both have a post covering the center of it.
         ConnectorFixture.place(helper, player, FENCE.above());
         ConnectorFixture.place(helper, player, WALL.above());
 
-        // Still nothing to hold on to where there is no block at all.
         requireCanSurvive(helper, FENCE.above(), true);
         requireCanSurvive(helper, WALL.above(), true);
         requireCanSurvive(helper, MIDAIR, false);
@@ -109,14 +107,13 @@ public final class NetworkConnectorTests {
         useOn(helper, cablePlayer, cable, CONNECTOR_B, Direction.UP);
 
         if (!a.isConnectedTo(b)) {
-            throw new GameTestAssertException("using a network cable on two connectors did not "
-                + "link them");
+            throw new GameTestAssertException("network cable did not link the connectors");
         }
 
         helper.succeed();
     }
 
-    public static void aConnectorResolvesTheNetworkCardOfTheComputerItIsOn(final GameTestHelper helper) {
+    public static void connectorResolvesNetworkCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -150,7 +147,7 @@ public final class NetworkConnectorTests {
             .thenSucceed();
     }
 
-    public static void aConnectorNoticesTheNetworkCardBeingRemoved(final GameTestHelper helper) {
+    public static void connectorDropsRemovedCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
         placePower(helper, player);
@@ -163,8 +160,7 @@ public final class NetworkConnectorTests {
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())))
             .thenExecuteAfter(80, () -> {
                 if (connector.adjacentInterface() == null) {
-                    throw new GameTestAssertException(
-                        "the connector did not find the installed network card");
+                    throw new GameTestAssertException("connector did not find the network card");
                 }
             })
             .thenExecute(() -> computer.uninstall(DeviceTypes.CARD.get()))

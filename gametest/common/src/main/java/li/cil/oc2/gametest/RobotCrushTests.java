@@ -13,7 +13,7 @@ import static li.cil.oc2.gametest.util.TestSupport.WORK_Y;
 
 public final class RobotCrushTests {
     public static final BlockPos ROBOT_POS = new BlockPos(16, WORK_Y, 2);
-    public static final int ROBOT_CHECK_GRACE_PERIOD = 40; // Give robot check time to kick in.
+    public static final int ROBOT_CHECK_GRACE_PERIOD = 40;
 
     // --------------------------------------------------------------------- //
 

@@ -116,7 +116,7 @@ public class Ipv4SpaceTests {
     }
 
     @Test
-    public void aRangeSwallowingSeveralOthersLeavesOne() {
+    public void rangeSwallowingSeveralOthersLeavesOne() {
         final Ipv4Space space = new Ipv4Space();
         space.add(ip("1.0.0.0"), ip("1.0.0.5"));
         space.add(ip("1.0.1.0"), ip("1.0.1.5"));

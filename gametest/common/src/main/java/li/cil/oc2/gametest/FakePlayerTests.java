@@ -14,8 +14,7 @@ public final class FakePlayerTests {
     public static void fakePlayerIsRecognisedAsFake(final GameTestHelper helper) {
         final ServerPlayer fakePlayer = FakePlayerUtils.getFakePlayer(helper.getLevel());
         if (!PlayerHooks.isFake(fakePlayer)) {
-            throw new GameTestAssertException("oc2's fake player is not recognized as fake; mods guarding "
-                + "on PlayerHooks.isFake would treat robot actions as a real player's");
+            throw new GameTestAssertException("oc2's fake player is not recognized as fake");
         }
 
         final Player ordinaryPlayer = helper.makeMockPlayer(GameType.SURVIVAL);

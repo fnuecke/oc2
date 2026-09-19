@@ -54,8 +54,7 @@ public final class GameTestReporting {
                 return;
             }
 
-            LOGGER.error("The game test server did not shut down within {}s. This is a vanilla chunk "
-                    + "unload livelock, not a test failure; it does not invalidate the test results.",
+            LOGGER.error("The game test server did not shut down within {}s; vanilla chunk unload livelock, not a test failure.",
                 SHUTDOWN_GRACE_MILLIS / 1000L);
 
             sleep(200);

@@ -31,7 +31,7 @@ public class TcpHeaderTests {
     @Test
     public void maximumSegmentSizeOptionIsRead() {
         final TcpHeader header = new TcpHeader();
-        final byte[] options = {2, 4, 0x05, (byte) 0xB4}; // MSS 1460.
+        final byte[] options = {2, 4, 0x05, (byte) 0xB4};
         final ByteBuffer data = segment(1, 0, 6, TcpHeader.FLAG_SYN, options, NO_BYTES);
 
         assertTrue(header.read(data));
@@ -43,7 +43,6 @@ public class TcpHeaderTests {
     @Test
     public void unknownOptionsAreSkipped() {
         final TcpHeader header = new TcpHeader();
-        // No-op, window scale (kind 3, length 3), no-op, MSS.
         final byte[] options = {1, 3, 3, 7, 1, 2, 4, 0x05, (byte) 0xB4};
         final byte[] padded = new byte[12];
         System.arraycopy(options, 0, padded, 0, options.length);
@@ -57,7 +56,7 @@ public class TcpHeaderTests {
     @Test
     public void optionWithZeroLengthIsRejectedRatherThanLoopingForever() {
         final TcpHeader header = new TcpHeader();
-        final byte[] options = {8, 0, 0, 0}; // Kind 8, length 0.
+        final byte[] options = {8, 0, 0, 0};
         final ByteBuffer data = segment(1, 0, 6, TcpHeader.FLAG_ACK, options, NO_BYTES);
 
         assertFalse(header.read(data));
@@ -75,7 +74,7 @@ public class TcpHeaderTests {
     @Test
     public void optionRunningPastTheHeaderIsRejected() {
         final TcpHeader header = new TcpHeader();
-        final byte[] options = {8, (byte) 40, 0, 0}; // Claims 40 bytes inside a 4 byte option area.
+        final byte[] options = {8, (byte) 40, 0, 0};
         final ByteBuffer data = segment(1, 0, 6, TcpHeader.FLAG_ACK, options, NO_BYTES);
 
         assertFalse(header.read(data));
@@ -201,9 +200,9 @@ public class TcpHeaderTests {
         buffer.putInt(acknowledgmentNumber);
         buffer.put((byte) (dataOffsetWords << 4));
         buffer.put((byte) flags);
-        buffer.putShort((short) 8192); // Window.
-        buffer.putShort((short) 0); // Checksum.
-        buffer.putShort((short) 0); // Urgent pointer.
+        buffer.putShort((short) 8192);
+        buffer.putShort((short) 0);
+        buffer.putShort((short) 0);
         buffer.put(options);
         buffer.put(payload);
         buffer.flip();

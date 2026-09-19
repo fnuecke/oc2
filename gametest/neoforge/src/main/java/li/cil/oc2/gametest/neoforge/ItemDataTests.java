@@ -67,8 +67,7 @@ public final class ItemDataTests {
 
         final int read = ItemStackUtils.getModDataTag(stack).getInt(KEY);
         if (read != 42) {
-            throw new GameTestAssertException(
-                "modifyModDataTag did not persist: expected 42, got " + read);
+            throw new GameTestAssertException("mod data did not persist; got " + read);
         }
         helper.succeed();
     }
@@ -82,8 +81,7 @@ public final class ItemDataTests {
 
         if (ItemStackUtils.getModDataTag(stack).contains(KEY)) {
             throw new GameTestAssertException(
-                "getModDataTag returned a live tag — mutating it must not write through, or the "
-                    + "copy-mutation bugs stop being detectable");
+                "getModDataTag returned a live tag; mutating it must not write through");
         }
         helper.succeed();
     }

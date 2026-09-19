@@ -41,7 +41,6 @@ public final class BufferedSerialDeviceTests {
         final BufferedSerialDevice port = new BufferedSerialDevice();
         port.store(UART_FCR_OFFSET, UART_FCR_FE, Sizes.SIZE_8_LOG2);
 
-        // More than the uart's own fifo holds, so most of it is waiting in the port.
         final byte[] data = "the quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8);
         assertEquals(data.length, port.offer(data, false));
 
@@ -65,7 +64,7 @@ public final class BufferedSerialDeviceTests {
 
         for (final byte value : "hello".getBytes(StandardCharsets.UTF_8)) {
             port.store(UART_THR_OFFSET, value, Sizes.SIZE_8_LOG2);
-            port.step(0); // moves it out of the uart and into the port's queue
+            port.step(0);
         }
 
         final byte[] pending = roundTrip(port).poll(16);
@@ -75,7 +74,7 @@ public final class BufferedSerialDeviceTests {
     }
 
     @Test
-    public void aDisturbedByteIsStillDisturbedAfterASave() {
+    public void disturbedByteIsStillDisturbedAfterASave() {
         final BufferedSerialDevice port = new BufferedSerialDevice();
         port.store(UART_FCR_OFFSET, UART_FCR_FE, Sizes.SIZE_8_LOG2);
         port.offer(new byte[]{'x'}, true);
@@ -89,7 +88,7 @@ public final class BufferedSerialDeviceTests {
     }
 
     @Test
-    public void theSendBacklogFollowsTheLineRate() {
+    public void sendBacklogFollowsTheLineRate() {
         final BufferedSerialDevice port = new BufferedSerialDevice();
         port.store(UART_FCR_OFFSET, UART_FCR_FE, Sizes.SIZE_8_LOG2);
         port.store(UART_LCR_OFFSET, UART_LCR_DLAB, Sizes.SIZE_8_LOG2);

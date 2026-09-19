@@ -25,7 +25,6 @@ public final class IOStreamsTests {
 
     @Test
     public void wideValuesReadLowByteFirst() throws Exception {
-        // The same bytes through DataInputStream would read as 0x3412; the guests are little-endian.
         assertEquals(0x1234, read(0x34, 0x12).readU16());
         assertEquals(0xFFFFFFFFL, read(0xFF, 0xFF, 0xFF, 0xFF).readU32());
         assertEquals(0x12345678L, read(0x78, 0x56, 0x34, 0x12).readU32());
@@ -90,7 +89,7 @@ public final class IOStreamsTests {
     }
 
     @Test
-    public void aTrailingTerminatorIsConsumed() throws Exception {
+    public void trailingTerminatorIsConsumed() throws Exception {
         final IOInputStream stream = read('a', 0);
         assertEquals("a", stream.readString());
         assertEquals(-1, stream.read());

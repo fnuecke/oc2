@@ -9,26 +9,24 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.VirtualMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
 import static li.cil.oc2.gametest.util.TestSupport.useOn;
 
-public final class RobotFixture {
+public final class RobotFixture implements MachineFixture {
     private final GameTestHelper helper;
     private final Robot robot;
 
@@ -51,6 +49,35 @@ public final class RobotFixture {
     }
 
     // --------------------------------------------------------------------- //
+
+    public static RobotFixture of(final GameTestHelper helper, final Robot robot) {
+        return new RobotFixture(helper, robot);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
+    public VirtualMachine virtualMachine() {
+        return robot.getVirtualMachine();
+    }
+
+    @Override
+    public Terminal terminal() {
+        return robot.getTerminal();
+    }
+
+    @Override
+    public ItemHandler handler(final DeviceType type) {
+        return robot.getItemStackHandlers().getItemHandler(type)
+            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
+    }
+
+    @Override
+    public String describe() {
+        return "runState=" + virtualMachine().getRunState()
+            + ", bootError=" + virtualMachine().getBootError()
+            + ", error=" + virtualMachine().getError();
+    }
 
     public Robot entity() {
         return robot;
@@ -85,16 +112,10 @@ public final class RobotFixture {
         return this;
     }
 
+    @Override
     public RobotFixture install(final DeviceType type, final ItemStack stack) {
-        final ItemHandler handler = robot.getItemStackHandlers().getItemHandler(type)
-            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
-        for (int slot = 0; slot < handler.getSlots(); slot++) {
-            if (handler.insertItem(slot, stack, false).isEmpty()) {
-                return this;
-            }
-        }
-        throw new GameTestAssertException("could not install " + stack + " as " + type
-            + "; all " + handler.getSlots() + " slot(s) rejected it");
+        installInto(type, stack);
+        return this;
     }
 
     public boolean has(final Item item) {
@@ -120,46 +141,6 @@ public final class RobotFixture {
             storage.receiveEnergy(storage.getMaxEnergyStored(), false);
         }
         return this;
-    }
-
-    public String screen() {
-        final Terminal terminal = robot.getTerminal();
-        final CompoundTag tag;
-        synchronized (terminal) {
-            tag = NBTSerialization.serialize(terminal);
-        }
-        final byte[] buffer = tag.getByteArray("buffer");
-        final StringBuilder text = new StringBuilder();
-        for (int row = 0; row < Terminal.HEIGHT; row++) {
-            for (int column = 0; column < Terminal.WIDTH; column++) {
-                final int index = row * Terminal.WIDTH + column;
-                final byte value = index < buffer.length ? buffer[index] : 0;
-                text.append(value == 0 ? ' ' : (char) (value & 0xFF));
-            }
-            text.append('\n');
-        }
-        return text.toString();
-    }
-
-    public void type(final String line) {
-        final Terminal terminal = robot.getTerminal();
-        for (final byte value : line.getBytes(StandardCharsets.UTF_8)) {
-            terminal.putInput(value);
-        }
-        terminal.putInput((byte) '\r');
-    }
-
-    public GuestTests guestTests() {
-        return GuestTests.of(robot.getVirtualMachine());
-    }
-
-    public void assertNoGuestPanic() {
-        final String text = screen();
-        for (final String marker : new String[]{"Kernel panic", "Oops", "BUG:", "Call Trace"}) {
-            if (text.contains(marker)) {
-                throw new GameTestAssertException("guest reported '" + marker + "':\n" + text);
-            }
-        }
     }
 
     // --------------------------------------------------------------------- //

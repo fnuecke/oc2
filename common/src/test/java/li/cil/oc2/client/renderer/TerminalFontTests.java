@@ -2,11 +2,10 @@
 
 package li.cil.oc2.client.renderer;
 
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.common.vm.Terminal;
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -18,16 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@ExtendWith(MinecraftBootstrap.class)
 public class TerminalFontTests {
     private static final String ATLAS = "/assets/oc2/textures/font/terminus.png";
     private static final int COLUMNS = 16, BOLD_SHIFT = 16;
     private static final int WHITE_CELL = 0x7F;
-
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
 
     @Test
     public void everyGlyphInTheAtlasIsDrawn() {
@@ -35,7 +29,7 @@ public class TerminalFontTests {
 
         for (int character = 0; character < 256; character++) {
             if (character == WHITE_CELL) {
-                continue; // Reserved as an untextured source, never drawn as a glyph.
+                continue;
             }
 
             final boolean hasGlyph = !isBlank(atlas, character, false) || !isBlank(atlas, character, true);
@@ -51,7 +45,7 @@ public class TerminalFontTests {
         for (char ch = 0x5F; ch <= 0x7E; ch++) {
             final int cell = ch - 0x5F;
             if (ch == '_') {
-                continue; // The blank of the line drawing set.
+                continue;
             }
 
             assertTrue(TerminalRenderer.isPrintableCharacter((char) cell), "line drawing '" + ch + "' is not drawn");
@@ -60,7 +54,7 @@ public class TerminalFontTests {
     }
 
     @Test
-    public void theUntexturedSourceIsOpaque() {
+    public void untexturedSourceIsOpaque() {
         final BufferedImage atlas = atlas();
         final int resolution = atlas.getWidth();
         final int x = Math.round(readFloat("WHITE_U") * resolution);

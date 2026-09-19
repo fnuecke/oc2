@@ -91,7 +91,7 @@ public final class RPCEventChannelTests {
     }
 
     @Test
-    public void theQueueIsBoundedWhenNobodyReads() {
+    public void queueIsBoundedWhenNobodyReads() {
         final TestSerialDevice deafEvents = new TestSerialDevice(0);
         final RPCEventChannel channel = new RPCEventChannel(deafEvents);
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
@@ -104,9 +104,7 @@ public final class RPCEventChannelTests {
 
         final TestSerialDevice reader = new TestSerialDevice();
         final RPCEventChannel drained = new RPCEventChannel(reader);
-        while (drained.sendEvent(RPCMessageChannel.frame(kilobyte))) {
-            // fill it
-        }
+        assertTrue(fill(drained, kilobyte) > 0, "precondition: the queue took events");
         drained.flush();
         assertTrue(reader.drainAsVM().length > 0, "precondition: the queue drained");
         assertTrue(drained.sendEvent(RPCMessageChannel.frame(kilobyte)),
@@ -114,14 +112,12 @@ public final class RPCEventChannelTests {
     }
 
     @Test
-    public void theChannelReportsWhatItRefused() {
+    public void channelReportsWhatItRefused() {
         final TestSerialDevice deaf = new TestSerialDevice(0);
         final RPCEventChannel channel = new RPCEventChannel(deaf);
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
 
-        while (channel.sendEvent(RPCMessageChannel.frame(kilobyte))) {
-            // fill it
-        }
+        fill(channel, kilobyte);
         channel.sendEvent(RPCMessageChannel.frame(kilobyte));
 
         assertTrue(channel.takeDropped() > 0, "refusing an event went unreported");
@@ -134,16 +130,13 @@ public final class RPCEventChannelTests {
         final RPCEventChannel channel = new RPCEventChannel(deaf);
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
 
-        while (channel.sendEvent(RPCMessageChannel.frame(kilobyte))) {
-            // fill it
-        }
+        fill(channel, kilobyte);
         assertTrue(channel.takeDropped() > 0, "precondition: something was refused");
 
         channel.sendNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
 
         channel.sendEvent(RPCMessageChannel.frame(kilobyte));
-        assertEquals(0, channel.takeDropped(),
-            "a second notice would have queued up after the first");
+        assertEquals(0, channel.takeDropped(), "a second notice queued after the first");
     }
 
     @Test
@@ -152,9 +145,7 @@ public final class RPCEventChannelTests {
         final RPCEventChannel channel = new RPCEventChannel(reader);
         final byte[] kilobyte = new byte[Constants.KILOBYTE];
 
-        while (channel.sendEvent(RPCMessageChannel.frame(kilobyte))) {
-            // fill it
-        }
+        fill(channel, kilobyte);
         assertTrue(channel.takeDropped() > 0, "precondition: something was refused");
         channel.sendNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
 
@@ -162,13 +153,12 @@ public final class RPCEventChannelTests {
         assertEquals(0, channel.takeDropped(), "a second notice queued up after the first");
 
         channel.flush();
-        assertTrue(channel.takeDropped() > 0,
-            "a refusal while the notice was pending was never reported");
+        assertTrue(channel.takeDropped() > 0, "refusal during a pending notice went unreported");
     }
 
     @Test
     public void droppedEventsAreAnnouncedToTheGuest() {
-        final TestSerialDevice slow = new TestSerialDevice(256); // room for a frame, not for many
+        final TestSerialDevice slow = new TestSerialDevice(256);
         adapter = newAdapter(slow);
         addDevice("redstone");
         adapter.resume(busController);
@@ -232,7 +222,6 @@ public final class RPCEventChannelTests {
         addDevice("redstone");
         adapter.resume(busController);
 
-        // Before any step, so the event is still queued rather than already written.
         adapter.reset();
         adapter.step(0);
 
@@ -270,7 +259,6 @@ public final class RPCEventChannelTests {
 
     @Test
     public void slowGuestStillGetsTheEventOnceItReads() {
-        // One byte at a time: the frame cannot go out in a single step.
         final TestSerialDevice trickle = new TestSerialDevice(1);
         adapter = newAdapter(trickle);
         addDevice("redstone");
@@ -290,8 +278,7 @@ public final class RPCEventChannelTests {
             }
         }
 
-        assertTrue(message.indexOf("devicesChanged") >= 0,
-            "a one-byte-at-a-time reader never received the event");
+        assertTrue(message.indexOf("devicesChanged") >= 0, "byte-wise reader missed the event");
     }
 
     @Test
@@ -318,13 +305,11 @@ public final class RPCEventChannelTests {
 
         final JsonObject data = event.getAsJsonObject("data");
         assertEquals(7, data.get("actionId").getAsInt());
-        assertEquals("FAILURE", data.get("result").getAsString(),
-            "the guest compares the result by name");
+        assertEquals("FAILURE", data.get("result").getAsString(), "result is not named");
     }
 
     @Test
     public void eventsRaisedFromAnotherThreadArriveIntactAndInOrder() throws InterruptedException {
-        // Robot actions complete on the server thread while the VM worker drains the channel.
         final int count = 500;
         final List<Integer> seen = new ArrayList<>();
 
@@ -332,7 +317,7 @@ public final class RPCEventChannelTests {
             for (int i = 0; i < count; i++) {
                 while (!adapter.sendEvent(RobotActionCompletedEvent.TYPE,
                     new RobotActionCompletedEvent(i, RobotActionResult.SUCCESS))) {
-                    Thread.onSpinWait(); // queue is full; let the reader catch up
+                    Thread.onSpinWait();
                 }
             }
         }, "event-producer");
@@ -392,4 +377,13 @@ public final class RPCEventChannelTests {
             return 1;
         }
     }
+
+    private static int fill(final RPCEventChannel channel, final byte[] payload) {
+        int accepted = 0;
+        while (channel.sendEvent(RPCMessageChannel.frame(payload))) {
+            accepted++;
+        }
+        return accepted;
+    }
+
 }

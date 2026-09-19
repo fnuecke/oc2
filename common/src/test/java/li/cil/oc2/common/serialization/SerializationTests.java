@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public final class SerializationTests {
     @Test
-    public void testSerializeFlat() {
+    public void flatSerializes() {
         final Flat value = new Flat();
 
         final UUID uuid = UUID.randomUUID();
@@ -44,7 +44,7 @@ public final class SerializationTests {
     }
 
     @Test
-    public void testDeserializeFlatInto() {
+    public void flatDeserializesInto() {
         final CompoundTag nbt = new CompoundTag();
         nbt.putByte("byteValue", (byte) 98);
         nbt.putShort("shortValue", (short) 876);
@@ -77,7 +77,7 @@ public final class SerializationTests {
     }
 
     @Test
-    public void testDeserializeFlatNew() {
+    public void flatDeserializesNew() {
         final CompoundTag nbt = new CompoundTag();
 
         nbt.putByte("byteValue", (byte) 98);
@@ -128,7 +128,7 @@ public final class SerializationTests {
     }
 
     @Test
-    public void testSerializeNested() {
+    public void nestedSerializes() {
         final Nested root = new Nested();
         root.value = 123;
         root.child = new Nested();
@@ -142,7 +142,7 @@ public final class SerializationTests {
     }
 
     @Test
-    public void testDeserializeNestedInto() {
+    public void nestedDeserializesInto() {
         final CompoundTag nbt = new CompoundTag();
         nbt.putInt("value", 123);
         final CompoundTag child = new CompoundTag();
@@ -157,7 +157,7 @@ public final class SerializationTests {
     }
 
     @Test
-    public void testDeserializeNestedNew() {
+    public void nestedDeserializesNew() {
         final CompoundTag nbt = new CompoundTag();
         nbt.putInt("value", 123);
         final CompoundTag child = new CompoundTag();

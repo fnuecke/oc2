@@ -4,24 +4,18 @@ package li.cil.oc2.common.bus.device.rpc;
 
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
+import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.serialization.gson.SideJsonDeserializer;
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MinecraftBootstrap.class)
 public class GuestInputBoundsTests {
-    @BeforeAll
-    public static void bootstrap() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
-
     @Test
     public void sideIndicesInRangeAreAccepted() {
         for (int index = 0; index < 6; index++) {

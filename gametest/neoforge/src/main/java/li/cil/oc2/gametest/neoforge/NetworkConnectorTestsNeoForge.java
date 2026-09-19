@@ -40,13 +40,13 @@ public final class NetworkConnectorTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void aConnectorResolvesTheNetworkCardOfTheComputerItIsOn(final GameTestHelper helper) {
-        NetworkConnectorTests.aConnectorResolvesTheNetworkCardOfTheComputerItIsOn(helper);
+    public static void connectorResolvesNetworkCard(final GameTestHelper helper) {
+        NetworkConnectorTests.connectorResolvesNetworkCard(helper);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void aConnectorNoticesTheNetworkCardBeingRemoved(final GameTestHelper helper) {
-        NetworkConnectorTests.aConnectorNoticesTheNetworkCardBeingRemoved(helper);
+    public static void connectorDropsRemovedCard(final GameTestHelper helper) {
+        NetworkConnectorTests.connectorDropsRemovedCard(helper);
     }
 
     // --------------------------------------------------------------------- //

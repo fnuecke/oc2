@@ -4,14 +4,14 @@ package li.cil.oc2.common.network.message;
 
 import dev.architectury.networking.NetworkManager;
 import io.netty.buffer.Unpooled;
-import net.minecraft.SharedConstants;
+import li.cil.oc2.MinecraftBootstrap;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.player.Player;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -22,12 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MinecraftBootstrap.class)
 public class MultipartMessageTests {
     @BeforeAll
     public static void setupAll() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-
         MultipartMessage.registerMessage(PayloadMessage.class, PayloadMessage::new);
     }
 

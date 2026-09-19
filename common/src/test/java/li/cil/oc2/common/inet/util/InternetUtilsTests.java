@@ -22,7 +22,6 @@ public class InternetUtilsTests {
 
     @Test
     public void headerChecksumMatchesTheWorkedExampleFromRfc1071() {
-        // The IPv4 header from the RFC's example, with its checksum field zeroed.
         final ByteBuffer header = bytes(
             0x45, 0x00, 0x00, 0x73, 0x00, 0x00, 0x40, 0x00, 0x40, 0x11, 0x00, 0x00,
             0xc0, 0xa8, 0x00, 0x01, 0xc0, 0xa8, 0x00, 0xc7);
@@ -31,12 +30,11 @@ public class InternetUtilsTests {
     }
 
     @Test
-    public void aChecksummedHeaderChecksumsToZero() {
+    public void checksummedHeaderChecksumsToZero() {
         final ByteBuffer header = bytes(
             0x45, 0x00, 0x00, 0x73, 0x00, 0x00, 0x40, 0x00, 0x40, 0x11, 0xb8, 0x61,
             0xc0, 0xa8, 0x00, 0x01, 0xc0, 0xa8, 0x00, 0xc7);
 
-        // Summing a message that already carries its checksum is the standard way to verify one.
         assertEquals((short) 0, InternetUtils.rfc1071Checksum(header));
     }
 
@@ -55,16 +53,16 @@ public class InternetUtilsTests {
         final byte protocol = 6;
 
         final ByteBuffer message = ByteBuffer.allocate(24);
-        message.putShort((short) 40000); // Source port.
-        message.putShort((short) 80); // Destination port.
-        message.putInt(0x11223344); // Sequence.
-        message.putInt(0x55667788); // Acknowledgment.
+        message.putShort((short) 40000);
+        message.putShort((short) 80);
+        message.putInt(0x11223344);
+        message.putInt(0x55667788);
         message.put((byte) 0x50);
         message.put((byte) 0x10);
         message.putShort((short) 8192);
-        message.putShort((short) 0); // Checksum.
-        message.putShort((short) 0); // Urgent pointer.
-        message.putInt(0xDEADBEEF); // Payload.
+        message.putShort((short) 0);
+        message.putShort((short) 0);
+        message.putInt(0xDEADBEEF);
         message.flip();
 
         final short checksum = InternetUtils.transportRfc1071Checksum(message, source, destination, protocol);

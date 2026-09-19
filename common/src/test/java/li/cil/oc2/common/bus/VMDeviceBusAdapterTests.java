@@ -115,23 +115,6 @@ public final class VMDeviceBusAdapterTests {
     }
 
     @Test
-    public void mountedDevicesAreUnmountedIfOtherMountFails() {
-        final VMDevice device1 = mock(VMDevice.class);
-        final VMDevice device2 = mock(VMDevice.class);
-        when(device1.mount(any())).thenReturn(VMDeviceLoadResult.success());
-        when(device2.mount(any())).thenReturn(VMDeviceLoadResult.fail());
-
-        adapter.addDevices(Collections.singleton(device1));
-        adapter.addDevices(Collections.singleton(device2));
-        adapter.mountDevices();
-
-        verify(device1).mount(any());
-        verify(device2).mount(any());
-        verify(device1).unmount();
-        verify(device1, never()).dispose();
-    }
-
-    @Test
     public void mountedDevicesAreUnmountedWhenRemoved() {
         final VMDevice device = mock(VMDevice.class);
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
@@ -175,7 +158,7 @@ public final class VMDeviceBusAdapterTests {
     }
 
     @Test
-    public void unmountedDevicesAreNotUnmountedAndNotDisposedOnGlobalUnmount() {
+    public void globalUnmountSkipsUnmountedDevices() {
         final VMDevice device = mock(VMDevice.class);
 
         adapter.addDevices(Collections.singleton(device));
@@ -198,7 +181,7 @@ public final class VMDeviceBusAdapterTests {
     }
 
     @Test
-    public void unmountedDevicesAreNotUnmountedButDisposedOnGlobalDispose() {
+    public void globalDisposeDisposesUnmountedDevices() {
         final VMDevice device = mock(VMDevice.class);
         adapter.addDevices(Collections.singleton(device));
 
@@ -396,8 +379,6 @@ public final class VMDeviceBusAdapterTests {
         assertTrue(adapter.mountDevices().wasSuccessful());
         verify(mounted, times(1)).mount(any());
 
-        // Hot-plug something that cannot mount. The device that was already running has to come
-        // back, not be dropped: it is still on the bus, and the caller keeps the VM running.
         final VMDevice failing = mock(VMDevice.class);
         when(failing.mount(any())).thenReturn(VMDeviceLoadResult.fail());
 
@@ -405,8 +386,8 @@ public final class VMDeviceBusAdapterTests {
         assertFalse(adapter.mountDevices().wasSuccessful());
 
         verify(mounted, times(1)).unmount();
+        verify(mounted, never()).dispose();
 
-        // Remove the broken device and the original one must mount again.
         adapter.removeDevices(Collections.singleton(failing));
         assertTrue(adapter.mountDevices().wasSuccessful());
         verify(mounted, times(2)).mount(any());

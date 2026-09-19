@@ -53,14 +53,14 @@ public final class CpmImageTests {
     }
 
     @Test
-    public void theSerialExampleReferencesTheLibraryTheDiskCarries() throws IOException {
+    public void serialExampleReferencesTheLibrary() throws IOException {
         final String example = new String(resource(SHIPPED + "serchat.z80"), StandardCharsets.US_ASCII);
         assertTrue(example.contains("SEROPEN"), "the example should use the library it ships beside");
         assertTrue(example.contains("SERIAL.INC"), "the example should include the library");
     }
 
     @Test
-    public void theExampleReferencesTheLibrary() throws IOException {
+    public void redstoneExampleReferencesTheLibrary() throws IOException {
         final String example = new String(resource(SHIPPED + "redstn.z80"), StandardCharsets.US_ASCII);
         assertTrue(example.contains("OCFIND"), "the example should use the library it ships beside");
         assertTrue(example.contains("OCAPI.INC"), "the example should include the library");
@@ -137,10 +137,6 @@ public final class CpmImageTests {
 
     // --------------------------------------------------------------------- //
 
-    /**
-     * Composes the drive from the files oc2 ships, the same way the reload listener does, but
-     * reading them off the classpath so the test needs no resource manager.
-     */
     private static byte[] composeShippedRomDrive() throws IOException {
         final Map<String, byte[]> files = new LinkedHashMap<>();
         for (final String name : List.of("ocapi.inc", "redstn.z80", "serchat.z80")) {
@@ -174,10 +170,6 @@ public final class CpmImageTests {
         return image;
     }
 
-    /**
-     * Reads a CP/M directory back using the rules the writer claims to follow, so a disagreement
-     * between the two shows up as a failing test rather than as a disk CP/M cannot read.
-     */
     private static Map<String, byte[]> listFiles(final byte[] image) {
         final int directory = Cpm.DiskGeometry.RESERVED_TRACKS
             * Cpm.DiskGeometry.SECTORS_PER_TRACK * Cpm.DiskGeometry.SECTOR_SIZE;
@@ -210,7 +202,7 @@ public final class CpmImageTests {
     private static String text(final byte[] image, final int offset, final int length) {
         final StringBuilder builder = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            builder.append((char) (image[offset + i] & 0x7F)); // the high bit is an attribute flag
+            builder.append((char) (image[offset + i] & 0x7F));
         }
         return builder.toString().strip();
     }

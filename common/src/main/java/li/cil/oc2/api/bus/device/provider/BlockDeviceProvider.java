@@ -4,7 +4,6 @@ package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.util.Invalidatable;
-import net.minecraft.nbt.CompoundTag;
 
 /**
  * This is used to query for devices given a block face.
@@ -55,23 +54,4 @@ public interface BlockDeviceProvider {
      * @return a device for the specified query, if available.
      */
     Invalidatable<Device> getDevice(BlockDeviceQuery query);
-
-    /**
-     * Last-resort cleanup for a device provided by this provider that has gone missing.
-     * <p>
-     * This is the equivalent of {@link Device#dispose()}, for devices that have gone missing
-     * unexpectedly, so this method could no longer be called on the actual device.
-     * <p>
-     * For block devices, this can happen if the block the device was created for has been
-     * removed while the connected computer was unloaded, or the cable connecting the block
-     * the device was provided for with the computer was broken while the computer was unloaded.
-     * <p>
-     * Implementing this is only necessary, if the device holds some out-of-NBT serialized
-     * data, or does something similar.
-     *
-     * @param query the query that resulted in a missing device being detected.
-     * @param tag   data last serialized by the device that went missing.
-     */
-    default void disposeMissing(final BlockDeviceQuery query, final CompoundTag tag) {
-    }
 }

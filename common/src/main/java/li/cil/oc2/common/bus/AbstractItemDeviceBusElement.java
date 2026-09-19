@@ -2,12 +2,9 @@
 
 package li.cil.oc2.common.bus;
 
-import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
@@ -18,12 +15,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 import static li.cil.oc2.common.bus.device.provider.Providers.optionalKey;
 
-public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractItemDeviceBusElement.ItemEntry, ItemDeviceQuery> {
+public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractItemDeviceBusElement.ItemEntry> {
     public AbstractItemDeviceBusElement(final int groupCount) {
         super(groupCount);
     }
@@ -41,9 +37,7 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
     }
 
     public void handleSlotContentsChanged(final int slot, final ItemStack stack) {
-        final ItemQueryResult queryResult = collectDevices(stack);
-
-        setEntriesForGroup(slot, queryResult);
+        setEntriesForGroup(slot, collectDevices(stack));
     }
 
     public void exportDeviceDataToItemStack(final int slot, final ItemStack stack) {
@@ -71,7 +65,7 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
 
     protected abstract ItemDeviceQuery makeQuery(final ItemStack stack);
 
-    protected ItemQueryResult collectDevices(final ItemStack stack) {
+    protected Set<ItemEntry> collectDevices(final ItemStack stack) {
         final ItemDeviceQuery query = makeQuery(stack);
         final HashSet<ItemEntry> entries = new HashSet<>();
 
@@ -83,7 +77,7 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
 
         importDeviceDataFromItemStack(query, entries);
 
-        return new ItemQueryResult(query, entries);
+        return entries;
     }
 
     protected void collectSyntheticDevices(final ItemDeviceQuery query, final HashSet<ItemEntry> entries) {
@@ -95,16 +89,6 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
         if (registryName != null) {
             final String itemName = registryName.toString();
             entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameRPCDevice(itemName), 0)));
-        }
-    }
-
-    @Override
-    protected void onEntryRemoved(final String dataKey, final CompoundTag tag, @Nullable final ItemDeviceQuery query) {
-        super.onEntryRemoved(dataKey, tag, query);
-        final Registrar<ItemDeviceProvider> registry = Providers.itemDeviceProviderRegistry();
-        final ItemDeviceProvider provider = registry.get(ResourceLocation.parse(dataKey));
-        if (provider != null) {
-            provider.disposeMissing(query, tag);
         }
     }
 
@@ -124,28 +108,6 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
     }
 
     // --------------------------------------------------------------------- //
-
-    protected final class ItemQueryResult extends QueryResult {
-        @Nullable
-        private final ItemDeviceQuery query;
-        private final Set<ItemEntry> entries;
-
-        public ItemQueryResult(@Nullable final ItemDeviceQuery query, final Set<ItemEntry> entries) {
-            this.query = query;
-            this.entries = entries;
-        }
-
-        @Nullable
-        @Override
-        public ItemDeviceQuery getQuery() {
-            return query;
-        }
-
-        @Override
-        public Set<ItemEntry> getEntries() {
-            return entries;
-        }
-    }
 
     protected record ItemEntry(ItemDeviceInfo deviceInfo) implements Entry {
         @Override

@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
-import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.sedna.api.device.BlockDevice;
 import net.minecraft.world.item.ItemStack;
 
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.UUID;
 
 public final class FlashStorageDeviceWithInitialData extends FlashStorageDevice {
     private final BlockDevice base;
@@ -28,7 +26,7 @@ public final class FlashStorageDeviceWithInitialData extends FlashStorageDevice 
     @Override
     @Nullable
     protected ByteBuffer readData() throws IOException {
-        if (BlobStorage.isValidHandle(blobHandle)) {
+        if (blob.isValid()) {
             return super.readData();
         }
 
@@ -42,18 +40,15 @@ public final class FlashStorageDeviceWithInitialData extends FlashStorageDevice 
         }
         buffer.flip();
 
-        final UUID handle = BlobStorage.allocateHandle();
-        final FileChannel channel = BlobStorage.open(handle, true);
+        final FileChannel channel = blob.open();
         try {
             while (buffer.hasRemaining()) {
                 channel.write(buffer);
             }
         } catch (final IOException e) {
-            BlobStorage.close(handle);
+            blob.release();
             throw e;
         }
-
-        blobHandle = handle;
 
         return buffer;
     }

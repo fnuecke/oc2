@@ -12,6 +12,7 @@ import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.oc2.common.util.StorageItemUtils.State;
@@ -27,12 +28,9 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.UUID;
 
 public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice, FirmwareLoader {
     private static final Logger LOGGER = LogManager.getLogger(FlashStorageDevice.class);
-
-    private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
     // --------------------------------------------------------------------- //
 
@@ -42,8 +40,7 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
     private ByteBuffer data;
 
     // Offline persisted data.
-    @Nullable
-    protected UUID blobHandle;
+    protected final BlobReference blob = new BlobReference();
 
     // --------------------------------------------------------------------- //
 
@@ -60,7 +57,7 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
             return VMDeviceLoadResult.fail();
         }
 
-        if (BlobStorage.isStaleHandle(blobHandle) && !StorageItemUtils.acceptStaleData(identity)) {
+        if (blob.isStale() && !StorageItemUtils.acceptStaleData(identity)) {
             return VMDeviceLoadResult.fail()
                 .withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_INCONSISTENT))
                 .asPermanent();
@@ -90,42 +87,29 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
     @Override
     public void unmount() {
         data = null;
-
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-        }
+        blob.close();
     }
 
     @Override
     public void exportToItemStack(final CompoundTag nbt) {
-        if (blobHandle != null) {
-            nbt.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
-        }
+        blob.writeTo(nbt);
     }
 
     @Override
     public void importFromItemStack(final CompoundTag nbt) {
-        if (nbt.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = nbt.getUUID(BLOB_HANDLE_TAG_NAME);
-        }
+        blob.readFrom(nbt);
     }
 
     @Override
     public CompoundTag serializeNBT() {
         final CompoundTag tag = new CompoundTag();
-
-        if (blobHandle != null) {
-            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
-        }
-
+        blob.writeTo(tag);
         return tag;
     }
 
     @Override
     public void deserializeNBT(final CompoundTag tag) {
-        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
-        }
+        blob.readFrom(tag);
     }
 
     @Subscribe
@@ -147,15 +131,11 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Nullable
     protected ByteBuffer readData() throws IOException {
-        if (!BlobStorage.isValidHandle(blobHandle)) {
+        if (!blob.isValid()) {
             return null;
         }
 
-        return read(blobHandle, false);
-    }
-
-    protected final ByteBuffer read(final UUID handle, final boolean createIfMissing) throws IOException {
-        final FileChannel channel = BlobStorage.open(handle, createIfMissing);
+        final FileChannel channel = blob.open();
         try {
             final ByteBuffer buffer = ByteBuffer.allocate(size);
             while (buffer.hasRemaining()) {
@@ -165,14 +145,8 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
             }
             return buffer;
         } catch (final IOException e) {
-            BlobStorage.close(handle);
+            blob.close();
             throw e;
-        }
-    }
-
-    public static void unmount(final CompoundTag tag) {
-        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            BlobStorage.close(tag.getUUID(BLOB_HANDLE_TAG_NAME));
         }
     }
 

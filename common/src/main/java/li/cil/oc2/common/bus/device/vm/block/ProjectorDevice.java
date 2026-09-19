@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
+import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.vm.device.SimpleFramebufferDevice;
@@ -23,13 +24,11 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.UUID;
 
 public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements VMDevice {
     private static final Logger LOGGER = LogManager.getLogger(ProjectorDevice.class);
 
     private static final String ADDRESS_TAG_NAME = "address";
-    private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
     public static final int WIDTH = 640;
     public static final int HEIGHT = 480;
@@ -46,8 +45,7 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
     // --------------------------------------------------------------------- //
 
     private final OptionalAddress address = new OptionalAddress();
-    @Nullable
-    private UUID blobHandle;
+    private final BlobReference blob = new BlobReference();
 
     // --------------------------------------------------------------------- //
 
@@ -76,6 +74,7 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
 
         assert device != null;
         if (!address.claim(context.getDeviceRangeAllocator(), device)) {
+            releaseDevice();
             return VMDeviceLoadResult.fail()
                 .withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_DEVICE_DOES_NOT_FIT));
         }
@@ -87,25 +86,13 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
 
     @Override
     public void unmount() {
-        final SimpleFramebufferDevice framebufferDevice = device;
-        device = null;
-        if (framebufferDevice != null) {
-            framebufferDevice.close();
-        }
-
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-        }
-
+        releaseDevice();
         onMountedChanged.accept(false);
     }
 
     @Override
     public void dispose() {
-        if (blobHandle != null) {
-            BlobStorage.delete(blobHandle);
-            blobHandle = null;
-        }
+        blob.delete();
 
         address.clear();
     }
@@ -114,9 +101,7 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
     public CompoundTag serializeNBT() {
         final CompoundTag tag = new CompoundTag();
 
-        if (blobHandle != null) {
-            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
-        }
+        blob.writeTo(tag);
         if (address.isPresent()) {
             tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
@@ -126,9 +111,7 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
 
     @Override
     public void deserializeNBT(final CompoundTag tag) {
-        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
-        }
+        blob.readFrom(tag);
         if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
             address.set(tag.getLong(ADDRESS_TAG_NAME));
         }
@@ -144,29 +127,35 @@ public final class ProjectorDevice extends IdentityProxy<BlockEntity> implements
         try {
             device = createFrameBufferDevice();
         } catch (final IOException e) {
+            blob.close();
             return false;
         }
 
         return true;
     }
 
-    private SimpleFramebufferDevice createFrameBufferDevice() throws IOException {
-        if (BlobStorage.isStaleHandle(blobHandle)) {
-            LOGGER.error("Discarding stale projector framebuffer data [{}].", blobHandle);
-            BlobStorage.delete(blobHandle);
-            blobHandle = null;
+    private void releaseDevice() {
+        final SimpleFramebufferDevice framebufferDevice = device;
+        device = null;
+        if (framebufferDevice != null) {
+            framebufferDevice.close();
         }
 
-        if (!BlobStorage.isValidHandle(blobHandle)) {
-            blobHandle = BlobStorage.allocateHandle();
+        blob.close();
+    }
+
+    private SimpleFramebufferDevice createFrameBufferDevice() throws IOException {
+        if (blob.isStale()) {
+            LOGGER.error("Discarding stale projector framebuffer data [{}].", blob.getHandle());
+            blob.delete();
         }
 
         FileChannel channel;
         try {
-            channel = BlobStorage.open(blobHandle, true);
-        } catch (final BlobStorage.BlobInUseException e) {
-            blobHandle = BlobStorage.allocateHandle();
-            channel = BlobStorage.open(blobHandle, true);
+            channel = blob.open();
+        } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
+            blob.release();
+            channel = blob.open();
         }
 
         final MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, FRAMEBUFFER_SIZE);

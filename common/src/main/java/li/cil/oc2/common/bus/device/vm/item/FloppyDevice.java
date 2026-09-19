@@ -5,7 +5,6 @@ package li.cil.oc2.common.bus.device.vm.item;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
-import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.world.item.ItemStack;
@@ -42,7 +41,7 @@ public final class FloppyDevice extends HardDriveDevice {
 
     @Override
     protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() throws IOException {
-        final boolean isInitializing = !BlobStorage.isValidHandle(blobHandle);
+        final boolean isInitializing = !blob.isValid();
         final CompletableFuture<ByteBufferBlockDevice> future = super.createBlockDevice();
         if (!isInitializing) {
             return future;

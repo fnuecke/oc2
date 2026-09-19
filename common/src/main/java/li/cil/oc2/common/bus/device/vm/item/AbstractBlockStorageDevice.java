@@ -14,6 +14,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
+import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.Event;
@@ -31,7 +32,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
@@ -43,7 +43,6 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     private static final String DEVICE_TAG_NAME = "device";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
-    private static final String BLOB_HANDLE_TAG_NAME = "blob";
 
     protected static final ExecutorService WORKERS = Executors.newFixedThreadPool(
         Math.max(1, Runtime.getRuntime().availableProcessors()), r -> {
@@ -67,8 +66,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     private CompoundTag deviceTag;
 
     // Offline persisted data.
-    @Nullable
-    protected UUID blobHandle;
+    protected final BlobReference blob = new BlobReference();
 
     // --------------------------------------------------------------------- //
 
@@ -113,10 +111,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         }
 
         closeDevice();
-
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-        }
+        blob.close();
     }
 
     @Override
@@ -128,16 +123,12 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     @Override
     public void exportToItemStack(final CompoundTag nbt) {
-        if (blobHandle != null) {
-            nbt.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
-        }
+        blob.writeTo(nbt);
     }
 
     @Override
     public void importFromItemStack(final CompoundTag nbt) {
-        if (nbt.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = nbt.getUUID(BLOB_HANDLE_TAG_NAME);
-        }
+        blob.readFrom(nbt);
     }
 
     @Override
@@ -146,9 +137,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
         final CompoundTag tag = new CompoundTag();
 
-        if (blobHandle != null) {
-            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
-        }
+        blob.writeTo(tag);
 
         if (storage != null) {
             deviceTag = NBTSerialization.serialize(storage.getDevice());
@@ -168,9 +157,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     @Override
     public void deserializeNBT(final CompoundTag tag) {
-        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
-        }
+        blob.readFrom(tag);
 
         if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
             deviceTag = tag.getCompound(DEVICE_TAG_NAME);
@@ -180,13 +167,6 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         }
         if (tag.contains(INTERRUPT_TAG_NAME, NBTTagIds.TAG_INT)) {
             interrupt.set(tag.getInt(INTERRUPT_TAG_NAME));
-        }
-    }
-
-    public static void unmount(final CompoundTag tag) {
-        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            final UUID blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
-            BlobStorage.close(blobHandle);
         }
     }
 
@@ -259,7 +239,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             return new AllocationFailure(true);
         }
 
-        if (BlobStorage.isStaleHandle(blobHandle) && !handleDataStale()) {
+        if (blob.isStale() && !handleDataStale()) {
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_INCONSISTENT), true);
         }
 
@@ -316,10 +296,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     private void releaseOnFailure() {
         closeDevice();
-
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-        }
+        blob.close();
     }
 
     // --------------------------------------------------------------------- //

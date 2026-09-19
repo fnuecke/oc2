@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.util;
 
+import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -13,7 +14,6 @@ import java.util.UUID;
 
 public final class StorageItemUtils {
     private static final String STATE_TAG_NAME = "state";
-    private static final String BLOB_HANDLE_TAG_NAME = "blob";
     public static final String IMAGE_TAG_NAME = "image";
 
     public enum State {
@@ -91,15 +91,15 @@ public final class StorageItemUtils {
     }
 
     private static void takeHandle(final CompoundTag tag, @Nullable final List<UUID> handles) {
-        if (!tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
+        if (!tag.hasUUID(BlobReference.TAG_NAME)) {
             return;
         }
 
         if (handles != null) {
-            handles.add(tag.getUUID(BLOB_HANDLE_TAG_NAME));
+            handles.add(tag.getUUID(BlobReference.TAG_NAME));
         }
 
-        tag.remove(BLOB_HANDLE_TAG_NAME);
+        tag.remove(BlobReference.TAG_NAME);
     }
 
     private static void releaseBlob(final UUID handle) {

@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.serialization;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import dev.architectury.event.events.common.LifecycleEvent;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.Config;
@@ -46,7 +48,7 @@ public final class BlobStorage {
     private static final LevelResource TRASH_FOLDER_NAME = new LevelResource(API.MOD_ID + "-blobs-trash");
     private static final UUID INVALID_HANDLE = new UUID(0, 0);
 
-    private static final Map<UUID, FileChannel> BLOBS = new HashMap<>();
+    private static final BiMap<UUID, FileChannel> BLOBS = HashBiMap.create();
     private static final Set<UUID> CLOSED_SINCE_SAVE = new HashSet<>();
 
     @Nullable
@@ -191,6 +193,8 @@ public final class BlobStorage {
      * Opening a blob that is already open is treated as an error, because it means two devices reference
      * the same blob. Should really only happen if the item stack carrying the handle was duplicated. Mapping
      * the same file twice would have the two devices silently corrupt each other's data.
+     * <p>
+     * The returned channel must be used to close the blob via {@link #close(FileChannel)}.
      *
      * @param handle          the handle to obtain the file channel for.
      * @param createIfMissing whether to create the blob if it does not exist yet.
@@ -236,21 +240,19 @@ public final class BlobStorage {
     }
 
     /**
-     * Closes the blob with the specified handle.
+     * Closes a file channel obtained via {@link #open(UUID, boolean)}.
      *
-     * @param handle the handle of the blob to close.
+     * @param channel the channel to close.
      */
-    public static synchronized void close(final UUID handle) {
-        final FileChannel blob = BLOBS.remove(handle);
-        if (blob == null) {
-            return;
+    public static synchronized void close(final FileChannel channel) {
+        final UUID handle = BLOBS.inverse().remove(channel);
+        if (handle != null) {
+            touch(handle);
+            CLOSED_SINCE_SAVE.add(handle);
         }
 
-        touch(handle);
-        CLOSED_SINCE_SAVE.add(handle);
-
         try {
-            blob.close();
+            channel.close();
         } catch (final IOException e) {
             LOGGER.error(e);
         }

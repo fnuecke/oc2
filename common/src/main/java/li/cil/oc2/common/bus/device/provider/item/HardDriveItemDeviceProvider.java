@@ -12,7 +12,6 @@ import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.bus.device.vm.item.HardDriveDeviceWithInitialData;
 import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -21,14 +20,6 @@ import java.util.Optional;
 public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvider {
     public HardDriveItemDeviceProvider() {
         super(HardDriveItem.class);
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Override
-    public void disposeMissing(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
-        super.disposeMissing(query, tag);
-        HardDriveDevice.unmount(tag);
     }
 
     // --------------------------------------------------------------------- //

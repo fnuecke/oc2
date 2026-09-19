@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.bus.device.vm.item;
 
-import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.*;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.world.item.ItemStack;
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -39,13 +37,8 @@ public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockD
 
     @Override
     protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() throws IOException {
-        final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
-        final UUID handle = isNew ? BlobStorage.allocateHandle() : blobHandle;
-
         // Make sure we can access the data now, so base can handle missing/in use errors.
-        final FileChannel channel = BlobStorage.open(handle, isNew);
-
-        blobHandle = handle;
+        final FileChannel channel = blob.open();
 
         return CompletableFuture.supplyAsync(() -> {
             try {

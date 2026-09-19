@@ -13,7 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageDevice<BlockDevice, RemovableMediaContainer> {
@@ -84,22 +83,19 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
-        if (!BlobStorage.isValidHandle(blobHandle)) {
+        if (!blob.isValid()) {
             importFromItemStack(ItemDeviceUtils.getDeviceData(stack, getDeviceDataKey()));
         }
 
-        final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
-        final UUID handle = isNew ? BlobStorage.allocateHandle() : blobHandle;
+        final boolean isNew = !blob.isValid();
 
         final FileChannel channel;
         try {
-            channel = BlobStorage.open(handle, isNew);
+            channel = blob.open();
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
             handleDataUnavailable();
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
-
-        blobHandle = handle;
 
         final MediumInitializer initializer = isNew ? createMediumInitializer(stack) : LEAVE_BLANK;
         return CompletableFuture.supplyAsync(() -> {
@@ -161,10 +157,7 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
             LOGGER.error(e);
         }
 
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-            blobHandle = null;
-        }
+        blob.release();
         return true;
     }
 

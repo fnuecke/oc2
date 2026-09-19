@@ -2,15 +2,12 @@
 
 package li.cil.oc2.common.bus;
 
-import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
@@ -18,8 +15,6 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.LevelUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 
@@ -28,7 +23,7 @@ import java.util.*;
 
 import static li.cil.oc2.common.bus.device.provider.Providers.optionalKey;
 
-public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry, BlockDeviceQuery> implements BlockDeviceBusElement {
+public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry> implements BlockDeviceBusElement {
     private final Invalidatable<?>[] neighbors = new Invalidatable<?>[Constants.BLOCK_FACE_COUNT];
 
     // --------------------------------------------------------------------- //
@@ -101,7 +96,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
             }
         } else {
             collectDevices(level, neighborPos, side).ifPresentOrElse(
-                queryResult -> setEntriesForGroup(index, queryResult),
+                entries -> setEntriesForGroup(index, entries),
                 () -> setEntriesForGroupUnloaded(index)
             );
         }
@@ -116,10 +111,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         }
 
         for (final Direction side : Direction.values()) {
-            final int index = side.get3DDataValue();
-            final BlockPos pos = getPosition().relative(side);
-            final BlockDeviceQuery query = Devices.makeQuery(getArchitectureType().orElse(null), level, pos, side.getOpposite());
-            setEntriesForGroup(index, new BlockQueryResult(query, Collections.emptySet()));
+            setEntriesForGroup(side.get3DDataValue(), Collections.emptySet());
         }
 
         scheduleScan();
@@ -135,7 +127,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return canScanContinueTowards(direction);
     }
 
-    protected Optional<BlockQueryResult> collectDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
+    protected Optional<Set<BlockEntry>> collectDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
         final BlockDeviceQuery query = Devices.makeQuery(getArchitectureType().orElse(null), level, pos, side != null ? side.getOpposite() : null);
         final HashSet<BlockEntry> entries = new HashSet<>();
 
@@ -154,7 +146,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
             collectSyntheticDevices(level, pos, side, entries);
         }
 
-        return Optional.of(new BlockQueryResult(query, entries));
+        return Optional.of(entries);
     }
 
     protected void collectSyntheticDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
@@ -180,37 +172,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         entry.removeListener();
     }
 
-    @Override
-    protected void onEntryRemoved(final String dataKey, final CompoundTag tag, @Nullable final BlockDeviceQuery query) {
-        super.onEntryRemoved(dataKey, tag, query);
-        assert query != null : "Passed null query for block device bus element.";
-        final Registrar<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
-        final BlockDeviceProvider provider = registry.get(ResourceLocation.parse(dataKey));
-        if (provider != null) {
-            provider.disposeMissing(query, tag);
-        }
-    }
-
     // --------------------------------------------------------------------- //
-
-    protected final class BlockQueryResult extends QueryResult {
-        private final BlockDeviceQuery query;
-        private final Set<BlockEntry> entries;
-
-        public BlockQueryResult(final BlockDeviceQuery query, final Set<BlockEntry> entries) {
-            this.query = query;
-            this.entries = entries;
-        }
-
-        public BlockDeviceQuery getQuery() {
-            return query;
-        }
-
-        @Override
-        public Set<BlockEntry> getEntries() {
-            return entries;
-        }
-    }
 
     protected final class BlockEntry implements Entry {
         private final Invalidatable<BlockDeviceInfo> deviceInfo;

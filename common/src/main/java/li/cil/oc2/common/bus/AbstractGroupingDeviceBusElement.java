@@ -9,20 +9,12 @@ import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
-public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGroupingDeviceBusElement.Entry, TQuery> extends AbstractDeviceBusElement {
+public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGroupingDeviceBusElement.Entry> extends AbstractDeviceBusElement {
     private static final String GROUPS_TAG_NAME = "groups";
     private static final String GROUP_ID_TAG_NAME = "groupId";
     private static final String GROUP_DATA_TAG_NAME = "groupData";
-
-    protected abstract class QueryResult {
-        @Nullable
-        public abstract TQuery getQuery();
-
-        public abstract Set<TEntry> getEntries();
-    }
 
     protected interface Entry {
         Optional<String> getDeviceDataKey();
@@ -141,27 +133,11 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         scanDevices();
     }
 
-    protected final void setEntriesForGroup(final int index, final QueryResult queryResult) {
-        final Set<TEntry> newEntries = queryResult.getEntries();
+    protected final void setEntriesForGroup(final int index, final Set<TEntry> newEntries) {
         final HashSet<TEntry> entries = groups.get(index);
         if (Objects.equals(newEntries, entries)) {
             if (entries.isEmpty()) {
-                // If we do not have any entries, we still need to check if there's any
-                // remaining data of previously known devices, so we can call dispose
-                // on the appropriate provider. If we don't do this here, we may delay
-                // this indefinitely, if no new devices are detected for this index.
-                final CompoundTag devicesTag = groupData[index];
-                if (!devicesTag.isEmpty()) {
-                    final Iterator<String> iterator = devicesTag.getAllKeys().iterator();
-                    while (iterator.hasNext()) {
-                        final String dataKey = iterator.next();
-                        if (devicesTag.contains(dataKey, NBTTagIds.TAG_COMPOUND)) {
-                            final CompoundTag tag = devicesTag.getCompound(dataKey);
-                            onEntryRemoved(dataKey, tag, queryResult.getQuery());
-                        }
-                        iterator.remove();
-                    }
-                }
+                groupData[index].getAllKeys().clear();
             }
 
             return;
@@ -197,7 +173,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         // Deserialize data for found devices, if we have existing data for them. Also collect
         // the list of serialized data we have for devices that have gone missing without being
         // explicitly removed. This can happen if a device is removed while the bus element is
-        // unloaded. We need to call dispose on the provider if we detect this.
+        // unloaded.
         final HashSet<String> invalidDataKeys = new HashSet<>(devicesTag.getAllKeys());
         for (final TEntry entry : addedEntries) {
             entry.getDeviceDataKey().ifPresent(key -> {
@@ -210,14 +186,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
             });
         }
 
-        final TQuery query = queryResult.getQuery();
-        for (final String invalidDataKey : invalidDataKeys) {
-            if (devicesTag.contains(invalidDataKey, NBTTagIds.TAG_COMPOUND)) {
-                final CompoundTag tag = devicesTag.getCompound(invalidDataKey);
-                onEntryRemoved(invalidDataKey, tag, query);
-            }
-            devicesTag.remove(invalidDataKey);
-        }
+        invalidDataKeys.forEach(devicesTag::remove);
 
         // Assign a new ID to this side when the device configuration changes. Avoids confusion when
         // providing a different device to an interface when some running use programs in the VM may
@@ -242,9 +211,6 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
     }
 
     protected void onEntryRemoved(final TEntry entry) {
-    }
-
-    protected void onEntryRemoved(final String dataKey, final CompoundTag data, @Nullable final TQuery query) {
     }
 
     // --------------------------------------------------------------------- //

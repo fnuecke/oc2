@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
+import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
@@ -23,12 +24,10 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.UUID;
 
 public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDevice, ItemDevice {
     private static final Logger LOGGER = LogManager.getLogger(MemoryDevice.class);
 
-    private static final String BLOB_HANDLE_TAG_NAME = "blob";
     private static final String ADDRESS_TAG_NAME = "address";
 
     // --------------------------------------------------------------------- //
@@ -39,7 +38,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     // --------------------------------------------------------------------- //
 
     private final OptionalAddress address = new OptionalAddress();
-    private UUID blobHandle;
+    private final BlobReference blob = new BlobReference();
 
     // --------------------------------------------------------------------- //
 
@@ -61,6 +60,8 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
         }
 
         if (!address.claim(context.getMemoryRangeAllocator(), device)) {
+            closeDevice();
+            blob.close();
             return VMDeviceLoadResult.fail().withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_DEVICE_DOES_NOT_FIT)).asPermanent();
         }
 
@@ -70,19 +71,13 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     @Override
     public void unmount() {
         closeDevice();
-
-        if (blobHandle != null) {
-            BlobStorage.close(blobHandle);
-        }
+        blob.close();
     }
 
     @Override
     public void dispose() {
         // Memory is volatile, so free up our persisted blob when device is disposed.
-        if (blobHandle != null) {
-            BlobStorage.delete(blobHandle);
-            blobHandle = null;
-        }
+        blob.delete();
 
         address.clear();
     }
@@ -91,9 +86,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     public CompoundTag serializeNBT() {
         final CompoundTag tag = new CompoundTag();
 
-        if (blobHandle != null) {
-            tag.putUUID(BLOB_HANDLE_TAG_NAME, blobHandle);
-        }
+        blob.writeTo(tag);
         if (address.isPresent()) {
             tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
@@ -103,9 +96,7 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
 
     @Override
     public void deserializeNBT(final CompoundTag tag) {
-        if (tag.hasUUID(BLOB_HANDLE_TAG_NAME)) {
-            blobHandle = tag.getUUID(BLOB_HANDLE_TAG_NAME);
-        }
+        blob.readFrom(tag);
         if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
             address.set(tag.getLong(ADDRESS_TAG_NAME));
         }
@@ -118,23 +109,23 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             return new AllocationFailure(true);
         }
 
-        if (BlobStorage.isStaleHandle(blobHandle)) {
-            BlobStorage.delete(blobHandle);
-            blobHandle = null;
+        if (blob.isStale()) {
+            blob.delete();
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STATE_LOST), true);
         }
 
         try {
-            final MappedByteBuffer buffer = openBlob().map(FileChannel.MapMode.READ_WRITE, 0, size);
+            final MappedByteBuffer buffer = blob.open().map(FileChannel.MapMode.READ_WRITE, 0, size);
             device = new ByteBufferMemory(size, buffer);
         } catch (final BlobStorage.BlobStorageFullException e) {
             LOGGER.error(e);
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_STORAGE_FULL), false);
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
-            blobHandle = null;
+            blob.release();
             return new AllocationFailure(Component.translatable(Constants.COMPUTER_ERROR_MEMORY_CORRUPTED), true);
         } catch (final IOException e) {
             LOGGER.error(e);
+            blob.close();
             return new AllocationFailure(false);
         }
 
@@ -153,19 +144,6 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
         }
 
         device = null;
-    }
-
-    private FileChannel openBlob() throws IOException {
-        final boolean isNew = !BlobStorage.isValidHandle(blobHandle);
-        final UUID handle = isNew ? BlobStorage.allocateHandle() : blobHandle;
-
-        final FileChannel channel = BlobStorage.open(handle, isNew);
-
-        // Only set after we actually managed to open/create the storage. Will look
-        // like a missing one if the open errors otherwise.
-        blobHandle = handle;
-
-        return channel;
     }
 
     private sealed interface AllocationResult permits AllocationSuccess, AllocationFailure {

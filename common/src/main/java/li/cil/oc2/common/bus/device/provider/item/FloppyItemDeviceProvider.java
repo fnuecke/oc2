@@ -11,10 +11,8 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
 import li.cil.oc2.common.bus.device.vm.item.FloppyDevice;
-import li.cil.oc2.common.bus.device.vm.item.HardDriveDevice;
 import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -28,14 +26,6 @@ public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
 
     public FloppyItemDeviceProvider() {
         super(FloppyItem.class);
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Override
-    public void disposeMissing(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
-        super.disposeMissing(query, tag);
-        HardDriveDevice.unmount(tag);
     }
 
     // --------------------------------------------------------------------- //

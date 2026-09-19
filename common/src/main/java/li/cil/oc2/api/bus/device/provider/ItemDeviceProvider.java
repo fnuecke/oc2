@@ -2,11 +2,8 @@
 
 package li.cil.oc2.api.bus.device.provider;
 
-import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import net.minecraft.nbt.CompoundTag;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -60,23 +57,5 @@ public interface ItemDeviceProvider {
      */
     default int getEnergyConsumption(final ItemDeviceQuery query) {
         return 0;
-    }
-
-    /**
-     * Last-resort cleanup for a device provided by this provider that has gone missing.
-     * <p>
-     * This is the equivalent of {@link Device#dispose()}, for devices that have gone missing
-     * unexpectedly, so this method could no longer be  called on the actual device.
-     * <p>
-     * For item devices this is rather unlikely. It means an item disappeared while the
-     * block managing the item device was unloaded.
-     * <p>
-     * Implementing this is only necessary, if the device holds some out-of-NBT serialized
-     * data, or does something similar.
-     *
-     * @param query the query that resulted in a missing device being detected, if available.
-     * @param tag   the data last serialized by the device went missing.
-     */
-    default void disposeMissing(@Nullable final ItemDeviceQuery query, final CompoundTag tag) {
     }
 }

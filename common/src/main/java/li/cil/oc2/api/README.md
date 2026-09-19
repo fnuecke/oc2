@@ -145,10 +145,6 @@ The two interfaces differ in return type, deliberately. `BlockDeviceProvider` re
 makes the bus drop it and rescan. `ItemDeviceProvider` returns a plain `Optional<ItemDevice>`, because an item device is
 owned by the slot holding its stack and is re-queried whenever that slot changes, so there is nothing to invalidate.
 
-Both also carry a `disposeMissing(query, tag)` hook. Despite living next to the device lifecycle, this is not
-`unmount()`: it is a last-resort cleanup for a device that vanished while its computer was unloaded, handing you the
-tag it last serialized. Implement it only if the device owns state outside that tag.
-
 ### Registering Providers
 
 [`Registries`](util/Registries.java) holds the `ResourceKey` of every registry the mod creates. Register with them the

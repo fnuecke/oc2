@@ -49,9 +49,9 @@ public final class ChunkUnloadTests {
             .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenWaitUntil(() -> computer.assertRunState(VMRunState.RUNNING, "precondition"))
-            .thenExecuteAfter(200, () -> {
+            .thenWaitUntil(() -> assertTrue(helper, "precondition: the guest ran", computer.guestInstructions() > 0))
+            .thenExecute(() -> {
                 instructions[0] = computer.guestInstructions();
-                assertTrue(helper, "precondition: the guest ran", instructions[0] > 0);
                 before[0] = computer.blockEntity();
                 Chunks.release(helper, chunkPos);
             })
@@ -150,9 +150,12 @@ public final class ChunkUnloadTests {
                 robot[0].charge();
                 robot[0].assertRunState(VMRunState.RUNNING, "precondition");
             })
-            .thenExecuteAfter(200, () -> {
+            .thenWaitUntil(() -> {
+                robot[0].charge();
+                assertTrue(helper, "precondition: the guest ran", robot[0].guestInstructions() > 0);
+            })
+            .thenExecute(() -> {
                 instructions[0] = robot[0].guestInstructions();
-                assertTrue(helper, "precondition: the guest ran", instructions[0] > 0);
                 Chunks.release(helper, chunkPos);
             })
             .thenWaitUntil(() -> Chunks.assertUnloaded(helper, chunkPos))

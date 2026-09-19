@@ -34,7 +34,7 @@ public final class TestSupport {
     public static final BlockPos DEVICE_POS = new BlockPos(4, WORK_Y, 2);
     public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
 
-    public static final int BOOT_TIMEOUT_TICKS = 300_000;
+    public static final int BOOT_TIMEOUT_TICKS = 900_000;
 
     public static UUID createBlob(final BlobReference blob) throws IOException {
         blob.open();

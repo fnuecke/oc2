@@ -13,11 +13,9 @@ Computers access the gateway through an ordinary [network interface card](../ite
 
 There is no DHCP server behind the gateway, so pick the addresses yourself. Any private range will do, as long as the gateway address you name is on the same subnet as the computer:
 
-```
-ip addr add 10.0.0.2/24 dev eth0
-ip link set eth0 up
-ip route add default via 10.0.0.1
-```
+`ip addr add 10.0.0.2/24 dev eth0`
+`ip link set eth0 up`
+`ip route add default via 10.0.0.1`
 
 The gateway answers to whichever address you point the default route at. There is no name server behind it either, so set one in `/etc/resolv.conf`. Name lookups then travel as ordinary traffic, and are subject to the same address restrictions as everything else.
 

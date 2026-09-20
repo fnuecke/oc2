@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - name: Cache the Cargo build
+      - name: Cache Cargo Build
         uses: actions/cache@v4
         with:
           path: |
@@ -37,13 +37,13 @@ jobs:
             tools/manual-html/target
           key: cargo-${{ runner.os }}-${{ hashFiles('tools/manual-html/Cargo.lock') }}
           restore-keys: cargo-${{ runner.os }}-
-      - name: Cache the Minecraft client jar
+      - name: Cache Minecraft Client JAR
         uses: actions/cache@v4
         with:
           path: ~/.cache/oc2-manual-html
           key: minecraft-client-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: minecraft-client-
-      - name: Render the manual
+      - name: Render Manual
         run: cargo run --release --locked --manifest-path tools/manual-html/Cargo.toml -- --clean --output build/manual-html
       - uses: actions/upload-pages-artifact@v5
         with:

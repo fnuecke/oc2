@@ -14,7 +14,7 @@ Supported loaders are **Fabric** and **NeoForge**. The mod is published to [Curs
 
 ## Gameplay Documentation
 
-For documentation on how to get computers up and running, and how to use them, see the [documentation]. It is available as a manual item in the game.
+For documentation on how to get computers up and running, and how to use them, see the [documentation]. It is also available as a manual item in the game.
 
 ## Development Documentation
 
@@ -65,6 +65,6 @@ By contributing, you accept that the code is licensed under the MIT license.
 [VM Device]: common/src/main/java/li/cil/oc2/api/bus/device/vm/VMDevice.java
 [projector]: common/src/main/java/li/cil/oc2/common/bus/device/vm/block/ProjectorDevice.java
 [network card]: common/src/main/java/li/cil/oc2/common/bus/device/vm/item/NetworkInterfaceCardDevice.java
-[documentation]: common/src/main/resources/assets/oc2/doc/en_us/index.md
+[documentation]: https://fnuecke.github.io/oc2/
 [HLAPI]: common/src/main/resources/assets/oc2/doc/en_us/hlapi.md
 [MLAPI]: common/src/main/resources/assets/oc2/doc/en_us/mlapi.md

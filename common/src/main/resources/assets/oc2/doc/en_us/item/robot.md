@@ -143,14 +143,65 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 ## Mid-level API
 Device name: `ROBOT`
 
-`1 getStatusColor()` reads the color of the status light.
+Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.
+
+`1 detect(side)` reports what occupies the space on that side.
+- Takes one byte, the side.
+- Returns one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move.
+
+`2 getEnergyStored()` reads how much energy the robot has left.
+- Returns four bytes, the amount, low byte first.
+
+`3 getEnergyCapacity()` reads how much energy the robot holds when full.
+- Returns four bytes, the amount, low byte first.
+
+`4 getSelectedSlot()` reads which inventory slot is selected.
+- Returns one byte, the slot.
+
+`5 setSelectedSlot(slot)` selects an inventory slot.
+- Takes one byte, the slot. A slot the robot does not have is clamped into range.
+- Returns one byte, the slot in effect after the call.
+
+`6 getStackInSlot(slot)` reads what is in an inventory slot.
+- Takes one byte, the slot. A slot the robot does not have fails with `OCEARG`.
+- Returns four bytes, one slot record in the form the `ITEMS` device uses: the item as two bytes, the number of items, and damage. See the [inventories](../inventories.md) entry.
+
+`7 getItemName(item)` reads the name of an item.
+- Takes two bytes, the item id.
+- Returns the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to get all of it.
+
+`8 getItemId(name)` looks an item up by name.
+- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
+- Returns two bytes, the item id.
+
+`9 move(direction)` enqueues a movement.
+- Takes one byte, the direction.
+- Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
+
+`10 turn(direction)` enqueues a rotation.
+- Takes one byte, the direction.
+- Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
+
+`11 getLastActionId()` reads the id of the last enqueued action.
+- Returns two bytes, the id, low byte first. Read it right after a `move` or `turn` that returned `1`.
+
+`12 getQueuedActionCount()` reads how many actions are still waiting.
+- Returns one byte, the count.
+
+`13 getActionResult(actionId)` reads how an action turned out.
+- Takes two bytes, the id.
+- Returns one byte: `0` unknown, `1` incomplete, `2` success, `3` failure.
+
+Poll `getActionResult` until it stops reading `1` to wait for an action to finish.
+
+`14 getStatusColor()` reads the color of the status light.
 - Returns three bytes, the red, green and blue components.
 
-`2 setStatusColor(red, green, blue)` sets the color of the status light.
+`15 setStatusColor(red, green, blue)` sets the color of the status light.
 - Takes three bytes, the red, green and blue components.
 
-`3 getStatusValue()` reads how far the status light is filled.
+`16 getStatusValue()` reads how far the status light is filled.
 - Returns one byte, the fill value, where `0` is empty and `255` is full.
 
-`4 setStatusValue(value)` sets how far the status light is filled.
+`17 setStatusValue(value)` sets how far the status light is filled.
 - Takes one byte, the fill value, where `0` is empty and `255` is full.

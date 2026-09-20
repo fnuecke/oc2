@@ -42,11 +42,12 @@ public final class ItemHandlerProtocol {
 
         final int count = Math.min(requested, handler.getSlots() - first);
         for (int slot = first; slot < first + count; slot++) {
-            final ItemStack stack = handler.getStackInSlot(slot);
-            results.writeU16(toItemId(stack.getItem()));
-            results.writeU8(Math.min(stack.getCount(), 0xFF));
-            results.writeU8(toDamage(stack));
+            writeSlotAt(handler, slot, results);
         }
+    }
+
+    public static void writeSlot(final ItemHandler handler, final int slot, final IOOutputStream results) throws IOException {
+        writeSlotAt(handler, requireValidSlot(handler, slot), results);
     }
 
     public static void writeSlotLimit(final ItemHandler handler, final IOInputStream arguments, final IOOutputStream results) throws IOException {
@@ -74,10 +75,17 @@ public final class ItemHandlerProtocol {
 
     // --------------------------------------------------------------------- //
 
-    private static int toItemId(final Item item) {
+    private static void writeSlotAt(final ItemHandler handler, final int slot, final IOOutputStream results) throws IOException {
+        final ItemStack stack = handler.getStackInSlot(slot);
+        results.writeU16(toItemId(stack.getItem()));
+        results.writeU8(Math.min(stack.getCount(), 0xFF));
+        results.writeU8(toDamage(stack));
+    }
+
+    private static int toItemId(final Item item) throws IOException {
         final int id = BuiltInRegistries.ITEM.getId(item);
         if (id > 0xFFFF) {
-            throw new IllegalStateException("item id does not fit the guest protocol: " + id);
+            throw new IOException("item id does not fit the guest protocol: " + id);
         }
         return id;
     }

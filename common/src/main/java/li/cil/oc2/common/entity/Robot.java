@@ -21,6 +21,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
+import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.common.capabilities.CapabilityType;
@@ -76,6 +77,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.IntPredicate;
 
 import static java.util.Collections.singleton;
 import static li.cil.oc2.common.Constants.ENERGY_TAG_NAME;
@@ -743,7 +745,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         public void clear() {
             synchronized (queue) {
                 queue.clear();
-                lastActionId = 0;
             }
             synchronized (results) {
                 results.clear();
@@ -975,10 +976,30 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final String DETECT_FLUID = "fluid";
         private static final String DETECT_SOLID = "solid";
 
-        private static final int GET_STATUS_COLOR_CODE = 1;
-        private static final int SET_STATUS_COLOR_CODE = 2;
-        private static final int GET_STATUS_VALUE_CODE = 3;
-        private static final int SET_STATUS_VALUE_CODE = 4;
+        private static final int DETECT_CODE = 1;
+        private static final int GET_ENERGY_STORED_CODE = 2;
+        private static final int GET_ENERGY_CAPACITY_CODE = 3;
+        private static final int GET_SELECTED_SLOT_CODE = 4;
+        private static final int SET_SELECTED_SLOT_CODE = 5;
+        private static final int GET_STACK_IN_SLOT_CODE = 6;
+        private static final int GET_ITEM_NAME_CODE = 7;
+        private static final int GET_ITEM_ID_CODE = 8;
+        private static final int MOVE_CODE = 9;
+        private static final int TURN_CODE = 10;
+        private static final int GET_LAST_ACTION_ID_CODE = 11;
+        private static final int GET_QUEUED_ACTION_COUNT_CODE = 12;
+        private static final int GET_ACTION_RESULT_CODE = 13;
+        private static final int GET_STATUS_COLOR_CODE = 14;
+        private static final int SET_STATUS_COLOR_CODE = 15;
+        private static final int GET_STATUS_VALUE_CODE = 16;
+        private static final int SET_STATUS_VALUE_CODE = 17;
+
+        private static final RobotOperationSide[] IO_SIDES = {
+            RobotOperationSide.FRONT, RobotOperationSide.UP, RobotOperationSide.DOWN};
+        private static final MovementDirection[] IO_MOVEMENTS = {
+            MovementDirection.FORWARD, MovementDirection.BACKWARD, MovementDirection.UPWARD, MovementDirection.DOWNWARD};
+        private static final RotationDirection[] IO_ROTATIONS = {
+            RotationDirection.LEFT, RotationDirection.RIGHT};
 
         @Callback(description = "Check what occupies the space on the specified side of the robot. " +
             "This only reports whether the space is free, not what is in it.",
@@ -1023,35 +1044,14 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @Callback
-        public void setSelectedSlot(@Parameter("slot") final int slot) {
+        public int setSelectedSlot(@Parameter("slot") final int slot) {
             Robot.this.setSelectedSlot(slot);
+            return Robot.this.getSelectedSlot();
         }
 
         @Callback
         public ItemStack getStackInSlot(@Parameter("slot") final int slot) {
             return inventory.getStackInSlot(slot);
-        }
-
-        @Callback
-        public int getStatusColor() {
-            return Robot.this.getStatusColor();
-        }
-
-        @Callback
-        public int setStatusColor(@Parameter("color") final int color) {
-            Robot.this.setStatusColor(color);
-            return Robot.this.getStatusColor();
-        }
-
-        @Callback
-        public double getStatusValue() {
-            return Robot.this.getStatusValue();
-        }
-
-        @Callback
-        public double setStatusValue(@Parameter("value") final double value) {
-            Robot.this.setStatusValue((float) value);
-            return Robot.this.getStatusValue();
         }
 
         @Callback(synchronize = false)
@@ -1083,29 +1083,109 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         @Nullable
         @Callback(synchronize = false)
         public RobotActionResult getActionResult(@Parameter("actionId") final int actionId) {
-            final AbstractRobotAction currentAction = actionProcessor.action;
-            if (currentAction != null && currentAction.getId() == actionId) {
-                return RobotActionResult.INCOMPLETE;
-            }
-            synchronized (actionProcessor.queue) {
-                for (final AbstractRobotAction action : actionProcessor.queue) {
-                    if (action.getId() == actionId) {
-                        return RobotActionResult.INCOMPLETE;
-                    }
-                }
-            }
-            synchronized (actionProcessor.results) {
-                for (final RobotActionProcessorResult result : actionProcessor.results) {
-                    if (result.actionId == actionId) {
-                        return result.result;
-                    }
-                }
-            }
+            return findActionResult(id -> id == actionId);
+        }
 
-            return null;
+        @Callback
+        public int getStatusColor() {
+            return Robot.this.getStatusColor();
+        }
+
+        @Callback
+        public int setStatusColor(@Parameter("color") final int color) {
+            Robot.this.setStatusColor(color);
+            return Robot.this.getStatusColor();
+        }
+
+        @Callback
+        public double getStatusValue() {
+            return Robot.this.getStatusValue();
+        }
+
+        @Callback
+        public double setStatusValue(@Parameter("value") final double value) {
+            Robot.this.setStatusValue((float) value);
+            return Robot.this.getStatusValue();
         }
 
         // ----------------------------------------------------------------- //
+
+        @IOCallback(DETECT_CODE)
+        public void detectIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            results.writeU8(switch (detect(fromOrdinal(IO_SIDES, arguments.readU8()))) {
+                case DETECT_AIR -> 0;
+                case DETECT_FLUID -> 1;
+                case DETECT_SOLID -> 2;
+                default -> throw new AssertionError("unmapped detect result");
+            });
+        }
+
+        @IOCallback(value = GET_ENERGY_STORED_CODE, synchronize = false)
+        public void getEnergyStoredIO(final IOOutputStream results) throws IOException {
+            results.writeU32(energy.getEnergyStored());
+        }
+
+        @IOCallback(value = GET_ENERGY_CAPACITY_CODE, synchronize = false)
+        public void getEnergyCapacityIO(final IOOutputStream results) throws IOException {
+            results.writeU32(energy.getMaxEnergyStored());
+        }
+
+        @IOCallback(GET_SELECTED_SLOT_CODE)
+        public void getSelectedSlotIO(final IOOutputStream results) throws IOException {
+            results.writeU8(getSelectedSlot());
+        }
+
+        @IOCallback(SET_SELECTED_SLOT_CODE)
+        public void setSelectedSlotIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            results.writeU8(setSelectedSlot(arguments.readU8()));
+        }
+
+        @IOCallback(GET_STACK_IN_SLOT_CODE)
+        public void getStackInSlotIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            ItemHandlerProtocol.writeSlot(inventory, arguments.readU8(), results);
+        }
+
+        @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false)
+        public void getItemNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            ItemHandlerProtocol.writeItemName(arguments, results);
+        }
+
+        @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false)
+        public void getItemIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            ItemHandlerProtocol.writeItemId(arguments, results);
+        }
+
+        @IOCallback(value = MOVE_CODE, synchronize = false)
+        public void moveIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            results.writeU8(move(fromOrdinal(IO_MOVEMENTS, arguments.readU8())) ? 1 : 0);
+        }
+
+        @IOCallback(value = TURN_CODE, synchronize = false)
+        public void turnIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            results.writeU8(turn(fromOrdinal(IO_ROTATIONS, arguments.readU8())) ? 1 : 0);
+        }
+
+        @IOCallback(value = GET_LAST_ACTION_ID_CODE, synchronize = false)
+        public void getLastActionIdIO(final IOOutputStream results) throws IOException {
+            results.writeU16(getLastActionId());
+        }
+
+        @IOCallback(value = GET_QUEUED_ACTION_COUNT_CODE, synchronize = false)
+        public void getQueuedActionCountIO(final IOOutputStream results) throws IOException {
+            results.writeU8(getQueuedActionCount());
+        }
+
+        @IOCallback(value = GET_ACTION_RESULT_CODE, synchronize = false)
+        public void getActionResultIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            final int actionId = arguments.readU16();
+            final RobotActionResult result = findActionResult(id -> (id & 0xFFFF) == actionId);
+            results.writeU8(switch (result) {
+                case null -> 0;
+                case INCOMPLETE -> 1;
+                case SUCCESS -> 2;
+                case FAILURE -> 3;
+            });
+        }
 
         @IOCallback(GET_STATUS_COLOR_CODE)
         public void getStatusColorIO(final IOOutputStream results) throws IOException {
@@ -1133,6 +1213,38 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         // ----------------------------------------------------------------- //
 
         private RobotDevice() {
+        }
+
+        @Nullable
+        private RobotActionResult findActionResult(final IntPredicate matches) {
+            final AbstractRobotAction currentAction = actionProcessor.action;
+            if (currentAction != null && matches.test(currentAction.getId())) {
+                return RobotActionResult.INCOMPLETE;
+            }
+            synchronized (actionProcessor.queue) {
+                for (final AbstractRobotAction action : actionProcessor.queue) {
+                    if (matches.test(action.getId())) {
+                        return RobotActionResult.INCOMPLETE;
+                    }
+                }
+            }
+            synchronized (actionProcessor.results) {
+                for (final RobotActionProcessorResult result : actionProcessor.results) {
+                    if (matches.test(result.actionId)) {
+                        return result.result;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static <T> T fromOrdinal(final T[] values, final int code) {
+            if (code >= values.length) {
+                throw new IllegalArgumentException("value out of range: " + code
+                    + " (expected 0 to " + (values.length - 1) + ")");
+            }
+            return values[code];
         }
     }
 }

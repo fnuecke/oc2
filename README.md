@@ -10,8 +10,6 @@ OpenComputers II is a Minecraft mod adding virtual computers to the game. These 
 
 This mod is a spiritual successor to [OpenComputers]. While many of the implementation details have changed quite dramatically, the concepts of customizable hardware, persistence and sand-boxing are still at the core of it.
 
-Supported loaders are **Fabric** and **NeoForge**. The mod is published to [Curseforge](https://www.curseforge.com/minecraft/mc-mods/oc2) and [Modrinth](https://modrinth.com/project/opencomputers-ii).
-
 ## Gameplay Documentation
 
 For documentation on how to get computers up and running, and how to use them, see the [documentation]. It is also available as a manual item in the game.
@@ -66,5 +64,5 @@ By contributing, you accept that the code is licensed under the MIT license.
 [projector]: common/src/main/java/li/cil/oc2/common/bus/device/vm/block/ProjectorDevice.java
 [network card]: common/src/main/java/li/cil/oc2/common/bus/device/vm/item/NetworkInterfaceCardDevice.java
 [documentation]: https://fnuecke.github.io/oc2/
-[HLAPI]: common/src/main/resources/assets/oc2/doc/en_us/hlapi.md
-[MLAPI]: common/src/main/resources/assets/oc2/doc/en_us/mlapi.md
+[HLAPI]: https://fnuecke.github.io/oc2/en_us/hlapi.html
+[MLAPI]: https://fnuecke.github.io/oc2/en_us/mlapi.html

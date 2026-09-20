@@ -82,6 +82,20 @@
 
   "entity.oc2.robot": "Robot",
 
+  "tag.item.oc2.devices": "Devices",
+  "tag.item.oc2.devices.cpu": "Processors",
+  "tag.item.oc2.devices.memory": "Memory",
+  "tag.item.oc2.devices.hard_drive": "Hard Drives",
+  "tag.item.oc2.devices.flash_memory": "Flash Memory",
+  "tag.item.oc2.devices.floppy": "Floppy Disks",
+  "tag.item.oc2.devices.card": "Cards",
+  "tag.item.oc2.devices.robot_module": "Robot Modules",
+  "tag.item.oc2.devices.network_tunnel": "Network Tunnels",
+  "tag.item.oc2.cables": "Cables",
+  "tag.item.oc2.wrenches": "Wrenches",
+  "tag.item.oc2.configurable": "Configurable Devices",
+  "tag.item.oc2.device_needs_reboot": "Devices Requiring Reboot",
+
   "gui.oc2.computer.error.unknown": "Unknown Error",
   "gui.oc2.computer.error.missing_cpu": "Missing Processor",
   "gui.oc2.computer.error.missing_firmware": "Missing Firmware",

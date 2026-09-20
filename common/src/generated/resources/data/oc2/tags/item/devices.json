@@ -11,6 +11,7 @@
     "oc2:redstone_interface",
     "oc2:disk_drive",
     "oc2:flash_drive",
-    "oc2:projector"
+    "oc2:projector",
+    "oc2:transposer"
   ]
 }

@@ -32,6 +32,7 @@ private val blockModels = listOf(
     "projector",
     "redstone_interface",
     "terminal",
+    "transposer",
 )
 
 private val renderTypeOverrides = mapOf(

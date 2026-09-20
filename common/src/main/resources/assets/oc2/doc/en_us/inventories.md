@@ -1,5 +1,5 @@
 # Inventories
-Any inventory can be inspected through a [bus interface](block/bus_interface.md).
+Any inventory can be inspected through a [bus interface](block/bus_interface.md). To move items between inventories, use a [transposer](block/transposer.md).
 
 ## High-level API
 Device name: `item_handler`
@@ -17,7 +17,7 @@ With several inventories connected, `find` may return any of them. To grab a spe
 
 `getItemStackInSlot(slot:number):table` gets what is in the specified slot.
 - `slot` is the number of the slot to look at.
-- Returns a table with the item's name as `id`, such as `minecraft:redstone`, and how many there are as `Count`. Returns nothing for an empty slot.
+- Returns a table with the item information. Returns nothing for an empty slot.
 
 `getItemSlotLimit(slot:number):number` gets how many items the specified slot can hold.
 - `slot` is the number of the slot to look at.

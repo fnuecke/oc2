@@ -34,6 +34,7 @@ public final class BlockEntities {
     public static final RegistrySupplier<BlockEntityType<ProjectorBlockEntity>> PROJECTOR = register(Blocks.PROJECTOR, ProjectorBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<RedstoneInterfaceBlockEntity>> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE, RedstoneInterfaceBlockEntity::new);
     public static final RegistrySupplier<BlockEntityType<TerminalBlockEntity>> TERMINAL = register(Blocks.TERMINAL, TerminalBlockEntity::new);
+    public static final RegistrySupplier<BlockEntityType<TransposerBlockEntity>> TRANSPOSER = register(Blocks.TRANSPOSER, TransposerBlockEntity::new);
 
     // --------------------------------------------------------------------- //
 

@@ -21,6 +21,7 @@ import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
 import li.cil.oc2.client.renderer.blockentity.NetworkConnectorRenderer;
 import li.cil.oc2.client.renderer.blockentity.ProjectorRenderer;
 import li.cil.oc2.client.renderer.blockentity.TerminalRenderer;
+import li.cil.oc2.client.renderer.blockentity.TransposerRenderer;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
 import li.cil.oc2.client.renderer.entity.RobotWithoutLevelRenderer;
@@ -64,6 +65,7 @@ public final class ClientSetupFabric implements ClientModInitializer {
         BlockEntityRendererRegistry.register(BlockEntities.PROJECTOR.get(), ProjectorRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.TERMINAL.get(), TerminalRenderer::new);
+        BlockEntityRendererRegistry.register(BlockEntities.TRANSPOSER.get(), TransposerRenderer::new);
 
         EntityRendererRegistry.register(Entities.ROBOT, RobotRenderer::new);
         EntityModelLayerRegistry.register(RobotModel.ROBOT_MODEL_LAYER, RobotModel::createRobotLayer);

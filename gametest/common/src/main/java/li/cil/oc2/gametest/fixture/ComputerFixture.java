@@ -2,14 +2,12 @@
 
 package li.cil.oc2.gametest.fixture;
 
-import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.VirtualMachine;
@@ -25,7 +23,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 
 import static li.cil.oc2.gametest.util.TestSupport.COMPUTER_POS;
 import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
@@ -138,10 +135,6 @@ public final class ComputerFixture implements MachineFixture {
             throw new GameTestAssertException("nothing to remove from the " + type + " slot");
         }
         return removed;
-    }
-
-    public Set<Device> devices() {
-        return ((AbstractVirtualMachine) virtualMachine()).getBusController().getDevices();
     }
 
     public int deviceCount() {

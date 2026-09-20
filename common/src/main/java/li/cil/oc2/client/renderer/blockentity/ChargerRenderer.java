@@ -34,7 +34,7 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
     private static final Vector3f INDICATOR_COLOR = new Vector3f(1f, 0.8f, 0.3f);
     private static final Vector3f INDICATOR_COLOR_BRIGHT = new Vector3f(1f, 1f, 0.7f);
 
-    private static final AABB INDICATOR_BOUNDS = new AABB(1 / 16.0, 12 / 16.0, 1 / 16.0, 15 / 16.0, 15 / 16.0, 15 / 16.0);
+    private static final AABB INDICATOR_BOUNDS = new AABB(0.5 / 16.0, 12 / 16.0, 0.5 / 16.0, 15.5 / 16.0, 15.5 / 16.0, 15.5 / 16.0);
 
     // --------------------------------------------------------------------- //
 

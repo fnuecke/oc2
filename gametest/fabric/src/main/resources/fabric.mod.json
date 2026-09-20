@@ -23,7 +23,8 @@
       "li.cil.oc2.gametest.fabric.RobotCrushTestsFabric",
       "li.cil.oc2.gametest.fabric.FakePlayerTestsFabric",
       "li.cil.oc2.gametest.fabric.RecipeTestsFabric",
-      "li.cil.oc2.gametest.fabric.RPCTypeAdapterTestsFabric"
+      "li.cil.oc2.gametest.fabric.RPCTypeAdapterTestsFabric",
+      "li.cil.oc2.gametest.fabric.TransposerTestsFabric"
     ]
   },
   "depends": {

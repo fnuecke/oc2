@@ -62,6 +62,7 @@ public final class ClientSetupNeoForge {
         event.registerBlockEntityRenderer(BlockEntities.PROJECTOR.get(), ProjectorRendererNeoForge::new);
         event.registerBlockEntityRenderer(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
         event.registerBlockEntityRenderer(BlockEntities.TERMINAL.get(), TerminalRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntities.TRANSPOSER.get(), TransposerRenderer::new);
 
         event.registerEntityRenderer(Entities.ROBOT.get(), RobotRenderer::new);
     }

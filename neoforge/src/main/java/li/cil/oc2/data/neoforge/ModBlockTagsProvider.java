@@ -25,7 +25,8 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
             REDSTONE_INTERFACE.get(),
             DISK_DRIVE.get(),
             FLASH_DRIVE.get(),
-            PROJECTOR.get()
+            PROJECTOR.get(),
+            TRANSPOSER.get()
         );
         tag(CABLES).add(
             BUS_CABLE.get()
@@ -41,7 +42,8 @@ public final class ModBlockTagsProvider extends BlockTagsProvider {
             FLASH_DRIVE.get(),
             CHARGER.get(),
             PROJECTOR.get(),
-            TERMINAL.get()
+            TERMINAL.get(),
+            TRANSPOSER.get()
         );
     }
 }

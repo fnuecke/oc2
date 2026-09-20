@@ -10,6 +10,7 @@
     "oc2:flash_drive",
     "oc2:charger",
     "oc2:projector",
-    "oc2:terminal"
+    "oc2:terminal",
+    "oc2:transposer"
   ]
 }

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.gametest.fixture;
 
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.serialization.NBTSerialization;
@@ -14,6 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public interface MachineFixture {
@@ -45,6 +47,10 @@ public interface MachineFixture {
         if (virtualMachine().getError() != null) {
             throw new GameTestAssertException("VM reported an error: " + virtualMachine().getError());
         }
+    }
+
+    default Set<Device> devices() {
+        return ((AbstractVirtualMachine) virtualMachine()).getBusController().getDevices();
     }
 
     default long guestInstructions() {

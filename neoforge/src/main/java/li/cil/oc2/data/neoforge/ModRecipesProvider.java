@@ -105,6 +105,19 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.TRANSPOSER.get())
+            .pattern("IHI")
+            .pattern("XTX")
+            .pattern("IBI")
+            .define('I', Tags.Items.INGOTS_IRON)
+            .define('H', net.minecraft.world.item.Items.HOPPER)
+            .define('T', Items.TRANSISTOR.get())
+            .define('X', Items.BUS_INTERFACE.get())
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_computer", inventoryChange(Items.COMPUTER.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.DISK_DRIVE.get())
             .pattern("IUI")
             .pattern("XTD")

@@ -36,6 +36,7 @@ public final class Items {
     public static final RegistrySupplier<Item> PROJECTOR = register(Blocks.PROJECTOR);
     public static final RegistrySupplier<Item> REDSTONE_INTERFACE = register(Blocks.REDSTONE_INTERFACE);
     public static final RegistrySupplier<Item> TERMINAL = register(Blocks.TERMINAL);
+    public static final RegistrySupplier<Item> TRANSPOSER = register(Blocks.TRANSPOSER);
 
     // --------------------------------------------------------------------- //
 

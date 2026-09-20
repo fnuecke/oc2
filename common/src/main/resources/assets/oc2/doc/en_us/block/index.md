@@ -5,7 +5,7 @@ To quickly access the manual entry for a block in the world, simply use this [ma
 
 Note: most device blocks accept a bus connection on one face only, the one with a port on it; a [bus
 interface](bus_interface.md) on any other face will not see them. There are exceptions, such as the [redstone
-interface](redstone_interface.md), which connect from multiple sides.
+interface](redstone_interface.md) and the [transposer](transposer.md), which connect from multiple sides.
 
 - [Bus Cable](bus_cable.md)
 - [Bus Interface](bus_interface.md)
@@ -20,3 +20,4 @@ interface](redstone_interface.md), which connect from multiple sides.
 - [Projector](projector.md)
 - [Redstone Interface](redstone_interface.md)
 - [Terminal](terminal.md)
+- [Transposer](transposer.md)

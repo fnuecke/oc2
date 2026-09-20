@@ -5,7 +5,6 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.io.IODevice;
-import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.gametest.fixture.Z80Fixture;
@@ -17,10 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
@@ -143,7 +140,7 @@ public final class Z80Tests {
                 continue;
             }
 
-            final byte[] slots = invoke(io, GET_SLOTS_CODE, 0, 1);
+            final byte[] slots = invokeIo(io, GET_SLOTS_CODE, 0, 1);
             final int id = (slots[0] & 0xFF) | ((slots[1] & 0xFF) << 8);
             final int count = slots[2] & 0xFF;
             seen.append(" id=").append(id).append(" count=").append(count);
@@ -151,7 +148,7 @@ public final class Z80Tests {
                 continue;
             }
 
-            final String name = new String(invoke(io, GET_ITEM_NAME_CODE, id & 0xFF, id >>> 8), US_ASCII);
+            final String name = new String(invokeIo(io, GET_ITEM_NAME_CODE, id & 0xFF, id >>> 8), US_ASCII);
             if (!"minecraft:redstone".equals(name)) {
                 throw new GameTestAssertException("slot 0 of the chest resolved to [" + name + "]");
             }
@@ -160,28 +157,6 @@ public final class Z80Tests {
 
         throw new GameTestAssertException("no ITEMS device on the bus reported the chest's contents;"
             + " saw" + (seen.isEmpty() ? " none" : seen));
-    }
-
-    private static byte[] invoke(final IODevice device, final int code, final int... arguments) {
-        final byte[] bytes = new byte[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-            bytes[i] = (byte) arguments[i];
-        }
-
-        for (final IOMethod method : device.getIOMethods()) {
-            if (method.getCode() != code) {
-                continue;
-            }
-            final ByteArrayOutputStream results = new ByteArrayOutputStream();
-            try {
-                method.invoke(new ByteArrayInputStream(bytes), results);
-            } catch (final Throwable e) {
-                throw new GameTestAssertException("function " + code + " failed: " + e);
-            }
-            return results.toByteArray();
-        }
-
-        throw new GameTestAssertException("device has no function with code " + code);
     }
 
     private static void assertBackAtPrompt(final Z80Fixture z80) {

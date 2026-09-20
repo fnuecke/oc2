@@ -14,6 +14,8 @@
   "block.oc2.network_hub.desc": "Distributes network packets among all attached Network Connectors.",
   "block.oc2.redstone_interface": "Redstone Interface",
   "block.oc2.redstone_interface.desc": "Emits and reads redstone signals.",
+  "block.oc2.transposer": "Transposer",
+  "block.oc2.transposer.desc": "Moves items between adjacent inventories.",
   "block.oc2.disk_drive": "Disk Drive",
   "block.oc2.disk_drive.desc": "Used to access Floppy Disks.",
   "block.oc2.flash_drive": "Flash Drive",

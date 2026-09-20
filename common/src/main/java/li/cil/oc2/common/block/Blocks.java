@@ -26,6 +26,7 @@ public final class Blocks {
     public static final RegistrySupplier<ProjectorBlock> PROJECTOR = BLOCKS.register("projector", ProjectorBlock::new);
     public static final RegistrySupplier<RedstoneInterfaceBlock> REDSTONE_INTERFACE = BLOCKS.register("redstone_interface", RedstoneInterfaceBlock::new);
     public static final RegistrySupplier<TerminalBlock> TERMINAL = BLOCKS.register("terminal", TerminalBlock::new);
+    public static final RegistrySupplier<TransposerBlock> TRANSPOSER = BLOCKS.register("transposer", TransposerBlock::new);
 
     // --------------------------------------------------------------------- //
 

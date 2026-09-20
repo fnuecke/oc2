@@ -61,6 +61,15 @@ public final class TestSupport {
         }
     }
 
+    public static void assertThrows(final GameTestHelper helper, final String what, final Runnable action) {
+        try {
+            action.run();
+        } catch (final IllegalArgumentException e) {
+            return;
+        }
+        throw failure(helper, what + " should have been rejected");
+    }
+
     public static Player fakePlayer(final GameTestHelper helper) {
         final Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0);

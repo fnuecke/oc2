@@ -48,6 +48,7 @@ public final class ModLootTableProvider extends LootTableProvider {
             dropSelf(Blocks.PROJECTOR.get());
             dropSelf(Blocks.REDSTONE_INTERFACE.get());
             dropSelf(Blocks.TERMINAL.get());
+            dropSelf(Blocks.TRANSPOSER.get());
         }
 
         @Override

@@ -33,6 +33,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation PROJECTOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/projector");
     private static final ResourceLocation REDSTONE_INTERFACE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/redstone_interface");
     private static final ResourceLocation TERMINAL_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/terminal");
+    private static final ResourceLocation TRANSPOSER_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/transposer");
 
     public ModBlockStateProvider(final PackOutput output, final ExistingFileHelper existingFileHelper) {
         super(output, API.MOD_ID, existingFileHelper);
@@ -64,6 +65,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
         horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
         orientableBlock(Blocks.TERMINAL, Items.TERMINAL, TERMINAL_MODEL);
+        simpleBlock(Blocks.TRANSPOSER, Items.TRANSPOSER, TRANSPOSER_MODEL);
 
         registerCableStates();
     }
@@ -200,5 +202,11 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private <T extends Block> void simpleBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item) {
         simpleBlock(block.get());
         itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
+    }
+
+    private <T extends Block> void simpleBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
+        final ModelFile model = models().getExistingFile(modelFileLocation);
+        simpleBlock(block.get(), model);
+        itemModels().getBuilder(item.getId().getPath()).parent(model);
     }
 }

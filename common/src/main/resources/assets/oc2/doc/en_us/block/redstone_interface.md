@@ -14,7 +14,7 @@ It can be controlled from Lua using the [high-level API](../hlapi.md), and from 
 Device name: `redstone`
 
 ### Sides
-The side parameter in the following methods comes in two flavors.
+The side parameter in the following methods comes in two forms.
 
 Relative sides turn with the block. Each face of the block has an indicator for convenience; the primary face is the one with a single marking. When looking at the primary face:
 - `front` is the face we are looking at.

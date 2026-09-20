@@ -1,7 +1,7 @@
 # Flash Drive
 ![Savior of the Universe](block:oc2:flash_drive)
 
-The flash drive exposes [flash memory](../item/flash_memory.md) to a [computer](computer.md) as a plain block device. Similar to the [disk drive](disk_drive.md) allows access to floppies, this device allows to access flash memory. In particular, this enables use of custom firmware.
+The flash drive exposes [flash memory](../item/flash_memory.md) to a [computer](computer.md) as a plain block device. Where the [disk drive](disk_drive.md) provides access to floppies, this one provides access to flash memory. In particular, this enables use of custom firmware.
 
 Flash memory can be inserted and removed at runtime. The drive itself cannot: computers *have to be shut down* before installing or removing it.
 

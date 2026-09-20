@@ -15,10 +15,10 @@ This is a high-level API device. It can be controlled using Lua in the default L
 The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.
 
 ### Tools
-The module swings whatever is in the robot's currently selected inventory slot, exactly as a player holding that item would. A pickaxe mines stone, a shovel digs dirt, an axe chops wood, and an empty slot means bare robot hands.
+The module swings whatever is in the robot's currently selected inventory slot, exactly as a player holding that item would. A pickaxe mines stone, a shovel digs dirt, an axe chops wood, and an empty slot means no tool.
 
 The tool decides:
-- **What can be broken.** Blocks that would not drop anything for the held tool are refused outright, rather than being broken for nothing.
+- **What can be broken.** Blocks that would not drop anything for the held tool are refused outright.
 - **How long it takes.** A block that it would take a player five seconds to break also occupies the module for five seconds. Enchantments such as Efficiency, Fortune and Silk Touch all apply.
 
 Note that the tool will take damage and eventually break. Check its durability if you'd rather repair it.

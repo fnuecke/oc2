@@ -28,7 +28,7 @@ Device name: `ITEMS`
 
 Each inventory is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
 
-Items are identified by opaque ids to save bus bandwidth. Consider it an opaque identifier that is generally stable, unless the foundations of the world shift. An empty slot reads as item 0. Item numbers are two bytes, low byte first.
+Items are identified by ids to save bus bandwidth. An id is stable within a world, but not across changes to the installed mods. An empty slot reads as item 0. Item numbers are two bytes, low byte first.
 
 `1 getSlotCount()` reads how many slots the inventory has.
 - Returns one byte, the slot count, at most 255.

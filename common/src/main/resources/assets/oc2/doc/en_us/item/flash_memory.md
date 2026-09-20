@@ -5,7 +5,7 @@ Flash memory contains the initial code loaded into a [computer's](../block/compu
 
 Blank flash memory holds no firmware. To write firmware to it, craft it together with the processor that firmware is built for: a [RISC-V processor](cpu_riscv.md) writes the Linux firmware, a [Z80 processor](cpu_z80.md) writes the CP/M firmware.
 
-Neither firmware carries a system of its own, so a machine needs the matching medium as well: a [hard drive](hard_drive.md) for Linux, a [floppy](floppy.md) for CP/M.
+Neither firmware includes a system of its own, so a machine needs the matching medium as well: a [hard drive](hard_drive.md) for Linux, a [floppy](floppy.md) for CP/M.
 
 You are not limited to the two Linux and CP/M firmwares. A [flash drive](../block/flash_drive.md) provides flash memory to a computer as a plain block device, so a machine can write whatever you like onto it.
 

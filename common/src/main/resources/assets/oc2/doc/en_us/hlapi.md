@@ -1,7 +1,7 @@
 # High-level API
 Controlling devices using Lua is a core concept when using [computers](block/computer.md). Many devices are so-called high-level API (HLAPI) devices. This means they are not controlled using regular Linux drivers, but via a simple RPC system, employing JSON messages over a serial device.
 
-Everything in this entry needs the Linux system that ships for the [RISC-V processor](item/cpu_riscv.md). To reach devices from a [Z80 processor](item/cpu_z80.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
+Everything in this entry needs the Linux system that ships for the [RISC-V processor](item/cpu_riscv.md). To access devices from a [Z80 processor](item/cpu_z80.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
 
 ## The Devices Library
 The default Linux distribution includes libraries to make HLAPI devices more easily accessible. The `devices` library provides utilities for discovering devices and calling methods on them, as well as obtaining documentation on devices, when available.
@@ -54,18 +54,18 @@ To invoke a method on such a wrapper, use colon notation, and the method's name.
 To obtain the documentation of the device, `tostring` it. In the Lua interpreter, use `=wrapper`.
 
 ## Running Several Scripts at Once
-The serial devices used for the RPC system can only be opened by one program at a time. A small background service, `oc2busd`, opens them once when the computer boots and passes messages along on behalf of everything else. While it's running, as many scripts as you like can use the `devices` library at the same time.
+The serial devices used for the RPC system can only be opened by one program at a time. A small background service, `oc2busd`, opens them once when the computer boots and relays messages for everything else. While it's running, as many scripts as you like can use the `devices` library at the same time.
 
 Calls are still carried out one at a time, in the order they arrive, so two scripts controlling the same device will not interleave halfway through an operation.
 
-Events, such as a [robot](robotics.md) finishing an action, are delivered to *every* script that is listening, rather than to whichever one happened to ask first. A script that starts in the middle of an action may therefore see events for something it did not begin, which is why it is worth checking that an event refers to the action you are waiting on. `waitEvent` takes an event name to allow some early filtering.
+Events, such as a [robot](robotics.md) finishing an action, are delivered to *every* listening script. A script that starts in the middle of an action may therefore see events for something it did not begin, so check that an event refers to the action you are waiting on. `waitEvent` takes an event name for early filtering.
 
 Each `require("devices")` gives a script one connection to the service. To hold more than one at the same time, for example to keep a long-running call from holding up everything else, open further ones explicitly:  
 `bus = require("oc2.bus").connect()`
 
 Close such a connection with `bus:close()` once it is no longer needed. The one behind `require("devices")` is best left alone, since everything else in the script shares it.
 
-If the service is not running for any reason, the `devices` library falls back to opening the serial devices directly. Everything keeps working, but only one program at a time can use it. The service writes to the system log, so `cat /var/log/messages` will say why it stopped.
+If the service is not running, the `devices` library falls back to opening the serial devices directly. Everything keeps working, but only one program at a time can use it. The service writes to the system log, so `cat /var/log/messages` will say why it stopped.
 
 ## Example
 For this example we will control a [redstone interface block](block/redstone_interface.md). First, place the block and connect it to the computer using [bus cables](block/bus_cable.md) and [bus interfaces](block/bus_interface.md).

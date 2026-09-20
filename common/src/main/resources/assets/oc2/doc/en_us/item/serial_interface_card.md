@@ -3,13 +3,13 @@
 
 The serial interface card allows [computers](../block/computer.md) to read and write serial data from a serial port. Serial data is transmitted on a bus established by [network cables](network_cable.md).
 
-A segment is every endpoint reachable through [network connectors](../block/network_connector.md) and [network hubs](../block/network_hub.md). It is *multi-drop*: everything one endpoint writes will be readable by every other endpoint. This means that, if necessary, for more than two participants software needs to filter.
+A segment is every endpoint connected through [network connectors](../block/network_connector.md) and [network hubs](../block/network_hub.md). It is *multi-drop*: everything one endpoint writes will be readable by every other endpoint. With more than two participants, software needs to filter.
 
 These cards can be configured to only connect to selected sides (use while holding). This allows using multiple cards to build a custom router, for example.
 
 In addition to connectivity, this also allows setting an **address.** This is an arbitrary number in [0, 255) that allows identifying different cards on a bus. Hardware ignores it; software may use it to establish a protocol on top of it. This is purely for convenience.
 
-Baud rate must be configured in software and must match between endpoints on a shared bus. The default after a reset is 9600. Misconfiguration will result in corrupted data. Higher baud rates are more likely to cause collisions unless a protocol prevents this, and may result in weaker systems to not be able to process received data in a timely manner.
+Baud rate must be configured in software and must match between endpoints on a shared bus. The default after a reset is 9600. Misconfiguration will result in corrupted data. Higher baud rates are more likely to cause collisions unless a protocol prevents this, and weaker systems may not process received data fast enough.
 
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
 
@@ -35,7 +35,7 @@ There is also a MicroPython version with the same API.
 
 ## CP/M
 
-The first card will be adopted as CP/M's reader and punch, so BDOS functions 3 and 4 will go through it.
+CP/M uses the first card as its reader and punch, so BDOS functions 3 and 4 go through it.
 
 `STAT CON:=TTY:` switches to the first card as the console, for example to use the computer from a [terminal](../block/terminal.md).  
 `STAT CON:=CRT:` goes back to the built-in one.

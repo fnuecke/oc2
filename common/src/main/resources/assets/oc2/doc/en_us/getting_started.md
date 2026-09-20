@@ -20,6 +20,6 @@ To power up your freshly build computer, you'll usually need to supply it with s
 
 When you've ensured the required amount of energy is available, switch to the terminal screen and hit the power button to the top left. Alternatively use the computer while sneaking. The computer should now boot!
 
-What you see next depends on the processor you installed. Carry on there: [RISC-V](item/cpu_riscv.md) or [Z80](item/cpu_z80.md).
+What you see next depends on the processor you installed. Continue there: [RISC-V](item/cpu_riscv.md) or [Z80](item/cpu_z80.md).
 
 Good luck, and most importantly, have fun!

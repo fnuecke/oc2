@@ -1,4 +1,4 @@
-name: manual site
+name: manual
 
 on:
   push:

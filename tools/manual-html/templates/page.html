@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="{{ language | replace('_', '-') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} · OpenComputers II</title>
+    <link rel="stylesheet" href="{{ assets }}/manual.css">
+    <link rel="icon" href="{{ tabs[1].icon }}">
+</head>
+<body>
+<div class="manual">
+    <nav class="tabs" aria-label="Manual sections">
+        {% for tab in tabs %}
+        <a class="tab" href="{{ tab.href }}" title="{{ tab.title }}" {% if tab.active %} aria-current="page" {% endif
+           %}>
+            <img src="{{ tab.icon }}" alt="{{ tab.title }}">
+        </a>
+        {% endfor %}
+    </nav>
+    <div class="window">
+        <div class="document" id="document" tabindex="0">
+            <div class="content">
+                {{ body | safe }}
+            </div>
+        </div>
+        <div class="scrollbar" id="scrollbar">
+            <div class="thumb" id="thumb"></div>
+        </div>
+    </div>
+</div>
+<script src="{{ assets }}/manual.js"></script>
+</body>
+</html>

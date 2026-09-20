@@ -569,7 +569,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     // --------------------------------------------------------------------- //
 
     public final class AnimationState {
-        private static final float TOP_IDLE_Y = -2f / 16f;
+        public static final float TOP_IDLE_Y = -2f / 16f;
         private static final float BASE_IDLE_Y = -1f / 16f;
 
         private static final float TRANSLATION_SPEED = 0.015f;

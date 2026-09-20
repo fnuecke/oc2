@@ -34,6 +34,20 @@ public abstract class ModRenderType extends RenderType {
             .setLayeringState(POLYGON_OFFSET_LAYERING)
             .createCompositeState(false));
 
+    private static final RenderType GLOW = create(
+        API.MOD_ID + "/glow",
+        DefaultVertexFormat.POSITION_COLOR,
+        VertexFormat.Mode.QUADS,
+        256,
+        false,
+        false,
+        CompositeState.builder()
+            .setShaderState(POSITION_COLOR_SHADER)
+            .setTextureState(NO_TEXTURE)
+            .setTransparencyState(ADDITIVE_TRANSPARENCY)
+            .setWriteMaskState(COLOR_WRITE)
+            .createCompositeState(false));
+
     private static final RenderType PROJECTOR_LIGHT = create(
         API.MOD_ID + "/projector_light",
         DefaultVertexFormat.POSITION_COLOR,
@@ -109,6 +123,10 @@ public abstract class ModRenderType extends RenderType {
 
     public static RenderType getIndicator() {
         return INDICATOR;
+    }
+
+    public static RenderType getGlow() {
+        return GLOW;
     }
 
     public static RenderType getProjectorLight() {

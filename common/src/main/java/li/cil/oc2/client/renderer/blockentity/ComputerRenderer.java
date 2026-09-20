@@ -4,6 +4,7 @@ package li.cil.oc2.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.client.renderer.TerminalOverlayRenderer;
 import li.cil.oc2.common.block.ComputerBlock;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
@@ -76,23 +77,23 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         switch (computer.getVirtualMachine().getBusState()) {
             case SCAN_PENDING:
             case INCOMPLETE:
-                BlockOverlays.renderStatus(matrix, bufferSource);
+                Overlays.renderStatus(matrix, bufferSource);
                 break;
             case TOO_COMPLEX:
-                BlockOverlays.renderStatus(matrix, bufferSource, 1000);
+                Overlays.renderStatus(matrix, bufferSource, 1000);
                 break;
             case MULTIPLE_CONTROLLERS:
-                BlockOverlays.renderStatus(matrix, bufferSource, 250);
+                Overlays.renderStatus(matrix, bufferSource, 250);
                 break;
             case READY:
                 switch (computer.getVirtualMachine().getRunState()) {
                     case STOPPED:
                         break;
                     case LOADING_DEVICES:
-                        BlockOverlays.renderStatus(matrix, bufferSource);
+                        Overlays.renderStatus(matrix, bufferSource);
                         break;
                     case RUNNING:
-                        BlockOverlays.renderPower(matrix, bufferSource);
+                        Overlays.renderPower(matrix, bufferSource);
                         break;
                 }
                 break;

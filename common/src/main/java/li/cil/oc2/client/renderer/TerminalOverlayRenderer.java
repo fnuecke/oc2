@@ -3,7 +3,6 @@
 package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import li.cil.oc2.client.renderer.blockentity.BlockOverlays;
 import li.cil.oc2.common.vm.Terminal;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
@@ -38,7 +37,7 @@ public class TerminalOverlayRenderer {
             stack.pushPose();
             stack.translate(0, 0, -0.9f);
 
-            BlockOverlays.renderTerminal(stack.last().pose(), bufferSource);
+            Overlays.renderTerminal(stack.last().pose(), bufferSource);
 
             stack.popPose();
         }

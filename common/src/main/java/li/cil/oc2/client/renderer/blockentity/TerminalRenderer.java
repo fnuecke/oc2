@@ -4,6 +4,7 @@ package li.cil.oc2.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.client.renderer.TerminalOverlayRenderer;
 import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.blockentity.TerminalBlockEntity;
@@ -60,11 +61,11 @@ public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlock
         stack.translate(0, 0, -0.1f);
 
         if (terminal.isConnected()) {
-            BlockOverlays.renderPower(stack.last().pose(), bufferSource);
+            Overlays.renderPower(stack.last().pose(), bufferSource);
         }
 
         if (terminal.hasRecentFrameError()) {
-            BlockOverlays.renderStatus(stack.last().pose(), bufferSource);
+            Overlays.renderStatus(stack.last().pose(), bufferSource);
         }
 
         stack.popPose();

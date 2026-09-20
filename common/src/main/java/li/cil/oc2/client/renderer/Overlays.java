@@ -4,23 +4,53 @@ package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import li.cil.oc2.api.API;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.AABB;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public final class IndicatorRenderer {
+public final class Overlays {
     private static final int PULSE_TICKS = 40;
+
+    private static final ResourceLocation POWER_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/overlay/power");
+    private static final ResourceLocation STATUS_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/overlay/status");
+    private static final ResourceLocation TERMINAL_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/overlay/terminal");
+
+    private static final Material POWER = new Material(InventoryMenu.BLOCK_ATLAS, POWER_LOCATION);
+    private static final Material STATUS = new Material(InventoryMenu.BLOCK_ATLAS, STATUS_LOCATION);
+    private static final Material TERMINAL = new Material(InventoryMenu.BLOCK_ATLAS, TERMINAL_LOCATION);
 
     // --------------------------------------------------------------------- //
 
-    public static void render(final PoseStack stack, final MultiBufferSource bufferSource, final AABB bounds, final Vector3f color, final Vector3f colorBright, final long gameTime, final float partialTicks) {
-        render(ModRenderType.getIndicator(), stack, bufferSource, bounds, color, colorBright, gameTime, partialTicks);
+    public static void renderPower(final Matrix4f matrix, final MultiBufferSource bufferSource) {
+        renderQuad(matrix, bufferSource, POWER);
     }
 
-    public static void render(final RenderType renderType, final PoseStack stack, final MultiBufferSource bufferSource, final AABB bounds, final Vector3f color, final Vector3f colorBright, final long gameTime, final float partialTicks) {
+    public static void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource) {
+        renderQuad(matrix, bufferSource, STATUS);
+    }
+
+    public static void renderStatus(final Matrix4f matrix, final MultiBufferSource bufferSource, final int frequency) {
+        if (System.currentTimeMillis() / frequency % 2 == 1) {
+            renderStatus(matrix, bufferSource);
+        }
+    }
+
+    public static void renderTerminal(final Matrix4f matrix, final MultiBufferSource bufferSource) {
+        renderQuad(matrix, bufferSource, TERMINAL);
+    }
+
+    public static void renderBox(final PoseStack stack, final MultiBufferSource bufferSource, final AABB bounds, final Vector3f color, final Vector3f colorBright, final long gameTime, final float partialTicks) {
+        renderBox(ModRenderType.getIndicator(), stack, bufferSource, bounds, color, colorBright, gameTime, partialTicks);
+    }
+
+    public static void renderBox(final RenderType renderType, final PoseStack stack, final MultiBufferSource bufferSource, final AABB bounds, final Vector3f color, final Vector3f colorBright, final long gameTime, final float partialTicks) {
         final float phase = (gameTime % PULSE_TICKS + partialTicks) / PULSE_TICKS;
         final float blend = (1 + Mth.sin(phase * (float) (Math.PI * 2))) * 0.5f;
 
@@ -76,6 +106,24 @@ public final class IndicatorRenderer {
         consumer.addVertex(matrix, x, y, z).setColor(r, g, b, 1f);
     }
 
-    private IndicatorRenderer() {
+    private static void renderQuad(final Matrix4f matrix, final MultiBufferSource bufferSource, final Material material) {
+        final VertexConsumer consumer = material.buffer(bufferSource, ModRenderType::getUnlitBlock);
+
+        // Not chained: vanilla's SpriteCoordinateExpander.addVertex returns the delegate, so a
+        // chained setUv would bypass the sprite remap (NeoForge patches this, Fabric does not).
+        consumer.addVertex(matrix, 0, 0, 0);
+        consumer.setUv(0, 0);
+
+        consumer.addVertex(matrix, 0, 16, 0);
+        consumer.setUv(0, 1);
+
+        consumer.addVertex(matrix, 16, 16, 0);
+        consumer.setUv(1, 1);
+
+        consumer.addVertex(matrix, 16, 0, 0);
+        consumer.setUv(1, 0);
+    }
+
+    private Overlays() {
     }
 }

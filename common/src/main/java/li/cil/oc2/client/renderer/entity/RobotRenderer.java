@@ -5,8 +5,8 @@ package li.cil.oc2.client.renderer.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import li.cil.oc2.client.renderer.IndicatorRenderer;
 import li.cil.oc2.client.renderer.ModRenderType;
+import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
 import li.cil.oc2.common.entity.Robot;
 import net.minecraft.client.Minecraft;
@@ -65,7 +65,7 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
 
         if (state.topRenderOffsetY > Robot.AnimationState.TOP_IDLE_Y) {
             stack.translate(0, state.baseRenderOffsetY, 0);
-            IndicatorRenderer.render(ModRenderType.getGlow(), stack, bufferSource, GLOW_BOUNDS, GLOW_COLOR, GLOW_COLOR_BRIGHT, gameTime, partialTicks);
+            Overlays.renderBox(ModRenderType.getGlow(), stack, bufferSource, GLOW_BOUNDS, GLOW_COLOR, GLOW_COLOR_BRIGHT, gameTime, partialTicks);
         }
 
         stack.popPose();

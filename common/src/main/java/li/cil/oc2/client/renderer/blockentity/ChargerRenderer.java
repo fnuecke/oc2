@@ -5,8 +5,8 @@ package li.cil.oc2.client.renderer.blockentity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.renderer.IndicatorRenderer;
 import li.cil.oc2.client.renderer.ModRenderType;
+import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.common.blockentity.ChargerBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -53,7 +53,7 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
         final long gameTime = level != null ? level.getGameTime() : 0;
         final float offset = (gameTime + partialTicks) * EFFECT_SPEED / 20f % (float) (Math.PI * 2);
 
-        IndicatorRenderer.render(stack, bufferSource, INDICATOR_BOUNDS, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, gameTime, partialTicks);
+        Overlays.renderBox(stack, bufferSource, INDICATOR_BOUNDS, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, gameTime, partialTicks);
 
         stack.pushPose();
         stack.translate(0.5, 1.1, 0.5);

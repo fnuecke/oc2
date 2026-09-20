@@ -3,7 +3,7 @@
 package li.cil.oc2.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import li.cil.oc2.client.renderer.IndicatorRenderer;
+import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -42,7 +42,7 @@ public final class NetworkConnectorRenderer implements BlockEntityRenderer<Netwo
         final long gameTime = level != null ? level.getGameTime() : 0;
         final AABB bounds = INDICATOR_BOUNDS[NetworkConnectorBlock.getFacing(connector.getBlockState()).ordinal()];
 
-        IndicatorRenderer.render(stack, bufferSource, bounds, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, gameTime, partialTicks);
+        Overlays.renderBox(stack, bufferSource, bounds, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, gameTime, partialTicks);
     }
 
     // --------------------------------------------------------------------- //

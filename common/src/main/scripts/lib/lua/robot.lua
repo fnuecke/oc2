@@ -85,6 +85,20 @@ M.stack = function(slot)
   return robot:getStackInSlot(slot or M.slot())
 end
 
+M.statusColor = function(value)
+  if value then
+    return robot:setStatusColor(value)
+  end
+  return robot:getStatusColor()
+end
+
+M.statusValue = function(value)
+  if value then
+    return robot:setStatusValue(value)
+  end
+  return robot:getStatusValue()
+end
+
 M.move = function(direction, timeout)
   if not M.moveAsync(direction, timeout) then
     return false

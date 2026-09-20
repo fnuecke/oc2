@@ -11,6 +11,10 @@ local state = {
   queueCalls = 0,
   lastEventType = nil,
   lastQueued = nil,
+  statusColor = 0xFFFFFF,
+  statusValue = 1,
+  statusGets = 0,
+  statusSets = 0,
 }
 
 package.preload["oc2.clock"] = function()
@@ -50,6 +54,24 @@ local device = {
     state.lastDetectSide = side
     return "solid"
   end,
+  getStatusColor = function()
+    state.statusGets = state.statusGets + 1
+    return state.statusColor
+  end,
+  setStatusColor = function(_, value)
+    state.statusSets = state.statusSets + 1
+    state.statusColor = value & 0xFFFFFF
+    return state.statusColor
+  end,
+  getStatusValue = function()
+    state.statusGets = state.statusGets + 1
+    return state.statusValue
+  end,
+  setStatusValue = function(_, value)
+    state.statusSets = state.statusSets + 1
+    state.statusValue = math.min(math.max(value, 0), 1)
+    return state.statusValue
+  end,
 }
 
 package.preload["devices"] = function()
@@ -82,6 +104,10 @@ local function reset()
   state.queueCalls = 0
   state.lastEventType = nil
   state.lastQueued = nil
+  state.statusColor = 0xFFFFFF
+  state.statusValue = 1
+  state.statusGets = 0
+  state.statusSets = 0
   package.loaded["robot"] = nil
   return require("robot")
 end
@@ -170,5 +196,19 @@ expect("and sends the side it was given", state.lastDetectSide, "front")
 expect("detect is a query, not a queued action", state.queueCalls, 0)
 expect("calling detect without a side is an error",
        select(1, pcall(robot.detect)), false)
+
+-- Status light
+robot = reset()
+expect("the color reads back", robot.statusColor(), 0xFFFFFF)
+expect("reading is one call", state.statusGets, 1)
+expect("setting answers with what was applied", robot.statusColor(0x123456), 0x123456)
+expect("setting went through the setter", state.statusSets, 1)
+expect("setting did not also read", state.statusGets, 1)
+
+robot = reset()
+expect("the fill reads back", robot.statusValue(), 1)
+expect("a zero fill is a set, not a read", robot.statusValue(0), 0)
+expect("zero went through the setter", state.statusSets, 1)
+expect("zero did not also read", state.statusGets, 1)
 
 report()

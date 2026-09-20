@@ -13,10 +13,10 @@ The default Linux distribution provides a utility Lua library, `robot`, that eas
 
 For an overview of how robots move, how they draw energy and how to script them, see the [robotics](../robotics.md) entry.
 
-## API
+## High-level API
 Device name: `robot`
 
-This is a high-level API device. It can be controlled using Lua in the default Linux distribution. For example:  
+Robots can be controlled using Lua in the default Linux distribution. For example:  
 `local d = require("devices")`  
 `local r = d:find("robot")`  
 `r:move("forward")`
@@ -47,6 +47,20 @@ These methods are available on the underlying robot device. Note that the librar
 
 `getStackInSlot(slot:number):table` gets a description of the item in the specified slot.
 - `slot` is the index of the slot to get the item description for.
+
+`getStatusColor():number` gets the color of the status light on the front of the robot.
+- Returns the current color, as a packed `0xRRGGBB` value.
+
+`setStatusColor(color:number):number` sets the color of the status light on the front of the robot.
+- `color` is the color to set, as a packed `0xRRGGBB` value.
+- Returns the color that was applied.
+
+`getStatusValue():number` gets how far the status light is filled.
+- Returns the current fill value, in the range of [0, 1].
+
+`setStatusValue(value:number):number` sets how far the status light is filled. It fills from the bottom, so zero hides it entirely and one fills it.
+- `value` is the fill value to set, will be clamped to [0, 1].
+- Returns the fill value that was applied.
 
 `detect(side):string` reports what occupies the space on the specified side of the robot. This only tells you whether the space is free, not what is in it.
 - `side` is the side to look at. See the "Sides" section.
@@ -94,6 +108,14 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 `stack([slot:number]):table` gets a description of the item in the specified slot.
 - `slot` is the index of the slot to get the item description for. Optional, defaults to `slot()`.
 
+`statusColor([color:number]):number` gets, and optionally sets, the color of the status light.
+- `color` is the color to set, as a packed `0xRRGGBB` value. Optional.
+- Returns the color in effect after the call.
+
+`statusValue([value:number]):number` gets, and optionally sets, how far the status light is filled.
+- `value` is the fill value to set, in the range of [0, 1]. Optional.
+- Returns the fill value in effect after the call.
+
 `detect(side):string` reports what occupies the space on the specified side of the robot.
 - `side` is the side to look at. See the "Sides" section.
 - Returns `solid`, `fluid` or `air`. Since only `solid` stops the robot, `detect(side) ~= "solid"` tells you a move that way will not be blocked.
@@ -117,3 +139,18 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 - `direction` is the direction to turn towards.
 - `timeout` is how long to wait for a free slot in the action queue, in milliseconds. Optional, defaults to 30000.
 - Returns whether the action was enqueued. Returns `false` if the timeout ran out first.
+
+## Mid-level API
+Device name: `ROBOT`
+
+`1 getStatusColor()` reads the color of the status light.
+- Returns three bytes, the red, green and blue components.
+
+`2 setStatusColor(red, green, blue)` sets the color of the status light.
+- Takes three bytes, the red, green and blue components.
+
+`3 getStatusValue()` reads how far the status light is filled.
+- Returns one byte, the fill value, where `0` is empty and `255` is full.
+
+`4 setStatusValue(value)` sets how far the status light is filled.
+- Takes one byte, the fill value, where `0` is empty and `255` is full.

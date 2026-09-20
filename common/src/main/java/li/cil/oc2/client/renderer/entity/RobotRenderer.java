@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public final class RobotRenderer extends EntityRenderer<Robot> {
@@ -24,6 +25,12 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
     private static final Vector3f GLOW_COLOR_BRIGHT = new Vector3f(0.35f, 0.95f, 1f);
 
     private static final AABB GLOW_BOUNDS = new AABB(-6.25 / 16.0, 7 / 16.0, -6.25 / 16.0, 6.25 / 16.0, 8 / 16.0, 6.25 / 16.0);
+
+    private static final float STATUS_INNER_X = 2 / 16f;
+    private static final float STATUS_OUTER_X = 4 / 16f;
+    private static final float STATUS_Y = 10 / 16f;
+    private static final float STATUS_HEIGHT = 1 / 16f;
+    private static final float STATUS_Z = 7 / 16f;
 
     private final RobotModel model;
 
@@ -63,11 +70,47 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
         final VertexConsumer consumer = bufferSource.getBuffer(model.renderType(getTextureLocation(entity)));
         model.renderToBuffer(stack, consumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 
+        if (entity.getVirtualMachine().isRunning()) {
+            stack.pushPose();
+            model.applyTopTransform(stack);
+            renderStatusLights(stack, bufferSource, entity.getStatusColor(), entity.getStatusValue());
+            stack.popPose();
+        }
+
         if (state.topRenderOffsetY > Robot.AnimationState.TOP_IDLE_Y) {
             stack.translate(0, state.baseRenderOffsetY, 0);
             Overlays.renderBox(ModRenderType.getGlow(), stack, bufferSource, GLOW_BOUNDS, GLOW_COLOR, GLOW_COLOR_BRIGHT, gameTime, partialTicks);
         }
 
         stack.popPose();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static void renderStatusLights(final PoseStack stack, final MultiBufferSource bufferSource, final int color, final float value) {
+        if (value <= 0) {
+            return;
+        }
+
+        final float r = (color >>> 16) / 255f;
+        final float g = ((color >>> 8) & 0xFF) / 255f;
+        final float b = (color & 0xFF) / 255f;
+
+        final VertexConsumer consumer = bufferSource.getBuffer(ModRenderType.getIndicator());
+        final Matrix4f matrix = stack.last().pose();
+        final float top = STATUS_Y + STATUS_HEIGHT * value;
+        addQuad(matrix, consumer, -STATUS_OUTER_X, -STATUS_INNER_X, top, r, g, b);
+        addQuad(matrix, consumer, STATUS_INNER_X, STATUS_OUTER_X, top, r, g, b);
+    }
+
+    private static void addQuad(final Matrix4f matrix, final VertexConsumer consumer, final float x0, final float x1, final float y1, final float r, final float g, final float b) {
+        addVertex(matrix, consumer, x0, STATUS_Y, r, g, b);
+        addVertex(matrix, consumer, x1, STATUS_Y, r, g, b);
+        addVertex(matrix, consumer, x1, y1, r, g, b);
+        addVertex(matrix, consumer, x0, y1, r, g, b);
+    }
+
+    private static void addVertex(final Matrix4f matrix, final VertexConsumer consumer, final float x, final float y, final float r, final float g, final float b) {
+        consumer.addVertex(matrix, x, y, STATUS_Z).setColor(r, g, b, 1f);
     }
 }

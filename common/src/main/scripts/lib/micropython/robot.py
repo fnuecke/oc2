@@ -87,6 +87,18 @@ def stack(slot=None):
     return _robot.getStackInSlot(slot)
 
 
+def status_color(value=None):
+    if value is not None:
+        return _robot.setStatusColor(value)
+    return _robot.getStatusColor()
+
+
+def status_value(value=None):
+    if value is not None:
+        return _robot.setStatusValue(value)
+    return _robot.getStatusValue()
+
+
 def move(direction, timeout=None):
     if not move_async(direction, timeout):
         return False

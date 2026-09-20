@@ -5,6 +5,10 @@ package li.cil.oc2.common.entity;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.api.bus.device.io.IOCallback;
+import li.cil.oc2.api.bus.device.io.IOInputStream;
+import li.cil.oc2.api.bus.device.io.IOName;
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
@@ -68,6 +72,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.*;
@@ -80,6 +85,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     public static final EntityDataAccessor<BlockPos> TARGET_POSITION = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.BLOCK_POS);
     public static final EntityDataAccessor<Direction> TARGET_DIRECTION = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.DIRECTION);
     public static final EntityDataAccessor<Byte> SELECTED_SLOT = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.BYTE);
+    public static final EntityDataAccessor<Integer> STATUS_COLOR = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Float> STATUS_VALUE = SynchedEntityData.defineId(Robot.class, EntityDataSerializers.FLOAT);
+
+    public static final int DEFAULT_STATUS_COLOR = 0xEEEEFF;
+    public static final float DEFAULT_STATUS_VALUE = 1;
 
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String STATE_TAG_NAME = "state";
@@ -88,6 +98,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final String COMMAND_PROCESSOR_TAG_NAME = "commands";
     private static final String INVENTORY_TAG_NAME = "inventory";
     private static final String SELECTED_SLOT_TAG_NAME = "selected_slot";
+    private static final String STATUS_COLOR_TAG_NAME = "status_color";
+    private static final String STATUS_VALUE_TAG_NAME = "status_value";
 
     private static final int MAX_QUEUED_ACTIONS = 16;
     private static final int MAX_QUEUED_RESULTS = 16;
@@ -175,6 +187,22 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     @Override
     public void setSelectedSlot(final int value) {
         getEntityData().set(SELECTED_SLOT, (byte) Mth.clamp(value, 0, INVENTORY_SIZE - 1));
+    }
+
+    public int getStatusColor() {
+        return getEntityData().get(STATUS_COLOR);
+    }
+
+    public void setStatusColor(final int value) {
+        getEntityData().set(STATUS_COLOR, value & 0xFFFFFF);
+    }
+
+    public float getStatusValue() {
+        return getEntityData().get(STATUS_VALUE);
+    }
+
+    public void setStatusValue(final float value) {
+        getEntityData().set(STATUS_VALUE, Float.isNaN(value) ? 0 : Mth.clamp(value, 0, 1));
     }
 
     @Nullable
@@ -393,6 +421,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         builder.define(TARGET_POSITION, BlockPos.ZERO);
         builder.define(TARGET_DIRECTION, Direction.NORTH);
         builder.define(SELECTED_SLOT, (byte) 0);
+        builder.define(STATUS_COLOR, DEFAULT_STATUS_COLOR);
+        builder.define(STATUS_VALUE, DEFAULT_STATUS_VALUE);
     }
 
     @Override
@@ -412,6 +442,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT(registries));
         tag.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
+        tag.putInt(STATUS_COLOR_TAG_NAME, getStatusColor());
+        tag.putFloat(STATUS_VALUE_TAG_NAME, getStatusValue());
     }
 
     @Override
@@ -426,6 +458,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG_NAME));
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
+        setStatusColor(tag.contains(STATUS_COLOR_TAG_NAME) ? tag.getInt(STATUS_COLOR_TAG_NAME) : DEFAULT_STATUS_COLOR);
+        setStatusValue(tag.contains(STATUS_VALUE_TAG_NAME) ? tag.getFloat(STATUS_VALUE_TAG_NAME) : DEFAULT_STATUS_VALUE);
 
         RobotActions.initializeData(this);
         final AbstractRobotAction currentAction = actionProcessor.action;
@@ -909,6 +943,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             });
 
             actionProcessor.clear();
+
+            setStatusColor(DEFAULT_STATUS_COLOR);
+            setStatusValue(DEFAULT_STATUS_VALUE);
         }
 
         @Override
@@ -932,10 +969,16 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
     }
 
+    @IOName("ROBOT")
     public final class RobotDevice {
         private static final String DETECT_AIR = "air";
         private static final String DETECT_FLUID = "fluid";
         private static final String DETECT_SOLID = "solid";
+
+        private static final int GET_STATUS_COLOR_CODE = 1;
+        private static final int SET_STATUS_COLOR_CODE = 2;
+        private static final int GET_STATUS_VALUE_CODE = 3;
+        private static final int SET_STATUS_VALUE_CODE = 4;
 
         @Callback(description = "Check what occupies the space on the specified side of the robot. " +
             "This only reports whether the space is free, not what is in it.",
@@ -989,6 +1032,28 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             return inventory.getStackInSlot(slot);
         }
 
+        @Callback
+        public int getStatusColor() {
+            return Robot.this.getStatusColor();
+        }
+
+        @Callback
+        public int setStatusColor(@Parameter("color") final int color) {
+            Robot.this.setStatusColor(color);
+            return Robot.this.getStatusColor();
+        }
+
+        @Callback
+        public double getStatusValue() {
+            return Robot.this.getStatusValue();
+        }
+
+        @Callback
+        public double setStatusValue(@Parameter("value") final double value) {
+            Robot.this.setStatusValue((float) value);
+            return Robot.this.getStatusValue();
+        }
+
         @Callback(synchronize = false)
         public boolean move(@Parameter("direction") @Nullable final MovementDirection direction) {
             if (direction == null) throw new IllegalArgumentException();
@@ -1039,6 +1104,33 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
             return null;
         }
+
+        // ----------------------------------------------------------------- //
+
+        @IOCallback(GET_STATUS_COLOR_CODE)
+        public void getStatusColorIO(final IOOutputStream results) throws IOException {
+            final int color = getStatusColor();
+            results.writeU8(color >>> 16);
+            results.writeU8((color >>> 8) & 0xFF);
+            results.writeU8(color & 0xFF);
+        }
+
+        @IOCallback(SET_STATUS_COLOR_CODE)
+        public void setStatusColorIO(final IOInputStream arguments) throws IOException {
+            setStatusColor((arguments.readU8() << 16) | (arguments.readU8() << 8) | arguments.readU8());
+        }
+
+        @IOCallback(GET_STATUS_VALUE_CODE)
+        public void getStatusValueIO(final IOOutputStream results) throws IOException {
+            results.writeU8((int) Math.round(getStatusValue() * 0xFF));
+        }
+
+        @IOCallback(SET_STATUS_VALUE_CODE)
+        public void setStatusValueIO(final IOInputStream arguments) throws IOException {
+            setStatusValue(arguments.readU8() / (double) 0xFF);
+        }
+
+        // ----------------------------------------------------------------- //
 
         private RobotDevice() {
         }

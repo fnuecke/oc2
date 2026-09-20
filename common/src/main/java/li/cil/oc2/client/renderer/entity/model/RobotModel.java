@@ -30,6 +30,7 @@ public final class RobotModel extends EntityModel<Robot> {
     private final ModelPart coreRenderer;
     private float baseY, topY;
     private final float[] topRotation = new float[3];
+    private final Quaternionf topRotationQuaternion = new Quaternionf();
 
     // --------------------------------------------------------------------- //
 
@@ -59,6 +60,12 @@ public final class RobotModel extends EntityModel<Robot> {
 
     // --------------------------------------------------------------------- //
 
+    public void applyTopTransform(final PoseStack stack) {
+        stack.translate(0, topY, 0);
+        stack.mulPose(topRotationQuaternion.rotationXYZ(
+            topRotation[0] * Mth.DEG_TO_RAD, topRotation[1] * Mth.DEG_TO_RAD, topRotation[2] * Mth.DEG_TO_RAD));
+    }
+
     @Override
     public void setupAnim(final Robot entity, final float limbSwing, final float limbSwingAmount, final float ageInTicks, final float netHeadYaw, final float headPitch) {
         final Robot.AnimationState state = entity.getAnimationState();
@@ -70,9 +77,7 @@ public final class RobotModel extends EntityModel<Robot> {
     @Override
     public void renderToBuffer(final PoseStack stack, final VertexConsumer consumer, final int packedLight, final int packedOverlay, final int color) {
         stack.pushPose();
-        stack.translate(0, topY, 0);
-        stack.mulPose(new Quaternionf().rotationXYZ(
-            topRotation[0] * Mth.DEG_TO_RAD, topRotation[1] * Mth.DEG_TO_RAD, topRotation[2] * Mth.DEG_TO_RAD));
+        applyTopTransform(stack);
         topRenderer.render(stack, consumer, packedLight, packedOverlay, color);
         stack.popPose();
 

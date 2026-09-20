@@ -13,6 +13,10 @@ state = {
     "last_event_type": None,
     "last_queued": None,
     "last_detect_side": None,
+    "status_color": 0xFFFFFF,
+    "status_value": 1,
+    "status_gets": 0,
+    "status_sets": 0,
 }
 
 
@@ -52,6 +56,24 @@ class FakeDevice:
     def detect(self, side):
         state["last_detect_side"] = side
         return "solid"
+
+    def getStatusColor(self):
+        state["status_gets"] += 1
+        return state["status_color"]
+
+    def setStatusColor(self, value):
+        state["status_sets"] += 1
+        state["status_color"] = value & 0xFFFFFF
+        return state["status_color"]
+
+    def getStatusValue(self):
+        state["status_gets"] += 1
+        return state["status_value"]
+
+    def setStatusValue(self, value):
+        state["status_sets"] += 1
+        state["status_value"] = min(max(value, 0), 1)
+        return state["status_value"]
 
     def _queue(self, kind):
         state["queue_calls"] += 1
@@ -93,6 +115,10 @@ def reset():
     state["queue_calls"] = 0
     state["last_event_type"] = None
     state["last_queued"] = None
+    state["status_color"] = 0xFFFFFF
+    state["status_value"] = 1
+    state["status_gets"] = 0
+    state["status_sets"] = 0
     fake_devices.bus = FakeBus()
     if "robot" in sys.modules:
         del sys.modules["robot"]
@@ -188,5 +214,19 @@ try:
     expect("calling detect without a side is an error", True, False)
 except Exception:
     expect("calling detect without a side is an error", True, True)
+
+# Status light
+robot = reset()
+expect("the color reads back", robot.status_color(), 0xFFFFFF)
+expect("reading is one call", state["status_gets"], 1)
+expect("setting answers with what was applied", robot.status_color(0x123456), 0x123456)
+expect("setting went through the setter", state["status_sets"], 1)
+expect("setting did not also read", state["status_gets"], 1)
+
+robot = reset()
+expect("the fill reads back", robot.status_value(), 1)
+expect("a zero fill is a set, not a read", robot.status_value(0), 0)
+expect("zero went through the setter", state["status_sets"], 1)
+expect("zero did not also read", state["status_gets"], 1)
 
 report()

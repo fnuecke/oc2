@@ -2,10 +2,10 @@
 
 package li.cil.oc2.gametest.fabric;
 
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.CapabilityAdapterTests;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;

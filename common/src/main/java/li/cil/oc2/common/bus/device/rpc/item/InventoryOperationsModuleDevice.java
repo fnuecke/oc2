@@ -6,10 +6,10 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ItemHandlerUtils;
+import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -58,7 +58,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
             return;
         }
 
-        final ItemHandler inventory = robot.getInventory();
+        final ItemHandler inventory = inventory();
 
         // Do simulation run, validating slot indices and getting actual amount possible to move.
         ItemStack extracted = inventory.extractItem(fromSlot, count, true);
@@ -91,7 +91,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
-        ItemStack stack = robot.getInventory().extractItem(selectedSlot, count, false);
+        ItemStack stack = inventory().extractItem(selectedSlot, count, false);
         if (stack.isEmpty()) {
             return 0;
         }
@@ -112,7 +112,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         // into the world.
         int dropped = originalStackSize - stack.getCount();
         if (!stack.isEmpty() && !itemHandlers.isEmpty()) {
-            stack = robot.getInventory().insertItem(selectedSlot, stack, false);
+            stack = inventory().insertItem(selectedSlot, stack, false);
         }
 
         if (!stack.isEmpty()) {
@@ -139,7 +139,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
-        ItemStack stack = robot.getInventory().extractItem(selectedSlot, count, false);
+        ItemStack stack = inventory().extractItem(selectedSlot, count, false);
         if (stack.isEmpty()) {
             return 0;
         }
@@ -155,7 +155,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         // attempts to never drop anything into the world.
         int dropped = originalStackSize - stack.getCount();
         if (!stack.isEmpty()) {
-            stack = robot.getInventory().insertItem(selectedSlot, stack, false);
+            stack = inventory().insertItem(selectedSlot, stack, false);
         }
 
         if (!stack.isEmpty()) {
@@ -296,7 +296,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private int takeFromWorld(final int count) {
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemHandler inventory = robot.getInventory();
+        final ItemHandler inventory = inventory();
 
         int remaining = count;
         for (final ItemEntity itemEntity : getItemsInRange()) {
@@ -321,7 +321,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
 
     private int takeFromInventories(final int count, final List<ItemHandler> handlers) {
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemHandler inventory = robot.getInventory();
+        final ItemHandler inventory = inventory();
 
         int remaining = count;
         for (final ItemHandler handler : handlers) {
@@ -361,7 +361,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
     }
 
     private int takeFromInventory(final int count, final ItemHandler handler, final int slot) {
-        final ItemHandler inventory = robot.getInventory();
+        final ItemHandler inventory = inventory();
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
         // Do simulation run, getting actual amount possible to take.
@@ -385,5 +385,9 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
 
         return taken;
+    }
+
+    private ItemHandler inventory() {
+        return Objects.requireNonNull(Capabilities.get(entity, Capabilities.ITEM_HANDLER, null));
     }
 }

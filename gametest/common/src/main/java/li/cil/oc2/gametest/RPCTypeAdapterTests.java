@@ -42,7 +42,7 @@ public final class RPCTypeAdapterTests {
 
         final JsonElement json = gson.toJsonTree(new ItemStack(Items.STONE, 3));
         assertTrue(helper, "serializes to an object", json.isJsonObject());
-        assertEquals(helper, "count survives", 3, json.getAsJsonObject().get("Count").getAsLong());
+        assertEquals(helper, "count survives", 3, json.getAsJsonObject().get("count").getAsLong());
         assertTrue(helper, "item id is missing", json.getAsJsonObject().toString().contains("minecraft:stone"));
 
         assertTrue(helper, "empty stack serializes to null", gson.toJsonTree(ItemStack.EMPTY).isJsonNull());

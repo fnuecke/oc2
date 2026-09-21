@@ -2,10 +2,10 @@
 
 package li.cil.oc2.gametest.neoforge;
 
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.CapabilityAdapterTests;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;

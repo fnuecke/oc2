@@ -9,9 +9,9 @@ import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
+import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;

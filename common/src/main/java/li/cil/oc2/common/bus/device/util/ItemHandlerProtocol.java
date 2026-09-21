@@ -5,7 +5,7 @@ package li.cil.oc2.common.bus.device.util;
 import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
-import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;

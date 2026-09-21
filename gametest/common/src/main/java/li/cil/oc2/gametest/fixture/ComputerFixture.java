@@ -4,9 +4,9 @@ package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.capabilities.NetworkInterface;
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VMRunState;

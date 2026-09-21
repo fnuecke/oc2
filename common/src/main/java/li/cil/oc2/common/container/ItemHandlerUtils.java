@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
 
 public final class ItemHandlerUtils {

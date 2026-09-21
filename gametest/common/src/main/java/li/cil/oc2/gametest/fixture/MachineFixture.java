@@ -4,7 +4,7 @@ package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.Terminal;

@@ -3,11 +3,11 @@
 package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyStorage;
 import li.cil.oc2.common.entity.Robot;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

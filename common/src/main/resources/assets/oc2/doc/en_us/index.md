@@ -27,6 +27,7 @@ If you're interested in a particular topic, there are some overview entries for 
 - [High-level API](hlapi.md)
 - [Mid-level API](mlapi.md)
 - [Inventories](inventories.md)
+- [Fluids](fluids.md)
 - [Note Blocks](note_blocks.md)
 - [Robotics](robotics.md)
 - [Networking](networking.md)

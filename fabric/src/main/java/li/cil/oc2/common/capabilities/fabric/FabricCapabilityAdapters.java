@@ -2,11 +2,16 @@
 
 package li.cil.oc2.common.capabilities.fabric;
 
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.fluid.FluidHandler;
+import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.inventory.ItemHandler;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -35,6 +40,11 @@ public final class FabricCapabilityAdapters {
     @Nullable
     public static ItemHandler items(@Nullable final Storage<ItemVariant> storage) {
         return storage == null ? null : new ItemHandlerAdapter(storage);
+    }
+
+    @Nullable
+    public static FluidHandler fluids(@Nullable final Storage<FluidVariant> storage) {
+        return storage == null ? null : new FluidHandlerAdapter(storage);
     }
 
     public static team.reborn.energy.api.EnergyStorage toFabric(final EnergyStorage storage) {
@@ -401,6 +411,136 @@ public final class FabricCapabilityAdapters {
             if (!snapshot.isEmpty()) {
                 handler.insertItem(slot, snapshot, false);
             }
+        }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private record FluidHandlerAdapter(Storage<FluidVariant> inner) implements FluidHandler {
+        private static final long DROPLETS_PER_MILLIBUCKET = FluidConstants.BUCKET / FluidHandler.BUCKET;
+
+        @Override
+        public int getTanks() {
+            return tanks().size();
+        }
+
+        @Override
+        public FluidStack getFluidInTank(final int tank) {
+            final StorageView<FluidVariant> view = tank(tank);
+            if (view == null || view.isResourceBlank() || view.getAmount() <= 0) {
+                return FluidStack.EMPTY;
+            }
+
+            return fromFabric(view.getResource(), millibuckets(view.getAmount()));
+        }
+
+        @Override
+        public int getTankCapacity(final int tank) {
+            final StorageView<FluidVariant> view = tank(tank);
+            return view == null ? 0 : millibuckets(view.getCapacity());
+        }
+
+        @Override
+        public int fill(final FluidStack stack, final boolean simulate) {
+            if (stack.isEmpty()) {
+                return 0;
+            }
+
+            final FluidVariant resource = toFabric(stack);
+            return transfer(stack.amount(), simulate, (amount, transaction) -> inner.insert(resource, amount, transaction));
+        }
+
+        @Override
+        public FluidStack drain(final FluidStack stack, final boolean simulate) {
+            if (stack.isEmpty()) {
+                return FluidStack.EMPTY;
+            }
+
+            return drain(toFabric(stack), stack.amount(), simulate);
+        }
+
+        @Override
+        public FluidStack drain(final int amount, final boolean simulate) {
+            if (amount <= 0) {
+                return FluidStack.EMPTY;
+            }
+
+            final FluidVariant resource;
+            try (Transaction transaction = open()) {
+                resource = StorageUtil.findExtractableResource(inner, transaction);
+            }
+
+            return resource == null ? FluidStack.EMPTY : drain(resource, amount, simulate);
+        }
+
+        private FluidStack drain(final FluidVariant resource, final int amount, final boolean simulate) {
+            final int drained = transfer(amount, simulate, (droplets, transaction) -> inner.extract(resource, droplets, transaction));
+            return drained > 0 ? fromFabric(resource, drained) : FluidStack.EMPTY;
+        }
+
+        private static int transfer(final int amount, final boolean simulate, final Transfer transfer) {
+            if (amount <= 0) {
+                return 0;
+            }
+
+            try (Transaction transaction = open()) {
+                final int rounded;
+                try (Transaction probe = Transaction.openNested(transaction)) {
+                    rounded = millibuckets(transfer.apply(droplets(amount), probe));
+                }
+                if (rounded <= 0) {
+                    return 0;
+                }
+
+                final long requested = droplets(rounded);
+                if (transfer.apply(requested, transaction) != requested) {
+                    return 0;
+                }
+
+                if (!simulate) {
+                    transaction.commit();
+                }
+                return rounded;
+            }
+        }
+
+        @Nullable
+        private StorageView<FluidVariant> tank(final int tank) {
+            final List<? extends StorageView<FluidVariant>> tanks = tanks();
+            return tank >= 0 && tank < tanks.size() ? tanks.get(tank) : null;
+        }
+
+        private List<? extends StorageView<FluidVariant>> tanks() {
+            if (inner instanceof final SlottedStorage<FluidVariant> slotted) {
+                return slotted.getSlots();
+            }
+
+            final List<StorageView<FluidVariant>> tanks = new ArrayList<>();
+            for (final StorageView<FluidVariant> view : inner) {
+                tanks.add(view);
+            }
+            return tanks;
+        }
+
+        private static FluidStack fromFabric(final FluidVariant variant, final int millibuckets) {
+            return new FluidStack(variant.getFluid(), variant.getComponents(), millibuckets);
+        }
+
+        private static FluidVariant toFabric(final FluidStack stack) {
+            return FluidVariant.of(stack.fluid(), stack.components());
+        }
+
+        private static long droplets(final int millibuckets) {
+            return millibuckets * DROPLETS_PER_MILLIBUCKET;
+        }
+
+        private static int millibuckets(final long droplets) {
+            return (int) Math.min(droplets / DROPLETS_PER_MILLIBUCKET, Integer.MAX_VALUE);
+        }
+
+        @FunctionalInterface
+        private interface Transfer {
+            long apply(long droplets, TransactionContext transaction);
         }
     }
 

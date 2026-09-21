@@ -2,8 +2,8 @@
 
 package li.cil.oc2.gametest;
 
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;

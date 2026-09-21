@@ -179,7 +179,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         return deviceItems;
     }
 
-    @Override
     public ItemStackHandler getInventory() {
         return inventory;
     }

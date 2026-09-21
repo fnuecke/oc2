@@ -10,11 +10,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage;
+import net.neoforged.neoforge.capabilities.Capabilities.FluidHandler;
 import net.neoforged.neoforge.capabilities.Capabilities.ItemHandler;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.ItemCapability;
@@ -27,22 +29,29 @@ import java.util.function.Function;
 public final class CapabilitiesImpl {
     @Nullable
     @SuppressWarnings("unchecked")
+    public static <T> T get(final Level level, final BlockPos pos, final CapabilityType<T> type, @Nullable final Direction side) {
+        if (type == Capabilities.ENERGY_STORAGE) {
+            return (T) NeoForgeCapabilityAdapters.energy(level.getCapability(EnergyStorage.BLOCK, pos, side));
+        }
+
+        if (type == Capabilities.ITEM_HANDLER) {
+            return (T) NeoForgeCapabilityAdapters.items(level.getCapability(ItemHandler.BLOCK, pos, side));
+        }
+
+        if (type == Capabilities.FLUID_HANDLER) {
+            return (T) NeoForgeCapabilityAdapters.fluids(level.getCapability(FluidHandler.BLOCK, pos, side));
+        }
+
+        return level.getCapability(block(type), pos, side);
+    }
+
+    @Nullable
     public static <T> T get(final BlockEntity blockEntity, final CapabilityType<T> type, @Nullable final Direction side) {
         if (blockEntity.getLevel() == null) {
             return null;
         }
 
-        if (type == Capabilities.ENERGY_STORAGE) {
-            return (T) NeoForgeCapabilityAdapters.energy(
-                blockEntity.getLevel().getCapability(EnergyStorage.BLOCK, blockEntity.getBlockPos(), side));
-        }
-
-        if (type == Capabilities.ITEM_HANDLER) {
-            return (T) NeoForgeCapabilityAdapters.items(
-                blockEntity.getLevel().getCapability(ItemHandler.BLOCK, blockEntity.getBlockPos(), side));
-        }
-
-        return blockEntity.getLevel().getCapability(block(type), blockEntity.getBlockPos(), side);
+        return get(blockEntity.getLevel(), blockEntity.getBlockPos(), type, side);
     }
 
     @Nullable
@@ -54,6 +63,10 @@ public final class CapabilitiesImpl {
 
         if (type == Capabilities.ITEM_HANDLER) {
             return (T) NeoForgeCapabilityAdapters.items(stack.getCapability(ItemHandler.ITEM));
+        }
+
+        if (type == Capabilities.FLUID_HANDLER) {
+            return (T) NeoForgeCapabilityAdapters.fluids(stack.getCapability(FluidHandler.ITEM));
         }
 
         return stack.getCapability(item(type));
@@ -74,6 +87,10 @@ public final class CapabilitiesImpl {
             return (T) NeoForgeCapabilityAdapters.items(handler);
         }
 
+        if (type == Capabilities.FLUID_HANDLER) {
+            return (T) NeoForgeCapabilityAdapters.fluids(entity.getCapability(FluidHandler.ENTITY, side));
+        }
+
         return entity.getCapability(CapabilitiesImpl.entity(type), side);
     }
 
@@ -81,8 +98,7 @@ public final class CapabilitiesImpl {
     public static <T> Invalidatable<T> watch(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side,
                                              final CapabilityType<T> type) {
         if (!(level instanceof final ServerLevel serverLevel)) {
-            final BlockEntity blockEntity = level.getBlockEntity(pos);
-            final T value = blockEntity != null ? get(blockEntity, type, side) : null;
+            final T value = level instanceof final Level actual ? get(actual, pos, type, side) : null;
             return value != null ? Invalidatable.of(value) : Invalidatable.empty();
         }
 
@@ -96,6 +112,11 @@ public final class CapabilitiesImpl {
         if (type == Capabilities.ITEM_HANDLER) {
             return (Invalidatable<T>) watch(serverLevel, pos, side, ItemHandler.BLOCK,
                 NeoForgeCapabilityAdapters::items);
+        }
+
+        if (type == Capabilities.FLUID_HANDLER) {
+            return (Invalidatable<T>) watch(serverLevel, pos, side, FluidHandler.BLOCK,
+                NeoForgeCapabilityAdapters::fluids);
         }
 
         return watch(serverLevel, pos, side, block(type), Function.identity());

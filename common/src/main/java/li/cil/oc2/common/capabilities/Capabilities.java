@@ -10,14 +10,16 @@ import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.fluid.FluidHandler;
+import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -27,6 +29,7 @@ public final class Capabilities {
     // Interop capabilities
     public static final CapabilityType<EnergyStorage> ENERGY_STORAGE = type("energy_storage", EnergyStorage.class);
     public static final CapabilityType<ItemHandler> ITEM_HANDLER = type("item_handler", ItemHandler.class);
+    public static final CapabilityType<FluidHandler> FLUID_HANDLER = type("fluid_handler", FluidHandler.class);
 
     // Owned capabilities
     public static final CapabilityType<DeviceBusElement> DEVICE_BUS_ELEMENT = type("device_bus_element", DeviceBusElement.class);
@@ -37,6 +40,12 @@ public final class Capabilities {
     public static final CapabilityType<Robot> ROBOT = type("robot", Robot.class);
 
     // --------------------------------------------------------------------- //
+
+    @ExpectPlatform
+    @Nullable
+    public static <T> T get(final Level level, final BlockPos pos, final CapabilityType<T> type, @Nullable final Direction side) {
+        throw new AssertionError();
+    }
 
     @ExpectPlatform
     @Nullable

@@ -2,7 +2,7 @@
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.common.bus.device.provider.neoforge;
+package li.cil.oc2.common.fluid;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

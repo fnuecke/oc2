@@ -2,7 +2,7 @@
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package li.cil.oc2.common.bus.device.rpc.fabric;
+package li.cil.oc2.common.inventory;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

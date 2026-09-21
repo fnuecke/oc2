@@ -4,11 +4,11 @@ package li.cil.oc2.common.container;
 
 import dev.architectury.registry.menu.ExtendedMenuProvider;
 import dev.architectury.registry.menu.MenuRegistry;
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.client.gui.Sprites;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyStorage;
 import li.cil.oc2.common.entity.Robot;
+import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

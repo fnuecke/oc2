@@ -21,11 +21,10 @@ public final class ItemStackJsonSerializer implements JsonSerializer<ItemStack> 
             return JsonNull.INSTANCE;
         }
 
-        final JsonElement json = NBTToJsonConverter.convert(RPCItemStackTagFilters.getFilteredTag(src, (CompoundTag) src.save(ServerUtils.getRegistryAccess())));
-
-        // Manually patch the count: the NBT conversion truncates it to byte, but some mods use larger stack sizes.
-        json.getAsJsonObject().addProperty("Count", src.getCount());
-
+        // The codec allows 1-99, some mod containers may have larger stacks, so work around that.
+        final CompoundTag tag = (CompoundTag) src.copyWithCount(1).save(ServerUtils.getRegistryAccess());
+        final JsonElement json = NBTToJsonConverter.convert(RPCItemStackTagFilters.getFilteredTag(src, tag));
+        json.getAsJsonObject().addProperty("count", src.getCount());
         return json;
     }
 }

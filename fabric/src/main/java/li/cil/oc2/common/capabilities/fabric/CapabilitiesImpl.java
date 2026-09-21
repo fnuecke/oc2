@@ -3,6 +3,7 @@
 package li.cil.oc2.common.capabilities.fabric;
 
 import li.cil.oc2.api.fabric.EnergyStorage;
+import li.cil.oc2.api.fabric.FluidStorage;
 import li.cil.oc2.api.fabric.ItemStorage;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -28,14 +29,7 @@ import javax.annotation.Nullable;
 public final class CapabilitiesImpl {
     @Nullable
     @SuppressWarnings("unchecked")
-    public static <T> T get(final BlockEntity blockEntity, final CapabilityType<T> type, @Nullable final Direction side) {
-        final Level level = blockEntity.getLevel();
-        if (level == null) {
-            return null;
-        }
-
-        final BlockPos pos = blockEntity.getBlockPos();
-
+    public static <T> T get(final Level level, final BlockPos pos, final CapabilityType<T> type, @Nullable final Direction side) {
         if (type == Capabilities.ENERGY_STORAGE) {
             return (T) FabricCapabilityAdapters.energy(EnergyStorage.SIDED.find(level, pos, side));
         }
@@ -44,7 +38,21 @@ public final class CapabilitiesImpl {
             return (T) FabricCapabilityAdapters.items(ItemStorage.SIDED.find(level, pos, side));
         }
 
+        if (type == Capabilities.FLUID_HANDLER) {
+            return (T) FabricCapabilityAdapters.fluids(FluidStorage.SIDED.find(level, pos, side));
+        }
+
         return block(type).find(level, pos, side);
+    }
+
+    @Nullable
+    public static <T> T get(final BlockEntity blockEntity, final CapabilityType<T> type, @Nullable final Direction side) {
+        final Level level = blockEntity.getLevel();
+        if (level == null) {
+            return null;
+        }
+
+        return get(level, blockEntity.getBlockPos(), type, side);
     }
 
     @Nullable
@@ -58,6 +66,10 @@ public final class CapabilitiesImpl {
 
         if (type == Capabilities.ITEM_HANDLER) {
             return (T) FabricCapabilityAdapters.items(ItemStorage.ITEM.find(stack, context));
+        }
+
+        if (type == Capabilities.FLUID_HANDLER) {
+            return (T) FabricCapabilityAdapters.fluids(FluidStorage.ITEM.find(stack, context));
         }
 
         return item(type).find(stack, null);
@@ -85,13 +97,16 @@ public final class CapabilitiesImpl {
             return null;
         }
 
+        if (type == Capabilities.FLUID_HANDLER) {
+            return (T) FabricCapabilityAdapters.fluids(FluidStorage.ENTITY.find(entity, side));
+        }
+
         return entity(type).find(entity, side);
     }
 
     public static <T> Invalidatable<T> watch(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side,
                                              final CapabilityType<T> type) {
-        final BlockEntity blockEntity = level.getBlockEntity(pos);
-        final T value = blockEntity != null ? get(blockEntity, type, side) : null;
+        final T value = level instanceof final Level actual ? get(actual, pos, type, side) : null;
         if (value == null) {
             return Invalidatable.empty();
         }

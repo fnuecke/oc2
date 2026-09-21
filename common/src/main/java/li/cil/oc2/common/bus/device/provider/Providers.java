@@ -2,7 +2,6 @@
 
 package li.cil.oc2.common.bus.device.provider;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
@@ -13,6 +12,7 @@ import li.cil.oc2.common.bus.device.provider.item.*;
 import li.cil.oc2.common.bus.device.rpc.block.BlockEntityObjectDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.BlockStateObjectDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.EnergyStorageBlockDeviceProvider;
+import li.cil.oc2.common.bus.device.rpc.block.FluidHandlerBlockDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.ItemHandlerBlockDeviceProvider;
 import li.cil.oc2.common.bus.device.rpc.block.NoteBlockDeviceProvider;
 import net.minecraft.resources.ResourceLocation;
@@ -62,22 +62,8 @@ public final class Providers {
         registry.accept("flash_drive", FlashDriveDeviceProvider::new);
         registry.accept("energy_storage", EnergyStorageBlockDeviceProvider::new);
         registry.accept("item_handler", ItemHandlerBlockDeviceProvider::new);
+        registry.accept("fluid_handler", FluidHandlerBlockDeviceProvider::new);
         registry.accept("note_block", NoteBlockDeviceProvider::new);
-
-        registerPlatformBlockDeviceProviders(registry);
-    }
-
-    @ExpectPlatform
-    public static void registerPlatformBlockDeviceProviders(final BiConsumer<String, Supplier<BlockDeviceProvider>> registry) {
-        throw new AssertionError();
-    }
-
-    /**
-     * @see #registerPlatformBlockDeviceProviders(BiConsumer)
-     */
-    @ExpectPlatform
-    public static void registerPlatformItemDeviceProviders(final BiConsumer<String, Supplier<ItemDeviceProvider>> registry) {
-        throw new AssertionError();
     }
 
     public static void registerItemDeviceProviders(final BiConsumer<String, Supplier<ItemDeviceProvider>> registry) {
@@ -99,7 +85,6 @@ public final class Providers {
         registry.accept("item_stack/capability", ItemStackCapabilityDeviceProvider::new);
         registry.accept("energy_storage", EnergyStorageItemDeviceProvider::new);
         registry.accept("item_handler", ItemHandlerItemDeviceProvider::new);
-
-        registerPlatformItemDeviceProviders(registry);
+        registry.accept("fluid_handler", FluidHandlerItemDeviceProvider::new);
     }
 }

@@ -3,7 +3,7 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.inventory.ItemHandler;
+import li.cil.oc2.common.inventory.ItemHandler;
 
 import java.util.Optional;
 

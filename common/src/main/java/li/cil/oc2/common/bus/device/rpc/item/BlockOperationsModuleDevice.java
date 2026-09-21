@@ -6,8 +6,9 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.capabilities.Robot;
-import li.cil.oc2.api.inventory.ItemHandler;
 import li.cil.oc2.api.util.RobotOperationSide;
+import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.TickUtils;
@@ -37,6 +38,7 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice implements DocumentedDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
@@ -100,7 +102,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice imp
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemHandler inventory = robot.getInventory();
+        final ItemHandler inventory = inventory();
 
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
         final BlockPos blockPos = entity.blockPosition().relative(direction);
@@ -156,7 +158,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice imp
         }
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemHandler inventory = robot.getInventory();
+        final ItemHandler inventory = inventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
         if (extracted.isEmpty() || !(extracted.getItem() instanceof BlockItem)) {
@@ -195,7 +197,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice imp
 
     @Callback(name = DURABILITY)
     public int durability() {
-        final ItemStack tool = robot.getInventory().getStackInSlot(robot.getSelectedSlot());
+        final ItemStack tool = inventory().getStackInSlot(robot.getSelectedSlot());
         if (!tool.isDamageableItem()) {
             return 0;
         }
@@ -305,5 +307,9 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice imp
         }
 
         return stack;
+    }
+
+    private ItemHandler inventory() {
+        return Objects.requireNonNull(Capabilities.get(entity, Capabilities.ITEM_HANDLER, null));
     }
 }

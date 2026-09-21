@@ -6,7 +6,9 @@ import com.google.gson.GsonBuilder;
 import dev.architectury.registry.registries.DeferredRegister;
 import li.cil.oc2.api.bus.device.rpc.RPCTypeAdapter;
 import li.cil.oc2.api.util.Registries;
+import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.serialization.gson.DirectionJsonSerializer;
+import li.cil.oc2.common.serialization.gson.FluidStackJsonSerializer;
 import li.cil.oc2.common.serialization.gson.ItemStackJsonSerializer;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.core.Direction;
@@ -24,6 +26,7 @@ public final class RPCTypeAdapters {
 
         final DeferredRegister<RPCTypeAdapter> typeAdapters = RegistryUtils.getInitializerFor(Registries.RPC_TYPE_ADAPTER);
         register(typeAdapters, "item_stack", ItemStack.class, new ItemStackJsonSerializer());
+        register(typeAdapters, "fluid_stack", FluidStack.class, new FluidStackJsonSerializer());
         register(typeAdapters, "direction", Direction.class, new DirectionJsonSerializer());
     }
 

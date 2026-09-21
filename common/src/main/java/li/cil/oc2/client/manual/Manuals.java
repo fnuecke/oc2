@@ -53,6 +53,10 @@ public final class Manuals {
             ManualModel.LANGUAGE_KEY + "/item/index.md",
             Component.translatable("manual." + API.MOD_ID + ".items"),
             new ItemStack(Items.TRANSISTOR.get())));
+        tabs.register("api", () -> new TextureTab(
+            ManualModel.LANGUAGE_KEY + "/device/index.md",
+            Component.translatable("manual." + API.MOD_ID + ".api"),
+            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/api.png")));
 
         MANUALS.register();
         pathProviders.register();

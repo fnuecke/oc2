@@ -75,12 +75,15 @@ fn main() -> Result<()> {
         }
     }
 
-    let doc_root = roots[0].join("assets/oc2/doc");
+    let doc_roots: Vec<PathBuf> = roots
+        .iter()
+        .map(|root| root.join("assets/oc2/doc"))
+        .collect();
     if arguments.clean && output.exists() {
         std::fs::remove_dir_all(&output)?;
     }
     std::fs::create_dir_all(&output)?;
 
     let resources = resources::Resources::new(roots, &jar)?;
-    site::SiteBuilder::new(&resources, doc_root, arguments.language, output).build()
+    site::SiteBuilder::new(&resources, doc_roots, arguments.language, output).build()
 }

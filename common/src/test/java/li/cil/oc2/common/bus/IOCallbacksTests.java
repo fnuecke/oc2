@@ -131,7 +131,7 @@ public final class IOCallbacksTests {
 
     // --------------------------------------------------------------------- //
 
-    @IOName("RICH")
+    @IODeviceDescription(name = "RICH")
     public static final class RichSignatures {
         public int readArgument = -1;
 
@@ -151,7 +151,7 @@ public final class IOCallbacksTests {
         }
     }
 
-    @IOName("TEST")
+    @IODeviceDescription(name = "TEST")
     public static final class AllSignatures {
         public boolean calledWithoutStreams;
         public int readArgument = -1;
@@ -177,7 +177,7 @@ public final class IOCallbacksTests {
         }
     }
 
-    @IOName("DUP")
+    @IODeviceDescription(name = "DUP")
     public static final class DuplicateCodes {
         @IOCallback(1)
         public void first() {
@@ -188,28 +188,28 @@ public final class IOCallbacksTests {
         }
     }
 
-    @IOName("RSVD")
+    @IODeviceDescription(name = "RSVD")
     public static final class ReservedCode {
         @IOCallback(IOCallback.RESERVED_CODE)
         public void reserved() {
         }
     }
 
-    @IOName("NEG")
+    @IODeviceDescription(name = "NEG")
     public static final class NegativeCode {
         @IOCallback(-1)
         public void negative() {
         }
     }
 
-    @IOName("PARAM")
+    @IODeviceDescription(name = "PARAM")
     public static final class WrongParameters {
         @IOCallback(1)
         public void wrong(final String unsupported) {
         }
     }
 
-    @IOName("RET")
+    @IODeviceDescription(name = "RET")
     public static final class NonVoidReturn {
         @IOCallback(1)
         public int wrong() {
@@ -223,7 +223,7 @@ public final class IOCallbacksTests {
         }
     }
 
-    @IOName("TOOLONGNAME")
+    @IODeviceDescription(name = "TOOLONGNAME")
     public static final class OverlongName {
         @IOCallback(1)
         public void overlong() {

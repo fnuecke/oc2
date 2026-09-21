@@ -3,8 +3,8 @@
 package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.FakePlayerUtils;
@@ -16,10 +16,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
 
-public final class NoteBlockDevice extends IdentityProxy<BlockLocation> implements NamedDevice {
+@RPCDeviceDescription(typeNames = {"note_block"}, description = """
+    Provided by note blocks connected to a [bus interface](../block/bus_interface.md).
+
+    The device changes what the note block is set to. It does not play it, use redstone signals for that.
+
+    Note that the instrument configuration is transient. Environmental changes will override it back to its natural configuration.""")
+public final class NoteBlockDevice extends IdentityProxy<BlockLocation> {
     private static final int MIN_NOTE = 0;
     private static final int MAX_NOTE = 24;
 
@@ -31,18 +35,14 @@ public final class NoteBlockDevice extends IdentityProxy<BlockLocation> implemen
 
     // --------------------------------------------------------------------- //
 
-    @Override
-    public Collection<String> getDeviceTypeNames() {
-        return Collections.singleton("note_block");
-    }
-
-    @Callback
+    @Callback(description = "Returns the note the block is tuned to.",
+        returnValueDescription = "a note from `0` to `24`.")
     public int getNote() {
         return getNoteBlockState().getValue(NoteBlock.NOTE);
     }
 
-    @Callback
-    public void setNote(@Parameter("note") final int note) {
+    @Callback(description = "Tunes the block to a note.")
+    public void setNote(@Parameter(value = "note", description = "the note to tune to, from `0` to `24`.") final int note) {
         if (note < MIN_NOTE || note > MAX_NOTE) {
             throw new IllegalArgumentException("note must be between " + MIN_NOTE + " and " + MAX_NOTE);
         }
@@ -50,13 +50,14 @@ public final class NoteBlockDevice extends IdentityProxy<BlockLocation> implemen
         setNoteBlockState(getNoteBlockState().setValue(NoteBlock.NOTE, note));
     }
 
-    @Callback
+    @Callback(description = "Returns the name of the instrument the block plays.",
+        returnValueDescription = "the instrument name, such as `harp` or `bit`.")
     public String getInstrument() {
         return getNoteBlockState().getValue(NoteBlock.INSTRUMENT).getSerializedName();
     }
 
-    @Callback
-    public void setInstrument(@Nullable @Parameter("instrument") final String instrument) {
+    @Callback(description = "Changes the instrument the block plays.")
+    public void setInstrument(@Nullable @Parameter(value = "instrument", description = "the name of the instrument, such as `harp`, `bass`, `bell`, `chime`, `flute`, `guitar`, `pling`, `xylophone` or `bit`.") final String instrument) {
         if (instrument == null) {
             throw new IllegalArgumentException("instrument is required");
         }

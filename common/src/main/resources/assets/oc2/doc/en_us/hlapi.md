@@ -3,6 +3,8 @@ Controlling devices using Lua is a core concept when using [computers](block/com
 
 Everything in this entry needs the Linux system that ships for the [RISC-V processor](item/cpu_riscv.md). To access devices from a [Z80 processor](item/cpu_z80.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
 
+For the methods available on devices, see the [list of devices](device/index.md).
+
 ## The Devices Library
 The default Linux distribution includes libraries to make HLAPI devices more easily accessible. The `devices` library provides utilities for discovering devices and calling methods on them, as well as obtaining documentation on devices, when available.
 

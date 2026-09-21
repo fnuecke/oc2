@@ -78,38 +78,28 @@ body {
 }
 
 .tabs {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-top: calc(12 * var(--u));
     width: calc(32 * var(--u));
     height: calc(256 * var(--u));
     flex: none;
 }
 
 .tab {
-    position: absolute;
-    right: calc(-32 * var(--u));
+    position: relative;
+    flex: none;
     width: calc(64 * var(--u));
     height: calc(24 * var(--u));
     background: url("ui/tab_button.png") no-repeat 0 0;
     background-size: calc(64 * var(--u)) calc(48 * var(--u));
     image-rendering: pixelated;
-    transition: right 120ms ease-out;
-}
-
-.tab:nth-child(1) {
-    top: calc(12 * var(--u));
-}
-
-.tab:nth-child(2) {
-    top: calc(36 * var(--u));
-}
-
-.tab:nth-child(3) {
-    top: calc(60 * var(--u));
+    transition: transform 120ms ease-out;
 }
 
 .tab:hover,
 .tab:focus-visible {
-    right: calc(-12 * var(--u));
+    transform: translateX(calc(-20 * var(--u)));
     background-position: 0 calc(-24 * var(--u));
 }
 

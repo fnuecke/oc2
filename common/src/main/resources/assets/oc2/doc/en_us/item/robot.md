@@ -13,77 +13,10 @@ The default Linux distribution provides a utility Lua library, `robot`, that eas
 
 For an overview of how robots move, how they draw energy and how to script them, see the [robotics](../robotics.md) entry.
 
-## High-level API
-Device name: `robot`
+## API
+Programs control the robot through the `robot` device. See the [robot device](../device/robot.md) reference for its methods.
 
-Robots can be controlled using Lua in the default Linux distribution. For example:  
-`local d = require("devices")`  
-`local r = d:find("robot")`  
-`r:move("forward")`
-
-### Directions
-The direction parameter in the following methods represents a direction relative to the robot. Valid values are: `forward`, `backward`, `upward`, `downward` for movement actions, `left` and `right` for rotation actions. These directions are always from the point of view of the robot at the time it executes an action.
-
-Short form aliases of these values can be used for convenience: `back`, `up`, `down`. For extreme brevity, the initial letter of each direction can be used as well.
-
-### Sides
-The side parameter of `detect()` represents a face of the robot rather than a movement direction. Valid values are: `front`, `up` and `down`.
-
-### Methods
-These methods are available on the underlying robot device. Note that the library offers useful wrapper for all of these. It is recommended to use the library instead of interacting with the device directly.
-
-`getEnergyStored():number` returns the current amount of energy stored in the robot's internal energy storage.
-- Returns the stored amount of energy.
-
-`getEnergyCapacity():number` returns the maximum amount of energy that can be stored in the robot's internal energy storage.
-- Returns the maximum amount of energy stored.
-
-`getSelectedSlot():number` returns the currently selected robot inventory slot. This is used by many modules as an implicit input.
-- Returns the index of the selected inventory slot.
-
-`setSelectedSlot(slot:number):number` sets the currently selected robot inventory slot. This is used by many modules as an implicit input.
-- `slot` is the index of the inventory slot to select.
-- Returns the index of the newly selected slot. This may differ from `slot` if the specified value was invalid.
-
-`getStackInSlot(slot:number):table` gets a description of the item in the specified slot.
-- `slot` is the index of the slot to get the item description for.
-
-`getStatusColor():number` gets the color of the status light on the front of the robot.
-- Returns the current color, as a packed `0xRRGGBB` value.
-
-`setStatusColor(color:number):number` sets the color of the status light on the front of the robot.
-- `color` is the color to set, as a packed `0xRRGGBB` value.
-- Returns the color that was applied.
-
-`getStatusValue():number` gets how far the status light is filled.
-- Returns the current fill value, in the range of [0, 1].
-
-`setStatusValue(value:number):number` sets how far the status light is filled. It fills from the bottom, so zero hides it entirely and one fills it.
-- `value` is the fill value to set, will be clamped to [0, 1].
-- Returns the fill value that was applied.
-
-`detect(side):string` reports what occupies the space on the specified side of the robot. This only tells you whether the space is free, not what is in it.
-- `side` is the side to look at. See the "Sides" section.
-- Returns `solid` if something there blocks movement, `fluid` if the space holds a fluid the robot can move through, or `air` if the space is free. Blocks the robot can pass through, such as grass, count as `air`.
-
-`move(direction):boolean` tries to enqueue a movement action in the specified direction.
-- `direction` is the direction to move in.
-- Returns whether the action was enqueued successfully.
-
-`turn(direction):boolean` tries to enqueue a turn action towards the specified direction.
-- `direction` is the direction to turn towards.
-- Returns whether the action was enqueued successfully.
-
-`getLastActionId():number` returns the opaque id of the last enqueued action. Call this after a successful `move()` or `turn()` call to obtain the id associated with the enqueued action.
-- Returns the id of the last enqueued action.
-
-`getQueuedActionCount():number` returns the number of actions currently waiting in the action queue to be processed. Use this to wait for actions to finish when enqueueing fails.
-- Returns the number of currently pending actions.
-
-`getActionResult(actionId:number):string` returns the result of the action with the specified id. Action ids can be obtained from `getLastActionId()`. Only a limited number of past action results are available.
-- Returns the result for the specified action id, or nothing if unavailable. When available, possible values are: `INCOMPLETE`, `SUCCESS` and `FAILURE`.
-
-### Library API
+## Library
 - Library name: `robot`
 
 This is a Lua library. It can be used in the default Linux distribution. For example:  
@@ -91,7 +24,6 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 `r.move("forward")`  
 `r.turn("left")`
 
-### Methods
 `energy():number` returns the current amount of energy stored in the robot's internal energy storage.
 - Returns the stored amount of energy.
 
@@ -117,7 +49,7 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 - Returns the fill value in effect after the call.
 
 `detect(side):string` reports what occupies the space on the specified side of the robot.
-- `side` is the side to look at. See the "Sides" section.
+- `side` is the side to look at. See the "Sides" section of the [robot device](../device/robot.md).
 - Returns `solid`, `fluid` or `air`. Since only `solid` stops the robot, `detect(side) ~= "solid"` tells you a move that way will not be blocked.
 
 `move(direction[,timeout:number]):boolean` tries to move into the specified direction. Blocks until the movement operation has completed.
@@ -139,69 +71,3 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 - `direction` is the direction to turn towards.
 - `timeout` is how long to wait for a free slot in the action queue, in milliseconds. Optional, defaults to 30000.
 - Returns whether the action was enqueued. Returns `false` if the timeout ran out first.
-
-## Mid-level API
-Device name: `ROBOT`
-
-Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.
-
-`1 detect(side)` reports what occupies the space on that side.
-- Takes one byte, the side.
-- Returns one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move.
-
-`2 getEnergyStored()` reads how much energy the robot has left.
-- Returns four bytes, the amount, low byte first.
-
-`3 getEnergyCapacity()` reads how much energy the robot holds when full.
-- Returns four bytes, the amount, low byte first.
-
-`4 getSelectedSlot()` reads which inventory slot is selected.
-- Returns one byte, the slot.
-
-`5 setSelectedSlot(slot)` selects an inventory slot.
-- Takes one byte, the slot. A slot the robot does not have is clamped into range.
-- Returns one byte, the slot in effect after the call.
-
-`6 getStackInSlot(slot)` reads what is in an inventory slot.
-- Takes one byte, the slot. A slot the robot does not have fails with `OCEARG`.
-- Returns four bytes, one slot record in the form the `ITEMS` device uses: the item as two bytes, the number of items, and damage. See the [inventories](../inventories.md) entry.
-
-`7 getItemName(item)` reads the name of an item.
-- Takes two bytes, the item id.
-- Returns the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to get all of it.
-
-`8 getItemId(name)` looks an item up by name.
-- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
-- Returns two bytes, the item id.
-
-`9 move(direction)` enqueues a movement.
-- Takes one byte, the direction.
-- Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
-
-`10 turn(direction)` enqueues a rotation.
-- Takes one byte, the direction.
-- Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
-
-`11 getLastActionId()` reads the id of the last enqueued action.
-- Returns two bytes, the id, low byte first. Read it right after a `move` or `turn` that returned `1`.
-
-`12 getQueuedActionCount()` reads how many actions are still waiting.
-- Returns one byte, the count.
-
-`13 getActionResult(actionId)` reads how an action turned out.
-- Takes two bytes, the id.
-- Returns one byte: `0` unknown, `1` incomplete, `2` success, `3` failure.
-
-Poll `getActionResult` until it stops reading `1` to wait for an action to finish.
-
-`14 getStatusColor()` reads the color of the status light.
-- Returns three bytes, the red, green and blue components.
-
-`15 setStatusColor(red, green, blue)` sets the color of the status light.
-- Takes three bytes, the red, green and blue components.
-
-`16 getStatusValue()` reads how far the status light is filled.
-- Returns one byte, the fill value, where `0` is empty and `255` is full.
-
-`17 setStatusValue(value)` sets how far the status light is filled.
-- Takes one byte, the fill value, where `0` is empty and `255` is full.

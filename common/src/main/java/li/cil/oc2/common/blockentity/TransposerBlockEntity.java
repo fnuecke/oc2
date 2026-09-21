@@ -3,13 +3,12 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.device.io.IOCallback;
+import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
-import li.cil.oc2.api.bus.device.io.IOName;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.DocumentedDevice;
-import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.bus.device.util.FluidHandlerProtocol;
 import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
@@ -35,34 +34,33 @@ import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collection;
 
-import static java.util.Collections.singletonList;
+@RPCDeviceDescription(typeNames = {"transposer"}, description = """
+    Provided by the [transposer](../block/transposer.md) block.
 
-@IOName("TRANSP")
-public final class TransposerBlockEntity extends ModBlockEntity implements NamedDevice, DocumentedDevice {
-    private static final String GET_ITEM_SLOT_COUNT = "getItemSlotCount";
-    private static final String GET_ITEM_STACK_IN_SLOT = "getItemStackInSlot";
-    private static final String GET_ITEM_SLOT_LIMIT = "getItemSlotLimit";
-    private static final String MOVE_ITEMS = "moveItems";
-    private static final String GET_FLUID_TANK_COUNT = "getFluidTankCount";
-    private static final String GET_FLUID_IN_TANK = "getFluidInTank";
-    private static final String GET_FLUID_TANK_CAPACITY = "getFluidTankCapacity";
-    private static final String MOVE_FLUID = "moveFluid";
-    private static final String DROP_ITEMS = "dropItems";
-    private static final String TAKE_ITEMS = "takeItems";
-    private static final String FILL_FLUID = "fillFluid";
-    private static final String DRAIN_FLUID = "drainFluid";
+    ### Sides
+    Sides name the container next to the transposer. Relative sides turn with the block: `front`, `back`, `left` and `right`, seen when looking at the primary face, the one with a single marking. Absolute sides always mean the same direction in the world: `north`, `south`, `west` and `east`. `up` and `down` mean the same thing either way.
 
-    private static final String SIDE = "side";
-    private static final String SLOT = "slot";
-    private static final String TANK = "tank";
-    private static final String SOURCE_SIDE = "sourceSide";
-    private static final String SOURCE_SLOT = "sourceSlot";
-    private static final String TARGET_SIDE = "targetSide";
-    private static final String TARGET_SLOT = "targetSlot";
-    private static final String COUNT = "count";
-    private static final String AMOUNT = "amount";
+    Sides may also be given as a number instead of a name. Numbers are relative: `0` is `down`, `1` is `up`, `2` is `back`, `3` is `front`, `4` is `left` and `5` is `right`.
+
+    Sides that are protected, for example by spawn protection, fail with an error.""")
+@IODeviceDescription(name = "TRANSP", description = """
+    Sides are numbered as in the "Sides" section above. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluids follow the same pattern; amounts are millibuckets, four bytes, low byte first, as on the `FLUIDS` device.
+
+    A blocked target side, or a protected side, fails with `OCEARG`.""")
+public final class TransposerBlockEntity extends ModBlockEntity {
+    private static final String SIDE_OF_INVENTORY = "the side of the inventory to inspect.";
+    private static final String SIDE_OF_CONTAINER = "the side of the container to inspect.";
+    private static final String SLOT_TO_LOOK_AT = "the number of the slot to look at.";
+    private static final String TANK_TO_LOOK_AT = "the number of the tank to look at.";
+    private static final String SIDE_TO_TAKE_ITEMS_FROM = "the side of the inventory to take items from.";
+    private static final String SLOT_TO_TAKE_ITEMS_FROM = "the number of the slot to take items from.";
+    private static final String SIDE_TO_PUT_ITEMS_INTO = "the side of the inventory to put items into.";
+    private static final String SLOT_TO_PUT_ITEMS_INTO = "the number of the slot to put items into.";
+    private static final String SIDE_TO_DRAIN = "the side of the container to drain.";
+    private static final String SIDE_TO_FILL = "the side of the container to fill.";
+    private static final String ITEMS_TRANSFERRED = "the number of items transferred.";
+    private static final String BUCKET_OR_NOTHING = "the amount transferred in millibuckets, `1000` or `0`.";
 
     private static final int GET_ITEM_SLOT_COUNT_CODE = 1;
     private static final int GET_ITEM_SLOTS_CODE = 2;
@@ -89,28 +87,36 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
 
     // --------------------------------------------------------------------- //
 
-    @Callback(name = GET_ITEM_SLOT_COUNT)
-    public int getItemSlotCount(@Parameter(SIDE) @Nullable final Side side) {
+    @Callback(description = "Gets how many slots the inventory on the specified side has.",
+        returnValueDescription = "the number of slots, or `0` if there is no inventory on that side.")
+    public int getItemSlotCount(@Parameter(value = "side", description = SIDE_OF_INVENTORY) @Nullable final Side side) {
         final ItemHandler handler = getItemHandler(requireDirection(side));
         return handler != null ? handler.getSlots() : 0;
     }
 
-    @Callback(name = GET_ITEM_STACK_IN_SLOT)
-    public ItemStack getItemStackInSlot(@Parameter(SIDE) @Nullable final Side side, @Parameter(SLOT) final int slot) {
+    @Callback(description = "Gets what is in the specified slot of the inventory on the specified side.",
+        returnValueDescription = "a table with the item information. Returns nothing for an empty slot.")
+    public ItemStack getItemStackInSlot(@Parameter(value = "side", description = SIDE_OF_INVENTORY) @Nullable final Side side,
+                                        @Parameter(value = "slot", description = SLOT_TO_LOOK_AT) final int slot) {
         final ItemHandler handler = requireItemHandler(side);
         return handler.getStackInSlot(ItemHandlerProtocol.requireValidSlot(handler, slot));
     }
 
-    @Callback(name = GET_ITEM_SLOT_LIMIT)
-    public int getItemSlotLimit(@Parameter(SIDE) @Nullable final Side side, @Parameter(SLOT) final int slot) {
+    @Callback(description = "Gets how many items the specified slot of the inventory on the specified side can hold.",
+        returnValueDescription = "the most items the slot takes.")
+    public int getItemSlotLimit(@Parameter(value = "side", description = SIDE_OF_INVENTORY) @Nullable final Side side,
+                                @Parameter(value = "slot", description = SLOT_TO_LOOK_AT) final int slot) {
         final ItemHandler handler = requireItemHandler(side);
         return handler.getSlotLimit(ItemHandlerProtocol.requireValidSlot(handler, slot));
     }
 
-    @Callback(name = MOVE_ITEMS)
-    public int moveItems(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide, @Parameter(SOURCE_SLOT) final int sourceSlot,
-                         @Parameter(TARGET_SIDE) @Nullable final Side targetSide, @Parameter(TARGET_SLOT) final int targetSlot,
-                         @Parameter(COUNT) final int count) {
+    @Callback(description = "Moves items from one inventory to another. It moves as many items as the source slot yields and the target slot accepts, up to `count`.",
+        returnValueDescription = ITEMS_TRANSFERRED)
+    public int moveItems(@Parameter(value = "sourceSide", description = SIDE_TO_TAKE_ITEMS_FROM) @Nullable final Side sourceSide,
+                         @Parameter(value = "sourceSlot", description = SLOT_TO_TAKE_ITEMS_FROM) final int sourceSlot,
+                         @Parameter(value = "targetSide", description = SIDE_TO_PUT_ITEMS_INTO) @Nullable final Side targetSide,
+                         @Parameter(value = "targetSlot", description = SLOT_TO_PUT_ITEMS_INTO) final int targetSlot,
+                         @Parameter(value = "count", description = "the most items to move.") final int count) {
         final Direction sourceDirection = requireDirection(sourceSide);
         final Direction targetDirection = requireDirection(targetSide);
         final ItemHandler source = requireItemHandler(sourceDirection, sourceSide);
@@ -141,28 +147,34 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return moved.getCount() - rejected.getCount();
     }
 
-    @Callback(name = GET_FLUID_TANK_COUNT)
-    public int getFluidTankCount(@Parameter(SIDE) @Nullable final Side side) {
+    @Callback(description = "Gets how many tanks the fluid container on the specified side has.",
+        returnValueDescription = "the number of tanks, or `0` if there is no fluid container on that side.")
+    public int getFluidTankCount(@Parameter(value = "side", description = SIDE_OF_CONTAINER) @Nullable final Side side) {
         final FluidHandler handler = getFluidHandler(requireDirection(side));
         return handler != null ? handler.getTanks() : 0;
     }
 
-    @Callback(name = GET_FLUID_IN_TANK)
-    public FluidStack getFluidInTank(@Parameter(SIDE) @Nullable final Side side, @Parameter(TANK) final int tank) {
+    @Callback(description = "Gets what is in the specified tank of the container on the specified side.",
+        returnValueDescription = "a table with the fluid `id` and the `amount` in millibuckets. Returns nothing for an empty tank.")
+    public FluidStack getFluidInTank(@Parameter(value = "side", description = SIDE_OF_CONTAINER) @Nullable final Side side,
+                                     @Parameter(value = "tank", description = TANK_TO_LOOK_AT) final int tank) {
         final FluidHandler handler = requireFluidHandler(side);
         return handler.getFluidInTank(FluidHandlerProtocol.requireValidTank(handler, tank));
     }
 
-    @Callback(name = GET_FLUID_TANK_CAPACITY)
-    public int getFluidTankCapacity(@Parameter(SIDE) @Nullable final Side side, @Parameter(TANK) final int tank) {
+    @Callback(description = "Gets how much the specified tank of the container on the specified side can hold.",
+        returnValueDescription = "the capacity in millibuckets.")
+    public int getFluidTankCapacity(@Parameter(value = "side", description = SIDE_OF_CONTAINER) @Nullable final Side side,
+                                    @Parameter(value = "tank", description = TANK_TO_LOOK_AT) final int tank) {
         final FluidHandler handler = requireFluidHandler(side);
         return handler.getTankCapacity(FluidHandlerProtocol.requireValidTank(handler, tank));
     }
 
-    @Callback(name = MOVE_FLUID)
-    public int moveFluid(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide,
-                         @Parameter(TARGET_SIDE) @Nullable final Side targetSide,
-                         @Parameter(AMOUNT) final int amount) {
+    @Callback(description = "Moves fluid from one container to another. It moves as much as the source yields and the target accepts, up to `amount`. A bucket is 1000.",
+        returnValueDescription = "the amount transferred in millibuckets.")
+    public int moveFluid(@Parameter(value = "sourceSide", description = SIDE_TO_DRAIN) @Nullable final Side sourceSide,
+                         @Parameter(value = "targetSide", description = SIDE_TO_FILL) @Nullable final Side targetSide,
+                         @Parameter(value = "amount", description = "the most millibuckets to move.") final int amount) {
         final Direction sourceDirection = requireDirection(sourceSide);
         final Direction targetDirection = requireDirection(targetSide);
         final FluidHandler source = requireFluidHandler(sourceDirection, sourceSide);
@@ -195,9 +207,12 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return filled;
     }
 
-    @Callback(name = DROP_ITEMS)
-    public int dropItems(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide, @Parameter(SOURCE_SLOT) final int sourceSlot,
-                         @Parameter(TARGET_SIDE) @Nullable final Side targetSide, @Parameter(COUNT) final int count) {
+    @Callback(description = "Drops items from an inventory into the world. The target side must not be blocked.",
+        returnValueDescription = ITEMS_TRANSFERRED)
+    public int dropItems(@Parameter(value = "sourceSide", description = SIDE_TO_TAKE_ITEMS_FROM) @Nullable final Side sourceSide,
+                         @Parameter(value = "sourceSlot", description = SLOT_TO_TAKE_ITEMS_FROM) final int sourceSlot,
+                         @Parameter(value = "targetSide", description = "the side to drop the items on.") @Nullable final Side targetSide,
+                         @Parameter(value = "count", description = "the most items to drop.") final int count) {
         final ItemHandler source = requireItemHandler(sourceSide);
         final BlockPos targetPos = requireWorldAccess(requireDirection(targetSide));
         ItemHandlerProtocol.requireValidSlot(source, sourceSlot);
@@ -224,10 +239,12 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return stack.getCount();
     }
 
-    @Callback(name = TAKE_ITEMS)
-    public int takeItems(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide,
-                         @Parameter(TARGET_SIDE) @Nullable final Side targetSide, @Parameter(TARGET_SLOT) final int targetSlot,
-                         @Parameter(COUNT) final int count) {
+    @Callback(description = "Picks up items lying in the world into an inventory. It takes as many items as the target slot accepts, up to `count`.",
+        returnValueDescription = ITEMS_TRANSFERRED)
+    public int takeItems(@Parameter(value = "sourceSide", description = "the side to pick items up from.") @Nullable final Side sourceSide,
+                         @Parameter(value = "targetSide", description = SIDE_TO_PUT_ITEMS_INTO) @Nullable final Side targetSide,
+                         @Parameter(value = "targetSlot", description = SLOT_TO_PUT_ITEMS_INTO) final int targetSlot,
+                         @Parameter(value = "count", description = "the most items to take.") final int count) {
         final BlockPos sourcePos = requireWorldAccess(requireDirection(sourceSide));
         final ItemHandler target = requireItemHandler(targetSide);
         ItemHandlerProtocol.requireValidSlot(target, targetSlot);
@@ -260,8 +277,10 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return count - remaining;
     }
 
-    @Callback(name = FILL_FLUID)
-    public int fillFluid(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide, @Parameter(TARGET_SIDE) @Nullable final Side targetSide) {
+    @Callback(description = "Pours one bucket of fluid from a container into the world. Nothing is transferred if the container holds less than a bucket, or the fluid cannot go there. Water placed in the Nether evaporates and still counts as placed.",
+        returnValueDescription = BUCKET_OR_NOTHING)
+    public int fillFluid(@Parameter(value = "sourceSide", description = SIDE_TO_DRAIN) @Nullable final Side sourceSide,
+                         @Parameter(value = "targetSide", description = "the side to place the fluid on.") @Nullable final Side targetSide) {
         final FluidHandler source = requireFluidHandler(sourceSide);
         final BlockPos targetPos = requireWorldAccess(requireDirection(targetSide));
         if (level.getFluidState(targetPos).isSource()) {
@@ -287,8 +306,10 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return FluidHandler.BUCKET;
     }
 
-    @Callback(name = DRAIN_FLUID)
-    public int drainFluid(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide, @Parameter(TARGET_SIDE) @Nullable final Side targetSide) {
+    @Callback(description = "Drains a fluid source block, or out of a waterlogged block, into a container. Nothing is transferred if the container cannot hold a full bucket of it.",
+        returnValueDescription = BUCKET_OR_NOTHING)
+    public int drainFluid(@Parameter(value = "sourceSide", description = "the side to take the fluid from.") @Nullable final Side sourceSide,
+                          @Parameter(value = "targetSide", description = SIDE_TO_FILL) @Nullable final Side targetSide) {
         final BlockPos sourcePos = requireWorldAccess(requireDirection(sourceSide));
         final FluidHandler target = requireFluidHandler(targetSide);
 
@@ -312,117 +333,52 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return target.fill(stack, false);
     }
 
-    @Override
-    public Collection<String> getDeviceTypeNames() {
-        return singletonList("transposer");
-    }
-
-    @Override
-    public void getDeviceDocumentation(final DeviceVisitor visitor) {
-        final String sides = "\nSides may be specified by name or zero-based index: down, up, north, south, west, east.";
-
-        visitor.visitCallback(GET_ITEM_SLOT_COUNT)
-            .description("Get the number of slots of the inventory on the specified side." + sides)
-            .returnValueDescription("the number of slots, zero if there is no inventory on that side.")
-            .parameterDescription(SIDE, "the side of the inventory to inspect.");
-        visitor.visitCallback(GET_ITEM_STACK_IN_SLOT)
-            .description("Get the item stack in the specified slot of the inventory on the specified side." + sides)
-            .returnValueDescription("the item stack in the slot, nothing if the slot is empty.")
-            .parameterDescription(SIDE, "the side of the inventory to inspect.")
-            .parameterDescription(SLOT, "the zero-based index of the slot to inspect.");
-        visitor.visitCallback(GET_ITEM_SLOT_LIMIT)
-            .description("Get the maximum number of items the specified slot of the inventory on the specified side can hold." + sides)
-            .returnValueDescription("the maximum number of items the slot can hold.")
-            .parameterDescription(SIDE, "the side of the inventory to inspect.")
-            .parameterDescription(SLOT, "the zero-based index of the slot to inspect.");
-        visitor.visitCallback(MOVE_ITEMS)
-            .description("Move items from a slot of the inventory on one side to a slot of the inventory on another side. " +
-                "Moves as many items as the source slot yields and the target slot accepts, up to the specified count." + sides)
-            .returnValueDescription("the number of items moved.")
-            .parameterDescription(SOURCE_SIDE, "the side of the inventory to take items from.")
-            .parameterDescription(SOURCE_SLOT, "the zero-based index of the slot to take items from.")
-            .parameterDescription(TARGET_SIDE, "the side of the inventory to put items into.")
-            .parameterDescription(TARGET_SLOT, "the zero-based index of the slot to put items into.")
-            .parameterDescription(COUNT, "the maximum number of items to move.");
-        visitor.visitCallback(GET_FLUID_TANK_COUNT)
-            .description("Get the number of tanks of the fluid container on the specified side." + sides)
-            .returnValueDescription("the number of tanks, zero if there is no fluid container on that side.")
-            .parameterDescription(SIDE, "the side of the fluid container to inspect.");
-        visitor.visitCallback(GET_FLUID_IN_TANK)
-            .description("Get the fluid in the specified tank of the fluid container on the specified side." + sides)
-            .returnValueDescription("the fluid and its amount in millibuckets, nothing if the tank is empty.")
-            .parameterDescription(SIDE, "the side of the fluid container to inspect.")
-            .parameterDescription(TANK, "the zero-based index of the tank to inspect.");
-        visitor.visitCallback(GET_FLUID_TANK_CAPACITY)
-            .description("Get the capacity of the specified tank of the fluid container on the specified side." + sides)
-            .returnValueDescription("the capacity of the tank in millibuckets.")
-            .parameterDescription(SIDE, "the side of the fluid container to inspect.")
-            .parameterDescription(TANK, "the zero-based index of the tank to inspect.");
-        visitor.visitCallback(MOVE_FLUID)
-            .description("Move fluid from the fluid container on one side to the fluid container on another side. " +
-                "Moves as much as the source yields and the target accepts, up to the specified amount." + sides)
-            .returnValueDescription("the amount moved in millibuckets.")
-            .parameterDescription(SOURCE_SIDE, "the side of the fluid container to drain.")
-            .parameterDescription(TARGET_SIDE, "the side of the fluid container to fill.")
-            .parameterDescription(AMOUNT, "the maximum amount to move in millibuckets.");
-        visitor.visitCallback(DROP_ITEMS)
-            .description("Drop items from a slot of the inventory on one side into the world on another side. " +
-                "The target side must not be blocked." + sides)
-            .returnValueDescription("the number of items dropped.")
-            .parameterDescription(SOURCE_SIDE, "the side of the inventory to take items from.")
-            .parameterDescription(SOURCE_SLOT, "the zero-based index of the slot to take items from.")
-            .parameterDescription(TARGET_SIDE, "the side to drop the items on.")
-            .parameterDescription(COUNT, "the maximum number of items to drop.");
-        visitor.visitCallback(TAKE_ITEMS)
-            .description("Take items lying in the world on one side into a slot of the inventory on another side. " +
-                "Takes as many items as the slot accepts, up to the specified count." + sides)
-            .returnValueDescription("the number of items taken.")
-            .parameterDescription(SOURCE_SIDE, "the side to take items from.")
-            .parameterDescription(TARGET_SIDE, "the side of the inventory to put items into.")
-            .parameterDescription(TARGET_SLOT, "the zero-based index of the slot to put items into.")
-            .parameterDescription(COUNT, "the maximum number of items to take.");
-        visitor.visitCallback(FILL_FLUID)
-            .description("Pour one bucket of fluid from the fluid container on one side into the world on another side. " +
-                "Nothing is transferred if the container holds less than a bucket." + sides)
-            .returnValueDescription("the amount placed in millibuckets, a bucket or nothing.")
-            .parameterDescription(SOURCE_SIDE, "the side of the fluid container to drain.")
-            .parameterDescription(TARGET_SIDE, "the side to place the fluid on.");
-        visitor.visitCallback(DRAIN_FLUID)
-            .description("Drain a fluid source block from the world on one side into the fluid container on another side. " +
-                "Nothing is transferred if the container cannot hold a full bucket of it." + sides)
-            .returnValueDescription("the amount taken in millibuckets, a bucket or nothing.")
-            .parameterDescription(SOURCE_SIDE, "the side to take the fluid from.")
-            .parameterDescription(TARGET_SIDE, "the side of the fluid container to fill.");
-    }
-
     // --------------------------------------------------------------------- //
 
-    @IOCallback(GET_ITEM_SLOT_COUNT_CODE)
+    @IOCallback(value = GET_ITEM_SLOT_COUNT_CODE, name = "getItemSlotCount",
+        description = "Reads how many slots the inventory on that side has.",
+        argumentsDescription = "one byte, the side.",
+        resultsDescription = "one byte, the slot count, at most 255. A side without an inventory reads as 0.")
     public void getItemSlotCountIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(Math.min(getItemSlotCount(Side.byIndex(arguments.readU8())), 0xFF));
     }
 
-    @IOCallback(GET_ITEM_SLOTS_CODE)
+    @IOCallback(value = GET_ITEM_SLOTS_CODE, name = "getSlots",
+        description = "Reads a run of slots of the inventory on that side.",
+        argumentsDescription = "three bytes, the side, the slot to start at and how many slots to read, from 1 to 64.",
+        resultsDescription = "four bytes per slot: the item as two bytes, the number of items up to 255, and damage.")
     public void getItemSlotsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlots(requireItemHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(GET_ITEM_SLOT_LIMIT_CODE)
+    @IOCallback(value = GET_ITEM_SLOT_LIMIT_CODE, name = "getItemSlotLimit",
+        description = "Reads how much a slot of the inventory on that side can hold.",
+        argumentsDescription = "two bytes, the side and the slot.",
+        resultsDescription = "one byte, the limit, at most 255.")
     public void getItemSlotLimitIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlotLimit(requireItemHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false)
+    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false, name = "getItemName",
+        description = "Reads the name of an item.",
+        argumentsDescription = "two bytes, the item id.",
+        resultsDescription = "the name, such as `minecraft:redstone`. Read while `OCDAV` is set to get all of it.")
     public void getItemNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeItemName(arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false)
+    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false, name = "getItemId",
+        description = "Looks an item up by name.",
+        argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
+        resultsDescription = "two bytes, the item id.")
     public void getItemIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeItemId(arguments, results);
     }
 
-    @IOCallback(MOVE_ITEMS_CODE)
+    @IOCallback(value = MOVE_ITEMS_CODE, name = "moveItems",
+        description = "Moves up to `count` items between two slots.",
+        argumentsDescription = "five bytes, the side and slot to take from, the side and slot to put into, and how many items to move at most.",
+        resultsDescription = "one byte, how many items were moved.")
     public void moveItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final int sourceSlot = arguments.readU8();
@@ -432,32 +388,50 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         results.writeU8(moveItems(sourceSide, sourceSlot, targetSide, targetSlot, count));
     }
 
-    @IOCallback(GET_FLUID_TANK_COUNT_CODE)
+    @IOCallback(value = GET_FLUID_TANK_COUNT_CODE, name = "getFluidTankCount",
+        description = "Reads how many tanks the container on that side has.",
+        argumentsDescription = "one byte, the side.",
+        resultsDescription = "one byte, the tank count, at most 255. A side without a fluid container reads as 0.")
     public void getFluidTankCountIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(Math.min(getFluidTankCount(Side.byIndex(arguments.readU8())), 0xFF));
     }
 
-    @IOCallback(GET_FLUID_TANKS_CODE)
+    @IOCallback(value = GET_FLUID_TANKS_CODE, name = "getTanks",
+        description = "Reads a run of tanks of the container on that side.",
+        argumentsDescription = "three bytes, the side, the tank to start at and how many tanks to read, from 1 to 42.",
+        resultsDescription = "six bytes per tank: the fluid as two bytes and the amount as four bytes.")
     public void getFluidTanksIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTanks(requireFluidHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(GET_FLUID_TANK_CAPACITY_CODE)
+    @IOCallback(value = GET_FLUID_TANK_CAPACITY_CODE, name = "getFluidTankCapacity",
+        description = "Reads how much a tank of the container on that side can hold.",
+        argumentsDescription = "two bytes, the side and the tank.",
+        resultsDescription = "four bytes, the capacity.")
     public void getFluidTankCapacityIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTankCapacity(requireFluidHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false)
+    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false, name = "getFluidName",
+        description = "Reads the name of a fluid.",
+        argumentsDescription = "two bytes, the fluid id.",
+        resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to get all of it.")
     public void getFluidNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeFluidName(arguments, results);
     }
 
-    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false)
+    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false, name = "getFluidId",
+        description = "Looks a fluid up by name.",
+        argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
+        resultsDescription = "two bytes, the fluid id.")
     public void getFluidIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeFluidId(arguments, results);
     }
 
-    @IOCallback(MOVE_FLUID_CODE)
+    @IOCallback(value = MOVE_FLUID_CODE, name = "moveFluid",
+        description = "Moves up to `amount` millibuckets between two containers.",
+        argumentsDescription = "six bytes, the side to drain, the side to fill, and four bytes for how much to move at most.",
+        resultsDescription = "four bytes, how much was moved.")
     public void moveFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());
@@ -465,7 +439,10 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         results.writeU32(moveFluid(sourceSide, targetSide, amount));
     }
 
-    @IOCallback(DROP_ITEMS_CODE)
+    @IOCallback(value = DROP_ITEMS_CODE, name = "dropItems",
+        description = "Drops up to `count` items from a slot into the world.",
+        argumentsDescription = "four bytes, the side and slot to take from, the side to drop on, and how many items to drop at most.",
+        resultsDescription = "one byte, how many items were dropped.")
     public void dropItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final int sourceSlot = arguments.readU8();
@@ -474,7 +451,10 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         results.writeU8(dropItems(sourceSide, sourceSlot, targetSide, count));
     }
 
-    @IOCallback(TAKE_ITEMS_CODE)
+    @IOCallback(value = TAKE_ITEMS_CODE, name = "takeItems",
+        description = "Picks up to `count` items from the world into a slot.",
+        argumentsDescription = "four bytes, the side to pick up from, the side and slot to put into, and how many items to take at most.",
+        resultsDescription = "one byte, how many items were taken.")
     public void takeItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());
@@ -483,14 +463,20 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         results.writeU8(takeItems(sourceSide, targetSide, targetSlot, count));
     }
 
-    @IOCallback(FILL_FLUID_CODE)
+    @IOCallback(value = FILL_FLUID_CODE, name = "fillFluid",
+        description = "Places one bucket of fluid from a container into the world.",
+        argumentsDescription = "two bytes, the side to drain and the side to place on.",
+        resultsDescription = "four bytes, how much was placed, 1000 or 0.")
     public void fillFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());
         results.writeU32(fillFluid(sourceSide, targetSide));
     }
 
-    @IOCallback(DRAIN_FLUID_CODE)
+    @IOCallback(value = DRAIN_FLUID_CODE, name = "drainFluid",
+        description = "Takes a fluid block from the world into a container.",
+        argumentsDescription = "two bytes, the side to take from and the side to fill.",
+        resultsDescription = "four bytes, how much was taken, 1000 or 0.")
     public void drainFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());

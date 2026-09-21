@@ -4,8 +4,8 @@ package li.cil.oc2.common.bus.device.rpc.item;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Constants;
@@ -28,19 +28,19 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice implements DocumentedDevice {
+@RPCDeviceDescription(typeNames = {"file_import_export"}, description = """
+    Provided by the [file import/export card](../item/file_import_export_card.md).
+
+    ### Exporting
+    Call `beginExportFile()` with a name, append the contents with `writeExportFile()`, then call `finishExportFile()`. Every user at the terminal is offered to save the file. Files are limited to 512 KiB.
+
+    ### Importing
+    Call `requestImportFile()` to prompt every user at the terminal for a file. Poll `beginImportFile()` until it returns the file's name and size; the first file a user picks wins, and the prompts on other clients are canceled. Then call `readImportFile()` until it returns nothing. `reset()` cancels either operation.
+
+    Methods fail with an error when called in the wrong order, or when the users canceled.""")
+public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice {
     public static final int MAX_TRANSFERRED_FILE_SIZE = 512 * Constants.KILOBYTE;
     private static final int IMPORT_CHUNK_SIZE = 4 * Constants.KILOBYTE;
-
-    private static final String BEGIN_EXPORT_FILE = "beginExportFile";
-    private static final String WRITE_EXPORT_FILE = "writeExportFile";
-    private static final String FINISH_EXPORT_FILE = "finishExportFile";
-    private static final String REQUEST_IMPORT_FILE = "requestImportFile";
-    private static final String BEGIN_IMPORT_FILE = "beginImportFile";
-    private static final String READ_IMPORT_FILE = "readImportFile";
-    private static final String RESET = "reset";
-    private static final String NAME = "name";
-    private static final String DATA = "data";
 
     // --------------------------------------------------------------------- //
 
@@ -109,7 +109,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     // --------------------------------------------------------------------- //
 
     public FileImportExportCardItemDevice(final ItemStack identity, final TerminalUserProvider userProvider) {
-        super(identity, "file_import_export");
+        super(identity);
         this.userProvider = userProvider;
     }
 
@@ -157,8 +157,10 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         reset();
     }
 
-    @Callback(name = BEGIN_EXPORT_FILE, synchronize = false)
-    public void beginExportFile(@Parameter(NAME) final String name) {
+    @Callback(synchronize = false,
+        description = "Begins exporting a file. Provide its contents with writeExportFile() and complete the export with finishExportFile(). " +
+            "Fails if the device is currently exporting or importing.")
+    public void beginExportFile(@Parameter(value = "name", description = "the name of the file being exported.") final String name) {
         if (state != State.IDLE) {
             throw new IllegalStateException("invalid state");
         }
@@ -171,8 +173,9 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         state = State.EXPORTING;
     }
 
-    @Callback(name = WRITE_EXPORT_FILE, synchronize = false)
-    public void writeExportFile(@Parameter(DATA) @Nullable final byte[] data) throws IOException {
+    @Callback(synchronize = false,
+        description = "Appends data to the file being exported. Fails if the device is not currently exporting, or the file grows past 512 KiB.")
+    public void writeExportFile(@Parameter(value = "data", description = "the data to append to the file being exported.") @Nullable final byte[] data) throws IOException {
         if (state != State.EXPORTING) {
             throw new IllegalStateException("invalid state");
         }
@@ -189,7 +192,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
     }
 
-    @Callback(name = FINISH_EXPORT_FILE)
+    @Callback(description = "Finishes the export and offers every user at the terminal to save the file. Fails if the device is not currently exporting.")
     public void finishExportFile() {
         if (state != State.EXPORTING) {
             throw new IllegalStateException("invalid state");
@@ -207,7 +210,8 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
     }
 
-    @Callback(name = REQUEST_IMPORT_FILE)
+    @Callback(description = "Begins an import by prompting every user at the terminal to pick a file. Fails if the device is currently exporting or importing.",
+        returnValueDescription = "whether anyone was prompted; `false` when nobody is using the terminal.")
     public boolean requestImportFile() {
         if (state != State.IDLE) {
             throw new IllegalStateException("invalid state");
@@ -239,7 +243,9 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     }
 
     @Nullable
-    @Callback(name = BEGIN_IMPORT_FILE)
+    @Callback(description = "Checks whether a requested file has arrived and, if so, starts reading it. Poll this after requestImportFile(). " +
+            "Fails if no import was requested, or every user canceled.",
+        returnValueDescription = "a table with the file's `name` and `size`, or nothing while no file was picked yet.")
     public ImportedFileInfo beginImportFile() {
         if (state == State.IMPORT_CANCELED) {
             reset();
@@ -259,7 +265,8 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     }
 
     @Nullable
-    @Callback(name = READ_IMPORT_FILE)
+    @Callback(description = "Reads the next chunk of the file being imported. Fails if beginImportFile() did not succeed yet.",
+        returnValueDescription = "up to 4 KiB of data, or nothing once the whole file was read.")
     public byte[] readImportFile() throws IOException {
         if (state == State.IMPORT_CANCELED) {
             reset();
@@ -289,7 +296,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         }
     }
 
-    @Callback(name = RESET)
+    @Callback(description = "Cancels any export or import in progress and returns the device to its idle state.")
     public void reset() {
         state = State.IDLE;
         exportedFile = null;
@@ -297,41 +304,5 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
         synchronized (importingDevices) {
             importingDevices.remove(importingId);
         }
-    }
-
-    @Override
-    public void getDeviceDocumentation(final DeviceVisitor visitor) {
-        visitor.visitCallback(BEGIN_EXPORT_FILE)
-            .description("Begins exporting a file to external data storage. Requires calls to " +
-                WRITE_EXPORT_FILE + "() to provide data of the exported file and a call " +
-                "to " + FINISH_EXPORT_FILE + "() to complete the export.\n" +
-                "This method may error if the device is currently exporting or importing.")
-            .parameterDescription(NAME, "the name of the file being exported.");
-        visitor.visitCallback(WRITE_EXPORT_FILE)
-            .description("Appends more data to the currently being exported file.\n" +
-                "This method may error if the device is not currently exporting or the " +
-                "export was interrupted.")
-            .parameterDescription(DATA, "the contents of the file being exported.");
-        visitor.visitCallback(FINISH_EXPORT_FILE)
-            .description("Finishes an export. This will prompt present users to select an external " +
-                "file location for the file being exported. If multiple users are present, " +
-                "the file is provided to all users.\n" +
-                "This method may error if the device is not currently exporting or the " +
-                "export was interrupted.");
-        visitor.visitCallback(BEGIN_IMPORT_FILE)
-            .description("Begins a file import operation. This will prompt present users to select " +
-                "an externally stored file for import. If multiple users are present, the " +
-                "first user to select a file will have their file uploaded. Use the " +
-                READ_IMPORT_FILE + "() method to read the contents of the file being imported.\n" +
-                "This method may error if the device is currently exporting or importing.");
-        visitor.visitCallback(READ_IMPORT_FILE)
-            .description("Tries to read some data from a file being imported. Returns zero length " +
-                "data if no data is available yet. Returns null when no more data is " +
-                "available.\n" +
-                "This method may error if the device is not currently importing or the " +
-                "import was interrupted.")
-            .returnValueDescription("data from the file being imported.");
-        visitor.visitCallback(RESET)
-            .description("Resets the device and cancels any currently running export or import operation.");
     }
 }

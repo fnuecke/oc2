@@ -5,10 +5,10 @@ package li.cil.oc2.common.bus.device.vm.item;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IODevice;
-import li.cil.oc2.api.bus.device.io.IOName;
+import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.DocumentedDevice;
+import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -41,20 +41,21 @@ import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-@IOName("SERIAL")
-public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice implements VMDevice, ItemDevice, CapabilityProvider, RPCDevice, IODevice, DocumentedDevice {
+@RPCDeviceDescription(typeNames = {"serial"}, description = """
+    Provided by the [serial interface card](../item/serial_interface_card.md).
+
+    The serial port itself is driven through the operating system, see the card's page. This device reports the card's configuration and error counters, for example to tell serial ports apart or to detect collisions.
+
+    Counters reset when the computer starts. Device order here may differ from the order the cards were installed in, so match them up by `getBaseAddress()`.""")
+@IODeviceDescription(name = "SERIAL", description = """
+    Counters are clamped to two bytes. Values wider than a byte are low byte first.
+
+    Device order here may differ from the order the cards were installed in, so match them up by `getBaseAddress`.""")
+public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice implements VMDevice, ItemDevice, CapabilityProvider, RPCDevice, IODevice {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String LINE_TAG_NAME = "line";
     private static final String ADDRESS_TAG_NAME = "address";
     private static final String INTERRUPT_TAG_NAME = "interrupt";
-
-    private static final String GET_ADDRESS = "getAddress";
-    private static final String GET_BAUD_RATE = "getBaudRate";
-    private static final String GET_OVERRUN_COUNT = "getOverrunCount";
-    private static final String GET_RX_ERROR_COUNT = "getRxErrorCount";
-    private static final String GET_TX_ERROR_COUNT = "getTxErrorCount";
-    private static final String GET_NOISE_COUNT = "getNoiseCount";
-    private static final String GET_BASE_ADDRESS = "getBaseAddress";
 
     private static final int GET_ADDRESS_CODE = 1;
     private static final int GET_BAUD_RATE_CODE = 2;
@@ -83,7 +84,7 @@ public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice imple
     // --------------------------------------------------------------------- //
 
     public SerialInterfaceCardDevice(final ItemStack identity, final Supplier<Optional<BlockLocation>> location) {
-        super(identity, "serial");
+        super(identity);
         this.location = location;
 
         for (int i = 0; i < networkInterfaces.length; i++) {
@@ -202,108 +203,103 @@ public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice imple
 
     // --------------------------------------------------------------------- //
 
-    @Callback(name = GET_ADDRESS, synchronize = false)
+    @Callback(synchronize = false,
+        description = "Gets the address this card is set to. The hardware ignores it; software may use it to address endpoints on a shared segment.",
+        returnValueDescription = "the address, in [0, 255].")
     public int getAddress() {
         return cardAddress;
     }
 
-    @Callback(name = GET_BAUD_RATE, synchronize = false)
+    @Callback(synchronize = false,
+        description = "Gets the baud rate the serial port is configured to. Every endpoint on a segment must be set to the same rate.",
+        returnValueDescription = "the baud rate in bits per second, or `0` while the computer is off.")
     public int getBaudRate() {
         return device != null ? device.getBaudRate() : 0;
     }
 
-    @Callback(name = GET_OVERRUN_COUNT, synchronize = false)
+    @Callback(synchronize = false,
+        description = "Gets how many received bytes were lost because this computer did not read them in time.",
+        returnValueDescription = "the number of bytes lost since the computer started.")
     public int getOverrunCount() {
         return line != null ? line.getOverrunCount() : 0;
     }
 
-    @Callback(name = GET_RX_ERROR_COUNT, synchronize = false)
+    @Callback(synchronize = false,
+        description = "Gets how often received data was corrupted because several endpoints sent at the same time. These are the collisions the receiver sees.",
+        returnValueDescription = "the number of receiver collisions since the computer started.")
     public int getRxErrorCount() {
         return line != null ? line.getRxErrorCount() : 0;
     }
 
-    @Callback(name = GET_TX_ERROR_COUNT, synchronize = false)
+    @Callback(synchronize = false,
+        description = "Gets how often sent data was corrupted because several endpoints sent at the same time. These are the collisions the sender sees. " +
+            "Read it before sending and again once the port finished sending: a change means the send failed.",
+        returnValueDescription = "the number of sender collisions since the computer started.")
     public int getTxErrorCount() {
         return line != null ? line.getTxErrorCount() : 0;
     }
 
-    @Callback(name = GET_NOISE_COUNT, synchronize = false)
+    @Callback(synchronize = false,
+        description = "Gets how often traffic arrived at a baud rate this port is not set to, including this computer's own port being set to a different rate.",
+        returnValueDescription = "the number of data errors since the computer started.")
     public int getNoiseCount() {
         return line != null ? line.getNoiseCount() : 0;
     }
 
-    @Callback(name = GET_BASE_ADDRESS, synchronize = false)
+    @Callback(synchronize = false,
+        description = "Gets where this card's serial port registers are mapped, to tell which port belongs to which card when there is more than one.",
+        returnValueDescription = "the memory address on RISC-V, the I/O port on the Z80.")
     public long getBaseAddress() {
         return address.isPresent() ? address.getAsLong() : 0;
     }
 
-    @Override
-    public void getDeviceDocumentation(final DeviceVisitor visitor) {
-        visitor.visitCallback(GET_ADDRESS)
-            .description("Get the address this interface is set to.\n" +
-                "This allows software to filter for packets. It is purely for convenience. The " +
-                "interface itself does not use this value. Use it to address other interfaces.")
-            .returnValueDescription("the address, in [0, 255].");
-        visitor.visitCallback(GET_BAUD_RATE)
-            .description("Get the baud rate the interface is configured with.\n" +
-                "Every interface on a segment must be configured to match, as must the software side.")
-            .returnValueDescription("the baud rate in bits per second.");
-        visitor.visitCallback(GET_OVERRUN_COUNT)
-            .description("Get how many received bytes were lost because this machine did not " +
-                "read them in time.")
-            .returnValueDescription("the number of bytes lost since the last reset.");
-        visitor.visitCallback(GET_RX_ERROR_COUNT)
-            .description("Get how often values received by this machine were corrupted because " +
-                "the segment was overloaded. These are receiver visible collisions.")
-            .returnValueDescription("the number of receiver collisions since the last reset.");
-        visitor.visitCallback(GET_TX_ERROR_COUNT)
-            .description("Get how often values sent by this machine were corrupted because " +
-                "the segment got overloaded while writing. These are sender visible collisions. Check before " +
-                "sending and after waiting a bit, so the port finished sending: a change means the send failed.")
-            .returnValueDescription("the number of sender collisions since the last reset.");
-        visitor.visitCallback(GET_NOISE_COUNT)
-            .description("Get how often traffic arrived at a line rate this card is not set to, " +
-                "including this machine's own serial port being set to a different rate.")
-            .returnValueDescription("the number of observed data errors since the last reset.");
-        visitor.visitCallback(GET_BASE_ADDRESS)
-            .description("Get where this interface's serial port registers are mapped, to tell which port " +
-                "belongs to which interface when there is more than one.")
-            .returnValueDescription("the memory address on RISC-V, the I/O port on the Z80.");
-    }
-
     // --------------------------------------------------------------------- //
 
-    @IOCallback(value = GET_ADDRESS_CODE, synchronize = false)
+    @IOCallback(value = GET_ADDRESS_CODE, synchronize = false, name = "getAddress",
+        description = "Reads the address this card is set to.",
+        resultsDescription = "one byte, the address.")
     public void getAddressIO(final IOOutputStream results) throws IOException {
         results.writeU8(getAddress());
     }
 
-    @IOCallback(value = GET_BAUD_RATE_CODE, synchronize = false)
+    @IOCallback(value = GET_BAUD_RATE_CODE, synchronize = false, name = "getBaudRate",
+        description = "Reads the baud rate the serial port is configured to.",
+        resultsDescription = "four bytes, the baud rate in bits per second.")
     public void getBaudRateIO(final IOOutputStream results) throws IOException {
         results.writeU32(getBaudRate());
     }
 
-    @IOCallback(value = GET_OVERRUN_COUNT_CODE, synchronize = false)
+    @IOCallback(value = GET_OVERRUN_COUNT_CODE, synchronize = false, name = "getOverrunCount",
+        description = "Reads how many received bytes were lost because this computer did not read them in time.",
+        resultsDescription = "two bytes, the count.")
     public void getOverrunCountIO(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getOverrunCount()));
     }
 
-    @IOCallback(value = GET_RX_ERROR_COUNT_CODE, synchronize = false)
+    @IOCallback(value = GET_RX_ERROR_COUNT_CODE, synchronize = false, name = "getRxErrorCount",
+        description = "Reads how often received data was corrupted by other endpoints sending at the same time.",
+        resultsDescription = "two bytes, the count.")
     public void getRxErrorCountIO(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getRxErrorCount()));
     }
 
-    @IOCallback(value = GET_NOISE_COUNT_CODE, synchronize = false)
+    @IOCallback(value = GET_NOISE_COUNT_CODE, synchronize = false, name = "getNoiseCount",
+        description = "Reads how often traffic arrived at a baud rate this port is not set to.",
+        resultsDescription = "two bytes, the count.")
     public void getNoiseCountIO(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getNoiseCount()));
     }
 
-    @IOCallback(value = GET_TX_ERROR_COUNT_CODE, synchronize = false)
+    @IOCallback(value = GET_TX_ERROR_COUNT_CODE, synchronize = false, name = "getTxErrorCount",
+        description = "Reads how often sent data was corrupted by other endpoints sending at the same time. A change after a send means it failed.",
+        resultsDescription = "two bytes, the count.")
     public void getTxErrorCountIO(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getTxErrorCount()));
     }
 
-    @IOCallback(value = GET_BASE_ADDRESS_CODE, synchronize = false)
+    @IOCallback(value = GET_BASE_ADDRESS_CODE, synchronize = false, name = "getBaseAddress",
+        description = "Reads the I/O port this card's serial port registers start at, to tell cards apart.",
+        resultsDescription = "one byte, the port.")
     public void getBaseAddressIO(final IOOutputStream results) throws IOException {
         results.writeU8((int) getBaseAddress());
     }

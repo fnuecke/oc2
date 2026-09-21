@@ -153,6 +153,7 @@
   "manual.oc2.home": "Home",
   "manual.oc2.blocks": "Blocks",
   "manual.oc2.items": "Items",
+  "manual.oc2.api": "API",
 
   "message.oc2.connector.error.full": "Cannot attach more cables.",
   "message.oc2.connector.error.too_far": "Distance between connectors is too large.",

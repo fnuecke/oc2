@@ -14,7 +14,6 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -40,24 +39,19 @@ public final class ObjectDevice implements RPCDevice, IODevice, ItemDevice {
     /**
      * Creates a new object device with methods in the specified object and the
      * specified list of type names.
+     * <p>
+     * Without explicit type names, the class name is used, see {@link Callbacks#getTypeNames(Object)}.
      *
      * @param object    the object containing methods provided by this device.
      * @param typeNames the type names of the device.
      */
     public ObjectDevice(final Object object, final List<String> typeNames) {
         this.object = object;
-        this.typeNames = new ArrayList<>(typeNames);
+        this.typeNames = new ArrayList<>(typeNames.isEmpty() ? Callbacks.getTypeNames(object) : typeNames);
         this.rpcMethods = Callbacks.collectMethods(object);
         this.className = object.getClass().getSimpleName();
         this.ioMethods = IOCallbacks.collectMethods(object);
         this.ioName = ioMethods.isEmpty() ? "" : IOCallbacks.getName(object);
-
-        if (object instanceof final NamedDevice namedDevice) {
-            this.typeNames.addAll(namedDevice.getDeviceTypeNames());
-        }
-        if (this.typeNames.isEmpty()) {
-            this.typeNames.add(toNiceTypeName(object.getClass()));
-        }
     }
 
     /**
@@ -159,15 +153,4 @@ public final class ObjectDevice implements RPCDevice, IODevice, ItemDevice {
         return className;
     }
 
-    // --------------------------------------------------------------------- //
-
-    private static String toNiceTypeName(final Class<?> deviceClass) {
-        final String name = deviceClass.getSimpleName()
-            .replaceFirst("VMDevice$", "")
-            .replaceFirst("RPCDevice$", "")
-            .replaceFirst("Device$", "");
-        return name
-            .replaceAll("([a-z])([A-Z])", "$1_$2")
-            .toLowerCase(Locale.ROOT);
-    }
 }

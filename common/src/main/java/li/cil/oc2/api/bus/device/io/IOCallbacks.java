@@ -78,24 +78,20 @@ public final class IOCallbacks {
     }
 
     /**
-     * Returns the guest-visible name declared by the specified object's {@link IOName}.
+     * Returns the guest-visible name declared by the specified object's {@link IODeviceDescription}.
+     * <p>
+     * The specified {@code object} can be an instance or a {@link Class}.
      *
      * @param object the object to read the name from.
      * @return the declared name.
-     * @throws IllegalArgumentException if the annotation is absent or its value is not a valid name.
+     * @throws IllegalArgumentException if the annotation is absent or its name is not valid.
      */
     public static String getName(final Object object) {
         final Class<?> type = object instanceof final Class<?> clazz ? clazz : object.getClass();
-        final IOName annotation = findName(type);
-        if (annotation == null) {
-            throw new IllegalArgumentException("Missing " + IOName.class.getSimpleName() +
-                " on [" + type.getName() + "], which provides " + IOCallback.class.getSimpleName() + " methods.");
-        }
-
-        final String name = annotation.value();
-        if (name.isEmpty() || name.length() > IOName.MAX_LENGTH) {
+        final String name = requireDescription(type).name();
+        if (name.isEmpty() || name.length() > IODeviceDescription.MAX_NAME_LENGTH) {
             throw new IllegalArgumentException("Device name [" + name + "] on [" + type.getName() +
-                "] is not between 1 and " + IOName.MAX_LENGTH + " characters.");
+                "] is not between 1 and " + IODeviceDescription.MAX_NAME_LENGTH + " characters.");
         }
         for (int i = 0; i < name.length(); i++) {
             final char character = name.charAt(i);
@@ -118,14 +114,15 @@ public final class IOCallbacks {
         }
     }
 
-    private static IOName findName(final Class<?> type) {
+    private static IODeviceDescription requireDescription(final Class<?> type) {
         for (Class<?> current = type; current != null; current = current.getSuperclass()) {
-            final IOName annotation = current.getAnnotation(IOName.class);
+            final IODeviceDescription annotation = current.getAnnotation(IODeviceDescription.class);
             if (annotation != null) {
                 return annotation;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Missing " + IODeviceDescription.class.getSimpleName() +
+            " on [" + type.getName() + "], which provides " + IOCallback.class.getSimpleName() + " methods.");
     }
 
     private IOCallbacks() {

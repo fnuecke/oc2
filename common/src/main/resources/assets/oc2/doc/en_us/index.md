@@ -21,13 +21,11 @@ This manual contains reference information on the blocks and items related to co
 If you're looking for information on a particular block or item, have a look at the respective glossaries:
 - [List of blocks](block/index.md)
 - [List of items](item/index.md)
+- [List of devices](device/index.md)
 
 If you're interested in a particular topic, there are some overview entries for the more common ones:
 - [Basics](basics.md)
 - [High-level API](hlapi.md)
 - [Mid-level API](mlapi.md)
-- [Inventories](inventories.md)
-- [Fluids](fluids.md)
-- [Note Blocks](note_blocks.md)
 - [Robotics](robotics.md)
 - [Networking](networking.md)

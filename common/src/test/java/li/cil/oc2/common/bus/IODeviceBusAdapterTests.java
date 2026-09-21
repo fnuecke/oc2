@@ -6,7 +6,7 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IOCallbacks;
-import li.cil.oc2.api.bus.device.io.IOName;
+import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.common.blockentity.RedstoneInterfaceBlockEntity;
@@ -364,7 +364,7 @@ public final class IODeviceBusAdapterTests {
 
     // --------------------------------------------------------------------- //
 
-    @IOName("OTHER")
+    @IODeviceDescription(name = "OTHER")
     public static final class OtherTarget {
         @IOCallback(value = FUNCTION_ECHO, synchronize = false)
         public void echo(final InputStream arguments, final OutputStream results) throws Exception {
@@ -372,7 +372,7 @@ public final class IODeviceBusAdapterTests {
         }
     }
 
-    @IOName("TEST")
+    @IODeviceDescription(name = "TEST")
     public static final class TestTarget {
         public int synchronizedCalls;
 

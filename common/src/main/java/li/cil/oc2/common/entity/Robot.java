@@ -7,12 +7,13 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
-import li.cil.oc2.api.bus.device.io.IOName;
+import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
@@ -865,7 +866,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotBusElement extends AbstractDeviceBusElement {
         private static final String DEVICE_ID_TAG_NAME = "device_id";
 
-        private final Device device = new ObjectDevice(robotDevice, "robot");
+        private final Device device = new ObjectDevice(robotDevice);
         private UUID deviceId = UUID.randomUUID();
 
         @Override
@@ -975,7 +976,20 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
     }
 
-    @IOName("ROBOT")
+    @RPCDeviceDescription(typeNames = {"robot"}, description = """
+        Provided by the [robot](../item/robot.md).
+
+        ### Directions
+        The direction parameter in the following methods represents a direction relative to the robot. Valid values are: `forward`, `backward`, `upward`, `downward` for movement actions, `left` and `right` for rotation actions. These directions are always from the point of view of the robot at the time it executes an action.
+
+        Short form aliases of these values can be used for convenience: `back`, `up`, `down`. For extreme brevity, the initial letter of each direction can be used as well.
+
+        ### Sides
+        The side parameter of `detect()` represents a face of the robot rather than a movement direction. Valid values are: `front`, `up` and `down`.
+
+        Note that the `robot` Lua library described in the [robot](../item/robot.md) entry offers useful wrappers for all of these methods. It is recommended to use the library instead of interacting with the device directly.""")
+    @IODeviceDescription(name = "ROBOT", description = """
+        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.""")
     public final class RobotDevice implements LifecycleAwareDevice {
         private static final String DETECT_AIR = "air";
         private static final String DETECT_FLUID = "fluid";
@@ -1023,11 +1037,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         // ----------------------------------------------------------------- //
 
-        @Callback(description = "Check what occupies the space on the specified side of the robot. " +
-            "This only reports whether the space is free, not what is in it.",
-            returnValueDescription = "\"solid\" if something there blocks movement, \"fluid\" if the " +
-                "space holds a fluid the robot can move through, or \"air\" if the space is free.")
-        public String detect(@Parameter("side") @Nullable final RobotOperationSide side) {
+        @Callback(description = "Reports what occupies the space on the specified side of the robot. " +
+            "This only tells you whether the space is free, not what is in it.",
+            returnValueDescription = "`solid` if something there blocks movement, `fluid` if the space holds a " +
+                "fluid the robot can move through, or `air` if the space is free. Blocks the robot can pass " +
+                "through, such as grass, count as `air`.")
+        public String detect(@Parameter(value = "side", description = "the side to look at: `front`, `up` or `down`.") @Nullable final RobotOperationSide side) {
             if (side == null) throw new IllegalArgumentException();
 
             final Level level = level();
@@ -1050,45 +1065,59 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             return DETECT_AIR;
         }
 
-        @Callback(synchronize = false)
+        @Callback(synchronize = false,
+            description = "Gets the current amount of energy stored in the robot's internal energy storage.",
+            returnValueDescription = "the stored amount of energy.")
         public int getEnergyStored() {
             return (int) energy.getEnergyStored();
         }
 
-        @Callback(synchronize = false)
+        @Callback(synchronize = false,
+            description = "Gets the maximum amount of energy that can be stored in the robot's internal energy storage.",
+            returnValueDescription = "the maximum amount of energy stored.")
         public int getEnergyCapacity() {
             return (int) energy.getMaxEnergyStored();
         }
 
-        @Callback
+        @Callback(description = "Gets the currently selected robot inventory slot. This is used by many modules as an implicit input.",
+            returnValueDescription = "the index of the selected inventory slot.")
         public int getSelectedSlot() {
             return Robot.this.getSelectedSlot();
         }
 
-        @Callback
-        public int setSelectedSlot(@Parameter("slot") final int slot) {
+        @Callback(description = "Sets the currently selected robot inventory slot. This is used by many modules as an implicit input.",
+            returnValueDescription = "the index of the newly selected slot. This may differ from `slot` if the specified value was invalid.")
+        public int setSelectedSlot(@Parameter(value = "slot", description = "the index of the inventory slot to select.") final int slot) {
             Robot.this.setSelectedSlot(slot);
             return Robot.this.getSelectedSlot();
         }
 
-        @Callback
-        public ItemStack getStackInSlot(@Parameter("slot") final int slot) {
+        @Callback(description = "Gets a description of the item in the specified slot.",
+            returnValueDescription = "a description of the item in the slot.")
+        public ItemStack getStackInSlot(@Parameter(value = "slot", description = "the index of the slot to get the item description for.") final int slot) {
             return inventory.getStackInSlot(slot);
         }
 
-        @Callback(synchronize = false)
-        public boolean move(@Parameter("direction") @Nullable final MovementDirection direction) {
+        @Callback(synchronize = false,
+            description = "Tries to enqueue a movement action in the specified direction.",
+            returnValueDescription = "whether the action was enqueued successfully.")
+        public boolean move(@Parameter(value = "direction", description = "the direction to move in: `forward`, `backward`, `upward` or `downward`, or a short form.") @Nullable final MovementDirection direction) {
             if (direction == null) throw new IllegalArgumentException();
             return actionProcessor.move(direction);
         }
 
-        @Callback(synchronize = false)
-        public boolean turn(@Parameter("direction") @Nullable final RotationDirection direction) {
+        @Callback(synchronize = false,
+            description = "Tries to enqueue a turn action towards the specified direction.",
+            returnValueDescription = "whether the action was enqueued successfully.")
+        public boolean turn(@Parameter(value = "direction", description = "the direction to turn towards: `left` or `right`.") @Nullable final RotationDirection direction) {
             if (direction == null) throw new IllegalArgumentException();
             return actionProcessor.rotate(direction);
         }
 
-        @Callback(synchronize = false)
+        @Callback(synchronize = false,
+            description = "Gets the opaque id of the last enqueued action. Call this after a successful `move()` or " +
+                "`turn()` call to obtain the id associated with the enqueued action.",
+            returnValueDescription = "the id of the last enqueued action.")
         public int getLastActionId() {
             // Written by addAction under the queue monitor; read it under the same one
             // or the guest can see an id older than the action it just queued.
@@ -1097,42 +1126,56 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             }
         }
 
-        @Callback(synchronize = false)
+        @Callback(synchronize = false,
+            description = "Gets the number of actions currently waiting in the action queue to be processed. " +
+                "Use this to wait for actions to finish when enqueueing fails.",
+            returnValueDescription = "the number of currently pending actions.")
         public int getQueuedActionCount() {
             return actionProcessor.getQueuedActionCount();
         }
 
         @Nullable
-        @Callback(synchronize = false)
-        public RobotActionResult getActionResult(@Parameter("actionId") final int actionId) {
+        @Callback(synchronize = false,
+            description = "Gets the result of the action with the specified id. Action ids can be obtained from " +
+                "`getLastActionId()`. Only a limited number of past action results are available.",
+            returnValueDescription = "the result for the specified action id, or nothing if unavailable. When " +
+                "available, possible values are: `INCOMPLETE`, `SUCCESS` and `FAILURE`.")
+        public RobotActionResult getActionResult(@Parameter(value = "actionId", description = "the id of the action to get the result for.") final int actionId) {
             return findActionResult(id -> id == actionId);
         }
 
-        @Callback
+        @Callback(description = "Gets the color of the status light on the front of the robot.",
+            returnValueDescription = "the current color, as a packed `0xRRGGBB` value.")
         public int getStatusColor() {
             return Robot.this.getStatusColor();
         }
 
-        @Callback
-        public int setStatusColor(@Parameter("color") final int color) {
+        @Callback(description = "Sets the color of the status light on the front of the robot.",
+            returnValueDescription = "the color that was applied.")
+        public int setStatusColor(@Parameter(value = "color", description = "the color to set, as a packed `0xRRGGBB` value.") final int color) {
             Robot.this.setStatusColor(color);
             return Robot.this.getStatusColor();
         }
 
-        @Callback
+        @Callback(description = "Gets how far the status light is filled.",
+            returnValueDescription = "the current fill value, in the range of [0, 1].")
         public double getStatusValue() {
             return Robot.this.getStatusValue();
         }
 
-        @Callback
-        public double setStatusValue(@Parameter("value") final double value) {
+        @Callback(description = "Sets how far the status light is filled. It fills from the bottom, so zero hides it entirely and one fills it.",
+            returnValueDescription = "the fill value that was applied.")
+        public double setStatusValue(@Parameter(value = "value", description = "the fill value to set, will be clamped to [0, 1].") final double value) {
             Robot.this.setStatusValue((float) value);
             return Robot.this.getStatusValue();
         }
 
         // ----------------------------------------------------------------- //
 
-        @IOCallback(DETECT_CODE)
+        @IOCallback(value = DETECT_CODE, name = "detect",
+            description = "Reports what occupies the space on that side.",
+            argumentsDescription = "one byte, the side.",
+            resultsDescription = "one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move.")
         public void detectIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(switch (detect(fromOrdinal(IO_SIDES, arguments.readU8()))) {
                 case DETECT_AIR -> 0;
@@ -1142,62 +1185,93 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             });
         }
 
-        @IOCallback(value = GET_ENERGY_STORED_CODE, synchronize = false)
+        @IOCallback(value = GET_ENERGY_STORED_CODE, synchronize = false, name = "getEnergyStored",
+            description = "Reads how much energy the robot has left.",
+            resultsDescription = "four bytes, the amount, low byte first.")
         public void getEnergyStoredIO(final IOOutputStream results) throws IOException {
             results.writeU32(energy.getEnergyStored());
         }
 
-        @IOCallback(value = GET_ENERGY_CAPACITY_CODE, synchronize = false)
+        @IOCallback(value = GET_ENERGY_CAPACITY_CODE, synchronize = false, name = "getEnergyCapacity",
+            description = "Reads how much energy the robot holds when full.",
+            resultsDescription = "four bytes, the amount, low byte first.")
         public void getEnergyCapacityIO(final IOOutputStream results) throws IOException {
             results.writeU32(energy.getMaxEnergyStored());
         }
 
-        @IOCallback(GET_SELECTED_SLOT_CODE)
+        @IOCallback(value = GET_SELECTED_SLOT_CODE, name = "getSelectedSlot",
+            description = "Reads which inventory slot is selected.",
+            resultsDescription = "one byte, the slot.")
         public void getSelectedSlotIO(final IOOutputStream results) throws IOException {
             results.writeU8(getSelectedSlot());
         }
 
-        @IOCallback(SET_SELECTED_SLOT_CODE)
+        @IOCallback(value = SET_SELECTED_SLOT_CODE, name = "setSelectedSlot",
+            description = "Selects an inventory slot.",
+            argumentsDescription = "one byte, the slot. A slot the robot does not have is clamped into range.",
+            resultsDescription = "one byte, the slot in effect after the call.")
         public void setSelectedSlotIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(setSelectedSlot(arguments.readU8()));
         }
 
-        @IOCallback(GET_STACK_IN_SLOT_CODE)
+        @IOCallback(value = GET_STACK_IN_SLOT_CODE, name = "getStackInSlot",
+            description = "Reads what is in an inventory slot.",
+            argumentsDescription = "one byte, the slot. A slot the robot does not have fails with `OCEARG`.",
+            resultsDescription = "four bytes, one slot record in the form the `ITEMS` device uses: the item as two bytes, the number of items, and damage.")
         public void getStackInSlotIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeSlot(inventory, arguments.readU8(), results);
         }
 
-        @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false)
+        @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false, name = "getItemName",
+            description = "Reads the name of an item.",
+            argumentsDescription = "two bytes, the item id.",
+            resultsDescription = "the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to get all of it.")
         public void getItemNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeItemName(arguments, results);
         }
 
-        @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false)
+        @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false, name = "getItemId",
+            description = "Looks an item up by name.",
+            argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
+            resultsDescription = "two bytes, the item id.")
         public void getItemIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeItemId(arguments, results);
         }
 
-        @IOCallback(value = MOVE_CODE, synchronize = false)
+        @IOCallback(value = MOVE_CODE, synchronize = false, name = "move",
+            description = "Enqueues a movement.",
+            argumentsDescription = "one byte, the direction.",
+            resultsDescription = "one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.")
         public void moveIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(move(fromOrdinal(IO_MOVEMENTS, arguments.readU8())) ? 1 : 0);
         }
 
-        @IOCallback(value = TURN_CODE, synchronize = false)
+        @IOCallback(value = TURN_CODE, synchronize = false, name = "turn",
+            description = "Enqueues a rotation.",
+            argumentsDescription = "one byte, the direction.",
+            resultsDescription = "one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.")
         public void turnIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(turn(fromOrdinal(IO_ROTATIONS, arguments.readU8())) ? 1 : 0);
         }
 
-        @IOCallback(value = GET_LAST_ACTION_ID_CODE, synchronize = false)
+        @IOCallback(value = GET_LAST_ACTION_ID_CODE, synchronize = false, name = "getLastActionId",
+            description = "Reads the id of the last enqueued action.",
+            resultsDescription = "two bytes, the id, low byte first. Read it right after a `move` or `turn` that returned `1`.")
         public void getLastActionIdIO(final IOOutputStream results) throws IOException {
             results.writeU16(getLastActionId());
         }
 
-        @IOCallback(value = GET_QUEUED_ACTION_COUNT_CODE, synchronize = false)
+        @IOCallback(value = GET_QUEUED_ACTION_COUNT_CODE, synchronize = false, name = "getQueuedActionCount",
+            description = "Reads how many actions are still waiting.",
+            resultsDescription = "one byte, the count.")
         public void getQueuedActionCountIO(final IOOutputStream results) throws IOException {
             results.writeU8(getQueuedActionCount());
         }
 
-        @IOCallback(value = GET_ACTION_RESULT_CODE, synchronize = false)
+        @IOCallback(value = GET_ACTION_RESULT_CODE, synchronize = false, name = "getActionResult",
+            description = "Reads how an action turned out. Poll it until it stops reading `1` to wait for an action to finish.",
+            argumentsDescription = "two bytes, the id.",
+            resultsDescription = "one byte: `0` unknown, `1` incomplete, `2` success, `3` failure.")
         public void getActionResultIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             final int actionId = arguments.readU16();
             final RobotActionResult result = findActionResult(id -> (id & 0xFFFF) == actionId);
@@ -1209,7 +1283,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             });
         }
 
-        @IOCallback(GET_STATUS_COLOR_CODE)
+        @IOCallback(value = GET_STATUS_COLOR_CODE, name = "getStatusColor",
+            description = "Reads the color of the status light.",
+            resultsDescription = "three bytes, the red, green and blue components.")
         public void getStatusColorIO(final IOOutputStream results) throws IOException {
             final int color = getStatusColor();
             results.writeU8(color >>> 16);
@@ -1217,17 +1293,23 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             results.writeU8(color & 0xFF);
         }
 
-        @IOCallback(SET_STATUS_COLOR_CODE)
+        @IOCallback(value = SET_STATUS_COLOR_CODE, name = "setStatusColor",
+            description = "Sets the color of the status light.",
+            argumentsDescription = "three bytes, the red, green and blue components.")
         public void setStatusColorIO(final IOInputStream arguments) throws IOException {
             setStatusColor((arguments.readU8() << 16) | (arguments.readU8() << 8) | arguments.readU8());
         }
 
-        @IOCallback(GET_STATUS_VALUE_CODE)
+        @IOCallback(value = GET_STATUS_VALUE_CODE, name = "getStatusValue",
+            description = "Reads how far the status light is filled.",
+            resultsDescription = "one byte, the fill value, where `0` is empty and `255` is full.")
         public void getStatusValueIO(final IOOutputStream results) throws IOException {
             results.writeU8((int) Math.round(getStatusValue() * 0xFF));
         }
 
-        @IOCallback(SET_STATUS_VALUE_CODE)
+        @IOCallback(value = SET_STATUS_VALUE_CODE, name = "setStatusValue",
+            description = "Sets how far the status light is filled.",
+            argumentsDescription = "one byte, the fill value, where `0` is empty and `255` is full.")
         public void setStatusValueIO(final IOInputStream arguments) throws IOException {
             setStatusValue(arguments.readU8() / (double) 0xFF);
         }

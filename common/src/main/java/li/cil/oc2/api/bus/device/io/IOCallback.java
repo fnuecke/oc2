@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * right here, since they're explicitly big-endian, which may not match the underlying architecture.
  * For example, the Z80 needs little-endian.
  * <p>
- * The declaring class must carry an {@link IOName}, since the guest sees devices by name.
+ * The declaring class must have an {@link IODeviceDescription}, since the guest sees devices by name.
  * <p>
  * This is the mid-level API for CP/M guests. Also see {@link li.cil.oc2.api.bus.device.object.Callback}
  * for the high-level API for Linux guests.
@@ -79,4 +79,33 @@ public @interface IOCallback {
      * @return {@code true} when to be executed on main thread; {@code false} otherwise.
      */
     boolean synchronize() default true;
+
+    /**
+     * The name of this method, for documentation only. Computers call methods by {@link #value()}.
+     * If left blank the name of the annotated method will be used.
+     *
+     * @return the name of the method.
+     */
+    String name() default "";
+
+    /**
+     * Optional documentation of this method.
+     *
+     * @return the description of the method.
+     */
+    String description() default "";
+
+    /**
+     * Optional documentation of the bytes this method takes as arguments.
+     *
+     * @return the description of the arguments.
+     */
+    String argumentsDescription() default "";
+
+    /**
+     * Optional documentation of the bytes this method writes as results.
+     *
+     * @return the description of the results.
+     */
+    String resultsDescription() default "";
 }

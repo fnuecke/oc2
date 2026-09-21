@@ -3,7 +3,6 @@
 package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.MinecraftBootstrap;
-import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
@@ -16,12 +15,11 @@ import net.minecraft.world.item.ItemStack;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MinecraftBootstrap.class)
 public class RPCDeviceDocumentationTests {
@@ -40,33 +38,13 @@ public class RPCDeviceDocumentationTests {
     }
 
     @Test
-    public void robotModulesDocumentOnlyCallbacksThatExist() {
-        for (final AbstractItemRPCDevice device : documentedRobotModules()) {
-            final Set<String> callbacks = device.getMethodGroups().stream()
-                .map(RPCMethodGroup::getName).collect(Collectors.toSet());
-
-            final RecordingVisitor visitor = new RecordingVisitor();
-            ((DocumentedDevice) device).getDeviceDocumentation(visitor);
-
-            assertFalse(visitor.documented.isEmpty(),
-                device.getClass().getSimpleName() + " declared no documentation at all");
-            for (final String documented : visitor.documented) {
-                assertTrue(callbacks.contains(documented),
-                    device.getClass().getSimpleName() + " documents callback \"" + documented
-                        + "\", which does not exist; its documentation is silently dropped");
-            }
-        }
-    }
-
-    @Test
     public void robotModuleCallbacksAreFullyDocumented() {
         for (final AbstractItemRPCDevice device : documentedRobotModules()) {
-            final RecordingVisitor visitor = new RecordingVisitor();
-            ((DocumentedDevice) device).getDeviceDocumentation(visitor);
-
             for (final RPCMethodGroup group : device.getMethodGroups()) {
-                assertTrue(visitor.documented.contains(group.getName()),
-                    device.getClass().getSimpleName() + " callback \"" + group.getName() + "\" is undocumented");
+                for (final RPCMethod overload : group.getOverloads()) {
+                    assertTrue(overload.getDescription().isPresent(),
+                        device.getClass().getSimpleName() + " callback \"" + group.getName() + "\" is undocumented");
+                }
             }
         }
     }
@@ -102,32 +80,6 @@ public class RPCDeviceDocumentationTests {
             .findFirst()
             .orElseThrow(() -> new AssertionError("no callback named " + name))
             .getOverloads();
-    }
-
-    private static final class RecordingVisitor implements DocumentedDevice.DeviceVisitor,
-        DocumentedDevice.CallbackVisitor {
-        private final Set<String> documented = new LinkedHashSet<>();
-
-        @Override
-        public DocumentedDevice.CallbackVisitor visitCallback(final String callbackName) {
-            documented.add(callbackName);
-            return this;
-        }
-
-        @Override
-        public DocumentedDevice.CallbackVisitor description(final String value) {
-            return this;
-        }
-
-        @Override
-        public DocumentedDevice.CallbackVisitor returnValueDescription(final String value) {
-            return this;
-        }
-
-        @Override
-        public DocumentedDevice.CallbackVisitor parameterDescription(final String parameterName, final String value) {
-            return this;
-        }
     }
 
     private static final class EmptyItemHandler implements ItemHandler {

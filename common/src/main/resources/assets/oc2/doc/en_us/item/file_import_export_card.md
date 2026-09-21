@@ -12,3 +12,6 @@ For added convenience, the default Linux distribution provides two utility scrip
 `export.lua` takes as its parameter the path to a file in a virtual computer. It then downloads this file to your real computer and offers a save dialog, offering the choice of where to save the downloaded file, or to cancel the operation.
 
 Both scripts will prompt all users currently interacting with the computer's terminal. For upload operations (`import.lua`), the first uploaded file will be used. The prompts on other clients will be canceled. For download operations all clients will be offered to save the exported file.
+
+## API
+Programs drive the card through the `file_import_export` device, which is what `import.lua` and `export.lua` use. See the [file import/export device](../device/file_import_export.md) reference for its methods.

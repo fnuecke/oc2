@@ -36,7 +36,6 @@ public final class Callbacks {
 
     private static final Map<Class<?>, List<Method>> METHOD_BY_TYPE = Collections.synchronizedMap(new HashMap<>());
     private static final Map<Method, RPCParameter[]> PARAMETERS_BY_METHOD = Collections.synchronizedMap(new HashMap<>());
-    private static final Map<Method, CallbackDocumentation> DOCUMENTATION_BY_METHOD = Collections.synchronizedMap(new HashMap<>());
 
     // --------------------------------------------------------------------- //
 
@@ -93,7 +92,39 @@ public final class Callbacks {
         }
     }
 
+    /**
+     * Returns the type names declared by the specified object's {@link RPCDeviceDescription}.
+     * <p>
+     * Without a declaration, the name is derived from the class name: {@code ExampleDevice}
+     * becomes {@code example}.
+     * <p>
+     * The specified {@code object} can be an instance or a {@link Class}.
+     *
+     * @param object the object to read the type names from.
+     * @return the type names.
+     */
+    public static List<String> getTypeNames(final Object object) {
+        final Class<?> type = object instanceof final Class<?> clazz ? clazz : object.getClass();
+        for (Class<?> current = type; current != null; current = current.getSuperclass()) {
+            final RPCDeviceDescription annotation = current.getAnnotation(RPCDeviceDescription.class);
+            if (annotation != null && annotation.typeNames().length > 0) {
+                return List.of(annotation.typeNames());
+            }
+        }
+        return List.of(toNiceTypeName(type));
+    }
+
     // --------------------------------------------------------------------- //
+
+    private static String toNiceTypeName(final Class<?> deviceClass) {
+        final String name = deviceClass.getSimpleName()
+            .replaceFirst("VMDevice$", "")
+            .replaceFirst("RPCDevice$", "")
+            .replaceFirst("Device$", "");
+        return name
+            .replaceAll("([a-z])([A-Z])", "$1_$2")
+            .toLowerCase(Locale.ROOT);
+    }
 
     private static List<Method> getMethods(final Class<?> type) {
         synchronized (METHOD_BY_TYPE) {
@@ -160,7 +191,9 @@ public final class Callbacks {
             public final Method method;
             public final Callback annotation;
             public final String methodName;
+            @Nullable
             public final String description;
+            @Nullable
             public final String returnValueDescription;
             public final RPCParameter[] parameters;
 
@@ -169,41 +202,11 @@ public final class Callbacks {
                 this.method = method;
                 this.annotation = requireNonNull(method.getAnnotation(Callback.class), "Method without Callback annotation.");
                 this.methodName = Strings.isNotBlank(annotation.name()) ? annotation.name() : method.getName();
-
-                final CallbackDocumentation documentation = DOCUMENTATION_BY_METHOD.computeIfAbsent(method, m -> {
-                    final boolean hasDescription = Strings.isNotBlank(annotation.description());
-                    final boolean hasReturnValueDescription = Strings.isNotBlank(annotation.returnValueDescription());
-
-                    String description = hasDescription ? annotation.description() : null;
-                    String returnValueDescription = hasReturnValueDescription ? annotation.returnValueDescription() : null;
-                    final HashMap<String, String> parameterDescriptions = new HashMap<>();
-
-                    if (target instanceof final DocumentedDevice documentedDevice) {
-                        final DeviceVisitorImpl visitor = new DeviceVisitorImpl();
-                        documentedDevice.getDeviceDocumentation(visitor);
-
-                        final CallbackVisitorImpl callbackVisitor = visitor.callbacks.get(methodName);
-                        if (callbackVisitor != null) {
-                            if (Strings.isNotBlank(callbackVisitor.description)) {
-                                description = callbackVisitor.description;
-                            }
-                            if (Strings.isNotBlank(callbackVisitor.returnValueDescription)) {
-                                returnValueDescription = callbackVisitor.returnValueDescription;
-                            }
-
-                            parameterDescriptions.putAll(callbackVisitor.parameterDescriptions);
-                        }
-                    }
-
-                    return new CallbackDocumentation(description, returnValueDescription, parameterDescriptions);
-                });
-
-                this.description = documentation.description;
-                this.returnValueDescription = documentation.returnValueDescription;
-
+                this.description = Strings.isNotBlank(annotation.description()) ? annotation.description() : null;
+                this.returnValueDescription = Strings.isNotBlank(annotation.returnValueDescription()) ? annotation.returnValueDescription() : null;
                 this.parameters = PARAMETERS_BY_METHOD.computeIfAbsent(method,
                     m -> Arrays.stream(m.getParameters())
-                        .map(parameter -> new ReflectionParameter(parameter, documentation.parameterDescriptions))
+                        .map(ReflectionParameter::new)
                         .toArray(RPCParameter[]::new));
             }
         }
@@ -215,7 +218,7 @@ public final class Callbacks {
             @Nullable
             private final String description;
 
-            public ReflectionParameter(final java.lang.reflect.Parameter parameter, final HashMap<String, String> parameterDescriptions) {
+            public ReflectionParameter(final java.lang.reflect.Parameter parameter) {
                 this.type = parameter.getType();
 
                 final Parameter annotation = parameter.getAnnotation(Parameter.class);
@@ -223,14 +226,7 @@ public final class Callbacks {
                 final boolean hasDescription = annotation != null && Strings.isNotBlank(annotation.description());
 
                 this.name = hasName ? annotation.value() : parameter.isNamePresent() ? parameter.getName() : null;
-
-                if (parameterDescriptions.containsKey(this.name)) {
-                    this.description = parameterDescriptions.get(this.name);
-                } else if (hasDescription) {
-                    this.description = annotation.description();
-                } else {
-                    this.description = null;
-                }
+                this.description = hasDescription ? annotation.description() : null;
             }
 
             @Override
@@ -247,44 +243,6 @@ public final class Callbacks {
             public Optional<String> getDescription() {
                 return Optional.ofNullable(description);
             }
-        }
-    }
-
-    private record CallbackDocumentation(@Nullable String description,
-                                         @Nullable String returnValueDescription,
-                                         HashMap<String, String> parameterDescriptions) {
-    }
-
-    private static final class DeviceVisitorImpl implements DocumentedDevice.DeviceVisitor {
-        public final HashMap<String, CallbackVisitorImpl> callbacks = new HashMap<>();
-
-        @Override
-        public DocumentedDevice.CallbackVisitor visitCallback(final String callbackName) {
-            return callbacks.computeIfAbsent(callbackName, unused -> new CallbackVisitorImpl());
-        }
-    }
-
-    private static final class CallbackVisitorImpl implements DocumentedDevice.CallbackVisitor {
-        public String description;
-        public String returnValueDescription;
-        public final HashMap<String, String> parameterDescriptions = new HashMap<>();
-
-        @Override
-        public DocumentedDevice.CallbackVisitor description(final String value) {
-            this.description = value;
-            return this;
-        }
-
-        @Override
-        public DocumentedDevice.CallbackVisitor returnValueDescription(final String value) {
-            this.returnValueDescription = value;
-            return this;
-        }
-
-        @Override
-        public DocumentedDevice.CallbackVisitor parameterDescription(final String parameterName, final String value) {
-            parameterDescriptions.put(parameterName, value);
-            return this;
         }
     }
 }

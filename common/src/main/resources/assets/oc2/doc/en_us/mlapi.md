@@ -1,6 +1,8 @@
 # Mid-level API
 Programs running on a [Z80 processor](item/cpu_z80.md) access devices through the mid-level API (MLAPI). It usually makes available a subset of the devices accessible via the [high-level API](hlapi.md) (HLAPI), in a form an 8-bit machine can drive: a function is picked by number, and its arguments and results are plain bytes.
 
+For the function codes each device offers, see the [list of devices](device/index.md).
+
 Everything here is done through ports, so it works from assembly. Two libraries on the boot disk save you writing the tedious parts, `DEVLIB.INC` for finding general devices and `OCAPI.INC` for finding and calling mid-level API devices. Include them at the end of your sources:  
 `INCLUDE DEVLIB.INC`  
 `INCLUDE OCAPI.INC`

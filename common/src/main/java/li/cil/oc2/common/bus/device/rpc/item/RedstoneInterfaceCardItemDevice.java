@@ -4,13 +4,14 @@ package li.cil.oc2.common.bus.device.rpc.item;
 
 import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
-import li.cil.oc2.api.bus.device.io.IOName;
+import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.util.Side;
+import li.cil.oc2.common.bus.device.rpc.RedstoneInterfaceDocumentation;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
@@ -28,15 +29,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-@IOName("REDSTN")
-public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice implements DocumentedDevice, CapabilityProvider {
+@RPCDeviceDescription(typeNames = {"redstone"}, description = RedstoneInterfaceDocumentation.DEVICE)
+@IODeviceDescription(name = "REDSTN", description = RedstoneInterfaceDocumentation.IO_DEVICE)
+public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice implements CapabilityProvider {
     private static final String OUTPUT_TAG_NAME = "output";
 
-    private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
-    private static final String GET_REDSTONE_OUTPUT = "getRedstoneOutput";
-    private static final String SET_REDSTONE_OUTPUT = "setRedstoneOutput";
-    private static final String SIDE = "side";
-    private static final String VALUE = "value";
     private static final int GET_REDSTONE_INPUT_CODE = 1;
     private static final int GET_REDSTONE_OUTPUT_CODE = 2;
     private static final int SET_REDSTONE_OUTPUT_CODE = 3;
@@ -50,7 +47,7 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
     // --------------------------------------------------------------------- //
 
     public RedstoneInterfaceCardItemDevice(final ItemStack identity, final BlockEntity blockEntity) {
-        super(identity, "redstone");
+        super(identity);
         this.blockEntity = blockEntity;
 
         capabilities = new RedstoneEmitter[Constants.BLOCK_FACE_COUNT];
@@ -86,8 +83,9 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 
-    @Callback(name = GET_REDSTONE_INPUT)
-    public int getRedstoneInput(@Parameter(SIDE) @Nullable final Side side) {
+    @Callback(description = RedstoneInterfaceDocumentation.GET_REDSTONE_INPUT,
+        returnValueDescription = RedstoneInterfaceDocumentation.GET_REDSTONE_INPUT_RESULT)
+    public int getRedstoneInput(@Parameter(value = "side", description = RedstoneInterfaceDocumentation.SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
 
         final Level level = blockEntity.getLevel();
@@ -108,16 +106,19 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
         return level.getSignal(neighborPos, direction);
     }
 
-    @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
-    public int getRedstoneOutput(@Parameter(SIDE) @Nullable final Side side) {
+    @Callback(synchronize = false,
+        description = RedstoneInterfaceDocumentation.GET_REDSTONE_OUTPUT,
+        returnValueDescription = RedstoneInterfaceDocumentation.GET_REDSTONE_OUTPUT_RESULT)
+    public int getRedstoneOutput(@Parameter(value = "side", description = RedstoneInterfaceDocumentation.SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
         final int index = toLocalIndex(side);
 
         return output[index];
     }
 
-    @Callback(name = SET_REDSTONE_OUTPUT)
-    public void setRedstoneOutput(@Parameter(SIDE) @Nullable final Side side, @Parameter(VALUE) final int value) {
+    @Callback(description = RedstoneInterfaceDocumentation.SET_REDSTONE_OUTPUT)
+    public void setRedstoneOutput(@Parameter(value = "side", description = RedstoneInterfaceDocumentation.SIDE) @Nullable final Side side,
+                                  @Parameter(value = "value", description = RedstoneInterfaceDocumentation.SET_REDSTONE_OUTPUT_VALUE) final int value) {
         if (side == null) throw new IllegalArgumentException();
         final int index = toLocalIndex(side);
 
@@ -134,48 +135,27 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice
         }
     }
 
-    @Override
-    public void getDeviceDocumentation(final DocumentedDevice.DeviceVisitor visitor) {
-        visitor.visitCallback(GET_REDSTONE_INPUT)
-            .description("Get the current redstone level received on the specified side. " +
-                "Note that if the current output level on the specified side is not " +
-                "zero, this will affect the measured level.\n" +
-                "Sides may be specified by name or zero-based index. Relative sides " +
-                "(front, back, left, right) and indices depend on the orientation of the " +
-                "device's container; absolute sides (north, south, west, east) do not.")
-            .returnValueDescription("the current received level on the specified side.")
-            .parameterDescription(SIDE, "the side to read the input level from.");
-
-        visitor.visitCallback(GET_REDSTONE_OUTPUT)
-            .description("Get the current redstone level transmitted on the specified side. " +
-                "This will return the value last set via setRedstoneOutput().\n" +
-                "Sides may be specified by name or zero-based index. Relative sides " +
-                "(front, back, left, right) and indices depend on the orientation of the " +
-                "device's container; absolute sides (north, south, west, east) do not.")
-            .returnValueDescription("the current transmitted level on the specified side.")
-            .parameterDescription(SIDE, "the side to read the output level from.");
-        visitor.visitCallback(SET_REDSTONE_OUTPUT)
-            .description("Set the new redstone level transmitted on the specified side.\n" +
-                "Sides may be specified by name or zero-based index. Relative sides " +
-                "(front, back, left, right) and indices depend on the orientation of the " +
-                "device's container; absolute sides (north, south, west, east) do not.")
-            .parameterDescription(SIDE, "the side to write the output level to.")
-            .parameterDescription(VALUE, "the output level to set, will be clamped to [0, 15].");
-    }
-
     // --------------------------------------------------------------------- //
 
-    @IOCallback(GET_REDSTONE_INPUT_CODE)
+    @IOCallback(value = GET_REDSTONE_INPUT_CODE, name = "getRedstoneInput",
+        description = RedstoneInterfaceDocumentation.GET_REDSTONE_INPUT_IO,
+        argumentsDescription = RedstoneInterfaceDocumentation.SIDE_IO,
+        resultsDescription = RedstoneInterfaceDocumentation.LEVEL_IO)
     public void getRedstoneInputIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(getRedstoneInput(Side.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = GET_REDSTONE_OUTPUT_CODE, synchronize = false)
+    @IOCallback(value = GET_REDSTONE_OUTPUT_CODE, synchronize = false, name = "getRedstoneOutput",
+        description = RedstoneInterfaceDocumentation.GET_REDSTONE_OUTPUT_IO,
+        argumentsDescription = RedstoneInterfaceDocumentation.SIDE_IO,
+        resultsDescription = RedstoneInterfaceDocumentation.LEVEL_IO)
     public void getRedstoneOutputIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(getRedstoneOutput(Side.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(SET_REDSTONE_OUTPUT_CODE)
+    @IOCallback(value = SET_REDSTONE_OUTPUT_CODE, name = "setRedstoneOutput",
+        description = RedstoneInterfaceDocumentation.SET_REDSTONE_OUTPUT_IO,
+        argumentsDescription = RedstoneInterfaceDocumentation.SIDE_AND_LEVEL_IO)
     public void setRedstoneOutputIO(final IOInputStream arguments) throws IOException {
         final Side side = Side.byIndex(arguments.readU8());
         setRedstoneOutput(side, arguments.readU8());

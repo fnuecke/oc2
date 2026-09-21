@@ -20,7 +20,7 @@ const MONOSPACE_CHARS: &str = concat!(
 
 const UI_TEXTURES: [&str; 3] = ["manual", "scroll_button", "tab_button"];
 
-const TABS: [(&str, &str, &str); 3] = [
+const TABS: [(&str, &str, &str); 4] = [
     (
         "index.md",
         "Home",
@@ -28,6 +28,11 @@ const TABS: [(&str, &str, &str); 3] = [
     ),
     ("block/index.md", "Blocks", "item:oc2:computer"),
     ("item/index.md", "Items", "item:oc2:transistor"),
+    (
+        "device/index.md",
+        "API",
+        "texture:oc2:textures/gui/manual/api.png",
+    ),
 ];
 
 const PAGE_TEMPLATE: &str = include_str!("../templates/page.html");
@@ -45,7 +50,7 @@ struct Tab {
 
 pub struct SiteBuilder<'a> {
     resources: &'a Resources,
-    doc_root: PathBuf,
+    doc_roots: Vec<PathBuf>,
     language: String,
     output: PathBuf,
 }
@@ -53,33 +58,38 @@ pub struct SiteBuilder<'a> {
 impl<'a> SiteBuilder<'a> {
     pub fn new(
         resources: &'a Resources,
-        doc_root: PathBuf,
+        doc_roots: Vec<PathBuf>,
         language: String,
         output: PathBuf,
     ) -> Self {
         Self {
             resources,
-            doc_root,
+            doc_roots,
             language,
             output,
         }
     }
 
     pub fn build(&self) -> Result<()> {
-        let sources = markdown_sources(&self.doc_root.join(&self.language))?;
+        let mut sources = Vec::new();
+        for root in &self.doc_roots {
+            for path in markdown_sources(&root.join(&self.language))? {
+                sources.push((root, path));
+            }
+        }
         if sources.is_empty() {
             bail!(
                 "no manual pages under {}",
-                self.doc_root.join(&self.language).display()
+                self.doc_roots[0].join(&self.language).display()
             );
         }
 
         let mut pages = HashSet::new();
         let mut redirects = Vec::new();
         let mut parsed: Vec<(String, Vec<Line>)> = Vec::new();
-        for path in &sources {
+        for (root, path) in &sources {
             let key = path
-                .strip_prefix(&self.doc_root)?
+                .strip_prefix(root)?
                 .to_string_lossy()
                 .replace(std::path::MAIN_SEPARATOR, "/");
             let text = std::fs::read_to_string(path)?;
@@ -136,7 +146,7 @@ impl<'a> SiteBuilder<'a> {
         let mut images = HashMap::new();
         let mut sizes = HashMap::new();
 
-        let mut entries: Vec<PathBuf> = std::fs::read_dir(self.doc_root.join("img"))?
+        let mut entries: Vec<PathBuf> = std::fs::read_dir(self.doc_roots[0].join("img"))?
             .filter_map(|entry| entry.ok().map(|entry| entry.path()))
             .filter(|path| path.extension().is_some_and(|extension| extension == "png"))
             .collect();

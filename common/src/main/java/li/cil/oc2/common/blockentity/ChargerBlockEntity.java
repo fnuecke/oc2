@@ -3,7 +3,7 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.NamedDevice;
+import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -25,13 +25,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static java.util.Collections.singletonList;
 
-public final class ChargerBlockEntity extends ModBlockEntity implements NamedDevice, TickableBlockEntity {
+@RPCDeviceDescription(typeNames = {"charger"}, description = "Provided by the [charger](../block/charger.md) block.")
+public final class ChargerBlockEntity extends ModBlockEntity implements TickableBlockEntity {
     private static final String HAS_ENERGY_TAG_NAME = "has_energy";
 
     private static final Predicate<Entity> ENTITY_PREDICATE =
@@ -62,7 +61,8 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
         hasEnergy = value;
     }
 
-    @Callback
+    @Callback(description = "Checks whether the charger is currently transferring energy to something on top of it.",
+        returnValueDescription = "`true` if energy is being transferred; `false` otherwise.")
     public boolean isCharging() {
         return isCharging;
     }
@@ -112,11 +112,6 @@ public final class ChargerBlockEntity extends ModBlockEntity implements NamedDev
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
         hasEnergy = tag.getBoolean(HAS_ENERGY_TAG_NAME);
-    }
-
-    @Override
-    public Collection<String> getDeviceTypeNames() {
-        return singletonList("charger");
     }
 
     // --------------------------------------------------------------------- //

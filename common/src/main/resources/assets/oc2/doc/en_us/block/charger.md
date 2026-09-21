@@ -6,3 +6,6 @@ The charger transfers energy from a connected power source to energy consumers o
 The employed wireless energy transfer mechanism supports any consumer accepting RF energy. In particular, blocks and entities, as well as items in regular item containers (such as blocks and entities) will be charged.
 
 This device is particularly useful to recharge [robots](../item/robot.md) or energy consuming devices in your inventory.
+
+## API
+Programs can check on the charger through the `charger` device. See the [charger device](../device/charger.md) reference for its methods.

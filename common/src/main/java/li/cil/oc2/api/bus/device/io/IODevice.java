@@ -22,7 +22,7 @@ public interface IODevice {
      * The name this device is known by to the guest.
      *
      * @return the guest-visible name.
-     * @see IOName
+     * @see IODeviceDescription
      */
     String getIOName();
 

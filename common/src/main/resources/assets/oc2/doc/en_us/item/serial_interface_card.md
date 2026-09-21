@@ -65,4 +65,7 @@ Unlike the [network card](network_interface_card.md), errors are not automatical
 - **Collision**: sent data was corrupted because too many senders flooded the bus at the same time.
 - **Noise**: traffic arrived at a baud rate this port is not set to.
 
-Error counts can be read via the HLAPI and MLAPI. **Important**: device order in the HLAPI and MLAPI may differ from the order devices were mounted, i.e. the order they are listed in the device tree/enumeration window.
+Error counts can be read via the HLAPI and MLAPI, see below.
+
+## API
+Programs can read the card's address, baud rate, port location and error counters through the `serial` device. See the [serial device](../device/serial.md) reference for its methods. **Important**: device order in the HLAPI and MLAPI may differ from the order devices were mounted, i.e. the order they are listed in the device tree/enumeration window.

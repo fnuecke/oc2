@@ -33,4 +33,13 @@ public @interface Parameter {
      * @return the description of the parameter.
      */
     String description() default "";
+
+    /**
+     * Documents that an overload without this parameter exists, so the VM may omit it.
+     * <p>
+     * Has no effect on dispatch; the overload must be declared.
+     *
+     * @return {@code true} if the parameter is optional; {@code false} otherwise.
+     */
+    boolean optional() default false;
 }

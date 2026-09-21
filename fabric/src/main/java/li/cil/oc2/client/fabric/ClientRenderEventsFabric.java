@@ -6,7 +6,6 @@ import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.Minecraft;
 
 public final class ClientRenderEventsFabric {
     public static void initialize() {
@@ -17,8 +16,7 @@ public final class ClientRenderEventsFabric {
             BusInterfaceNameRenderer.INSTANCE.render(context.matrixStack()));
 
         WorldRenderEvents.LAST.register(context ->
-            ProjectorDepthRenderer.onAfterParticles(context.positionMatrix(), context.projectionMatrix(),
-                Minecraft.getInstance().getTimer()));
+            ProjectorDepthRenderer.onAfterParticles(context.positionMatrix(), context.projectionMatrix()));
     }
 
     private ClientRenderEventsFabric() {

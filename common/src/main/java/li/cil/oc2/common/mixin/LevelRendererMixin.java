@@ -5,11 +5,13 @@ package li.cil.oc2.common.mixin;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
+import li.cil.oc2.common.ext.LevelRendererExt;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.RenderBuffers;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.culling.Frustum;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LevelRenderer.class)
-public abstract class LevelRendererMixin {
+public abstract class LevelRendererMixin implements LevelRendererExt {
     @Shadow
     @Final
     private Minecraft minecraft;
@@ -28,6 +30,25 @@ public abstract class LevelRendererMixin {
     @Shadow
     @Final
     private RenderBuffers renderBuffers;
+
+    @Shadow
+    private Frustum cullingFrustum;
+
+    @Override
+    public Frustum getCullingFrustum() {
+        return cullingFrustum;
+    }
+
+    @Override
+    public void setCullingFrustum(final Frustum frustum) {
+        cullingFrustum = frustum;
+    }
+
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/client/renderer/LevelRenderer;setupRender(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZZ)V"))
+    private void onBeforeTerrainSetup(final DeltaTracker deltaTracker, final boolean renderBlockOutline, final Camera camera, final GameRenderer gameRenderer, final LightTexture lightTexture, final Matrix4f frustumMatrix, final Matrix4f projectionMatrix, final CallbackInfo ci) {
+        ProjectorDepthRenderer.onBeforeTerrainSetup(deltaTracker);
+    }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = {"ldc=destroyProgress"}))
     private void onBeforeTransparencyChain(final CallbackInfo ci) {
@@ -37,7 +58,7 @@ public abstract class LevelRendererMixin {
     @Inject(method = "renderSectionLayer", at = @At("HEAD"))
     private void onBeforeTranslucentTerrain(final RenderType renderType, final double cameraX, final double cameraY, final double cameraZ, final Matrix4f frustumMatrix, final Matrix4f projectionMatrix, final CallbackInfo ci) {
         if (renderType == RenderType.translucent()) {
-            ProjectorDepthRenderer.onBeforeTranslucentTerrain(frustumMatrix, projectionMatrix, minecraft.getTimer());
+            ProjectorDepthRenderer.onBeforeTranslucentTerrain(frustumMatrix, projectionMatrix);
         }
     }
 

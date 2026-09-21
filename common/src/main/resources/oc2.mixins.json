@@ -13,6 +13,7 @@
         "FrustumMixin",
         "GameRendererMixin",
         "LevelRendererMixin",
+        "LevelRendererVanillaTerrainMixin",
         "LibraryMixin",
         "MinecraftMixin",
         "ShaderChunkRendererMixin"

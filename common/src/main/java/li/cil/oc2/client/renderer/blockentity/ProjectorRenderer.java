@@ -16,7 +16,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-import org.joml.Vector4f;
 
 public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEntity> {
     private static final int LIGHT_COLOR_NEAR = 0x22FFFFFF;
@@ -58,9 +57,7 @@ public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEnti
             alignToFrontFace(projector, stack);
 
             if (projector.hasEnergy()) {
-                if (canSeeProjectedImage(stack)) {
-                    ProjectorDepthRenderer.addProjector(projector);
-                }
+                ProjectorDepthRenderer.addProjector(projector);
 
                 renderProjectorLight(stack, bufferSource);
             } else {
@@ -72,18 +69,6 @@ public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEnti
     }
 
     // --------------------------------------------------------------------- //
-
-    private static boolean canSeeProjectedImage(final PoseStack stack) {
-        final Matrix4f matrix = stack.last().pose();
-
-        final Vector4f lookDirection = new Vector4f(0, 0, -1, 0);
-        lookDirection.mul(matrix);
-
-        final Vector4f relativePosition = new Vector4f(0, 0, 1, 1);
-        relativePosition.mul(matrix);
-
-        return relativePosition.dot(lookDirection) < ProjectorBlockEntity.MAX_RENDER_DISTANCE;
-    }
 
     private void alignToFrontFace(final ProjectorBlockEntity projector, final PoseStack stack) {
         final Direction blockFacing = projector.getBlockState().getValue(ProjectorBlock.FACING);

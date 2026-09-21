@@ -6,7 +6,6 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.FogRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -27,7 +26,7 @@ public final class ClientRenderEventsNeoForge {
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             BusInterfaceNameRenderer.INSTANCE.render(event.getPoseStack());
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-            ProjectorDepthRenderer.onAfterParticles(event.getModelViewMatrix(), event.getProjectionMatrix(), Minecraft.getInstance().getTimer());
+            ProjectorDepthRenderer.onAfterParticles(event.getModelViewMatrix(), event.getProjectionMatrix());
         }
     }
 

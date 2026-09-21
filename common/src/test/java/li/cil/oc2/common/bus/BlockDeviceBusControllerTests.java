@@ -254,8 +254,8 @@ public class BlockDeviceBusControllerTests {
 
         assertFalse(busController.getDevices().contains(objectDevice));
 
-        verify(objectDevice, never()).mount();
-        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).mount(any());
+        verify(objectDevice, never()).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
@@ -271,8 +271,8 @@ public class BlockDeviceBusControllerTests {
 
         rpcDeviceBusAdapter.mountDevices();
 
-        verify(objectDevice, times(1)).mount();
-        verify(objectDevice, never()).unmount();
+        verify(objectDevice, times(1)).mount(any());
+        verify(objectDevice, never()).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
@@ -286,8 +286,8 @@ public class BlockDeviceBusControllerTests {
 
         assertFalse(busController.getDevices().contains(objectDevice));
 
-        verify(objectDevice, times(1)).mount();
-        verify(objectDevice, times(1)).unmount();
+        verify(objectDevice, times(1)).mount(any());
+        verify(objectDevice, times(1)).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, times(1)).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
@@ -309,8 +309,8 @@ public class BlockDeviceBusControllerTests {
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
         assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
-        verify(objectDevice, never()).mount();
-        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).mount(any());
+        verify(objectDevice, never()).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
@@ -351,8 +351,8 @@ public class BlockDeviceBusControllerTests {
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
         assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
-        verify(objectDevice, never()).mount();
-        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).mount(any());
+        verify(objectDevice, never()).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
@@ -362,8 +362,8 @@ public class BlockDeviceBusControllerTests {
         fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
         assertFalse(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
-        verify(objectDevice, never()).mount();
-        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).mount(any());
+        verify(objectDevice, never()).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, times(1)).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
@@ -392,8 +392,8 @@ public class BlockDeviceBusControllerTests {
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
         assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
-        verify(objectDevice, never()).mount();
-        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).mount(any());
+        verify(objectDevice, never()).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());
@@ -422,8 +422,8 @@ public class BlockDeviceBusControllerTests {
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
         assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
-        verify(objectDevice, never()).mount();
-        verify(objectDevice, never()).unmount();
+        verify(objectDevice, never()).mount(any());
+        verify(objectDevice, never()).unmount(any());
         verify(objectDevice, never()).dispose();
         verify(objectDevice, never()).serializeNBT();
         verify(objectDevice, never()).deserializeNBT(any());

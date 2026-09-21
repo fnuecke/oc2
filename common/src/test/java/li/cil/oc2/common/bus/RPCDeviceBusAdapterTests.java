@@ -155,7 +155,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDevice device1 = addDevice();
 
         adapter.resume(controller);
-        verify(device1, never()).mount();
+        verify(device1, never()).mount(any());
     }
 
     @Test
@@ -164,7 +164,7 @@ public final class RPCDeviceBusAdapterTests {
         adapter.resume(controller);
 
         adapter.mountDevices();
-        verify(device, never()).mount();
+        verify(device, never()).mount(any());
     }
 
     @Test
@@ -173,7 +173,7 @@ public final class RPCDeviceBusAdapterTests {
         adapter.resume(controller);
 
         adapter.mountDevices();
-        verify(device).mount();
+        verify(device).mount(any());
     }
 
     @Test
@@ -184,7 +184,7 @@ public final class RPCDeviceBusAdapterTests {
 
         removeDevice(device);
         adapter.resume(controller);
-        verify(device).unmount();
+        verify(device).unmount(any());
         verify(device, never()).dispose();
     }
 
@@ -195,7 +195,7 @@ public final class RPCDeviceBusAdapterTests {
 
         removeDevice(device);
         adapter.resume(controller);
-        verify(device, never()).unmount();
+        verify(device, never()).unmount(any());
         verify(device, never()).dispose();
     }
 
@@ -206,7 +206,7 @@ public final class RPCDeviceBusAdapterTests {
         adapter.mountDevices();
 
         adapter.unmountDevices();
-        verify(device).unmount();
+        verify(device).unmount(any());
         verify(device, never()).dispose();
     }
 
@@ -216,7 +216,7 @@ public final class RPCDeviceBusAdapterTests {
         adapter.resume(controller);
 
         adapter.unmountDevices();
-        verify(device, never()).unmount();
+        verify(device, never()).unmount(any());
         verify(device, never()).dispose();
     }
 
@@ -227,7 +227,7 @@ public final class RPCDeviceBusAdapterTests {
         adapter.mountDevices();
 
         adapter.disposeDevices();
-        verify(device).unmount();
+        verify(device).unmount(any());
         verify(device).dispose();
     }
 
@@ -237,7 +237,7 @@ public final class RPCDeviceBusAdapterTests {
         adapter.resume(controller);
 
         adapter.disposeDevices();
-        verify(device, never()).unmount();
+        verify(device, never()).unmount(any());
         verify(device).dispose();
     }
 
@@ -249,7 +249,7 @@ public final class RPCDeviceBusAdapterTests {
         adapter.unmountDevices();
 
         adapter.mountDevices();
-        verify(device, times(2)).mount();
+        verify(device, times(2)).mount(any());
     }
 
     @Test
@@ -262,21 +262,21 @@ public final class RPCDeviceBusAdapterTests {
         addDevice(listDevice);
 
         adapter.resume(controller);
-        verify(device1, never()).mount();
-        verify(device2, never()).mount();
+        verify(device1, never()).mount(any());
+        verify(device2, never()).mount(any());
 
         adapter.mountDevices();
-        verify(device1).mount();
-        verify(device2).mount();
+        verify(device1).mount(any());
+        verify(device2).mount(any());
 
         adapter.resume(controller);
 
-        verify(device1, never()).unmount();
-        verify(device2, never()).unmount();
+        verify(device1, never()).unmount(any());
+        verify(device2, never()).unmount(any());
 
         adapter.mountDevices();
-        verify(device1, atMostOnce()).mount();
-        verify(device2, atMostOnce()).mount();
+        verify(device1, atMostOnce()).mount(any());
+        verify(device2, atMostOnce()).mount(any());
     }
 
     private RPCDevice addEmptyDevice() {

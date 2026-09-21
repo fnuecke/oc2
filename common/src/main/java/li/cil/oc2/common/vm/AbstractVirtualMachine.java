@@ -80,10 +80,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         gameTimeSource = gameTime;
     }
 
-    public boolean sendEvent(final String type, @Nullable final Object data) {
-        return architecture != null && architecture.sendGuestEvent(type, data);
-    }
-
     public void dispose() {
         disposeArchitecture();
         busController.dispose();

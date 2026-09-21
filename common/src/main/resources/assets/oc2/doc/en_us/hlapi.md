@@ -37,7 +37,7 @@ To use the `devices` library, import it using `require("devices")`. What you get
 `waitEvent(timeout:number, eventType:string):table` waits for the next event sent by a device, such as a [robot](robotics.md) finishing an action.
 - `timeout` is how long to wait for, in milliseconds. Pass `nil` to wait for as long as it takes.
 - `eventType` is an optional event name. When specified, events of any other type are discarded while waiting.
-- Returns the event, a table with a `type` and a `data` entry, or nothing if the timeout ran out first.
+- Returns the event, a table with a `type` and a `data` entry, plus a `deviceId` when a device sent it, or nothing if the timeout ran out first. Events and method results travel separately, so an event may arrive before the result of the call that caused it.
 
 `blob(data:string):Blob` wraps binary data so that it may be passed to a device method. Parameters are otherwise sent as text, which would corrupt anything that is not.
 - `data` is the bytes to wrap.
@@ -50,6 +50,8 @@ Its main purpose is to enable seamless invocation of methods exposed by this dev
 
 To invoke a method on such a wrapper, use colon notation, and the method's name. For example:  
 `wrapper:someMethod(1, 2, 3)`
+
+`wrapper:waitEvent(timeout:number, eventType:string):table` works like `waitEvent` on the library, but only returns events sent by this device. Events from other devices are discarded while waiting.
 
 To obtain the documentation of the device, `tostring` it. In the Lua interpreter, use `=wrapper`.
 

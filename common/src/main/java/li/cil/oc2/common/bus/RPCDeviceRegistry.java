@@ -2,9 +2,12 @@
 
 package li.cil.oc2.common.bus;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceWithIdentifier;
@@ -13,13 +16,28 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 final class RPCDeviceRegistry {
+    @FunctionalInterface
+    interface EventSink {
+        boolean sendEvent(UUID deviceId, String type, @Nullable Object data);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private final EventSink events;
     private final ArrayList<RPCDeviceWithIdentifier> devices = new ArrayList<>();
-    private final HashMap<UUID, RPCDeviceList> devicesById = new HashMap<>();
+    private final BiMap<UUID, RPCDeviceList> devicesById = HashBiMap.create();
     private final Set<RPCDeviceList> unmountedDevices = new HashSet<>();
     private final Set<RPCDeviceList> mountedDevices = new HashSet<>();
+    private final HashMap<RPCDeviceList, MountedContext> contexts = new HashMap<>();
 
     @Serialized
-    private int generation; // bumped whenever the device list changes, sent with every reply
+    private volatile int generation; // bumped whenever the device list changes, sent with every reply
+
+    // --------------------------------------------------------------------- //
+
+    RPCDeviceRegistry(final EventSink events) {
+        this.events = events;
+    }
 
     // --------------------------------------------------------------------- //
 
@@ -37,8 +55,10 @@ final class RPCDeviceRegistry {
     }
 
     void mountAll() {
-        for (final RPCDevice device : unmountedDevices) {
-            device.mount();
+        for (final RPCDeviceList device : unmountedDevices) {
+            final MountedContext context = new MountedContext(events, devicesById.inverse().get(device));
+            contexts.put(device, context);
+            device.mount(context);
         }
 
         mountedDevices.addAll(unmountedDevices);
@@ -46,8 +66,8 @@ final class RPCDeviceRegistry {
     }
 
     void unmountAll() {
-        for (final RPCDevice device : mountedDevices) {
-            device.unmount();
+        for (final RPCDeviceList device : mountedDevices) {
+            device.unmount(detach(device));
         }
 
         unmountedDevices.addAll(mountedDevices);
@@ -115,6 +135,11 @@ final class RPCDeviceRegistry {
             devicesById.put(identifier, device);
             devices.add(device);
 
+            final MountedContext context = contexts.get(device);
+            if (context != null) {
+                context.identifier = identifier;
+            }
+
             // Add to set of unmounted devices if we don't already track it. It's a set, so
             // there won't be duplicates in the unmounted set due to this.
             if (!mountedDevices.contains(device)) {
@@ -126,7 +151,9 @@ final class RPCDeviceRegistry {
         final HashSet<RPCDeviceList> removedMountedDevices = new HashSet<>(mountedDevices);
         removedMountedDevices.removeAll(devices);
         mountedDevices.removeAll(removedMountedDevices);
-        removedMountedDevices.forEach(RPCDeviceList::unmount);
+        for (final RPCDeviceList device : removedMountedDevices) {
+            device.unmount(detach(device));
+        }
 
         // Remove devices from unmounted set.
         unmountedDevices.retainAll(devices);
@@ -135,6 +162,12 @@ final class RPCDeviceRegistry {
     }
 
     // --------------------------------------------------------------------- //
+
+    private MountedContext detach(final RPCDeviceList device) {
+        final MountedContext context = contexts.remove(device);
+        context.events = null;
+        return context;
+    }
 
     private static UUID selectIdentifierDeterministically(final ArrayList<UUID> identifiers) {
         UUID lowestIdentifier = identifiers.get(0);
@@ -145,5 +178,23 @@ final class RPCDeviceRegistry {
             }
         }
         return lowestIdentifier;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static final class MountedContext implements RPCBusContext {
+        @Nullable private volatile EventSink events;
+        private volatile UUID identifier;
+
+        MountedContext(final EventSink events, final UUID identifier) {
+            this.events = events;
+            this.identifier = identifier;
+        }
+
+        @Override
+        public boolean sendEvent(final String type, @Nullable final Object data) {
+            final EventSink events = this.events;
+            return events != null && events.sendEvent(identifier, type, data);
+        }
     }
 }

@@ -8,8 +8,10 @@ import li.cil.oc2.api.bus.device.io.IOName;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
+import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
@@ -24,11 +26,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 import static java.util.Collections.singletonList;
 
 @IOName("REDSTN")
-public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implements NamedDevice, DocumentedDevice {
+public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implements NamedDevice, DocumentedDevice, LifecycleAwareDevice {
+    public record RedstoneChangedEvent(String side, int value) {
+        public static final String TYPE = "redstoneChanged";
+    }
+
     private static final String OUTPUT_TAG_NAME = "output";
 
     private static final String GET_REDSTONE_INPUT = "getRedstoneInput";
@@ -43,6 +52,8 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
     // --------------------------------------------------------------------- //
 
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
+    private final byte[] input = new byte[Constants.BLOCK_FACE_COUNT];
+    private final Set<RPCBusContext> contexts = new HashSet<>();
 
     // --------------------------------------------------------------------- //
 
@@ -66,6 +77,27 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 
+    @Override
+    protected void loadServerInLoadedLevel() {
+        super.loadServerInLoadedLevel();
+
+        updateInputs(false);
+    }
+
+    public void handleNeighborChanged() {
+        updateInputs(true);
+    }
+
+    @Override
+    public void onDeviceMounted(final RPCBusContext context) {
+        contexts.add(context);
+    }
+
+    @Override
+    public void onDeviceUnmounted(final RPCBusContext context) {
+        contexts.remove(context);
+    }
+
     public int getOutputForDirection(final Direction direction) {
         final Direction localDirection = HorizontalBlockUtils.toLocal(getBlockState(), direction);
         assert localDirection != null;
@@ -73,25 +105,12 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
         return output[localDirection.get3DDataValue()];
     }
 
-    @Callback(name = GET_REDSTONE_INPUT)
+    @Callback(name = GET_REDSTONE_INPUT, synchronize = false)
     public int getRedstoneInput(@Parameter(SIDE) @Nullable final Side side) {
         if (side == null) throw new IllegalArgumentException();
+        final int index = toLocalIndex(side);
 
-        if (level == null) {
-            return 0;
-        }
-
-        final BlockPos pos = getBlockPos();
-        final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), side);
-        assert direction != null;
-
-        final BlockPos neighborPos = pos.relative(direction);
-        final ChunkPos chunkPos = new ChunkPos(neighborPos);
-        if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
-            return 0;
-        }
-
-        return level.getSignal(neighborPos, direction);
+        return input[index];
     }
 
     @Callback(name = GET_REDSTONE_OUTPUT, synchronize = false)
@@ -158,7 +177,7 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
 
     // --------------------------------------------------------------------- //
 
-    @IOCallback(GET_REDSTONE_INPUT_CODE)
+    @IOCallback(value = GET_REDSTONE_INPUT_CODE, synchronize = false)
     public void getRedstoneInputIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(getRedstoneInput(Side.byIndex(arguments.readU8())));
     }
@@ -178,6 +197,42 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity implement
 
     private int toLocalIndex(final Side side) {
         return HorizontalBlockUtils.toLocal(getBlockState(), side).get3DDataValue();
+    }
+
+    private int readInput(final Direction direction) {
+        if (level == null) {
+            return 0;
+        }
+
+        final BlockPos neighborPos = getBlockPos().relative(direction);
+        final ChunkPos chunkPos = new ChunkPos(neighborPos);
+        if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
+            return 0;
+        }
+
+        return level.getSignal(neighborPos, direction);
+    }
+
+    private void updateInputs(final boolean sendEvents) {
+        for (final Direction direction : Direction.values()) {
+            final Direction localDirection = HorizontalBlockUtils.toLocal(getBlockState(), direction);
+            assert localDirection != null;
+            final int index = localDirection.get3DDataValue();
+
+            final byte value = (byte) readInput(direction);
+            if (value == input[index]) {
+                continue;
+            }
+            input[index] = value;
+
+            if (sendEvents) {
+                final String side = Side.byIndex(index).name().toLowerCase(Locale.ROOT);
+                final RedstoneChangedEvent event = new RedstoneChangedEvent(side, value);
+                for (final RPCBusContext context : contexts) {
+                    context.sendEvent(RedstoneChangedEvent.TYPE, event);
+                }
+            }
+        }
     }
 
     private void notifyNeighbor(final Direction direction) {

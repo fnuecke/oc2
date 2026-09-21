@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.io.IOCallbacks;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.io.IOMethod;
+import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
@@ -104,16 +105,16 @@ public final class ObjectDevice implements RPCDevice, IODevice, ItemDevice {
     }
 
     @Override
-    public void mount() {
+    public void mount(final RPCBusContext context) {
         if (object instanceof LifecycleAwareDevice device) {
-            device.onDeviceMounted();
+            device.onDeviceMounted(context);
         }
     }
 
     @Override
-    public void unmount() {
+    public void unmount(final RPCBusContext context) {
         if (object instanceof LifecycleAwareDevice device) {
-            device.onDeviceUnmounted();
+            device.onDeviceUnmounted(context);
         }
     }
 

@@ -91,23 +91,27 @@ implement Gson's `JsonSerializer`, `JsonDeserializer` or both; only implement th
 
 ### Device Lifecycle
 
-Where needed, the optional interface methods `mount()`, `unmount()` and `dispose()` may be implemented, to react to
-device lifecycle events. This can be useful in case some state needs to be initialized or reset, when the computer
-starts or stops, or the device is connected to or disconnected from a computer.
+Where needed, the optional interface methods `mount(RPCBusContext)`, `unmount(RPCBusContext)` and `dispose()` may be
+implemented, to react to device lifecycle events. This can be useful in case some state needs to be initialized or
+reset, when the computer starts or stops, or the device is connected to or disconnected from a computer.
 
 These methods are called in the following cases:
 
-- `mount()` is called when a device is added to a running computer, or the computer it was added to starts running. It
-  is also called when a computer resumes running after the chunk it sits in is loaded.
-- `unmount()` is called when the computer suspends because its chunk is unloaded or the server stops, when the computer
-  stops, and when the device is removed from a running computer. If `mount()` was called, `unmount()` is guaranteed to
-  follow.
+- `mount(context)` is called when a device is added to a running computer, or the computer it was added to starts
+  running. It is also called when a computer resumes running after the chunk it sits in is loaded.
+- `unmount(context)` is called when the computer suspends because its chunk is unloaded or the server stops, when the
+  computer stops, and when the device is removed from a running computer. If `mount()` was called, `unmount()` is
+  guaranteed to follow, with the same `RPCBusContext`.
 - `dispose()` is called when the computer stops or the device is removed, after `unmount()`. It is not a terminal
   state: a device still on the bus when its computer starts again is mounted again, so it must leave itself usable.
   Releasing resources here is fine as long as they can be re-acquired on the next mount.
 
 Note that suspending and stopping are not distinguished. Both end in `unmount()`; only stopping continues on to
 `dispose()`.
+
+The `RPCBusContext` is the device's handle on the computer it was mounted in. A device reachable from several computers,
+such as a block entity with computers on two sides, is mounted once per computer and receives a distinct context each
+time. A device may receive more than one context, so keep them in a `Set`, and remove entries passed by `unmount()`.
 
 This can be useful for various things. For example:
 
@@ -119,16 +123,16 @@ This can be useful for various things. For example:
     - Close the file in `unmount()`.
     - Delete the file in `dispose()`, and be ready to create it again on the next `mount()`.
 
-### No Active Back-channel
+### Events
 
-Unlike some other computer mods (e.g. OpenComputers and ComputerCraft), there is no *active* back-channel in the
-`RPCDevice` API. In other words, it is not possible for `RPCDevices` to raise events in the virtual machines. The only
-way to provide data to the virtual machines is as values returned from exposed methods. Programs running in the virtual
-machines will always have to poll for changed data.
+`RPCBusContext.sendEvent(type, data)` raises an event in the guest, where scripts receive it through `waitEvent`. The
+context handles device id mapping, so that the guest can tell which device raised the event. Emit events sparingly,
+usually on some state change: the event queue is shared by every device on the computer, and an event that does not
+fit is dropped.
 
-> [!NOTE]
-> Guest programs do have an event API, and the mod itself uses it to signal completed robot actions. That path is
-> internal; there is no way to reach it from a `Device`.
+`sendEvent` may be called from any thread. `data` is serialized on the calling thread, so only pass game objects such
+as an `ItemStack` from the server thread. Binary payloads (`byte[]`) are not supported in events; such an event is
+logged and dropped. After `unmount()`, `sendEvent` returns `false`.
 
 ## The `BlockDeviceProvider` and `ItemDeviceProvider`
 
@@ -303,7 +307,8 @@ final class Integration {
     // overriding equals() is strongly recommended, to allow newly picked up devices to be matched to previously
     // existing devices. Otherwise, the devices will technically be removed and re-added every time the device bus
     // scans for device changes. This is particularly relevant when using the lifecycle methods mount(), unmount()
-    // and dispose() (e.g. if we were to implement LifecycleAwareDevice on this record).
+    // and dispose() (e.g. if we were to implement LifecycleAwareDevice on this record). It is also what makes a
+    // device present on several sides of one computer mount once, rather than once per side.
     record ModBlockEntityDevice(ModBlockEntity blockEntity) {
         @Callback
         public int getMagicValue() {

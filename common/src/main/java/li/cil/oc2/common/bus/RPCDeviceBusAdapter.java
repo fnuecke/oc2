@@ -44,13 +44,15 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public static final String ERROR_INTERNAL = "internal error";
     public static final String ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED =
         "binary parameters (byte[]) require an rpc method to not be synchronized (synchronize = false)";
+    public static final String ERROR_EVENT_PAYLOAD_BINARY = "events cannot carry binary data (byte[])";
 
     // --------------------------------------------------------------------- //
 
     private final Gson gson;
+    private final Gson eventGson;
 
     @Serialized
-    private final RPCDeviceRegistry registry = new RPCDeviceRegistry();
+    private final RPCDeviceRegistry registry = new RPCDeviceRegistry(this::sendEvent);
     @Serialized
     private final RPCMessageChannel messages;
     @Serialized
@@ -83,6 +85,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
             .registerTypeAdapter(RPCDeviceWithIdentifier.class, new RPCDeviceWithIdentifierJsonSerializer())
             .registerTypeHierarchyAdapter(RPCMethod.class, new RPCMethodJsonSerializer())
             .registerTypeAdapter(EmptyMethodGroup.class, new EmptyRPCMethodGroupSerializer())
+            .registerTypeAdapter(Side.class, new SideJsonDeserializer())
+            .create();
+        this.eventGson = RPCTypeAdapters.beginBuildGson()
+            .registerTypeAdapter(byte[].class, (JsonSerializer<byte[]>) (src, type, context) -> {
+                throw new JsonParseException(ERROR_EVENT_PAYLOAD_BINARY);
+            })
             .registerTypeAdapter(Side.class, new SideJsonDeserializer())
             .create();
     }
@@ -161,8 +169,18 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     public boolean sendEvent(final String type, @Nullable final Object data) {
-        return events.sendEvent(RPCMessageChannel.frame(
-            encode(new Message(type, 0, registry.generation(), data, null))));
+        return sendEvent(null, type, data);
+    }
+
+    public boolean sendEvent(@Nullable final UUID deviceId, final String type, @Nullable final Object data) {
+        final String json;
+        try {
+            json = eventGson.toJson(new Message(type, 0, registry.generation(), deviceId, data, null));
+        } catch (final Throwable e) {
+            LOGGER.error("Failed serializing event [{}] of device [{}].", type, deviceId, e);
+            return false;
+        }
+        return events.sendEvent(RPCMessageChannel.frame(json.getBytes(StandardCharsets.UTF_8)));
     }
 
     // --------------------------------------------------------------------- //
@@ -418,14 +436,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
 
         messages.send(RPCMessageChannel.frame(encode(
-            new Message(type, currentRequestId, registry.generation(), dataElement, blob))));
+            new Message(type, currentRequestId, registry.generation(), null, dataElement, blob))));
     }
 
     private void announceDroppedEvents() {
         final int dropped = events.takeDropped();
         if (dropped > 0) {
             events.sendNotice(RPCMessageChannel.frame(encode(new Message(
-                Message.MESSAGE_TYPE_EVENTS_DROPPED, 0, registry.generation(), dropped, null))));
+                Message.MESSAGE_TYPE_EVENTS_DROPPED, 0, registry.generation(), null, dropped, null))));
         }
     }
 
@@ -441,7 +459,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public record BlobReference(int length, int checksum) {
     }
 
-    public record Message(String type, int id, int gen,
+    public record Message(String type, int id, int gen, @Nullable UUID deviceId,
                           @Nullable Object data, @Nullable BlobReference blob) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";

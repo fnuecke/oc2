@@ -7,7 +7,9 @@ import com.google.gson.JsonParser;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
+import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.entity.robot.RobotActionCompletedEvent;
@@ -347,6 +349,107 @@ public final class RPCEventChannelTests {
         }
     }
 
+    @Test
+    public void deviceEventNamesItsDevice() {
+        final ContextCapture capture = new ContextCapture();
+        final UUID id = addDevice(new ObjectDevice(capture, "capture"), UUID.randomUUID()).iterator().next();
+        adapter.resume(busController);
+        adapter.mountDevices();
+        adapter.step(0);
+        assertEquals("devicesChanged", event().get("type").getAsString());
+
+        assertTrue(capture.mounted.sendEvent("ping", 7));
+        adapter.step(0);
+
+        final JsonObject event = event();
+        assertEquals("ping", event.get("type").getAsString());
+        assertEquals(id.toString(), event.get("deviceId").getAsString());
+        assertEquals(7, event.get("data").getAsInt());
+        assertEquals(request("list").get("gen").getAsInt(), event.get("gen").getAsInt());
+        assertFalse(request("list").has("deviceId"), "a reply is not attributed to a device");
+    }
+
+    @Test
+    public void unmountHandsBackTheContextAndInvalidatesIt() {
+        final ContextCapture capture = new ContextCapture();
+        addDevice(new ObjectDevice(capture, "capture"), UUID.randomUUID());
+        adapter.resume(busController);
+        adapter.mountDevices();
+        adapter.step(0);
+        event();
+
+        final RPCBusContext context = capture.mounted;
+        adapter.unmountDevices();
+        assertSame(context, capture.unmounted);
+        assertFalse(context.sendEvent("ping", null));
+        adapter.step(0);
+        assertNull(eventDevice.readMessageAsVM(), "an unmounted device raised an event");
+
+        adapter.mountDevices();
+        assertNotSame(context, capture.mounted, "a context was reused across mounts");
+        assertTrue(capture.mounted.sendEvent("ping", null));
+    }
+
+    @Test
+    public void removedDeviceIsUnmountedWithItsContext() {
+        final ContextCapture capture = new ContextCapture();
+        final RPCDevice device = new ObjectDevice(capture, "capture");
+        addDevice(device, UUID.randomUUID());
+        adapter.resume(busController);
+        adapter.mountDevices();
+
+        devices.remove(device);
+        identifiers.remove(device);
+        adapter.resume(busController);
+        assertSame(capture.mounted, capture.unmounted);
+        assertFalse(capture.mounted.sendEvent("ping", null));
+    }
+
+    @Test
+    public void eventFollowsTheIdentifierAcrossARebuild() {
+        final UUID first = UUID.fromString("00000000-0000-0000-0000-00000000000a");
+        final UUID second = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        final UUID chosen = first.compareTo(second) <= 0 ? first : second;
+        final UUID other = chosen.equals(first) ? second : first;
+        final ContextCapture capture = new ContextCapture();
+        final Set<UUID> ids = addDevice(new ObjectDevice(capture, "capture"), first, second);
+        adapter.resume(busController);
+        adapter.mountDevices();
+        adapter.step(0);
+        event();
+
+        capture.mounted.sendEvent("ping", null);
+        adapter.step(0);
+        assertEquals(chosen.toString(), event().get("deviceId").getAsString());
+
+        ids.remove(chosen);
+        adapter.resume(busController);
+        adapter.step(0);
+        assertEquals("devicesChanged", event().get("type").getAsString());
+        assertNull(capture.unmounted, "losing one of two identifiers is not a removal");
+
+        capture.mounted.sendEvent("ping", null);
+        adapter.step(0);
+        assertEquals(other.toString(), event().get("deviceId").getAsString(),
+            "the event named an identifier the guest no longer sees");
+    }
+
+    @Test
+    public void binaryEventPayloadIsRefused() {
+        final ContextCapture capture = new ContextCapture();
+        addDevice(new ObjectDevice(capture, "capture"), UUID.randomUUID());
+        adapter.resume(busController);
+        adapter.mountDevices();
+        adapter.step(0);
+        event();
+
+        assertFalse(capture.mounted.sendEvent("blob", new byte[]{1, 2, 3}));
+        assertFalse(capture.mounted.sendEvent("blob", Map.of("bytes", new byte[]{1, 2, 3})));
+        adapter.step(0);
+        assertNull(eventDevice.readMessageAsVM(), "a refused event was still sent");
+        assertTrue(capture.mounted.sendEvent("ping", null), "the channel is unusable after a refusal");
+    }
+
     // --------------------------------------------------------------------- //
 
     private JsonObject event() {
@@ -364,14 +467,37 @@ public final class RPCEventChannelTests {
     }
 
     private void addDevice(final String typeName) {
-        final RPCDevice device = new ObjectDevice(new Pingable(), typeName);
+        addDevice(new ObjectDevice(new Pingable(), typeName), UUID.randomUUID());
+    }
+
+    private Set<UUID> addDevice(final RPCDevice device, final UUID... ids) {
         devices.add(device);
-        final Set<UUID> ids = new HashSet<>();
-        ids.add(UUID.randomUUID());
-        identifiers.put(device, ids);
+        final Set<UUID> idSet = new HashSet<>(Arrays.asList(ids));
+        identifiers.put(device, idSet);
+        return idSet;
     }
 
     public static final class Pingable {
+        @Callback(synchronize = false)
+        public int ping() {
+            return 1;
+        }
+    }
+
+    public static final class ContextCapture implements LifecycleAwareDevice {
+        RPCBusContext mounted;
+        RPCBusContext unmounted;
+
+        @Override
+        public void onDeviceMounted(final RPCBusContext context) {
+            mounted = context;
+        }
+
+        @Override
+        public void onDeviceUnmounted(final RPCBusContext context) {
+            unmounted = context;
+        }
+
         @Callback(synchronize = false)
         public int ping() {
             return 1;

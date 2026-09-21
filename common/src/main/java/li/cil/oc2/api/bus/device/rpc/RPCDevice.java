@@ -79,8 +79,10 @@ public interface RPCDevice extends Device {
      * <p>
      * This is called when the connected virtual machine starts, or when the device
      * is added to a {@link DeviceBus} with a currently running virtual machine.
+     *
+     * @param context the device's handle on the computer it was mounted in.
      */
-    default void mount() {
+    default void mount(final RPCBusContext context) {
     }
 
     /**
@@ -92,8 +94,10 @@ public interface RPCDevice extends Device {
      * {@link DeviceBus} with a currently running virtual machine. In this case, {@link #dispose()}
      * will be called after this method returns.
      * <p>
-     * If {@link #mount()} was called, this is guaranteed to be called.
+     * If {@link #mount(RPCBusContext)} was called, this is guaranteed to be called.
+     *
+     * @param context the context passed to the matching {@link #mount(RPCBusContext)}. No longer valid.
      */
-    default void unmount() {
+    default void unmount(final RPCBusContext context) {
     }
 }

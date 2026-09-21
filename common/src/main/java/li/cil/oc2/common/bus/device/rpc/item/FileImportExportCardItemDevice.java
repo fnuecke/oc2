@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
+import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
@@ -152,7 +153,7 @@ public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice 
     // --------------------------------------------------------------------- //
 
     @Override
-    public void unmount() {
+    public void unmount(final RPCBusContext context) {
         reset();
     }
 

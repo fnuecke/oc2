@@ -81,4 +81,52 @@ expect("it applied the events it passed over", bus.generation, 8)
 event(9)
 expect("no type means any event", (bus.wait_event(0) or {}).get("type"), "devicesChanged")
 
+
+# A device event pumped by list() is kept for the next wait_event.
+def device_event(event_type, data):
+    virtio.add(virtio.event, virtio.frame({"type": event_type, "gen": 9, "data": data}))
+
+
+device_event("redstoneChanged", 1)
+list_reply(9)
+bus.list()
+expect("list consumed the frame", len(virtio.event.chunks), 0)
+kept = bus.wait_event(0, "redstoneChanged")
+expect("wait_event returns the event list pumped", kept and kept.get("data"), 1)
+expect("a pumped event is handed out once", bus.wait_event(0), None)
+
+# Pumped events come out ahead of the channel, in order, and a filter discards them too.
+device_event("redstoneChanged", 2)
+device_event("inventoryChanged", 3)
+bus.pump_events()
+device_event("redstoneChanged", 4)
+expect("pumped events are ordered", (bus.wait_event(0) or {}).get("data"), 2)
+expect("the filter discards pumped events too",
+       (bus.wait_event(0, "redstoneChanged") or {}).get("data"), 4)
+expect("nothing left over", bus.wait_event(0), None)
+
+# A device wrapper only hands out its own events, and discards the rest.
+virtio.reply({"type": "list", "gen": 9, "data": [
+    {"deviceId": "aaa", "typeNames": ["redstone"]},
+    {"deviceId": "bbb", "typeNames": ["redstone"]},
+]})
+aaa = bus.get("aaa")
+expect("wrapper found", aaa is not None, True)
+virtio.add(virtio.event, virtio.frame({"type": "redstoneChanged", "gen": 9, "deviceId": "bbb", "data": 1}))
+virtio.add(virtio.event, virtio.frame({"type": "redstoneChanged", "gen": 9, "deviceId": "aaa", "data": 2}))
+expect("wrapper skips other devices' events",
+       (aaa.wait_event(0, "redstoneChanged") or {}).get("data"), 2)
+expect("wrapper discarded what it skipped", bus.wait_event(0), None)
+expect("wrapper times out like the bus", aaa.wait_event(0), None)
+
+# Pumping without waiting keeps only the newest events.
+from oc2 import bus as oc2_bus  # noqa: E402
+oc2_bus.MAX_PENDING_EVENTS = 2
+device_event("redstoneChanged", 5)
+device_event("redstoneChanged", 6)
+device_event("redstoneChanged", 7)
+bus.pump_events()
+expect("oldest pending event dropped", (bus.wait_event(0) or {}).get("data"), 6)
+expect("newest pending event kept", (bus.wait_event(0) or {}).get("data"), 7)
+
 report()

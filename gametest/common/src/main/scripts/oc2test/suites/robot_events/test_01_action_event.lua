@@ -7,6 +7,8 @@ local actionId = robot:getLastActionId()
 local event = bus:waitEvent(10000, "robotActionCompleted")
 assert(event, "no robotActionCompleted event arrived within 10s")
 assert(event.type == "robotActionCompleted", "unexpected event type " .. tostring(event.type))
+assert(event.deviceId == robot.deviceId,
+  string.format("event came from device %s, expected %s", tostring(event.deviceId), tostring(robot.deviceId)))
 
 local data = assert(event.data, "event carried no data")
 assert(data.actionId == actionId,

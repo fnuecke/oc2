@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -64,6 +65,14 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
     @Override
     protected int getDirectSignal(final BlockState state, final BlockGetter level, final BlockPos pos, final Direction side) {
         return getSignal(state, level, pos, side);
+    }
+
+    @Override
+    protected void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block neighborBlock, final BlockPos neighborPos, final boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (level.getBlockEntity(pos) instanceof final RedstoneInterfaceBlockEntity redstoneInterface) {
+            redstoneInterface.handleNeighborChanged();
+        }
     }
 
     // --------------------------------------------------------------------- //

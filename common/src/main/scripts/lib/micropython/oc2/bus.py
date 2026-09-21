@@ -16,6 +16,7 @@ TOKEN_LENGTH = 32
 HELLO_TIMEOUT_MS = 5000
 REQUEST_TIMEOUT_MS = 35000
 MAX_EVENTS_PER_PUMP = 32
+MAX_PENDING_EVENTS = 64
 CONNECT_ATTEMPTS = 15
 CONNECT_RETRY_MS = 200
 SUPERVISOR_PID_PATH = "/run/oc2busd.pid"
@@ -49,6 +50,16 @@ class Device:
 
     def invoke(self, method_name, *args):
         return self.bus.invoke(self.device_id, method_name, *args)
+
+    def wait_event(self, timeout=None, event_type=None):
+        deadline = None if timeout is None else oc2_clock.deadline(timeout)
+        while True:
+            event = self.bus.wait_event(
+                None if deadline is None else oc2_clock.remaining(deadline), event_type)
+            if event is None:
+                return None
+            if event.get("deviceId") == self.device_id:
+                return event
 
     def __getattr__(self, item):
         if item.startswith("_"):
@@ -117,6 +128,7 @@ class DeviceBus:
         self.rpc = rpc
         self.payload = payload
         self.events = events
+        self.pending_events = []
         self.generation = None
         self.generation_confirmed = False
         self.device_list = None
@@ -172,17 +184,25 @@ class DeviceBus:
                 break
             if self._apply_event(event):
                 count += 1
+            else:
+                if len(self.pending_events) >= MAX_PENDING_EVENTS:
+                    del self.pending_events[0]
+                self.pending_events.append(event)
         return count
 
     def wait_event(self, timeout=None, event_type=None):
         if self.events is None:
             raise Exception("this session has no event channel")
 
+        deadline = None if timeout is None else oc2_clock.deadline(timeout)
         while True:
-            event = self.events.wait(timeout)
-            if event is None:
-                return None
-            self._apply_event(event)
+            if self.pending_events:
+                event = self.pending_events.pop(0)
+            else:
+                event = self.events.wait(None if deadline is None else oc2_clock.remaining(deadline))
+                if event is None:
+                    return None
+                self._apply_event(event)
             if event_type is None or event.get("type") == event_type:
                 return event
 

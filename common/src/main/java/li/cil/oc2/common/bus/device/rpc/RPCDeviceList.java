@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
+import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import net.minecraft.nbt.CompoundTag;
@@ -30,16 +31,16 @@ public record RPCDeviceList(ArrayList<RPCDevice> devices) implements RPCDevice {
     }
 
     @Override
-    public void mount() {
+    public void mount(final RPCBusContext context) {
         for (final RPCDevice device : devices) {
-            device.mount();
+            device.mount(context);
         }
     }
 
     @Override
-    public void unmount() {
+    public void unmount(final RPCBusContext context) {
         for (final RPCDevice device : devices) {
-            device.unmount();
+            device.unmount(context);
         }
     }
 

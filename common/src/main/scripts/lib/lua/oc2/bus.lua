@@ -14,6 +14,7 @@ bus.tokenLength = 32
 bus.helloTimeout = 5000
 bus.requestTimeout = 35000
 bus.maxEventsPerPump = 32
+bus.maxPendingEvents = 64
 bus.connectAttempts = 15
 bus.connectRetryDelay = 200
 bus.supervisorPidPath = "/run/oc2busd.pid"
@@ -62,6 +63,20 @@ end
 
 function Device:invoke(methodName, ...)
   return busOf(self):invoke(self.deviceId, methodName, ...)
+end
+
+function Device:waitEvent(timeout, eventType)
+  local bus_ = busOf(self)
+  local deadline = timeout and clock.deadline(timeout)
+  while true do
+    local event, reason = bus_:waitEvent(deadline and clock.remaining(deadline), eventType)
+    if not event then
+      return nil, reason
+    end
+    if event.deviceId == self.deviceId then
+      return event
+    end
+  end
 end
 
 Device.__index = function(self, key)
@@ -172,6 +187,7 @@ DeviceBus.null = require("cjson").null
 function DeviceBus.new(transport, rpc, payload, events)
   return setmetatable({
     transport = transport, rpc = rpc, payload = payload, events = events,
+    pendingEvents = {},
   }, DeviceBus)
 end
 
@@ -248,6 +264,12 @@ function DeviceBus:pumpEvents()
     end
     if applyEvent(self, event) then
       count = count + 1
+    else
+      local pending = self.pendingEvents
+      if #pending >= bus.maxPendingEvents then
+        table.remove(pending, 1)
+      end
+      pending[#pending + 1] = event
     end
   end
   return count
@@ -258,13 +280,18 @@ function DeviceBus:waitEvent(timeout, eventType)
     return nil, "this session has no event channel"
   end
 
+  local deadline = timeout and clock.deadline(timeout)
   while true do
-    local event, reason = self.events:wait(timeout)
+    local event = table.remove(self.pendingEvents, 1)
     if not event then
-      return nil, reason
+      local reason
+      event, reason = self.events:wait(deadline and clock.remaining(deadline))
+      if not event then
+        return nil, reason
+      end
+      applyEvent(self, event)
     end
 
-    applyEvent(self, event)
     if not eventType or event.type == eventType then
       return event
     end

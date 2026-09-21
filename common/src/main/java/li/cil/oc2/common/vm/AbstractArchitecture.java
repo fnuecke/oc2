@@ -92,10 +92,6 @@ public abstract class AbstractArchitecture {
         context.sendEvent(event);
     }
 
-    public boolean sendGuestEvent(final String type, @Nullable final Object data) {
-        return false;
-    }
-
     // --------------------------------------------------------------------- //
     // General device bus API / lifecycle
 

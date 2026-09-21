@@ -10,9 +10,11 @@ import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOName;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
+import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.api.util.RobotOperationSide;
@@ -128,6 +130,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final AnimationState animationState = new AnimationState();
     private final RobotActionProcessor actionProcessor = new RobotActionProcessor();
     private final Terminal terminal = new Terminal();
+    private final RobotDevice robotDevice = new RobotDevice();
     private final RobotBusElement busElement = new RobotBusElement();
     private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
     private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
@@ -726,8 +729,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
                         action = null;
 
-                        virtualMachine.sendEvent(RobotActionCompletedEvent.TYPE,
-                            new RobotActionCompletedEvent(actionId, result));
+                        final RPCBusContext context = robotDevice.context;
+                        if (context != null) {
+                            context.sendEvent(RobotActionCompletedEvent.TYPE,
+                                new RobotActionCompletedEvent(actionId, result));
+                        }
                     }
                 }
                 if (action == null) {
@@ -860,7 +866,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final class RobotBusElement extends AbstractDeviceBusElement {
         private static final String DEVICE_ID_TAG_NAME = "device_id";
 
-        private final Device device = new ObjectDevice(new RobotDevice(), "robot");
+        private final Device device = new ObjectDevice(robotDevice, "robot");
         private UUID deviceId = UUID.randomUUID();
 
         @Override
@@ -971,7 +977,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @IOName("ROBOT")
-    public final class RobotDevice {
+    public final class RobotDevice implements LifecycleAwareDevice {
         private static final String DETECT_AIR = "air";
         private static final String DETECT_FLUID = "fluid";
         private static final String DETECT_SOLID = "solid";
@@ -1000,6 +1006,23 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             MovementDirection.FORWARD, MovementDirection.BACKWARD, MovementDirection.UPWARD, MovementDirection.DOWNWARD};
         private static final RotationDirection[] IO_ROTATIONS = {
             RotationDirection.LEFT, RotationDirection.RIGHT};
+
+        @Nullable
+        private RPCBusContext context;
+
+        // ----------------------------------------------------------------- //
+
+        @Override
+        public void onDeviceMounted(final RPCBusContext context) {
+            this.context = context;
+        }
+
+        @Override
+        public void onDeviceUnmounted(final RPCBusContext context) {
+            this.context = null;
+        }
+
+        // ----------------------------------------------------------------- //
 
         @Callback(description = "Check what occupies the space on the specified side of the robot. " +
             "This only reports whether the space is free, not what is in it.",

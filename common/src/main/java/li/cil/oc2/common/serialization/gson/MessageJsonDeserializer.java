@@ -24,6 +24,6 @@ public final class MessageJsonDeserializer implements JsonDeserializer<RPCDevice
         };
 
         int messageId = GsonHelper.getAsInt(jsonObject, "id", 0);
-        return new RPCDeviceBusAdapter.Message(messageType, messageId, 0, messageData, null);
+        return new RPCDeviceBusAdapter.Message(messageType, messageId, 0, null, messageData, null);
     }
 }

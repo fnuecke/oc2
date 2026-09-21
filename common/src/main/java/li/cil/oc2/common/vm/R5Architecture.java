@@ -12,7 +12,6 @@ import li.cil.sedna.api.device.serial.SerialDevice;
 import li.cil.sedna.api.memory.MemoryAccessException;
 import li.cil.sedna.riscv.R5Board;
 
-import javax.annotation.Nullable;
 import java.util.OptionalLong;
 
 public final class R5Architecture extends AbstractArchitecture {
@@ -116,11 +115,6 @@ public final class R5Architecture extends AbstractArchitecture {
     @Override
     public void sendInitializingEvent() {
         sendLifecycleEvent(new VMInitializingEvent(getContext().getMemoryMap(), board.getDefaultProgramStart()));
-    }
-
-    @Override
-    public boolean sendGuestEvent(final String type, @Nullable final Object data) {
-        return rpcAdapter.sendEvent(type, data);
     }
 
     // --------------------------------------------------------------------- //

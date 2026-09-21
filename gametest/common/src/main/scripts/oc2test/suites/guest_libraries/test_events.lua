@@ -79,4 +79,47 @@ expect("it applied the events it passed over", bus.generation, 8)
 event(9)
 expect("no type means any event", (bus:waitEvent(0) or {}).type, "devicesChanged")
 
+-- A device event pumped by list() is kept for the next waitEvent.
+local function deviceEvent(eventType, data)
+  virtio.add(virtio.event, virtio.frame({ type = eventType, gen = 9, data = data }))
+end
+
+deviceEvent("redstoneChanged", 1)
+listReply(9)
+bus:list()
+expect("list consumed the frame", #virtio.event.chunks, 0)
+local kept = bus:waitEvent(0, "redstoneChanged")
+expect("waitEvent returns the event list pumped", kept and kept.data, 1)
+expect("a pumped event is handed out once", bus:waitEvent(0), nil)
+
+-- Pumped events come out ahead of the channel, in order, and a filter discards them too.
+deviceEvent("redstoneChanged", 2)
+deviceEvent("inventoryChanged", 3)
+bus:pumpEvents()
+deviceEvent("redstoneChanged", 4)
+expect("pumped events are ordered", (bus:waitEvent(0) or {}).data, 2)
+expect("the filter discards pumped events too", (bus:waitEvent(0, "redstoneChanged") or {}).data, 4)
+expect("nothing left over", bus:waitEvent(0), nil)
+
+-- A device wrapper only hands out its own events, and discards the rest.
+virtio.reply({ type = "list", gen = 9, data = {
+  { deviceId = "aaa", typeNames = { "redstone" } },
+  { deviceId = "bbb", typeNames = { "redstone" } },
+} })
+local aaa = assert(bus:get("aaa"))
+virtio.add(virtio.event, virtio.frame({ type = "redstoneChanged", gen = 9, deviceId = "bbb", data = 1 }))
+virtio.add(virtio.event, virtio.frame({ type = "redstoneChanged", gen = 9, deviceId = "aaa", data = 2 }))
+expect("wrapper skips other devices' events", (aaa:waitEvent(0, "redstoneChanged") or {}).data, 2)
+expect("wrapper discarded what it skipped", bus:waitEvent(0), nil)
+expect("wrapper times out like the bus", aaa:waitEvent(0), nil)
+
+-- Pumping without waiting keeps only the newest events.
+require("oc2.bus").maxPendingEvents = 2
+deviceEvent("redstoneChanged", 5)
+deviceEvent("redstoneChanged", 6)
+deviceEvent("redstoneChanged", 7)
+bus:pumpEvents()
+expect("oldest pending event dropped", (bus:waitEvent(0) or {}).data, 6)
+expect("newest pending event kept", (bus:waitEvent(0) or {}).data, 7)
+
 report()

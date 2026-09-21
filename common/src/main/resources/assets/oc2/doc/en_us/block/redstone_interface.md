@@ -41,6 +41,15 @@ Sides may also be given as a number instead of a name. Numbers are relative: `0`
 - `side` is a string representing the side to get the output on. See the "Sides" section.
 - Returns the number representing the current output signal strength.
 
+### Events
+`redstoneChanged` is sent when the received signal on a side changes, so a program can wait for it instead of polling. For example:  
+`local e = r:waitEvent(nil, "redstoneChanged")`  
+`print(e.data.side, e.data.value)`
+- `side` is the relative name of the side, as in the "Sides" section.
+- `value` is the new signal strength.
+
+The device's own output counts towards the received signal, so setting an output may send this event as well.
+
 ## Mid-level API
 Device name: `REDSTN`
 

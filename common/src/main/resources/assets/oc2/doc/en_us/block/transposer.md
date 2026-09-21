@@ -1,7 +1,7 @@
 # Transposer
 ![Less posing, more rights](block:oc2:transposer)
 
-The transposer moves items and fluids between containers next to it. This includes chests, cauldrons and machines supporting automation.
+The transposer moves items and fluids between containers next to it. This includes chests, cauldrons and machines supporting automation. It can also drop items into the world and pick them up again, and place and take fluid blocks, as a bucket would.
 
 It can be controlled using both the [high-level API](../hlapi.md) and the [mid-level API](../mlapi.md). For example:  
 `local d = require("devices")`  
@@ -33,7 +33,7 @@ Device name: `transposer`
 - `targetSide` is the side of the inventory to put items into.
 - `targetSlot` is the number of the slot to put items into.
 - `count` is the most items to move.
-- Returns the number of items moved.
+- Returns the number of items transferred.
 
 `getFluidTankCount(side):number` gets how many tanks the fluid container on the specified side has.
 - `side` is the side of the container to inspect.
@@ -53,7 +53,33 @@ Device name: `transposer`
 - `sourceSide` is the side of the container to drain.
 - `targetSide` is the side of the container to fill.
 - `amount` is the most millibuckets to move.
-- Returns the amount moved in millibuckets.
+- Returns the amount transferred in millibuckets.
+
+`dropItems(sourceSide, sourceSlot:number, targetSide, count:number):number` drops items from an inventory into the world. The target side must not be blocked.
+- `sourceSide` is the side of the inventory to take items from.
+- `sourceSlot` is the number of the slot to take items from.
+- `targetSide` is the side to drop the items on.
+- `count` is the most items to drop.
+- Returns the number of items transferred.
+
+`takeItems(sourceSide, targetSide, targetSlot:number, count:number):number` picks up items lying in the world into an inventory. It takes as many items as the target slot accepts, up to `count`.
+- `sourceSide` is the side to pick items up from.
+- `targetSide` is the side of the inventory to put items into.
+- `targetSlot` is the number of the slot to put items into.
+- `count` is the most items to take.
+- Returns the number of items transferred.
+
+`fillFluid(sourceSide, targetSide):number` pours one bucket of fluid from a container into the world. Nothing is transferred if the container holds less than a bucket, or the fluid cannot go there. Water placed in the Nether evaporates and still counts as placed.
+- `sourceSide` is the side of the container to drain.
+- `targetSide` is the side to place the fluid on.
+- Returns the amount transferred in millibuckets, `1000` or `0`.
+
+`drainFluid(sourceSide, targetSide):number` drains a fluid source block, or out of a waterlogged block, into a container. Nothing is transferred if the container cannot hold a full bucket of it.
+- `sourceSide` is the side to take the fluid from.
+- `targetSide` is the side of the container to fill.
+- Returns the amount transferred in millibuckets, `1000` or `0`.
+
+Sides that are protected, for example by spawn protection, fail with an error.
 
 ## Mid-level API
 Device name: `TRANSP`
@@ -107,3 +133,21 @@ Fluids follow the same pattern. Amounts are millibuckets, four bytes, low byte f
 `12 moveFluid(sourceSide, targetSide, amount)` moves up to `amount` millibuckets between two containers.
 - Takes six bytes, the side to drain, the side to fill, and four bytes for how much to move at most.
 - Returns four bytes, how much was moved.
+
+`13 dropItems(sourceSide, sourceSlot, targetSide, count)` drops up to `count` items from a slot into the world.
+- Takes four bytes, the side and slot to take from, the side to drop on, and how many items to drop at most.
+- Returns one byte, how many items were dropped.
+
+`14 takeItems(sourceSide, targetSide, targetSlot, count)` picks up to `count` items from the world into a slot.
+- Takes four bytes, the side to pick up from, the side and slot to put into, and how many items to take at most.
+- Returns one byte, how many items were taken.
+
+`15 fillFluid(sourceSide, targetSide)` places one bucket of fluid from a container into the world.
+- Takes two bytes, the side to drain and the side to place on.
+- Returns four bytes, how much was placed, 1000 or 0.
+
+`16 drainFluid(sourceSide, targetSide)` takes a fluid block from the world into a container.
+- Takes two bytes, the side to take from and the side to fill.
+- Returns four bytes, how much was taken, 1000 or 0.
+
+A blocked target side, or a protected side, fails with `OCEARG`.

@@ -17,13 +17,21 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.util.FakePlayerUtils;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.BucketPickup;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -41,6 +49,10 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
     private static final String GET_FLUID_IN_TANK = "getFluidInTank";
     private static final String GET_FLUID_TANK_CAPACITY = "getFluidTankCapacity";
     private static final String MOVE_FLUID = "moveFluid";
+    private static final String DROP_ITEMS = "dropItems";
+    private static final String TAKE_ITEMS = "takeItems";
+    private static final String FILL_FLUID = "fillFluid";
+    private static final String DRAIN_FLUID = "drainFluid";
 
     private static final String SIDE = "side";
     private static final String SLOT = "slot";
@@ -64,6 +76,10 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
     private static final int GET_FLUID_NAME_CODE = 10;
     private static final int GET_FLUID_ID_CODE = 11;
     private static final int MOVE_FLUID_CODE = 12;
+    private static final int DROP_ITEMS_CODE = 13;
+    private static final int TAKE_ITEMS_CODE = 14;
+    private static final int FILL_FLUID_CODE = 15;
+    private static final int DRAIN_FLUID_CODE = 16;
 
     // --------------------------------------------------------------------- //
 
@@ -179,6 +195,123 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return filled;
     }
 
+    @Callback(name = DROP_ITEMS)
+    public int dropItems(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide, @Parameter(SOURCE_SLOT) final int sourceSlot,
+                         @Parameter(TARGET_SIDE) @Nullable final Side targetSide, @Parameter(COUNT) final int count) {
+        final ItemHandler source = requireItemHandler(sourceSide);
+        final BlockPos targetPos = requireWorldAccess(requireDirection(targetSide));
+        ItemHandlerProtocol.requireValidSlot(source, sourceSlot);
+        if (!level.getBlockState(targetPos).getCollisionShape(level, targetPos).isEmpty()) {
+            throw new IllegalArgumentException("side is obstructed: " + targetSide);
+        }
+
+        if (count <= 0) {
+            return 0;
+        }
+
+        final ItemStack stack = source.extractItem(sourceSlot, count, false);
+        if (stack.isEmpty()) {
+            return 0;
+        }
+
+        final ItemEntity entity = new ItemEntity(level, targetPos.getX() + 0.5, targetPos.getY() + 0.5, targetPos.getZ() + 0.5, stack, 0, 0, 0);
+        entity.setDefaultPickUpDelay();
+        if (!level.addFreshEntity(entity)) {
+            returnToSource(source, sourceSlot, stack);
+            return 0;
+        }
+
+        return stack.getCount();
+    }
+
+    @Callback(name = TAKE_ITEMS)
+    public int takeItems(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide,
+                         @Parameter(TARGET_SIDE) @Nullable final Side targetSide, @Parameter(TARGET_SLOT) final int targetSlot,
+                         @Parameter(COUNT) final int count) {
+        final BlockPos sourcePos = requireWorldAccess(requireDirection(sourceSide));
+        final ItemHandler target = requireItemHandler(targetSide);
+        ItemHandlerProtocol.requireValidSlot(target, targetSlot);
+
+        if (count <= 0) {
+            return 0;
+        }
+
+        int remaining = count;
+        for (final ItemEntity entity : level.getEntitiesOfClass(ItemEntity.class, new AABB(sourcePos))) {
+            if (remaining <= 0) {
+                break;
+            }
+
+            final ItemStack available = entity.getItem().copyWithCount(Math.min(entity.getItem().getCount(), remaining));
+            final int accepted = available.getCount() - target.insertItem(targetSlot, available, true).getCount();
+            if (accepted <= 0) {
+                continue;
+            }
+
+            final ItemStack rejected = target.insertItem(targetSlot, available.copyWithCount(accepted), false);
+            final int taken = accepted - rejected.getCount();
+            remaining -= taken;
+
+            final ItemStack left = entity.getItem().copy();
+            left.shrink(taken);
+            entity.setItem(left);
+        }
+
+        return count - remaining;
+    }
+
+    @Callback(name = FILL_FLUID)
+    public int fillFluid(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide, @Parameter(TARGET_SIDE) @Nullable final Side targetSide) {
+        final FluidHandler source = requireFluidHandler(sourceSide);
+        final BlockPos targetPos = requireWorldAccess(requireDirection(targetSide));
+        if (level.getFluidState(targetPos).isSource()) {
+            return 0;
+        }
+
+        final FluidStack available = source.drain(FluidHandler.BUCKET, true);
+        if (available.amount() < FluidHandler.BUCKET || !(available.fluid().getBucket() instanceof final BucketItem bucket)) {
+            return 0;
+        }
+
+        final FluidStack drained = source.drain(available, false);
+        if (drained.amount() < FluidHandler.BUCKET) {
+            source.fill(drained, false);
+            return 0;
+        }
+
+        if (!bucket.emptyContents(null, level, targetPos, null)) {
+            source.fill(drained, false);
+            return 0;
+        }
+
+        return FluidHandler.BUCKET;
+    }
+
+    @Callback(name = DRAIN_FLUID)
+    public int drainFluid(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide, @Parameter(TARGET_SIDE) @Nullable final Side targetSide) {
+        final BlockPos sourcePos = requireWorldAccess(requireDirection(sourceSide));
+        final FluidHandler target = requireFluidHandler(targetSide);
+
+        final BlockState state = level.getBlockState(sourcePos);
+        final FluidState fluidState = state.getFluidState();
+        if (!fluidState.isSource() || !(fluidState.getType().getBucket() instanceof BucketItem)
+            || !(state.getBlock() instanceof final BucketPickup pickup)) {
+            return 0;
+        }
+
+        final FluidStack stack = new FluidStack(fluidState.getType(), FluidHandler.BUCKET);
+        if (target.fill(stack, true) < FluidHandler.BUCKET) {
+            return 0;
+        }
+
+        if (pickup.pickupBlock(null, level, sourcePos, state).isEmpty()) {
+            return 0;
+        }
+
+        level.gameEvent(null, GameEvent.FLUID_PICKUP, sourcePos);
+        return target.fill(stack, false);
+    }
+
     @Override
     public Collection<String> getDeviceTypeNames() {
         return singletonList("transposer");
@@ -232,6 +365,34 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
             .parameterDescription(SOURCE_SIDE, "the side of the fluid container to drain.")
             .parameterDescription(TARGET_SIDE, "the side of the fluid container to fill.")
             .parameterDescription(AMOUNT, "the maximum amount to move in millibuckets.");
+        visitor.visitCallback(DROP_ITEMS)
+            .description("Drop items from a slot of the inventory on one side into the world on another side. " +
+                "The target side must not be blocked." + sides)
+            .returnValueDescription("the number of items dropped.")
+            .parameterDescription(SOURCE_SIDE, "the side of the inventory to take items from.")
+            .parameterDescription(SOURCE_SLOT, "the zero-based index of the slot to take items from.")
+            .parameterDescription(TARGET_SIDE, "the side to drop the items on.")
+            .parameterDescription(COUNT, "the maximum number of items to drop.");
+        visitor.visitCallback(TAKE_ITEMS)
+            .description("Take items lying in the world on one side into a slot of the inventory on another side. " +
+                "Takes as many items as the slot accepts, up to the specified count." + sides)
+            .returnValueDescription("the number of items taken.")
+            .parameterDescription(SOURCE_SIDE, "the side to take items from.")
+            .parameterDescription(TARGET_SIDE, "the side of the inventory to put items into.")
+            .parameterDescription(TARGET_SLOT, "the zero-based index of the slot to put items into.")
+            .parameterDescription(COUNT, "the maximum number of items to take.");
+        visitor.visitCallback(FILL_FLUID)
+            .description("Pour one bucket of fluid from the fluid container on one side into the world on another side. " +
+                "Nothing is transferred if the container holds less than a bucket." + sides)
+            .returnValueDescription("the amount placed in millibuckets, a bucket or nothing.")
+            .parameterDescription(SOURCE_SIDE, "the side of the fluid container to drain.")
+            .parameterDescription(TARGET_SIDE, "the side to place the fluid on.");
+        visitor.visitCallback(DRAIN_FLUID)
+            .description("Drain a fluid source block from the world on one side into the fluid container on another side. " +
+                "Nothing is transferred if the container cannot hold a full bucket of it." + sides)
+            .returnValueDescription("the amount taken in millibuckets, a bucket or nothing.")
+            .parameterDescription(SOURCE_SIDE, "the side to take the fluid from.")
+            .parameterDescription(TARGET_SIDE, "the side of the fluid container to fill.");
     }
 
     // --------------------------------------------------------------------- //
@@ -304,6 +465,38 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         results.writeU32(moveFluid(sourceSide, targetSide, amount));
     }
 
+    @IOCallback(DROP_ITEMS_CODE)
+    public void dropItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        final Side sourceSide = Side.byIndex(arguments.readU8());
+        final int sourceSlot = arguments.readU8();
+        final Side targetSide = Side.byIndex(arguments.readU8());
+        final int count = arguments.readU8();
+        results.writeU8(dropItems(sourceSide, sourceSlot, targetSide, count));
+    }
+
+    @IOCallback(TAKE_ITEMS_CODE)
+    public void takeItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        final Side sourceSide = Side.byIndex(arguments.readU8());
+        final Side targetSide = Side.byIndex(arguments.readU8());
+        final int targetSlot = arguments.readU8();
+        final int count = arguments.readU8();
+        results.writeU8(takeItems(sourceSide, targetSide, targetSlot, count));
+    }
+
+    @IOCallback(FILL_FLUID_CODE)
+    public void fillFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        final Side sourceSide = Side.byIndex(arguments.readU8());
+        final Side targetSide = Side.byIndex(arguments.readU8());
+        results.writeU32(fillFluid(sourceSide, targetSide));
+    }
+
+    @IOCallback(DRAIN_FLUID_CODE)
+    public void drainFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        final Side sourceSide = Side.byIndex(arguments.readU8());
+        final Side targetSide = Side.byIndex(arguments.readU8());
+        results.writeU32(drainFluid(sourceSide, targetSide));
+    }
+
     // --------------------------------------------------------------------- //
 
     private Direction requireDirection(@Nullable final Side side) {
@@ -314,6 +507,17 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         final Direction direction = HorizontalBlockUtils.toGlobal(getBlockState(), side);
         assert direction != null;
         return direction;
+    }
+
+    private BlockPos requireWorldAccess(final Direction direction) {
+        final BlockPos pos = getBlockPos().relative(direction);
+        if (!(level instanceof final ServerLevel serverLevel) || !serverLevel.isLoaded(pos)) {
+            throw new IllegalStateException("not loaded");
+        }
+        if (!serverLevel.mayInteract(FakePlayerUtils.getFakePlayer(serverLevel), pos)) {
+            throw new IllegalStateException("not allowed");
+        }
+        return pos;
     }
 
     private ItemHandler requireItemHandler(@Nullable final Side side) {

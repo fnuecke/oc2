@@ -11,8 +11,11 @@ import li.cil.oc2.api.bus.device.object.DocumentedDevice;
 import li.cil.oc2.api.bus.device.object.NamedDevice;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.util.Side;
+import li.cil.oc2.common.bus.device.util.FluidHandlerProtocol;
 import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.fluid.FluidHandler;
+import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.core.BlockPos;
@@ -34,14 +37,20 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
     private static final String GET_ITEM_STACK_IN_SLOT = "getItemStackInSlot";
     private static final String GET_ITEM_SLOT_LIMIT = "getItemSlotLimit";
     private static final String MOVE_ITEMS = "moveItems";
+    private static final String GET_FLUID_TANK_COUNT = "getFluidTankCount";
+    private static final String GET_FLUID_IN_TANK = "getFluidInTank";
+    private static final String GET_FLUID_TANK_CAPACITY = "getFluidTankCapacity";
+    private static final String MOVE_FLUID = "moveFluid";
 
     private static final String SIDE = "side";
     private static final String SLOT = "slot";
+    private static final String TANK = "tank";
     private static final String SOURCE_SIDE = "sourceSide";
     private static final String SOURCE_SLOT = "sourceSlot";
     private static final String TARGET_SIDE = "targetSide";
     private static final String TARGET_SLOT = "targetSlot";
     private static final String COUNT = "count";
+    private static final String AMOUNT = "amount";
 
     private static final int GET_ITEM_SLOT_COUNT_CODE = 1;
     private static final int GET_ITEM_SLOTS_CODE = 2;
@@ -49,6 +58,12 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
     private static final int GET_ITEM_NAME_CODE = 4;
     private static final int GET_ITEM_ID_CODE = 5;
     private static final int MOVE_ITEMS_CODE = 6;
+    private static final int GET_FLUID_TANK_COUNT_CODE = 7;
+    private static final int GET_FLUID_TANKS_CODE = 8;
+    private static final int GET_FLUID_TANK_CAPACITY_CODE = 9;
+    private static final int GET_FLUID_NAME_CODE = 10;
+    private static final int GET_FLUID_ID_CODE = 11;
+    private static final int MOVE_FLUID_CODE = 12;
 
     // --------------------------------------------------------------------- //
 
@@ -110,6 +125,60 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         return moved.getCount() - rejected.getCount();
     }
 
+    @Callback(name = GET_FLUID_TANK_COUNT)
+    public int getFluidTankCount(@Parameter(SIDE) @Nullable final Side side) {
+        final FluidHandler handler = getFluidHandler(requireDirection(side));
+        return handler != null ? handler.getTanks() : 0;
+    }
+
+    @Callback(name = GET_FLUID_IN_TANK)
+    public FluidStack getFluidInTank(@Parameter(SIDE) @Nullable final Side side, @Parameter(TANK) final int tank) {
+        final FluidHandler handler = requireFluidHandler(side);
+        return handler.getFluidInTank(FluidHandlerProtocol.requireValidTank(handler, tank));
+    }
+
+    @Callback(name = GET_FLUID_TANK_CAPACITY)
+    public int getFluidTankCapacity(@Parameter(SIDE) @Nullable final Side side, @Parameter(TANK) final int tank) {
+        final FluidHandler handler = requireFluidHandler(side);
+        return handler.getTankCapacity(FluidHandlerProtocol.requireValidTank(handler, tank));
+    }
+
+    @Callback(name = MOVE_FLUID)
+    public int moveFluid(@Parameter(SOURCE_SIDE) @Nullable final Side sourceSide,
+                         @Parameter(TARGET_SIDE) @Nullable final Side targetSide,
+                         @Parameter(AMOUNT) final int amount) {
+        final Direction sourceDirection = requireDirection(sourceSide);
+        final Direction targetDirection = requireDirection(targetSide);
+        final FluidHandler source = requireFluidHandler(sourceDirection, sourceSide);
+        final FluidHandler target = requireFluidHandler(targetDirection, targetSide);
+
+        if (amount <= 0 || sourceDirection == targetDirection) {
+            return 0;
+        }
+
+        final FluidStack available = source.drain(amount, true);
+        if (available.isEmpty()) {
+            return 0;
+        }
+
+        final int accepted = target.fill(available, true);
+        if (accepted <= 0) {
+            return 0;
+        }
+
+        final FluidStack moved = source.drain(available.withAmount(accepted), false);
+        if (moved.isEmpty()) {
+            return 0;
+        }
+
+        final int filled = target.fill(moved, false);
+        if (filled < moved.amount()) {
+            source.fill(moved.withAmount(moved.amount() - filled), false);
+        }
+
+        return filled;
+    }
+
     @Override
     public Collection<String> getDeviceTypeNames() {
         return singletonList("transposer");
@@ -142,6 +211,27 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
             .parameterDescription(TARGET_SIDE, "the side of the inventory to put items into.")
             .parameterDescription(TARGET_SLOT, "the zero-based index of the slot to put items into.")
             .parameterDescription(COUNT, "the maximum number of items to move.");
+        visitor.visitCallback(GET_FLUID_TANK_COUNT)
+            .description("Get the number of tanks of the fluid container on the specified side." + sides)
+            .returnValueDescription("the number of tanks, zero if there is no fluid container on that side.")
+            .parameterDescription(SIDE, "the side of the fluid container to inspect.");
+        visitor.visitCallback(GET_FLUID_IN_TANK)
+            .description("Get the fluid in the specified tank of the fluid container on the specified side." + sides)
+            .returnValueDescription("the fluid and its amount in millibuckets, nothing if the tank is empty.")
+            .parameterDescription(SIDE, "the side of the fluid container to inspect.")
+            .parameterDescription(TANK, "the zero-based index of the tank to inspect.");
+        visitor.visitCallback(GET_FLUID_TANK_CAPACITY)
+            .description("Get the capacity of the specified tank of the fluid container on the specified side." + sides)
+            .returnValueDescription("the capacity of the tank in millibuckets.")
+            .parameterDescription(SIDE, "the side of the fluid container to inspect.")
+            .parameterDescription(TANK, "the zero-based index of the tank to inspect.");
+        visitor.visitCallback(MOVE_FLUID)
+            .description("Move fluid from the fluid container on one side to the fluid container on another side. " +
+                "Moves as much as the source yields and the target accepts, up to the specified amount." + sides)
+            .returnValueDescription("the amount moved in millibuckets.")
+            .parameterDescription(SOURCE_SIDE, "the side of the fluid container to drain.")
+            .parameterDescription(TARGET_SIDE, "the side of the fluid container to fill.")
+            .parameterDescription(AMOUNT, "the maximum amount to move in millibuckets.");
     }
 
     // --------------------------------------------------------------------- //
@@ -179,6 +269,39 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
         final int targetSlot = arguments.readU8();
         final int count = arguments.readU8();
         results.writeU8(moveItems(sourceSide, sourceSlot, targetSide, targetSlot, count));
+    }
+
+    @IOCallback(GET_FLUID_TANK_COUNT_CODE)
+    public void getFluidTankCountIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(Math.min(getFluidTankCount(Side.byIndex(arguments.readU8())), 0xFF));
+    }
+
+    @IOCallback(GET_FLUID_TANKS_CODE)
+    public void getFluidTanksIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        FluidHandlerProtocol.writeTanks(requireFluidHandler(Side.byIndex(arguments.readU8())), arguments, results);
+    }
+
+    @IOCallback(GET_FLUID_TANK_CAPACITY_CODE)
+    public void getFluidTankCapacityIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        FluidHandlerProtocol.writeTankCapacity(requireFluidHandler(Side.byIndex(arguments.readU8())), arguments, results);
+    }
+
+    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false)
+    public void getFluidNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        FluidHandlerProtocol.writeFluidName(arguments, results);
+    }
+
+    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false)
+    public void getFluidIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        FluidHandlerProtocol.writeFluidId(arguments, results);
+    }
+
+    @IOCallback(MOVE_FLUID_CODE)
+    public void moveFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        final Side sourceSide = Side.byIndex(arguments.readU8());
+        final Side targetSide = Side.byIndex(arguments.readU8());
+        final int amount = (int) Math.min(arguments.readU32(), Integer.MAX_VALUE);
+        results.writeU32(moveFluid(sourceSide, targetSide, amount));
     }
 
     // --------------------------------------------------------------------- //
@@ -226,5 +349,27 @@ public final class TransposerBlockEntity extends ModBlockEntity implements Named
             final BlockPos pos = getBlockPos();
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), lost);
         }
+    }
+
+    private FluidHandler requireFluidHandler(@Nullable final Side side) {
+        return requireFluidHandler(requireDirection(side), side);
+    }
+
+    private FluidHandler requireFluidHandler(final Direction direction, @Nullable final Side side) {
+        final FluidHandler handler = getFluidHandler(direction);
+        if (handler == null) {
+            throw new IllegalArgumentException("no fluid container on side: " + side);
+        }
+        return handler;
+    }
+
+    @Nullable
+    private FluidHandler getFluidHandler(final Direction direction) {
+        final BlockPos neighborPos = getBlockPos().relative(direction);
+        if (level == null || !level.isLoaded(neighborPos)) {
+            return null;
+        }
+
+        return Capabilities.get(level, neighborPos, Capabilities.FLUID_HANDLER, direction.getOpposite());
     }
 }

@@ -1,5 +1,5 @@
 # Fluids
-Any tank can be inspected through a [bus interface](block/bus_interface.md). This includes cauldrons and the tanks of other mods. Amounts are in millibuckets, a bucket being 1000.
+Any tank can be inspected through a [bus interface](block/bus_interface.md). This includes cauldrons and the tanks of other mods. To move fluids between tanks, use a [transposer](block/transposer.md). Amounts are in millibuckets, a bucket being 1000.
 
 ## High-level API
 Device name: `fluid_handler`

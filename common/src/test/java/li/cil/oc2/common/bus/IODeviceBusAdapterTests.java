@@ -9,8 +9,7 @@ import li.cil.oc2.api.bus.device.io.IOCallbacks;
 import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
-import li.cil.oc2.common.blockentity.RedstoneInterfaceBlockEntity;
-import li.cil.oc2.common.bus.device.rpc.item.RedstoneInterfaceCardItemDevice;
+import li.cil.oc2.common.bus.device.rpc.RedstoneInterfaceDevice;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.bus.DeviceDescription;
@@ -338,11 +337,9 @@ public final class IODeviceBusAdapterTests {
     }
 
     @Test
-    public void redstoneDevicesExposeTheirFunctions() {
-        for (final Class<?> type : List.of(RedstoneInterfaceBlockEntity.class, RedstoneInterfaceCardItemDevice.class)) {
-            assertTrue(IOCallbacks.hasMethods(type), type.getSimpleName() + " provides no IO functions");
-            assertEquals("REDSTN", IOCallbacks.getName(type));
-        }
+    public void redstoneDeviceExposesItsFunctions() {
+        assertTrue(IOCallbacks.hasMethods(RedstoneInterfaceDevice.class));
+        assertEquals("REDSTN", IOCallbacks.getName(RedstoneInterfaceDevice.class));
     }
 
     // --------------------------------------------------------------------- //

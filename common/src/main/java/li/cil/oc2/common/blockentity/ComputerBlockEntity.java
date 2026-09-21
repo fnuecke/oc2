@@ -17,6 +17,7 @@ import li.cil.oc2.common.bus.AbstractBlockDeviceBusElement;
 import li.cil.oc2.common.bus.BlockDeviceBusController;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
+import li.cil.oc2.common.bus.device.util.NeighborChangeListener;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.common.capabilities.CapabilityType;
@@ -89,6 +90,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, this::cpuEnergyPerTick, this, deviceItems::getArchitectureType), deviceItems::getDeviceLocation);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();
+    private final List<NeighborChangeListener> neighborChangeListeners = new ArrayList<>();
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Players to send live terminal updates to.
     private int terminalRecipientRefreshCountdown;
 
@@ -165,6 +167,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     public void handleNeighborChanged() {
         if (level != null && !level.isClientSide()) {
             virtualMachine.getBusController().scheduleBusScan();
+            for (final NeighborChangeListener listener : neighborChangeListeners) {
+                listener.handleNeighborChanged();
+            }
         }
     }
 
@@ -409,14 +414,21 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
 
     private void handleAfterDeviceScan() {
         capabilityProviders.clear();
-        for (final Device device : virtualMachine.getBusController().getDevices()) {
+        neighborChangeListeners.clear();
+        for (final Device device : deviceItems.getDevices()) {
             if (device instanceof final CapabilityProvider capabilityProvider) {
                 capabilityProviders.add(capabilityProvider);
+            }
+            if (device instanceof final NeighborChangeListener listener) {
+                neighborChangeListeners.add(listener);
             }
         }
 
         if (level != null && !level.isClientSide()) {
             Capabilities.invalidate(this);
+            for (final NeighborChangeListener listener : neighborChangeListeners) {
+                listener.handleNeighborChanged();
+            }
         }
     }
 

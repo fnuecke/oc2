@@ -21,7 +21,7 @@ Absolute sides always mean the same direction in the world, no matter how the bl
 Sides may also be given as a number instead of a name. Numbers are relative: `0` is `down`, `1` is `up`, `2` is `back`, `3` is `front`, `4` is `left` and `5` is `right`.
 
 ### Events
-The redstone interface block sends `redstoneChanged` when the received signal on a side changes, so a program can wait for it instead of polling. The card sends no events. For example:
+The device sends `redstoneChanged` when the received signal on a side changes, so a program can wait for it instead of polling. For example:
 `local e = r:waitEvent(nil, "redstoneChanged")`
 `print(e.data.side, e.data.value)`
 - `side` is the relative name of the side, as in the "Sides" section.

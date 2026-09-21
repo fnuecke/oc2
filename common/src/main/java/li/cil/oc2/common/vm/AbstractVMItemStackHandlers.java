@@ -3,6 +3,7 @@
 package li.cil.oc2.common.vm;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
@@ -20,6 +21,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -75,6 +77,14 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
             .map(handler -> handler.getStackInSlot(0))
             .filter(stack -> stack.getItem() instanceof CpuItem)
             .map(stack -> ((CpuItem) stack.getItem()).getArchitectureType());
+    }
+
+    public Collection<Device> getDevices() {
+        final ArrayList<Device> devices = new ArrayList<>();
+        for (final AbstractDeviceItemStackHandler handler : itemHandlers.values()) {
+            devices.addAll(handler.getBusElement().getLocalDevices());
+        }
+        return devices;
     }
 
     public DeviceLocation getDeviceLocation(final VMDevice wrapper) {

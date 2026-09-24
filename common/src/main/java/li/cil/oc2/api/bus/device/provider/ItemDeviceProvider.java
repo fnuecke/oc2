@@ -18,19 +18,8 @@ import java.util.Optional;
  * This allows avoiding unnecessary re-initialization of devices that have not changed since a
  * previous scan.
  * <p>
- * Providers can be registered via the provider registries, much like blocks and items
- * are registered. For example:
- * <pre>
- * class YourModInitialization {
- *     static DeferredRegister&lt;ItemDeviceProvider&gt; ITEM_DEVICE_PROVIDERS = DeferredRegister.create(ItemDeviceProvider.REGISTRY, "your_mod_id");
- *
- *     static void initialize() {
- *         ITEM_DEVICE_PROVIDERS.register("your_item_device_name", YourItemDeviceProvider::new);
- *
- *         ITEM_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
- *     }
- * }
- * </pre>
+ * Providers are registered with the {@link li.cil.oc2.api.util.Registries#ITEM_DEVICE_PROVIDER}
+ * registry, much like blocks and items. See {@code docs/api.md} for the loader-specific details.
  *
  * @see li.cil.oc2.api.bus.device.rpc.RPCDevice
  * @see li.cil.oc2.api.bus.device.object.ObjectDevice

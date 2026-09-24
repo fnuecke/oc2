@@ -22,19 +22,8 @@ import li.cil.oc2.api.util.Invalidatable;
  * blocks that expose the same device on all sides having connected cabling adjacent to more
  * than one face.
  * <p>
- * Providers can be registered via the provider registries, much like blocks and items
- * are registered. For example:
- * <pre>
- * class YourModInitialization {
- *     static DeferredRegister&lt;BlockDeviceProvider&gt; BLOCK_DEVICE_PROVIDERS = DeferredRegister.create(BlockDeviceProvider.REGISTRY, "your_mod_id");
- *
- *     static void initialize() {
- *         BLOCK_DEVICE_PROVIDERS.register("your_block_device_name", YourBlockDeviceProvider::new);
- *
- *         BLOCK_DEVICE_PROVIDERS.register(FMLJavaModLoadingContext.get().getModEventBus());
- *     }
- * }
- * </pre>
+ * Providers are registered with the {@link li.cil.oc2.api.util.Registries#BLOCK_DEVICE_PROVIDER}
+ * registry, much like blocks and items. See {@code docs/api.md} for the loader-specific details.
  *
  * @see li.cil.oc2.api.bus.device.rpc.RPCDevice
  * @see li.cil.oc2.api.bus.device.object.ObjectDevice

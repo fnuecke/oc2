@@ -1,0 +1,23 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "oc2_example_third_party_block"
+version = "1.0.0"
+displayName = "OC2 Example: Third-Party Block"
+
+[[dependencies.oc2_example_third_party_block]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+
+[[dependencies.oc2_example_third_party_block]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1]"
+
+[[dependencies.oc2_example_third_party_block]]
+modId = "oc2"
+type = "optional"
+versionRange = "[0,)"

@@ -1,0 +1,21 @@
+{
+    "schemaVersion": 1,
+    "id": "oc2_example_third_party_block",
+    "version": "1.0.0",
+    "name": "OC2 Example: Third-Party Block",
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "oc2:registration": [
+            "com.example.thirdpartyblock.Registration"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.19",
+        "fabric-api": "*",
+        "minecraft": "1.21.1"
+    },
+    "suggests": {
+        "oc2": "*"
+    }
+}

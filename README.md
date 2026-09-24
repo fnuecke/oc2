@@ -16,13 +16,7 @@ For documentation on how to get computers up and running, and how to use them, s
 
 ## Development Documentation
 
-The API should be mostly stable at this point. For most people the high level device API will be sufficient, and is much more accessible than adding actual emulated hardware. It centers around the [`RPCDevice`][RPC Device]. For a sample **block** implementation, see the [redstone interface]. For a sample **item** implementation, see the [sound card]. To support Z80 computers, use the [`IODevice`][IO Device]. The two are **not** mutually exclusive. Support both where appropriate.
-
-If you wish to dive deeper, and provide emulated hardware that requires a Linux driver, this centers around the [`VMDevice`][VM Device]. For a sample block implementation, see the [projector]. For a sample item implementation, see the [network card].
-
-### Sedna
-
-The emulator used for running the virtual machines is [Sedna](https://github.com/fnuecke/sedna). It's a pure Java framework for emulating devices and architectures. Any issues/bugs/fixes/improvements that are explicitly applicable to it should be tracked on its own repo instead of here.
+The [`docs`](docs) directory holds a high level overview of e.g. the device API for mods and the data pack extension points. The [`examples`](examples) directory holds minimal mods using the device API.
 
 ## Contributing
 
@@ -56,13 +50,6 @@ By contributing, you accept that the code is licensed under the MIT license.
 
 
 [OpenComputers]: https://github.com/MightyPirates/OpenComputers
-[RPC Device]: common/src/main/java/li/cil/oc2/api/bus/device/rpc/RPCDevice.java
-[IO Device]: common/src/main/java/li/cil/oc2/api/bus/device/io/IODevice.java
-[redstone interface]: common/src/main/java/li/cil/oc2/common/blockentity/RedstoneInterfaceBlockEntity.java
-[sound card]: common/src/main/java/li/cil/oc2/common/bus/device/rpc/item/SoundCardItemDevice.java
-[VM Device]: common/src/main/java/li/cil/oc2/api/bus/device/vm/VMDevice.java
-[projector]: common/src/main/java/li/cil/oc2/common/bus/device/vm/block/ProjectorDevice.java
-[network card]: common/src/main/java/li/cil/oc2/common/bus/device/vm/item/NetworkInterfaceCardDevice.java
 [documentation]: https://fnuecke.github.io/oc2/
 [HLAPI]: https://fnuecke.github.io/oc2/en_us/hlapi.html
 [MLAPI]: https://fnuecke.github.io/oc2/en_us/mlapi.html

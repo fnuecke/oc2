@@ -15,17 +15,16 @@ import javax.annotation.Nullable;
  * <p>
  * This is used for the built-in Linux root file-system, for example.
  * <p>
- * To make use of registered implementations, a hard drive item with the
- * string tag {@code oc2.base} referencing the implementation's registry id
- * must be created. For example, if the implementation's registry name is
- * {@code my_mod:my_block_device}:
+ * Storage items (HDDs, Floppies, Flash Memory) can be assigned a registered block
+ * data via the registry id. This is stored in the {@code image} string tag of the
+ * item's {@code oc2} mod data.
+ * <p>
+ * To spawn one with an implementation registered as {@code my_mod:my_block_device}:
  * <pre>
- * /give ? oc2:hard_drive{oc2:{data:"my_mod:my_block_device"}}
+ * /give @s oc2:hard_drive_large[minecraft:custom_data={oc2:{image:"my_mod:my_block_device"}}]
  * </pre>
- * The drive can be made readonly by also specifying the {@code readonly} tag:
- * <pre>
- * /give ? oc2:hard_drive{oc2:{data:"my_mod:my_block_device",readonly:true}}
- * </pre>
+ * It is also possible to use data packs to register block device data. See the
+ * {@code docs/datapack.md} for what to place where.
  */
 public interface BlockDeviceData {
     /**

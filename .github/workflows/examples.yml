@@ -1,0 +1,54 @@
+name: examples
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/examples.yml'
+      - 'examples/**'
+      - '*/src/main/java/li/cil/oc2/api/**'
+      - 'buildSrc/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+  push:
+    branches: [ '**' ]
+    paths:
+      - '.github/workflows/examples.yml'
+      - 'examples/**'
+      - '*/src/main/java/li/cil/oc2/api/**'
+      - 'buildSrc/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        example:
+          - block-entity-fabric
+          - block-entity-neoforge
+          - card-neoforge
+          - third-party-block-fabric
+          - third-party-block-neoforge
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          validate-wrappers: true
+      - name: Build oc2 Fabric jar
+        if: endsWith(matrix.example, '-fabric')
+        run: ./gradlew :fabric:remapJar
+      - name: Build ${{ matrix.example }}
+        working-directory: examples/${{ matrix.example }}
+        run: ./gradlew build

@@ -172,6 +172,11 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
     }
 
     @Override
+    public void handleMediaChanged() {
+        setChanged();
+    }
+
+    @Override
     public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
         tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT(registries));

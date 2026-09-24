@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 public interface RemovableMediaContainer {
     ItemStack getMediaItemStack();
 
-    void setChanged();
+    void handleMediaChanged();
 
     default void handleDataAccess() {
     }

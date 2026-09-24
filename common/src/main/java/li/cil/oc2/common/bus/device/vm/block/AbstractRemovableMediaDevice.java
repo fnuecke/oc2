@@ -128,7 +128,7 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
 
     @Override
     protected void handleStorageChanged() {
-        identity.setChanged();
+        identity.handleMediaChanged();
     }
 
     // --------------------------------------------------------------------- //

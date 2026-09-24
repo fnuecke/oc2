@@ -91,6 +91,9 @@ dependencies {
 
     runtimeOnly(project(path = ":instrumentation-fabric", configuration = "namedElements")) { isTransitive = false }
 
+    modCompileOnly(libs.cc.fabric.api)
+    compileOnly(libs.tis3d.api)
+
     // Not used by mod, just for dev convenience.
     devOnlyMods(libs.jei.fabric)
 

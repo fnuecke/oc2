@@ -16,6 +16,8 @@ import li.cil.manual.api.provider.PathProvider;
 import li.cil.manual.api.util.Constants;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
+import li.cil.oc2.common.integration.ModIntegration;
+import li.cil.oc2.common.integration.tis3d.SerialProtocolDocumentProvider;
 import li.cil.oc2.common.item.Items;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -40,6 +42,7 @@ public final class Manuals {
 
         pathProviders.register("path_provider", () -> new NamespacePathProvider(API.MOD_ID));
         contentProviders.register("content_provider", () -> new NamespaceDocumentProvider(API.MOD_ID, "doc"));
+        ModIntegration.TIS3D.run(() -> contentProviders.register("tis3d_serial_protocol_provider", SerialProtocolDocumentProvider::new));
 
         tabs.register("home", () -> new TextureTab(
             ManualModel.LANGUAGE_KEY + "/index.md",

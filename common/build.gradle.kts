@@ -27,6 +27,8 @@ dependencies {
     }
 
     compileOnly(libs.jei.common.api)
+    compileOnly(libs.cc.core.api)
+    compileOnly(libs.tis3d.api)
 
     testCompileOnly("com.google.code.findbugs:jsr305:3.0.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")

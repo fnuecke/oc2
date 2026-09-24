@@ -15,7 +15,8 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "li.cil.oc2.common.fabric.MainFabric"
+            "li.cil.oc2.common.fabric.MainFabric",
+            "li.cil.oc2.common.integration.computercraft.fabric.ComputerCraftFabric"
         ],
         "client": [
             "li.cil.oc2.client.fabric.ClientSetupFabric"
@@ -26,6 +27,9 @@
         "jei_mod_plugin": [
             "li.cil.oc2.common.integration.jei.ExtraItemsJEIPlugin",
             "li.cil.oc2.common.integration.jei.ExtraGuiAreasJEIPlugin"
+        ],
+        "tis3d:registration": [
+            "li.cil.oc2.common.integration.tis3d.fabric.TIS3DFabric"
         ]
     },
     "mixins": [

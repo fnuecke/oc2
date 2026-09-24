@@ -39,6 +39,18 @@ type = "required"
 versionRange = "[${manualVersion},)"
 ordering = "AFTER"
 side = "BOTH"
+[[dependencies.oc2]]
+modId = "computercraft"
+type = "optional"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"
+[[dependencies.oc2]]
+modId = "tis3d"
+type = "optional"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"
 
 [[mixins]]
 config = "oc2.mixins.json"

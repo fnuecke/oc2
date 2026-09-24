@@ -155,6 +155,8 @@
   "manual.oc2.items": "Items",
   "manual.oc2.api": "API",
 
+  "manual.oc2.serial_protocols.serial_interface": "OpenComputers II Serial Interface",
+
   "message.oc2.connector.error.full": "Cannot attach more cables.",
   "message.oc2.connector.error.too_far": "Distance between connectors is too large.",
   "message.oc2.connector.error.obstructed": "No clear line of sight between connectors.",

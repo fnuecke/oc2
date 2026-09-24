@@ -79,6 +79,8 @@ dependencies {
     // Allows `remapSourcesJar` to resolve `@ExpectPlatform` in the common sources it bundles.
     compileOnly(libs.architectury.injectables)
 
+    compileOnly(libs.cc.neoforge.api)
+
     // Not used by mod, just for dev convenience.
     devOnlyMods(libs.jei.neoforge)
 

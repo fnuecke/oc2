@@ -18,6 +18,9 @@ fabric-api = "0.116.15+1.21.1"
 
 jei = "19.43.0.395"
 
+cc-tweaked = "1.120.2"
+tis3d = "2.0.0"
+
 fabric-energy = "4.1.0"
 fabric-forgeConfigPort = "21.1.6"
 
@@ -51,6 +54,12 @@ fabric-manual = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21
 jei-common-api = { group = "mezz.jei", name = "jei-1.21.1-common-api", version.ref = "jei" }
 jei-neoforge = { group = "mezz.jei", name = "jei-1.21.1-neoforge", version.ref = "jei" }
 jei-fabric = { group = "mezz.jei", name = "jei-1.21.1-fabric", version.ref = "jei" }
+
+cc-core-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.1-core-api", version.ref = "cc-tweaked" }
+cc-fabric-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.1-fabric-api", version.ref = "cc-tweaked" }
+cc-neoforge-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.1-forge-api", version.ref = "cc-tweaked" }
+
+tis3d-api = { group = "li.cil.tis3d", name = "tis3d-1.21.1-api", version.ref = "tis3d" }
 
 fabric-energy = { group = "teamreborn", name = "energy", version.ref = "fabric-energy" }
 fabric-forgeConfigPort = { group = "fuzs.forgeconfigapiport", name = "forgeconfigapiport-fabric", version.ref = "fabric-forgeConfigPort" }

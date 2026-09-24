@@ -50,7 +50,12 @@ subprojects {
                 includeModule("li.cil.sedna", "sedna-cpm")
                 includeModule("li.cil.vox2mc", "vox2mc")
                 includeGroup("li.cil.markdown_manual")
+                includeGroup("li.cil.tis3d")
             }
+        }
+        exclusiveContent {
+            forRepository { maven("https://maven.squiddev.cc") }
+            filter { includeGroup("cc.tweaked") }
         }
         mavenCentral()
     }

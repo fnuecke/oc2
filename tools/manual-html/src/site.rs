@@ -367,13 +367,12 @@ fn collect_images(nodes: &[Node], out: &mut BTreeSet<String>) {
             Node::Image { url, .. } => {
                 out.insert(url.clone());
             }
-            Node::Code(children)
-            | Node::Bold(children)
+            Node::Bold(children)
             | Node::Italic(children)
             | Node::Strikethrough(children)
             | Node::Header { children, .. }
             | Node::Link { children, .. } => collect_images(children, out),
-            Node::Text(_) => {}
+            Node::Text(_) | Node::Code(_) => {}
         }
     }
 }
@@ -381,9 +380,8 @@ fn collect_images(nodes: &[Node], out: &mut BTreeSet<String>) {
 fn collect_text(nodes: &[Node], out: &mut BTreeSet<u32>) {
     for node in nodes {
         match node {
-            Node::Text(text) => out.extend(text.chars().map(|c| c as u32)),
-            Node::Code(children)
-            | Node::Bold(children)
+            Node::Text(text) | Node::Code(text) => out.extend(text.chars().map(|c| c as u32)),
+            Node::Bold(children)
             | Node::Italic(children)
             | Node::Strikethrough(children)
             | Node::Header { children, .. }
@@ -408,10 +406,9 @@ fn plain(nodes: &[Node]) -> String {
     nodes
         .iter()
         .map(|node| match node {
-            Node::Text(text) => text.clone(),
+            Node::Text(text) | Node::Code(text) => text.clone(),
             Node::Image { title, .. } => title.clone(),
-            Node::Code(children)
-            | Node::Bold(children)
+            Node::Bold(children)
             | Node::Italic(children)
             | Node::Strikethrough(children)
             | Node::Header { children, .. }

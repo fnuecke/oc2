@@ -8,7 +8,7 @@ const REDIRECT_PRAGMA: &str = "#redirect ";
 
 pub enum Node {
     Text(String),
-    Code(Vec<Node>),
+    Code(String),
     Bold(Vec<Node>),
     Italic(Vec<Node>),
     Strikethrough(Vec<Node>),
@@ -127,7 +127,7 @@ fn node(
             level: group(1).len(),
             children: refine(group(2), index)?,
         },
-        Pass::Code => Node::Code(refine(group(2), index)?),
+        Pass::Code => Node::Code(group(2).to_owned()),
         Pass::Image => Node::Image {
             title: group(1).to_owned(),
             url: group(2).to_owned(),
@@ -274,7 +274,7 @@ fn html(nodes: &[Node], source: &str, links: &Links) -> String {
 fn node_html(node: &Node, source: &str, links: &Links) -> String {
     match node {
         Node::Text(text) => escape(text),
-        Node::Code(children) => format!("<code>{}</code>", html(children, source, links)),
+        Node::Code(text) => format!("<code>{}</code>", escape(text)),
         Node::Bold(children) => format!("<strong>{}</strong>", html(children, source, links)),
         Node::Italic(children) => format!("<em>{}</em>", html(children, source, links)),
         Node::Strikethrough(children) => format!("<s>{}</s>", html(children, source, links)),

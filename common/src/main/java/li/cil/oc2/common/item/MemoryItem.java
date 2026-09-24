@@ -7,6 +7,7 @@ import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
+import java.util.function.IntSupplier;
 
 public final class MemoryItem extends AbstractStorageItem {
     @Nullable
@@ -14,7 +15,7 @@ public final class MemoryItem extends AbstractStorageItem {
 
     // --------------------------------------------------------------------- //
 
-    public MemoryItem(final int defaultCapacity) {
+    public MemoryItem(final IntSupplier defaultCapacity) {
         super(defaultCapacity);
     }
 

@@ -17,10 +17,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 
 import javax.annotation.Nullable;
+import java.util.function.IntSupplier;
 
 public final class FloppyItem extends AbstractStorageItem implements ColoredItem, CreativeTabItemProvider {
-    public FloppyItem(final int capacity) {
-        super(capacity);
+    public FloppyItem(final IntSupplier defaultCapacity) {
+        super(defaultCapacity);
     }
 
     // --------------------------------------------------------------------- //

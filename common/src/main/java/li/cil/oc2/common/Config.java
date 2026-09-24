@@ -35,6 +35,35 @@ public final class Config {
     @Comment("Cycles a Z80 computer may retire per second, i.e. its clock speed.")
     public static int z80CycleBudgetPerSecond = 4_000_000;
 
+    @Path("vm.sizes")
+    @Min(1)
+    @Comment("Capacity of small memory, in bytes.")
+    public static int memorySmallSize = 2 * Constants.MEGABYTE;
+    @Path("vm.sizes")
+    @Min(1)
+    @Comment("Capacity of medium memory, in bytes.")
+    public static int memoryMediumSize = 4 * Constants.MEGABYTE;
+    @Path("vm.sizes")
+    @Min(1)
+    @Comment("Capacity of large memory, in bytes.")
+    public static int memoryLargeSize = 8 * Constants.MEGABYTE;
+    @Path("vm.sizes")
+    @Min(1)
+    @Comment("Capacity of small hard drives, in bytes.")
+    public static int hardDriveSmallSize = 2 * Constants.MEGABYTE;
+    @Path("vm.sizes")
+    @Min(1)
+    @Comment("Capacity of medium hard drives, in bytes.")
+    public static int hardDriveMediumSize = 4 * Constants.MEGABYTE;
+    @Path("vm.sizes")
+    @Min(1)
+    @Comment("Capacity of large hard drives, in bytes.")
+    public static int hardDriveLargeSize = 8 * Constants.MEGABYTE;
+    @Path("vm.sizes")
+    @Min(1)
+    @Comment("Capacity of floppy disks, in bytes.")
+    public static int floppySize = 512 * Constants.KILOBYTE;
+
     @Path("energy.blocks")
     public static double busCableEnergyPerTick = 0.1;
     @Path("energy.blocks")

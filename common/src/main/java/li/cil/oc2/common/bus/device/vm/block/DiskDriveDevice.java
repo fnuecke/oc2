@@ -6,7 +6,6 @@ import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.provider.item.FloppyItemDeviceProvider;
 import li.cil.oc2.common.bus.device.vm.item.FloppyControllerStorage;
 import li.cil.oc2.common.bus.device.vm.item.FloppyMedia;
@@ -58,7 +57,7 @@ public final class DiskDriveDevice extends AbstractRemovableMediaDevice {
     @Override
     protected int getMediumCapacity(final ItemStack stack) {
         if (!(stack.getItem() instanceof final FloppyItem floppy)) {
-            return Math.min(Constants.FLOPPY_SIZE, Config.maxBlobCapacity);
+            return Math.min(Config.floppySize, Config.maxBlobCapacity);
         }
 
         final BlockDeviceData data = floppy.getData(stack);

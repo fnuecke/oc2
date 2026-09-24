@@ -28,7 +28,7 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
     private String descriptionId;
 
     public FlashMemoryItem(final int defaultCapacity) {
-        super(createProperties().stacksTo(1), defaultCapacity);
+        super(createProperties().stacksTo(1), () -> defaultCapacity);
     }
 
     // --------------------------------------------------------------------- //

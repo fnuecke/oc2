@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 
 import javax.annotation.Nullable;
+import java.util.function.IntSupplier;
 
 public final class HardDriveItem extends AbstractStorageItem implements ColoredItem, CreativeTabItemProvider {
     private final int defaultColor;
@@ -27,8 +28,8 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
 
     // --------------------------------------------------------------------- //
 
-    public HardDriveItem(final int capacity, final DyeColor defaultColor) {
-        super(capacity);
+    public HardDriveItem(final IntSupplier defaultCapacity, final DyeColor defaultColor) {
+        super(defaultCapacity);
         this.defaultColor = defaultColor.getTextureDiffuseColor();
     }
 

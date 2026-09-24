@@ -16,16 +16,6 @@ public final class Constants {
 
     public static final int FLASH_MEMORY_SIZE = 8 * KILOBYTE;
 
-    public static final int MEMORY_SMALL_SIZE = 2 * MEGABYTE;
-    public static final int MEMORY_MEDIUM_SIZE = 4 * MEGABYTE;
-    public static final int MEMORY_LARGE_SIZE = 8 * MEGABYTE;
-
-    public static final int HARD_DRIVE_SMALL_SIZE = 2 * MEGABYTE;
-    public static final int HARD_DRIVE_MEDIUM_SIZE = 4 * MEGABYTE;
-    public static final int HARD_DRIVE_LARGE_SIZE = 8 * MEGABYTE;
-
-    public static final int FLOPPY_SIZE = 512 * KILOBYTE;
-
     // The largest binary payload a VM accepts from a guest in one RPC call.
     public static final int RPC_MAX_PAYLOAD_SIZE = 512 * KILOBYTE;
 

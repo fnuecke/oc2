@@ -15,23 +15,24 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
+import java.util.function.IntSupplier;
 
 public abstract class AbstractStorageItem extends ModItem {
     private static final String CAPACITY_TAG_NAME = "capacity";
 
     // --------------------------------------------------------------------- //
 
-    private final int defaultCapacity;
+    private final IntSupplier defaultCapacity;
 
     // --------------------------------------------------------------------- //
 
-    protected AbstractStorageItem(final Properties properties, final int defaultCapacity) {
+    protected AbstractStorageItem(final Properties properties, final IntSupplier defaultCapacity) {
         super(properties);
         this.defaultCapacity = defaultCapacity;
     }
 
-    protected AbstractStorageItem(final int capacity) {
-        this(createProperties(), capacity);
+    protected AbstractStorageItem(final IntSupplier defaultCapacity) {
+        this(createProperties(), defaultCapacity);
     }
 
     // --------------------------------------------------------------------- //
@@ -58,7 +59,7 @@ public abstract class AbstractStorageItem extends ModItem {
     public int getCapacity(final ItemStack stack) {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
         if (!tag.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
-            return defaultCapacity;
+            return defaultCapacity.getAsInt();
         }
 
         final int capacity = tag.getInt(CAPACITY_TAG_NAME);

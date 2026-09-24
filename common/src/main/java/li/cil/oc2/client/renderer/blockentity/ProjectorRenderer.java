@@ -7,15 +7,13 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
-import li.cil.oc2.common.block.ProjectorBlock;
+import li.cil.oc2.common.block.FlippableOrientableBlock;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 
 public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEntity> {
     private static final int LIGHT_COLOR_NEAR = 0x22FFFFFF;
@@ -71,10 +69,10 @@ public class ProjectorRenderer implements BlockEntityRenderer<ProjectorBlockEnti
     // --------------------------------------------------------------------- //
 
     private void alignToFrontFace(final ProjectorBlockEntity projector, final PoseStack stack) {
-        final Direction blockFacing = projector.getBlockState().getValue(ProjectorBlock.FACING);
-        final Quaternionf rotation = Axis.YN.rotationDegrees(blockFacing.toYRot());
-        stack.translate(0.5f, 0, 0.5f);
-        stack.mulPose(rotation);
+        stack.translate(0.5f, 0.5f, 0.5f);
+        stack.mulPose(projector.getBlockState().getValue(FlippableOrientableBlock.ORIENTATION).getRotation());
+        stack.mulPose(Axis.YP.rotationDegrees(180));
+        stack.translate(0, -0.5f, 0);
     }
 
     private static void renderProjectorLight(final PoseStack stack, final MultiBufferSource bufferSource) {

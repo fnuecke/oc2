@@ -3,6 +3,8 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.block.FlippableOrientableBlock;
+import li.cil.oc2.common.block.FlippableOrientation;
 import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -24,6 +26,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.nio.BufferOverflowException;
@@ -126,7 +129,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             return false;
         }
 
-        final Direction facing = getBlockState().getValue(ProjectorBlock.FACING);
+        final Direction facing = getBlockState().getValue(FlippableOrientableBlock.ORIENTATION).getFacing();
         final BlockPos neighborPos = getBlockPos().relative(facing);
         final int neighborChunkX = SectionPos.blockToSectionCoord(neighborPos.getX());
         final int neighborChunkZ = SectionPos.blockToSectionCoord(neighborPos.getZ());
@@ -304,7 +307,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             collector.offer(Capabilities.ENERGY_STORAGE, energy);
         }
 
-        if (direction == getBlockState().getValue(ProjectorBlock.FACING).getOpposite()) {
+        if (direction == getBlockState().getValue(FlippableOrientableBlock.ORIENTATION).getFacing().getOpposite()) {
             collector.offer(Capabilities.DEVICE, projectorDevice);
         }
     }
@@ -386,17 +389,12 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     }
 
     private void updateRenderBounds() {
-        final Direction blockFacing = getBlockState().getValue(ProjectorBlock.FACING);
-        final Direction canvasUp = Direction.UP;
-        final Direction canvasLeft = blockFacing.getCounterClockWise();
+        final FlippableOrientation orientation = getBlockState().getValue(FlippableOrientableBlock.ORIENTATION);
+        final double spread = MAX_RENDER_DISTANCE / (double) MAX_GOOD_RENDER_DISTANCE;
+        final Vec3 far = Vec3.atCenterOf(getBlockPos()).add(new Vec3(orientation.getFacing().step()).scale(MAX_RENDER_DISTANCE));
+        final Vec3 halfWidth = new Vec3(orientation.getRight().step()).scale((MAX_WIDTH - 1) / 2.0 * spread);
+        final Vec3 height = new Vec3(orientation.getUp().step()).scale((MAX_HEIGHT - 1) * spread);
 
-        final BlockPos projectorPos = getBlockPos();
-        final BlockPos screenBasePos = projectorPos.relative(blockFacing, MAX_RENDER_DISTANCE);
-        final BlockPos screenMinPos = screenBasePos.relative(canvasLeft.getOpposite(), MAX_WIDTH / 2);
-        final BlockPos screenMaxPos = screenBasePos.relative(canvasLeft, MAX_WIDTH / 2)
-            // -1 for the MAX_HEIGHT padding, -1 for auto-expansion of AABB constructor
-            .relative(canvasUp, MAX_HEIGHT - 2);
-
-        renderBounds = new AABB(getBlockPos()).minmax(new AABB(screenMinPos)).minmax(new AABB(screenMaxPos));
+        renderBounds = new AABB(getBlockPos()).minmax(new AABB(far.subtract(halfWidth), far.add(halfWidth).add(height)));
     }
 }

@@ -14,10 +14,10 @@ import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Axis;
 import dev.architectury.event.events.client.ClientTickEvent;
 import li.cil.oc2.client.ClientPlatform;
-import li.cil.oc2.common.block.ProjectorBlock;
+import li.cil.oc2.common.block.FlippableOrientableBlock;
+import li.cil.oc2.common.block.FlippableOrientation;
 import li.cil.oc2.common.blockentity.ProjectorBlockEntity;
 import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
 import li.cil.oc2.common.ext.LevelRendererExt;
@@ -38,7 +38,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -51,6 +50,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
+import org.joml.Quaternionf;
 
 import java.lang.ref.WeakReference;
 import java.time.Duration;
@@ -86,6 +86,12 @@ public final class ProjectorDepthRenderer {
         ProjectorBlockEntity.MAX_GOOD_RENDER_DISTANCE,
         -HALF_FRUSTUM_WIDTH, HALF_FRUSTUM_WIDTH,
         FRUSTUM_HEIGHT, 0);
+    private static final Matrix4f UPSIDE_DOWN_DEPTH_CAMERA_PROJECTION_MATRIX = getFrustumMatrix(
+        PROJECTOR_NEAR, PROJECTOR_FAR,
+        ProjectorBlockEntity.MAX_GOOD_RENDER_DISTANCE,
+        -HALF_FRUSTUM_WIDTH, HALF_FRUSTUM_WIDTH,
+        0, -FRUSTUM_HEIGHT);
+    private static final Quaternionf VIEW_ROTATION = new Quaternionf();
     private static final Matrix4f MODEL_VIEW_MATRIX = new Matrix4f();
     private static final Matrix4f PROJECTION_MATRIX = new Matrix4f();
 
@@ -237,14 +243,7 @@ public final class ProjectorDepthRenderer {
     }
 
     private static AABB projectionBounds(final ProjectorBlockEntity projector) {
-        final Direction facing = projector.getBlockState().getValue(ProjectorBlock.FACING);
-        final Vec3 forward = new Vec3(facing.step());
-        final Vec3 origin = Vec3.atCenterOf(projector.getBlockPos()).add(forward.scale(PROJECTOR_FORWARD_SHIFT));
-        final Vec3 far = origin.add(forward.scale(PROJECTOR_FAR));
-        final double spread = PROJECTOR_FAR / (double) ProjectorBlockEntity.MAX_GOOD_RENDER_DISTANCE;
-        final Vec3 halfWidth = new Vec3(facing.getCounterClockWise().step()).scale(HALF_FRUSTUM_WIDTH * spread);
-        return new AABB(origin, far)
-            .minmax(new AABB(far.subtract(halfWidth), far.add(halfWidth).add(0, FRUSTUM_HEIGHT * spread, 0)))
+        return projector.getExpandedRenderBoundingBox()
             .inflate(1); // Compensate e.g. view bobbing and allow init a bit early.
     }
 
@@ -343,16 +342,16 @@ public final class ProjectorDepthRenderer {
 
         for (int i = 0; i < validDepthTargetCount; i++) {
             final ProjectorBlockEntity projector = VISIBLE_PROJECTORS.get(i);
-            final Direction facing = projector.getBlockState().getValue(ProjectorBlock.FACING);
+            final FlippableOrientation orientation = projector.getBlockState().getValue(FlippableOrientableBlock.ORIENTATION);
             final Vec3 projectorPos = Vec3
                 .atCenterOf(projector.getBlockPos())
-                .add(new Vec3(facing.step()).scale(PROJECTOR_FORWARD_SHIFT));
+                .add(new Vec3(orientation.getFacing().step()).scale(PROJECTOR_FORWARD_SHIFT));
 
-            configureProjectorDepthCamera(level, projectorPos, facing.toYRot());
+            configureProjectorDepthCamera(level, projectorPos, orientation);
 
-            setupViewModelMatrix(viewModelStack);
+            setupViewModelMatrix(viewModelStack, orientation);
 
-            storeProjectorMatrix(i, projectorPos, mainCameraPosition, viewModelStack);
+            storeProjectorMatrix(i, projectorPos, mainCameraPosition, viewModelStack, getProjectionMatrix(orientation));
 
             storeProjectorBuffers(i, projector);
         }
@@ -403,22 +402,23 @@ public final class ProjectorDepthRenderer {
                                           final DeltaTracker deltaTracker, final int projectorIndex,
                                           final ProjectorBlockEntity projector) {
         final PoseStack viewModelStack = new PoseStack();
-        final Direction facing = projector.getBlockState().getValue(ProjectorBlock.FACING);
+        final FlippableOrientation orientation = projector.getBlockState().getValue(FlippableOrientableBlock.ORIENTATION);
         final Vec3 projectorPos = Vec3
             .atCenterOf(projector.getBlockPos())
-            .add(new Vec3(facing.step()).scale(PROJECTOR_FORWARD_SHIFT));
+            .add(new Vec3(orientation.getFacing().step()).scale(PROJECTOR_FORWARD_SHIFT));
 
         try {
             prepareDepthBufferRendering(minecraft, level, deltaTracker.getGameTimeDeltaPartialTick(false));
 
-            configureProjectorDepthCamera(level, projectorPos, facing.toYRot());
+            configureProjectorDepthCamera(level, projectorPos, orientation);
 
-            RenderSystem.setProjectionMatrix(DEPTH_CAMERA_PROJECTION_MATRIX, VertexSorting.DISTANCE_TO_ORIGIN);
-            setupViewModelMatrix(viewModelStack);
+            final Matrix4f projectionMatrix = getProjectionMatrix(orientation);
+            RenderSystem.setProjectionMatrix(projectionMatrix, VertexSorting.DISTANCE_TO_ORIGIN);
+            setupViewModelMatrix(viewModelStack, orientation);
 
             bindProjectorDepthRenderTarget(projectorIndex, projector, minecraft);
 
-            renderProjectorDepthBuffer(minecraft, level, deltaTracker, viewModelStack);
+            renderProjectorDepthBuffer(minecraft, level, deltaTracker, viewModelStack, projectionMatrix);
         } finally {
             finishDepthBufferRendering(minecraft);
         }
@@ -441,7 +441,7 @@ public final class ProjectorDepthRenderer {
         minecraft.options.entityShadows().set(false);
 
         minecraftCameraEntityBak = minecraft.getCameraEntity();
-        minecraft.setCameraEntity(ProjectorCameraEntity.get(level, Vec3.ZERO, partialTicks));
+        minecraft.setCameraEntity(ProjectorCameraEntity.get(level, Vec3.ZERO, partialTicks, 0));
         gameRendererMainCameraBak = minecraft.gameRenderer.mainCamera;
         minecraft.gameRenderer.mainCamera = PROJECTOR_DEPTH_CAMERA;
         prepareRenderDispatchers(minecraft, PROJECTOR_DEPTH_CAMERA);
@@ -496,14 +496,14 @@ public final class ProjectorDepthRenderer {
     }
 
     // Manual level rendering a la LevelRenderer::renderLevel(), with the bits we need for the projector depth.
-    private static void renderProjectorDepthBuffer(final Minecraft minecraft, final ClientLevel level, final DeltaTracker deltaTracker, final PoseStack viewModelStack) {
+    private static void renderProjectorDepthBuffer(final Minecraft minecraft, final ClientLevel level, final DeltaTracker deltaTracker, final PoseStack viewModelStack, final Matrix4f projectionMatrix) {
         final LevelRenderer levelRenderer = minecraft.levelRenderer;
         final Matrix4f frustumMatrix = viewModelStack.last().pose();
         final Vec3 cameraPosition = PROJECTOR_DEPTH_CAMERA.getPosition();
         final double cameraX = cameraPosition.x(), cameraY = cameraPosition.y(), cameraZ = cameraPosition.z();
         final float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false);
 
-        final Frustum frustum = new Frustum(frustumMatrix, DEPTH_CAMERA_PROJECTION_MATRIX);
+        final Frustum frustum = new Frustum(frustumMatrix, projectionMatrix);
         frustum.prepare(cameraX, cameraY, cameraZ);
 
         levelRenderer.setupRender(PROJECTOR_DEPTH_CAMERA, frustum, false, false);
@@ -512,9 +512,9 @@ public final class ProjectorDepthRenderer {
         final Frustum cullingFrustum = levelRendererExt.getCullingFrustum();
         levelRendererExt.setCullingFrustum(frustum);
         try {
-            levelRenderer.renderSectionLayer(RenderType.solid(), cameraX, cameraY, cameraZ, frustumMatrix, DEPTH_CAMERA_PROJECTION_MATRIX);
-            levelRenderer.renderSectionLayer(RenderType.cutoutMipped(), cameraX, cameraY, cameraZ, frustumMatrix, DEPTH_CAMERA_PROJECTION_MATRIX);
-            levelRenderer.renderSectionLayer(RenderType.cutout(), cameraX, cameraY, cameraZ, frustumMatrix, DEPTH_CAMERA_PROJECTION_MATRIX);
+            levelRenderer.renderSectionLayer(RenderType.solid(), cameraX, cameraY, cameraZ, frustumMatrix, projectionMatrix);
+            levelRenderer.renderSectionLayer(RenderType.cutoutMipped(), cameraX, cameraY, cameraZ, frustumMatrix, projectionMatrix);
+            levelRenderer.renderSectionLayer(RenderType.cutout(), cameraX, cameraY, cameraZ, frustumMatrix, projectionMatrix);
         } finally {
             levelRendererExt.setCullingFrustum(cullingFrustum);
         }
@@ -586,13 +586,20 @@ public final class ProjectorDepthRenderer {
         bufferSource.endBatch();
     }
 
-    private static void configureProjectorDepthCamera(final ClientLevel level, final Vec3 pos, final float rotationY) {
-        PROJECTOR_DEPTH_CAMERA.setup(level, ProjectorCameraEntity.get(level, pos, rotationY), false, false, 0);
+    private static void configureProjectorDepthCamera(final ClientLevel level, final Vec3 pos, final FlippableOrientation orientation) {
+        final FlippableOrientation viewOrientation = orientation.getUpright();
+        final float rotationY = viewOrientation.getRotationY() + 180;
+        final float rotationX = viewOrientation.getRotationX();
+        PROJECTOR_DEPTH_CAMERA.setup(level, ProjectorCameraEntity.get(level, pos, rotationY, rotationX), false, false, 0);
     }
 
-    private static void setupViewModelMatrix(final PoseStack viewModelStack) {
+    private static void setupViewModelMatrix(final PoseStack viewModelStack, final FlippableOrientation orientation) {
         viewModelStack.setIdentity();
-        viewModelStack.mulPose(Axis.YP.rotationDegrees(PROJECTOR_DEPTH_CAMERA.getYRot() + 180));
+        viewModelStack.mulPose(orientation.getUpright().getRotation().conjugate(VIEW_ROTATION));
+    }
+
+    private static Matrix4f getProjectionMatrix(final FlippableOrientation orientation) {
+        return orientation.isUpsideDown() ? UPSIDE_DOWN_DEPTH_CAMERA_PROJECTION_MATRIX : DEPTH_CAMERA_PROJECTION_MATRIX;
     }
 
     private static AABB frustumBounds(final double cameraX, final double cameraY, final double cameraZ) {
@@ -626,10 +633,10 @@ public final class ProjectorDepthRenderer {
         ((MinecraftExt) minecraft).setMainRenderTargetOverride(activeProjectorDepthTarget);
     }
 
-    private static void storeProjectorMatrix(final int projectorIndex, final Vec3 projectorPos, final Vec3 mainCameraPosition, final PoseStack viewModelStack) {
+    private static void storeProjectorMatrix(final int projectorIndex, final Vec3 projectorPos, final Vec3 mainCameraPosition, final PoseStack viewModelStack, final Matrix4f projectionMatrix) {
         // Save model-view-projection matrix for mapping in compositing shader. We use the position relative to the
         // main camera here, so that the main camera can sit at the origin. This avoids loss of precision.
-        PROJECTOR_CAMERA_MATRICES[projectorIndex].set(DEPTH_CAMERA_PROJECTION_MATRIX);
+        PROJECTOR_CAMERA_MATRICES[projectorIndex].set(projectionMatrix);
         viewModelStack.pushPose();
         viewModelStack.translate(
             mainCameraPosition.x() - projectorPos.x(),
@@ -921,13 +928,13 @@ public final class ProjectorDepthRenderer {
     private static final class ProjectorCameraEntity extends Player {
         private static ProjectorCameraEntity instance;
 
-        public static ProjectorCameraEntity get(final Level level, final Vec3 pos, final float rotationY) {
+        public static ProjectorCameraEntity get(final Level level, final Vec3 pos, final float rotationY, final float rotationX) {
             if (instance == null) {
                 instance = new ProjectorCameraEntity(level, BlockPos.ZERO, rotationY);
             }
 
             instance.setLevel(level);
-            instance.moveTo(pos.x(), pos.y(), pos.z(), rotationY, 0);
+            instance.moveTo(pos.x(), pos.y(), pos.z(), rotationY, rotationX);
 
             return instance;
         }

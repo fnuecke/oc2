@@ -6,6 +6,8 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
+import li.cil.oc2.common.block.FlippableOrientableBlock;
+import li.cil.oc2.common.block.FlippableOrientation;
 import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.core.Direction;
@@ -62,7 +64,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .end();
         horizontalBlock(Blocks.NETWORK_HUB, Items.NETWORK_HUB, NETWORK_HUB_MODEL);
         horizontalBlock(Blocks.INTERNET_GATEWAY, Items.INTERNET_GATEWAY, INTERNET_GATEWAY_MODEL);
-        horizontalBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
+        flippableOrientableBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
         horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
         orientableBlock(Blocks.TERMINAL, Items.TERMINAL, TERMINAL_MODEL);
         simpleBlock(Blocks.TRANSPOSER, Items.TRANSPOSER, TRANSPOSER_MODEL);
@@ -186,6 +188,19 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .rotationX(OrientableBlock.getRotationX(state))
             .rotationY(OrientableBlock.getRotationY(state))
             .build());
+        return itemModels().getBuilder(item.getId().getPath()).parent(model);
+    }
+
+    private <T extends FlippableOrientableBlock> ItemModelBuilder flippableOrientableBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
+        final ModelFile model = models().getExistingFile(modelFileLocation);
+        getVariantBuilder(block.get()).forAllStates(state -> {
+            final FlippableOrientation orientation = state.getValue(FlippableOrientableBlock.ORIENTATION);
+            return ConfiguredModel.builder()
+                .modelFile(model)
+                .rotationX(orientation.getRotationX())
+                .rotationY(orientation.getRotationY())
+                .build();
+        });
         return itemModels().getBuilder(item.getId().getPath()).parent(model);
     }
 

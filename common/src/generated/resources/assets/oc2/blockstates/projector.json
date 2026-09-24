@@ -1,5 +1,43 @@
 {
   "variants": {
+    "facing=down_east,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 90,
+      "y": 90
+    },
+    "facing=down_east,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 90,
+      "y": 90
+    },
+    "facing=down_north,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 90
+    },
+    "facing=down_north,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 90
+    },
+    "facing=down_south,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 90,
+      "y": 180
+    },
+    "facing=down_south,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 90,
+      "y": 180
+    },
+    "facing=down_west,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 90,
+      "y": 270
+    },
+    "facing=down_west,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 90,
+      "y": 270
+    },
     "facing=east,lit=false": {
       "model": "oc2:block/projector",
       "y": 90
@@ -8,11 +46,31 @@
       "model": "oc2:block/projector",
       "y": 90
     },
+    "facing=east_upside_down,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 180,
+      "y": 270
+    },
+    "facing=east_upside_down,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 180,
+      "y": 270
+    },
     "facing=north,lit=false": {
       "model": "oc2:block/projector"
     },
     "facing=north,lit=true": {
       "model": "oc2:block/projector"
+    },
+    "facing=north_upside_down,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 180,
+      "y": 180
+    },
+    "facing=north_upside_down,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 180,
+      "y": 180
     },
     "facing=south,lit=false": {
       "model": "oc2:block/projector",
@@ -22,6 +80,52 @@
       "model": "oc2:block/projector",
       "y": 180
     },
+    "facing=south_upside_down,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 180
+    },
+    "facing=south_upside_down,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 180
+    },
+    "facing=up_east,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 270,
+      "y": 270
+    },
+    "facing=up_east,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 270,
+      "y": 270
+    },
+    "facing=up_north,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 270,
+      "y": 180
+    },
+    "facing=up_north,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 270,
+      "y": 180
+    },
+    "facing=up_south,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 270
+    },
+    "facing=up_south,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 270
+    },
+    "facing=up_west,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 270,
+      "y": 90
+    },
+    "facing=up_west,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 270,
+      "y": 90
+    },
     "facing=west,lit=false": {
       "model": "oc2:block/projector",
       "y": 270
@@ -29,6 +133,16 @@
     "facing=west,lit=true": {
       "model": "oc2:block/projector",
       "y": 270
+    },
+    "facing=west_upside_down,lit=false": {
+      "model": "oc2:block/projector",
+      "x": 180,
+      "y": 90
+    },
+    "facing=west_upside_down,lit=true": {
+      "model": "oc2:block/projector",
+      "x": 180,
+      "y": 90
     }
   }
 }

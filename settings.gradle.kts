@@ -46,7 +46,7 @@ substituteLocal("vox2mcDir", "li.cil.vox2mc:vox2mc")
 
 include("common")
 
-val enabledPlatforms: String by settings
+val enabledPlatforms = providers.gradleProperty("enabledPlatforms").get()
 for (enabledPlatform in enabledPlatforms.split(",")) {
     include(enabledPlatform)
 }
@@ -59,5 +59,5 @@ for (module in listOf("common") + enabledPlatforms.split(",")) {
     project(":gametest-$module").projectDir = file("gametest/$module")
 }
 
-val modId: String by settings
+val modId = providers.gradleProperty("modId").get()
 rootProject.name = modId

@@ -192,7 +192,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
         // the most simple and easy to maintain one I could think of.
         while (!messages.isSending() && !payloads.isSending() && synchronizedInvocation == null) {
             currentRequestId = 0; // until a message says otherwise, a reply cannot name one
-            if (!messages.readFrame(this::acceptMessage, () -> writeError(ERROR_MESSAGE_TOO_LARGE))) {
+            if (!messages.readFrame(this::acceptMessage, this::rejectOversizedMessage)) {
                 break;
             }
         }
@@ -201,6 +201,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private void writeToDevice() {
         payloads.flush();
         messages.flush();
+    }
+
+    private void rejectOversizedMessage() {
+        payloads.discard();
+        writeError(ERROR_MESSAGE_TOO_LARGE);
     }
 
     private void acceptMessage(final byte[] messageData) {

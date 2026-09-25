@@ -20,6 +20,7 @@ import li.cil.sedna.z80.Z80Board;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public final class Z80Architecture extends AbstractArchitecture {
     private static final int ENUMERATOR_PORT = 0xE0;
@@ -117,6 +118,7 @@ public final class Z80Architecture extends AbstractArchitecture {
 
     @Override
     public void sendInitializingEvent() {
+        Arrays.fill(bootRom, (byte) 0);
         sendLifecycleEvent(new VMInitializingEvent(bootRomMap, 0));
     }
 

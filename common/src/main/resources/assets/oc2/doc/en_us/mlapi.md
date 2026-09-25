@@ -1,5 +1,5 @@
 # Mid-level API
-Programs running on a [Z80 processor](item/cpu_z80.md) access devices through the mid-level API (MLAPI). It usually makes available a subset of the devices accessible via the [high-level API](hlapi.md) (HLAPI), in a form an 8-bit machine can drive: a function is picked by number, and its arguments and results are plain bytes.
+The mid-level API (MLAPI) is a low-level friendly way of interacting with devices. It's primary consumer is programs running on a [Z80 processor](item/cpu_z80.md), but [RISC-V computers](item/cpu_riscv.md) can make use of it, as well; see below. It usually makes available a subset of the devices accessible via the [high-level API](hlapi.md) (HLAPI), in a form an 8-bit machine can access comfortably: a function is picked by number, and its arguments and results are plain bytes.
 
 For the function codes each device offers, see the [list of devices](device/index.md).
 
@@ -49,3 +49,11 @@ This sets the output on side 1, upwards, to 15. Put a redstone lamp above the co
 `B:REDSTN 1`
 
 To write your own, `ED` on the boot disk creates and edits source files, as in `ED B:PROG.Z80`.
+
+## On a RISC-V Computer
+Linux offers the same registers as a memory page in the file `/dev/uio0`, which needs `root` privileges to open. The C header `mlapi.h` provides utilities to find and map this memory area; layout is then the same as described above. It also provides helpers to find a device and make a call. It lies in `/mnt/builtin/include`, where `tcc` should pick it up automatically.
+
+`/mnt/builtin/example/redstone.c` does the same as `REDSTN.Z80` does on the Z80. Run it directly:  
+`tcc -run /mnt/builtin/example/redstone.c 1 15`
+
+There is one selection and one call for the whole computer. Only let one program use the page at a time.

@@ -27,7 +27,7 @@ The port `OCFIND` returned has four registers, named in `OCAPI.INC`:
 
 A call goes: write the function code to `OCFUN`, write each argument byte to `OCDAT`, write `OCEXEC` to `OCSTA`. Then poll `OCSTA` until `OCBUSY` clears, and read result bytes from `OCDAT` while `OCDAV` is set.
 
-Many calls may take some time to execute, so make sure to poll and don't just continue. Only one call runs at a time, and writes are ignored while `OCBUSY` is set.
+Many calls may take some time to execute, so make sure to poll and don't just continue. Only one call runs at a time, and while `OCBUSY` is set only writes to `OCSTA` are accepted.
 
 When `OCERR` is set in the status, the call failed and `OCDAT` gives the reason:
 - `OCENOD`, no such MLAPI-device
@@ -42,7 +42,7 @@ The registers hold a single selection and a single call, so keep to one at a tim
 `ZMAC REDSTN /OB:REDSTN /E`  
 `ZML B:REDSTN`
 
-The first command assembles the source. `/O` puts the result in `B:REDSTN.REL` and `/E` drops the error log, both because `A:` cannot be written to. The second links that into `B:REDSTN.COM`, which CP/M can run:  
+The first command assembles the source. `/O` puts the result in `B:REDSTN.REL` and `/E` drops the error log. The second links that into `B:REDSTN.COM`, which CP/M can run:  
 `B:REDSTN 1 15`
 
 This sets the output on side 1, upwards, to 15. Put a redstone lamp above the computer and it lights up. Leave off the level to read the levels back instead:  

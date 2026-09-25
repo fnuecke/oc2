@@ -289,12 +289,20 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void processMessage(final JsonElement parsed) {
-        if (parsed.isJsonNull()) {
+        final Message message;
+        try {
+            message = gson.fromJson(parsed, Message.class);
+        } catch (final RuntimeException e) {
+            writeError(ERROR_MALFORMED_MESSAGE);
+            return;
+        }
+
+        if (message == null) {
+            writeError(ERROR_MALFORMED_MESSAGE);
             return;
         }
 
         try {
-            final Message message = gson.fromJson(parsed, Message.class);
             currentRequestId = message.id;
             switch (message.type) {
                 case Message.MESSAGE_TYPE_LIST -> writeDeviceList();
@@ -314,8 +322,6 @@ public final class RPCDeviceBusAdapter implements Steppable {
                 }
                 default -> writeError(ERROR_UNKNOWN_MESSAGE_TYPE);
             }
-        } catch (final JsonParseException e) {
-            writeError(ERROR_MALFORMED_MESSAGE);
         } catch (final Throwable e) {
             LOGGER.error("Failed processing RPC message.", e);
             writeError(ERROR_INTERNAL);

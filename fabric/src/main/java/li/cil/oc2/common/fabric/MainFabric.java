@@ -24,6 +24,7 @@ public final class MainFabric implements ModInitializer {
 
         CapabilityRegistrationFabric.initialize();
         ChunkEventsFabric.initialize();
+        EntityEventsFabric.initialize();
         FakePlayerUtilsImpl.initialize();
         WrenchInteractionFabric.initialize();
     }

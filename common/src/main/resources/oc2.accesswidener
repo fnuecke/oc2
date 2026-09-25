@@ -5,6 +5,7 @@ mutable	field	net/minecraft/client/renderer/GameRenderer	mainCamera	Lnet/minecra
 accessible	field	net/minecraft/client/MouseHandler	mouseGrabbed	Z
 mutable	field	net/minecraft/client/MouseHandler	mouseGrabbed	Z
 accessible	field	net/minecraft/network/protocol/common/ServerboundCustomPayloadPacket	MAX_PAYLOAD_SIZE	I
+accessible	field	net/minecraft/world/entity/Mob	goalSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
 accessible	field	net/minecraft/world/item/crafting/ShapelessRecipe	result	Lnet/minecraft/world/item/ItemStack;
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	leftPos	I
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	topPos	I

@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 import li.cil.oc2.client.gui.KeyboardScreen;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
+import li.cil.oc2.common.entity.CatSitOnDeviceGoal;
 import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -76,13 +78,18 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     }
 
     @Override
+    protected boolean isPathfindable(final BlockState state, final PathComputationType type) {
+        return false;
+    }
+
+    @Override
     protected ItemInteractionResult useItemOn(final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof final KeyboardBlockEntity keyboard)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hit);
         }
 
-        if (level.isClientSide()) {
+        if (level.isClientSide() && !CatSitOnDeviceGoal.isCatSittingAt(level, pos)) {
             openKeyboardScreen(keyboard);
         }
 
@@ -96,7 +103,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
             return super.useWithoutItem(state, level, pos, player, hit);
         }
 
-        if (level.isClientSide()) {
+        if (level.isClientSide() && !CatSitOnDeviceGoal.isCatSittingAt(level, pos)) {
             openKeyboardScreen(keyboard);
         }
 

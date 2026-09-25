@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 
@@ -139,17 +140,16 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
         }
 
         final ArrayList<Binding> newBindings = new ArrayList<>(identifierByDevice.size());
-        identifierByDevice.forEach((device, identifier) -> newBindings.add(new Binding(identifier, device)));
+        identifierByDevice.forEach((device, identifier) -> newBindings.add(new Binding(identifier, bindingKey(identifier, device), device)));
 
         newBindings.sort(Comparator.comparing(Binding::identifier).thenComparing(binding -> binding.device().getIOName()).thenComparing(binding -> binding.device().getClass().getName()));
 
-        // A group's devices all share its identifier, and the guest addresses by identifier, so
-        // only the first of a group can be reached. Merging them the way RPCDeviceList does is not
-        // an option here: two merged devices could claim the same function code.
+        // All devices of a group share its identifier, so bindings are keyed per device within the
+        // group. Only devices of the same name in one group remain indistinguishable.
         for (int i = newBindings.size() - 1; i > 0; i--) {
-            if (newBindings.get(i).identifier().equals(newBindings.get(i - 1).identifier())) {
+            if (newBindings.get(i).key().equals(newBindings.get(i - 1).key())) {
                 final Binding dropped = newBindings.remove(i);
-                LOGGER.warn("Device [{}] shares identifier [{}] with another device providing a " + "mid-level API and is not reachable from the guest.", dropped.device().getIOName(), dropped.identifier());
+                LOGGER.warn("Device [{}] has the same name as another device providing a mid-level API under identifier [{}] and is not reachable from the guest.", dropped.device().getIOName(), dropped.identifier());
             }
         }
 
@@ -162,7 +162,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
         final ArrayList<DeviceDescription> newDescriptions = new ArrayList<>(newBindings.size());
         for (int index = 0; index < newBindings.size(); index++) {
             final Binding binding = newBindings.get(index);
-            newBindingsById.put(binding.identifier(), binding);
+            newBindingsById.put(binding.key(), binding);
             newDescriptions.add(new DeviceDescription(DEVICE_CLASS, binding.device().getIOName(), binding.identifier().toString(), index));
         }
 
@@ -289,7 +289,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
     private void select(final int index) {
         resetTransaction();
         selected = index;
-        selectedIdentifier = index < bindings.size() ? bindings.get(index).identifier() : null;
+        selectedIdentifier = index < bindings.size() ? bindings.get(index).key() : null;
     }
 
     private void begin(final int code) {
@@ -360,7 +360,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
         }
 
         if (function.isSynchronized()) {
-            pendingDeviceId = binding.identifier();
+            pendingDeviceId = binding.key();
             pendingFunctionCode = functionCode;
             isAbandoned = false;
             state = STATE_RUNNING;
@@ -398,6 +398,10 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
         }
     }
 
+    private static UUID bindingKey(final UUID identifier, final IODevice device) {
+        return UUID.nameUUIDFromBytes((identifier + "/" + device.getIOName()).getBytes(StandardCharsets.UTF_8));
+    }
+
     @Nullable
     private static IOMethod findFunction(final IODevice device, final int code) {
         for (final IOMethod function : device.getIOMethods()) {
@@ -410,7 +414,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
 
     // --------------------------------------------------------------------- //
 
-    private record Binding(UUID identifier, IODevice device) {
+    private record Binding(UUID identifier, UUID key, IODevice device) {
     }
 
     private final class ResultStream extends OutputStream {

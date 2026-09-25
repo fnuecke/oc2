@@ -208,15 +208,26 @@ public final class IODeviceBusAdapterTests {
     }
 
     @Test
-    public void devicesSharingAnIdentifierEnumerateOnce() {
+    public void devicesSharingAnIdentifierEnumerateSeparately() {
         final ObjectDevice other = new ObjectDevice(new OtherTarget(), "other");
         when(controller.getDevices()).thenReturn(Set.of(subject, other));
         when(controller.getDeviceIdentifiers(subject)).thenReturn(Set.of(DEVICE_UUID));
         when(controller.getDeviceIdentifiers(other)).thenReturn(Set.of(DEVICE_UUID));
         adapter.rebuild(controller);
 
-        assertEquals(1, adapter.getDescriptions().size(),
-            "two devices sharing an identifier must not both claim a sub-index");
+        assertEquals(2, adapter.getDescriptions().size(), "each device in a group should get its own sub-index");
+
+        write(REG_SELECT, 0);
+        write(REG_FUNCTION, FUNCTION_ECHO);
+        write(REG_DATA, 1);
+        write(REG_STATUS, CONTROL_EXECUTE);
+        assertEquals(101, read(REG_DATA), "index 0 should reach the first device of the group");
+
+        write(REG_SELECT, 1);
+        write(REG_FUNCTION, FUNCTION_ECHO);
+        write(REG_DATA, 1);
+        write(REG_STATUS, CONTROL_EXECUTE);
+        assertEquals(2, read(REG_DATA), "index 1 should reach the second device of the group");
     }
 
     @Test

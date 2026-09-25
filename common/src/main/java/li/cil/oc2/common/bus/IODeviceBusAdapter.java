@@ -56,7 +56,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
     private static final int STATE_DONE = 3;
 
     private static final int BUFFER_SIZE = IOCallback.MAX_DATA_SIZE;
-    private static final int MAX_DEVICES = 256;
+    private static final int MAX_DEVICES = 254;
 
     // --------------------------------------------------------------------- //
     // Worker thread owned

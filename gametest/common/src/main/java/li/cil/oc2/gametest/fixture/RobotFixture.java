@@ -5,7 +5,7 @@ package li.cil.oc2.gametest.fixture;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
@@ -136,7 +136,7 @@ public final class RobotFixture implements MachineFixture {
     }
 
     public RobotFixture charge() {
-        final EnergyStorage storage = robot.getCapability(Capabilities.ENERGY_STORAGE, null);
+        final EnergyHandler storage = robot.getCapability(Capabilities.ENERGY_STORAGE, null);
         if (storage != null) {
             storage.receiveEnergy(storage.getMaxEnergyStored(), false);
         }

@@ -8,7 +8,7 @@ import li.cil.oc2.common.block.FlippableOrientation;
 import li.cil.oc2.common.block.ProjectorBlock;
 import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.ProjectorLoadBalancer;
 import li.cil.oc2.common.network.message.ProjectorRequestFramebufferMessage;
@@ -89,7 +89,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     private final ProjectorDevice projectorDevice = new ProjectorDevice(this, this::handleMountedChanged);
     private boolean isMounted, hasEnergy;
-    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.projectorEnergyStorage);
+    private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.projectorEnergyStorage);
     private final Picture picture = Picture.create(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, ColorSpace.YUV420J);
 
     // Video encoding.

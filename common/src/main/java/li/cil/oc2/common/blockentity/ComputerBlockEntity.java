@@ -24,7 +24,7 @@ import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.capabilities.CompoundNetworkInterface;
 import li.cil.oc2.common.container.ComputerInventoryContainer;
 import li.cil.oc2.common.container.ComputerTerminalContainer;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
@@ -86,7 +86,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     private final Terminal terminal = new Terminal();
     private final ComputerBusElement busElement = new ComputerBusElement();
     private final ComputerItemStackHandlers deviceItems = new ComputerItemStackHandlers();
-    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.computerEnergyStorage);
+    private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.computerEnergyStorage);
     private final ComputerVirtualMachine virtualMachine = new ComputerVirtualMachine(new BlockDeviceBusController(busElement, this::cpuEnergyPerTick, this, deviceItems::getArchitectureType), deviceItems::getDeviceLocation);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();

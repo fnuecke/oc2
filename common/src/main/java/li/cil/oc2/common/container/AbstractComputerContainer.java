@@ -5,7 +5,7 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ComputerPowerMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalInputMessage;
@@ -82,7 +82,7 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
 
     // --------------------------------------------------------------------- //
 
-    protected static IntPrecisionContainerData createEnergyInfo(final EnergyStorage energy, final CommonDeviceBusController busController) {
+    protected static IntPrecisionContainerData createEnergyInfo(final EnergyHandler energy, final CommonDeviceBusController busController) {
         return new IntPrecisionContainerData.Server() {
             @Override
             public int getInt(final int index) {

@@ -5,7 +5,7 @@ package li.cil.oc2.gametest;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.fixture.RobotFixture;
@@ -48,7 +48,7 @@ public final class EntityCapabilityTests {
         }
 
         if (Config.robotsUseEnergy()) {
-            final EnergyStorage energy = Capabilities.get(robot, Capabilities.ENERGY_STORAGE, Direction.DOWN);
+            final EnergyHandler energy = Capabilities.get(robot, Capabilities.ENERGY_STORAGE, Direction.DOWN);
             if (energy == null) {
                 throw new GameTestAssertException("robot energy is not reachable through the capability");
             }

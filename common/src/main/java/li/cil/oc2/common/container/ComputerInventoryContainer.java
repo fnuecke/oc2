@@ -7,7 +7,7 @@ import dev.architectury.registry.menu.MenuRegistry;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.vm.VMItemStackHandlers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,7 +19,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class ComputerInventoryContainer extends AbstractComputerContainer {
-    public static void createServer(final ComputerBlockEntity computer, final EnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
+    public static void createServer(final ComputerBlockEntity computer, final EnergyHandler energy, final CommonDeviceBusController busController, final ServerPlayer player) {
         MenuRegistry.openExtendedMenu(player, new ExtendedMenuProvider() {
             @Override
             public Component getDisplayName() {

@@ -3,7 +3,7 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.OpenRobotInventoryMessage;
@@ -79,7 +79,7 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
 
     // --------------------------------------------------------------------- //
 
-    protected static IntPrecisionContainerData createEnergyInfo(final FixedEnergyStorage energy, final CommonDeviceBusController busController) {
+    protected static IntPrecisionContainerData createEnergyInfo(final FixedEnergyHandler energy, final CommonDeviceBusController busController) {
         return new IntPrecisionContainerData.Server() {
             @Override
             public int getInt(final int index) {

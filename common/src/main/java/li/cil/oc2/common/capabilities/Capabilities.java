@@ -11,7 +11,7 @@ import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.api.util.Invalidatable;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.BlockPos;
@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 
 public final class Capabilities {
     // Interop capabilities
-    public static final CapabilityType<EnergyStorage> ENERGY_STORAGE = type("energy_storage", EnergyStorage.class);
+    public static final CapabilityType<EnergyHandler> ENERGY_STORAGE = type("energy_storage", EnergyHandler.class);
     public static final CapabilityType<ItemHandler> ITEM_HANDLER = type("item_handler", ItemHandler.class);
     public static final CapabilityType<FluidHandler> FLUID_HANDLER = type("fluid_handler", FluidHandler.class);
 

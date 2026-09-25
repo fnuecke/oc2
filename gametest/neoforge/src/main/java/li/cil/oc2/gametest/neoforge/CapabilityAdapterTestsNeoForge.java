@@ -4,7 +4,7 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.CapabilityAdapterTests;
 import net.minecraft.gametest.framework.GameTest;
@@ -23,7 +23,7 @@ import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class CapabilityAdapterTestsNeoForge {
-    private static final Function<GameTestHelper, EnergyStorage> ENERGY = helper -> {
+    private static final Function<GameTestHelper, EnergyHandler> ENERGY = helper -> {
         helper.setBlock(DEVICE_POS, Blocks.CHARGER.get());
         return Capabilities.get(blockEntity(helper), Capabilities.ENERGY_STORAGE, null);
     };

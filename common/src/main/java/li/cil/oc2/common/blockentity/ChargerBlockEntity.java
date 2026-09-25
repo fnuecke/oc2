@@ -7,8 +7,8 @@ import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyStorage;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
+import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ChargerStateMessage;
@@ -39,7 +39,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
 
     // --------------------------------------------------------------------- //
 
-    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.chargerEnergyStorage);
+    private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.chargerEnergyStorage);
     private boolean hasEnergy;
     private boolean isCharging;
     private final AABB renderBoundingBox;
@@ -149,9 +149,9 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
         charge(Capabilities.get(entity, Capabilities.ENERGY_STORAGE, Direction.DOWN), Capabilities.get(entity, Capabilities.ITEM_HANDLER, Direction.DOWN));
     }
 
-    private void charge(@Nullable EnergyStorage energyStorage, @Nullable ItemHandler itemHandler) {
-        if (energyStorage != null) {
-            chargeStorage(energyStorage);
+    private void charge(@Nullable EnergyHandler energyHandler, @Nullable ItemHandler itemHandler) {
+        if (energyHandler != null) {
+            chargeStorage(energyHandler);
         }
 
         if (itemHandler != null) {
@@ -159,12 +159,12 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
         }
     }
 
-    private void chargeStorage(final EnergyStorage energyStorage) {
+    private void chargeStorage(final EnergyHandler energyHandler) {
         assert level != null;
 
         final long amount = Math.min(energy.getEnergyStored(), Config.chargerEnergyPerTick);
         final boolean simulate = level.isClientSide;
-        if (energy.extractEnergy(energyStorage.receiveEnergy(amount, simulate), simulate) > 0) {
+        if (energy.extractEnergy(energyHandler.receiveEnergy(amount, simulate), simulate) > 0) {
             isCharging = true;
         }
     }
@@ -173,7 +173,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
         for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
             final ItemStack stack = itemHandler.getStackInSlot(slot);
             if (!stack.isEmpty()) {
-                final EnergyStorage stackEnergy = Capabilities.get(stack, Capabilities.ENERGY_STORAGE);
+                final EnergyHandler stackEnergy = Capabilities.get(stack, Capabilities.ENERGY_STORAGE);
                 if (stackEnergy != null) {
                     chargeStorage(stackEnergy);
                 }

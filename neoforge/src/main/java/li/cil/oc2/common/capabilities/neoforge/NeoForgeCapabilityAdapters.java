@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.capabilities.neoforge;
 
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
@@ -16,8 +16,8 @@ import javax.annotation.Nullable;
 
 public final class NeoForgeCapabilityAdapters {
     @Nullable
-    public static EnergyStorage energy(@Nullable final IEnergyStorage storage) {
-        return storage == null ? null : new EnergyStorageAdapter(storage);
+    public static EnergyHandler energy(@Nullable final IEnergyStorage storage) {
+        return storage == null ? null : new EnergyHandlerAdapter(storage);
     }
 
     @Nullable
@@ -34,13 +34,13 @@ public final class NeoForgeCapabilityAdapters {
         return new ReverseItemHandlerAdapter(handler);
     }
 
-    public static IEnergyStorage toNeoForge(final EnergyStorage storage) {
+    public static IEnergyStorage toNeoForge(final EnergyHandler storage) {
         return new ReverseEnergyStorageAdapter(storage);
     }
 
     // --------------------------------------------------------------------- //
 
-    private record EnergyStorageAdapter(IEnergyStorage inner) implements EnergyStorage {
+    private record EnergyHandlerAdapter(IEnergyStorage inner) implements EnergyHandler {
         @Override
         public long receiveEnergy(final long maxReceive, final boolean simulate) {
             return inner.receiveEnergy(clamp(maxReceive), simulate);
@@ -72,7 +72,7 @@ public final class NeoForgeCapabilityAdapters {
         }
     }
 
-    private record ReverseEnergyStorageAdapter(EnergyStorage inner) implements IEnergyStorage {
+    private record ReverseEnergyStorageAdapter(EnergyHandler inner) implements IEnergyStorage {
         @Override
         public int receiveEnergy(final int maxReceive, final boolean simulate) {
             return clamp(inner.receiveEnergy(maxReceive, simulate));

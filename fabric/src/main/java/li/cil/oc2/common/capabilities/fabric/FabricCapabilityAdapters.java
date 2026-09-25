@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.capabilities.fabric;
 
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
@@ -33,8 +33,8 @@ import java.util.List;
  */
 public final class FabricCapabilityAdapters {
     @Nullable
-    public static EnergyStorage energy(@Nullable final team.reborn.energy.api.EnergyStorage storage) {
-        return storage == null ? null : new EnergyStorageAdapter(storage);
+    public static EnergyHandler energy(@Nullable final team.reborn.energy.api.EnergyStorage storage) {
+        return storage == null ? null : new EnergyHandlerAdapter(storage);
     }
 
     @Nullable
@@ -47,7 +47,7 @@ public final class FabricCapabilityAdapters {
         return storage == null ? null : new FluidHandlerAdapter(storage);
     }
 
-    public static team.reborn.energy.api.EnergyStorage toFabric(final EnergyStorage storage) {
+    public static team.reborn.energy.api.EnergyStorage toFabric(final EnergyHandler storage) {
         return new ReverseEnergyStorageAdapter(storage);
     }
 
@@ -62,7 +62,7 @@ public final class FabricCapabilityAdapters {
 
     // --------------------------------------------------------------------- //
 
-    private record EnergyStorageAdapter(team.reborn.energy.api.EnergyStorage inner) implements EnergyStorage {
+    private record EnergyHandlerAdapter(team.reborn.energy.api.EnergyStorage inner) implements EnergyHandler {
         @Override
         public long receiveEnergy(final long maxReceive, final boolean simulate) {
             try (Transaction transaction = open()) {
@@ -106,7 +106,7 @@ public final class FabricCapabilityAdapters {
         }
     }
 
-    private record ReverseEnergyStorageAdapter(EnergyStorage inner) implements team.reborn.energy.api.EnergyStorage {
+    private record ReverseEnergyStorageAdapter(EnergyHandler inner) implements team.reborn.energy.api.EnergyStorage {
         @Override
         public long insert(final long maxAmount, final TransactionContext transaction) {
             return new EnergyMovement(inner).insert(maxAmount, transaction);
@@ -139,10 +139,10 @@ public final class FabricCapabilityAdapters {
     }
 
     private static final class EnergyMovement extends SnapshotParticipant<Long> {
-        private final EnergyStorage inner;
+        private final EnergyHandler inner;
         private long moved;
 
-        private EnergyMovement(final EnergyStorage inner) {
+        private EnergyMovement(final EnergyHandler inner) {
             this.inner = inner;
         }
 

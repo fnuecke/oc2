@@ -6,12 +6,12 @@ import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.NBTUtils;
 import net.minecraft.world.item.ItemStack;
 
-public final class EnergyStorageItemStack implements EnergyStorage {
+public final class EnergyHandlerItemStack implements EnergyHandler {
     private final ItemStack stack;
     private final int capacity;
     private final String[] tagPath;
 
-    public EnergyStorageItemStack(final ItemStack stack, final int capacity, final String... tagPath) {
+    public EnergyHandlerItemStack(final ItemStack stack, final int capacity, final String... tagPath) {
         this.stack = stack;
         this.capacity = capacity;
         this.tagPath = tagPath;
@@ -25,7 +25,7 @@ public final class EnergyStorageItemStack implements EnergyStorage {
         if (!simulate) {
             ItemStackUtils.modifyModDataTag(stack, tag ->
                 NBTUtils.getOrCreateChildTag(tag, tagPath)
-                    .putInt(FixedEnergyStorage.STORED_TAG_NAME, (int) (stored + receive)));
+                    .putInt(FixedEnergyHandler.STORED_TAG_NAME, (int) (stored + receive)));
         }
         return receive;
     }
@@ -37,7 +37,7 @@ public final class EnergyStorageItemStack implements EnergyStorage {
 
     @Override
     public long getEnergyStored() {
-        return NBTUtils.getChildTag(ItemStackUtils.getModDataTag(stack), tagPath).getInt(FixedEnergyStorage.STORED_TAG_NAME);
+        return NBTUtils.getChildTag(ItemStackUtils.getModDataTag(stack), tagPath).getInt(FixedEnergyHandler.STORED_TAG_NAME);
     }
 
     @Override

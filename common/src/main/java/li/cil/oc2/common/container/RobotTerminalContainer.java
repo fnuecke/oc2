@@ -6,7 +6,7 @@ import dev.architectury.registry.menu.ExtendedMenuProvider;
 import dev.architectury.registry.menu.MenuRegistry;
 import li.cil.oc2.client.gui.Sprites;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.network.FriendlyByteBuf;
@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 public final class RobotTerminalContainer extends AbstractRobotContainer {
-    public static void createServer(final Robot robot, final FixedEnergyStorage energy, final CommonDeviceBusController busController, final ServerPlayer player) {
+    public static void createServer(final Robot robot, final FixedEnergyHandler energy, final CommonDeviceBusController busController, final ServerPlayer player) {
         MenuRegistry.openExtendedMenu(player, new ExtendedMenuProvider() {
             @Override
             public Component getDisplayName() {

@@ -7,7 +7,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.inet.InternetManager;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.core.BlockPos;
@@ -37,7 +37,7 @@ public final class InternetGatewayTests {
             Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
         assertNotNull(helper, networkInterface, "network interface capability");
 
-        final EnergyStorage energy =
+        final EnergyHandler energy =
             Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
         assertNotNull(helper, energy, "energy storage capability");
 
@@ -55,7 +55,7 @@ public final class InternetGatewayTests {
             Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
         assertNotNull(helper, networkInterface, "network interface capability");
 
-        final EnergyStorage energy =
+        final EnergyHandler energy =
             Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
         assertNotNull(helper, energy, "energy storage capability");
         energy.receiveEnergy(Config.internetGatewayEnergyStorage, false);
@@ -83,7 +83,7 @@ public final class InternetGatewayTests {
         final BlockEntity blockEntity = helper.getBlockEntity(GATEWAY_POS);
         assertNotNull(helper, blockEntity, "gateway block entity");
 
-        final EnergyStorage energy =
+        final EnergyHandler energy =
             Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
         assertNotNull(helper, energy, "energy storage capability");
 
@@ -98,7 +98,7 @@ public final class InternetGatewayTests {
         assertNotNull(helper, reloaded, "reloaded gateway block entity");
         reloaded.loadWithComponents(tag, registries);
 
-        final EnergyStorage reloadedEnergy =
+        final EnergyHandler reloadedEnergy =
             reloaded.getCapability(Capabilities.ENERGY_STORAGE, Direction.NORTH);
         assertNotNull(helper, reloadedEnergy, "reloaded energy storage");
         assertEquals(helper, "stored energy should survive a save and load",
@@ -116,7 +116,7 @@ public final class InternetGatewayTests {
         assertNotNull(helper, blockEntity, "gateway block entity");
         final InternetGatewayBlockEntity gateway = (InternetGatewayBlockEntity) blockEntity;
 
-        final EnergyStorage energy =
+        final EnergyHandler energy =
             Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
         assertNotNull(helper, energy, "energy storage capability");
         energy.receiveEnergy(Config.internetGatewayEnergyStorage, false);
@@ -137,7 +137,7 @@ public final class InternetGatewayTests {
         InternetManager.start();
 
         final InternetGatewayBlockEntity gateway;
-        final EnergyStorage energy;
+        final EnergyHandler energy;
         try {
             final Player player = fakePlayer(helper);
             place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);

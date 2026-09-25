@@ -4,7 +4,7 @@ package li.cil.oc2.common.energy;
 
 import net.minecraft.nbt.CompoundTag;
 
-public final class FixedEnergyStorage implements EnergyStorage {
+public final class FixedEnergyHandler implements EnergyHandler {
     public static final String STORED_TAG_NAME = "stored";
     public static final String CAPACITY_TAG_NAME = "capacity";
 
@@ -13,7 +13,7 @@ public final class FixedEnergyStorage implements EnergyStorage {
 
     // --------------------------------------------------------------------- //
 
-    public FixedEnergyStorage(final int capacity) {
+    public FixedEnergyHandler(final int capacity) {
         this.capacity = capacity;
     }
 

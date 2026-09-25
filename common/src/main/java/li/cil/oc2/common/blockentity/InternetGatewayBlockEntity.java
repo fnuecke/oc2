@@ -6,7 +6,7 @@ import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.InternetManager;
@@ -29,7 +29,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
     private final Deque<byte[]> toNetwork = new ArrayDeque<>();
     private final Deque<byte[]> toInternet = new ArrayDeque<>();
-    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.internetGatewayEnergyStorage);
+    private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.internetGatewayEnergyStorage);
 
     @Nullable
     private InternetConnection connection;

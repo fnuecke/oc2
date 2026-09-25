@@ -2,7 +2,7 @@
 
 package li.cil.oc2.gametest;
 
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -14,7 +14,7 @@ import java.util.function.Function;
 public final class CapabilityAdapterTests {
     @FunctionalInterface
     public interface EnergyOperation {
-        long apply(GameTestHelper helper, EnergyStorage storage, long amount);
+        long apply(GameTestHelper helper, EnergyHandler storage, long amount);
     }
 
     @FunctionalInterface
@@ -26,8 +26,8 @@ public final class CapabilityAdapterTests {
 
     // --------------------------------------------------------------------- //
 
-    public static void simulatedInsertDoesNotMutate(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+    public static void simulatedInsertDoesNotMutate(final GameTestHelper helper, final Function<GameTestHelper, EnergyHandler> energy) {
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         final long before = storage.getEnergyStored();
 
         final long accepted = storage.receiveEnergy(AMOUNT, true);
@@ -37,8 +37,8 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
-    public static void committedInsertMutatesByReportedAmount(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+    public static void committedInsertMutatesByReportedAmount(final GameTestHelper helper, final Function<GameTestHelper, EnergyHandler> energy) {
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         final long before = storage.getEnergyStored();
 
         final long accepted = storage.receiveEnergy(AMOUNT, false);
@@ -49,8 +49,8 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
-    public static void simulatedExtractDoesNotMutate(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+    public static void simulatedExtractDoesNotMutate(final GameTestHelper helper, final Function<GameTestHelper, EnergyHandler> energy) {
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         storage.receiveEnergy(AMOUNT, false);
         final long before = storage.getEnergyStored();
 
@@ -61,8 +61,8 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
-    public static void committedExtractMutatesByReportedAmount(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+    public static void committedExtractMutatesByReportedAmount(final GameTestHelper helper, final Function<GameTestHelper, EnergyHandler> energy) {
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         storage.receiveEnergy(AMOUNT, false);
         final long before = storage.getEnergyStored();
 
@@ -74,8 +74,8 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
-    public static void insertClampsToCapacity(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+    public static void insertClampsToCapacity(final GameTestHelper helper, final Function<GameTestHelper, EnergyHandler> energy) {
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         final long capacity = storage.getMaxEnergyStored();
         if (capacity <= 0) {
             throw new GameTestAssertException("expected a positive capacity, was " + capacity);
@@ -88,8 +88,8 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
-    public static void extractClampsToContents(final GameTestHelper helper, final Function<GameTestHelper, EnergyStorage> energy) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+    public static void extractClampsToContents(final GameTestHelper helper, final Function<GameTestHelper, EnergyHandler> energy) {
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         storage.receiveEnergy(AMOUNT, false);
 
         final long extracted = storage.extractEnergy(AMOUNT * 10, false);
@@ -100,9 +100,9 @@ public final class CapabilityAdapterTests {
     }
 
     public static void abortedInsertLeavesStorageUnchanged(final GameTestHelper helper,
-                                                           final Function<GameTestHelper, EnergyStorage> energy,
+                                                           final Function<GameTestHelper, EnergyHandler> energy,
                                                            final EnergyOperation abortedInsert) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         final long before = storage.getEnergyStored();
 
         final long accepted = abortedInsert.apply(helper, storage, AMOUNT);
@@ -113,9 +113,9 @@ public final class CapabilityAdapterTests {
     }
 
     public static void abortedExtractLeavesStorageUnchanged(final GameTestHelper helper,
-                                                            final Function<GameTestHelper, EnergyStorage> energy,
+                                                            final Function<GameTestHelper, EnergyHandler> energy,
                                                             final EnergyOperation abortedExtract) {
-        final EnergyStorage storage = require(energy.apply(helper), "energy storage");
+        final EnergyHandler storage = require(energy.apply(helper), "energy storage");
         storage.receiveEnergy(AMOUNT, false);
         final long before = storage.getEnergyStored();
 

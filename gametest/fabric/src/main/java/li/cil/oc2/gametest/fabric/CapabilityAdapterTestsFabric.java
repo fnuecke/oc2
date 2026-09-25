@@ -4,7 +4,7 @@ package li.cil.oc2.gametest.fabric;
 
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.CapabilityAdapterTests;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
@@ -23,7 +23,7 @@ import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 
 public final class CapabilityAdapterTestsFabric {
-    private static final Function<GameTestHelper, EnergyStorage> ENERGY = helper -> {
+    private static final Function<GameTestHelper, EnergyHandler> ENERGY = helper -> {
         helper.setBlock(DEVICE_POS, Blocks.CHARGER.get());
         return Capabilities.get(blockEntity(helper), Capabilities.ENERGY_STORAGE, null);
     };

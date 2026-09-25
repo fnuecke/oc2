@@ -28,7 +28,7 @@ import li.cil.oc2.common.container.FixedSizeItemStackHandler;
 import li.cil.oc2.common.container.ItemStackHandler;
 import li.cil.oc2.common.container.RobotInventoryContainer;
 import li.cil.oc2.common.container.RobotTerminalContainer;
-import li.cil.oc2.common.energy.FixedEnergyStorage;
+import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.entity.robot.*;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
@@ -130,7 +130,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final RobotDevice robotDevice = new RobotDevice();
     private final RobotBusElement busElement = new RobotBusElement();
     private final RobotItemStackHandlers deviceItems = new RobotItemStackHandlers();
-    private final FixedEnergyStorage energy = new FixedEnergyStorage(Config.robotEnergyStorage);
+    private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.robotEnergyStorage);
     private final RobotVirtualMachine virtualMachine = new RobotVirtualMachine(new CommonDeviceBusController(busElement, this::cpuEnergyPerTick, deviceItems::getArchitectureType));
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());

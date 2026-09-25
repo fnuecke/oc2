@@ -10,7 +10,7 @@ import li.cil.oc2.common.block.EnergyConsumingBlock;
 import li.cil.oc2.common.bus.device.DeviceTypeRegistry;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyStorage;
+import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.*;
 import net.minecraft.ChatFormatting;
@@ -111,7 +111,7 @@ public final class TooltipUtils {
     }
 
     public static void addEntityEnergyInformation(final ItemStack stack, final List<Component> tooltip) {
-        final EnergyStorage energy = Capabilities.get(stack, Capabilities.ENERGY_STORAGE);
+        final EnergyHandler energy = Capabilities.get(stack, Capabilities.ENERGY_STORAGE);
         if (energy == null || energy.getEnergyStored() == 0) {
             return;
         }

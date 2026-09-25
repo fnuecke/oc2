@@ -13,6 +13,7 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.util.Registries;
+import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BlockDeviceDataMessage;
 import li.cil.oc2.common.util.RegistryUtils;
@@ -77,6 +78,12 @@ public final class BlockDeviceDataRegistry {
     // --------------------------------------------------------------------- //
 
     public static void initialize() {
+        final int firmwareRegionSize = Buildroot.getSednaFirmwareRegionSize();
+        if (firmwareRegionSize != Constants.FLASH_MEMORY_SIZE) {
+            throw new IllegalStateException("Sedna firmware region size [" + firmwareRegionSize
+                + "] does not match flash memory size [" + Constants.FLASH_MEMORY_SIZE + "].");
+        }
+
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
             ResourceLocation.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
         LifecycleEvent.SERVER_STOPPED.register(server -> reset());

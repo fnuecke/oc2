@@ -51,7 +51,7 @@ fn main() -> Result<()> {
     };
     let output = arguments
         .output
-        .unwrap_or_else(|| repo.join("build").join("manual-html"));
+        .unwrap_or_else(|| repo.join("build").join("pages").join("manual"));
     let cache = arguments.cache.unwrap_or_else(|| {
         PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".cache/oc2-manual-html")
     });

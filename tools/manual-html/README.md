@@ -3,5 +3,5 @@
 Renders the ingame manual into a static website.
 
 ```bash
-cargo run --release -- --output ../../build/manual-html
+cargo run --release -- --output ../../build/pages/manual
 ```

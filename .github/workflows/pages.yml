@@ -1,21 +1,29 @@
-name: manual
+name: pages
 
 on:
   push:
     branches: [ '1.21.1' ]
     paths:
-      - '.github/workflows/manual.yml'
+      - '.github/workflows/pages.yml'
       - 'tools/manual-html/**'
       - 'common/src/main/resources/assets/oc2/**'
       - 'common/src/generated/resources/assets/oc2/**'
-      - 'gradle/libs.versions.toml'
+      - '*/src/main/java/li/cil/oc2/api/**'
+      - 'buildSrc/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
   pull_request:
     paths:
-      - '.github/workflows/manual.yml'
+      - '.github/workflows/pages.yml'
       - 'tools/manual-html/**'
       - 'common/src/main/resources/assets/oc2/**'
       - 'common/src/generated/resources/assets/oc2/**'
-      - 'gradle/libs.versions.toml'
+      - '*/src/main/java/li/cil/oc2/api/**'
+      - 'buildSrc/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
   workflow_dispatch:
 
 permissions:
@@ -24,10 +32,19 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v7
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          validate-wrappers: true
       - name: Cache Cargo Build
         uses: actions/cache@v4
         with:
@@ -44,10 +61,23 @@ jobs:
           key: minecraft-client-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: minecraft-client-
       - name: Render Manual
-        run: cargo run --release --locked --manifest-path tools/manual-html/Cargo.toml -- --clean --output build/manual-html
+        run: cargo run --release --locked --manifest-path tools/manual-html/Cargo.toml -- --clean --output build/pages/manual
+      - name: Generate Javadoc
+        run: ./gradlew apiJavadoc
+      - name: Assemble Pages
+        run: |
+          cp -r build/docs/api-javadoc build/pages/javadoc
+          cat > build/pages/index.html <<'EOF'
+          <!DOCTYPE html>
+          <meta charset="utf-8">
+          <title>OpenComputers II</title>
+          <meta http-equiv="refresh" content="0; url=manual/">
+          <link rel="canonical" href="manual/">
+          <a href="manual/">OpenComputers II Manual</a>
+          EOF
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: build/manual-html
+          path: build/pages
 
   deploy:
     needs: build
@@ -57,7 +87,7 @@ jobs:
       pages: write
       id-token: write
     concurrency:
-      group: manual-html-deploy
+      group: pages-deploy
       cancel-in-progress: false
     environment:
       name: github-pages

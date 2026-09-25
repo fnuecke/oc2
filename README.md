@@ -16,7 +16,7 @@ For documentation on how to get computers up and running, and how to use them, s
 
 ## Development Documentation
 
-The [`docs`](docs) directory holds a high level overview of e.g. the device API for mods and the data pack extension points. The [`examples`](examples) directory holds minimal mods using the device API.
+The [`docs`](docs) directory holds a high level overview of e.g. the device API for mods and the data pack extension points. The [`examples`](examples) directory holds minimal mods using the device API. The [API Javadoc] documents the mod's API types.
 
 ## Contributing
 
@@ -50,6 +50,7 @@ By contributing, you accept that the code is licensed under the MIT license.
 
 
 [OpenComputers]: https://github.com/MightyPirates/OpenComputers
-[documentation]: https://fnuecke.github.io/oc2/
-[HLAPI]: https://fnuecke.github.io/oc2/en_us/hlapi.html
-[MLAPI]: https://fnuecke.github.io/oc2/en_us/mlapi.html
+[documentation]: https://fnuecke.github.io/oc2/manual/
+[API Javadoc]: https://fnuecke.github.io/oc2/javadoc/
+[HLAPI]: https://fnuecke.github.io/oc2/manual/en_us/hlapi.html
+[MLAPI]: https://fnuecke.github.io/oc2/manual/en_us/mlapi.html

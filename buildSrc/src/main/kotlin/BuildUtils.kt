@@ -1,6 +1,7 @@
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.plugins.quality.Pmd
@@ -12,7 +13,10 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import java.util.concurrent.Callable
@@ -170,6 +174,7 @@ fun Project.registerApiJarTask(minecraftVersion: String, apiPackagePath: String?
     val enabledPlatforms = property("enabledPlatforms") as String
     val modules = listOf("common") + enabledPlatforms.split(',')
     val includePattern = "${apiPackagePath ?: "li/cil/${modId}/api"}/**"
+    val javaToolchains = the<JavaToolchainService>()
 
     tasks.register<Jar>("apiJar") {
         group = "build"
@@ -200,6 +205,34 @@ fun Project.registerApiJarTask(minecraftVersion: String, apiPackagePath: String?
         }
 
         include(includePattern)
+    }
+
+    tasks.register<Javadoc>("apiJavadoc") {
+        group = "documentation"
+        description = "Generates the Javadoc of the public API of every module."
+        title = "OpenComputers II v${modVersion} API (Minecraft ${minecraftVersion})"
+        destinationDir = layout.buildDirectory.dir("docs/api-javadoc").get().asFile
+        javadocTool.set(javaToolchains.javadocToolFor {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        })
+
+        for (name in modules) {
+            val module = project(":$name")
+            val main = module.the<SourceSetContainer>()["main"]
+            source(main.allJava)
+            classpath += module.configurations[main.compileClasspathConfigurationName].incoming.artifactView {
+                componentFilter { !(it is ProjectComponentIdentifier && it.build.buildPath == ":") }
+            }.files
+        }
+
+        include(includePattern)
+
+        with(options as StandardJavadocDocletOptions) {
+            encoding = "utf-8"
+            links("https://docs.oracle.com/en/java/javase/21/docs/api/")
+            addBooleanOption("Xdoclint:all,-missing", true)
+            addBooleanOption("Werror", true)
+        }
     }
 }
 

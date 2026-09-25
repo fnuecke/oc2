@@ -4,6 +4,8 @@ Welcome to the API of `oc2`, fellow developer! This document will hopefully prov
 integrations this API allows, and how to best implement them. The primary purpose of the API is to allow other mods to
 implement their own devices, to be used by the computers in this mod.
 
+See the generated [Javadoc] for per type/interface documentation.
+
 ## Loaders and Packages
 
 `oc2` is built for both Fabric and NeoForge. The API is split accordingly:
@@ -237,6 +239,7 @@ typically includes reserving an address block in memory, possibly hooking up int
 the memory tracker. In most cases, `VMDevices` will add a `MemoryMappedDevice` to the `MemoryMap`, an interface used by
 [Sedna], the VM implementation used to run the computers in this mod.
 
+[Javadoc]: https://fnuecke.github.io/oc2/javadoc/
 [li.cil.oc2.api]: ../common/src/main/java/li/cil/oc2/api
 [li.cil.oc2.api.fabric]: ../fabric/src/main/java/li/cil/oc2/api/fabric
 [li.cil.oc2.api.neoforge]: ../neoforge/src/main/java/li/cil/oc2/api/neoforge

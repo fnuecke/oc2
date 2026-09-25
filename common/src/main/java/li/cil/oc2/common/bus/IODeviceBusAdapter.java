@@ -42,7 +42,6 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
     private static final int STATUS_ERROR = 0b1000_0000;
 
     private static final int CONTROL_ABORT = 0x00;
-    private static final int CONTROL_EXECUTE = 0x01;
 
     private static final int ERROR_NONE = 0x00;
     private static final int ERROR_NO_SUCH_DEVICE = 0x01;
@@ -320,10 +319,10 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice {
     }
 
     private void control(final int value) {
-        switch (value) {
-            case CONTROL_EXECUTE -> execute();
-            case CONTROL_ABORT -> abort();
-            default -> errorCode = ERROR_INVALID_ARGUMENTS;
+        if (value == CONTROL_ABORT) {
+            abort();
+        } else {
+            execute();
         }
     }
 

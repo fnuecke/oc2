@@ -59,10 +59,10 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
             return permanent ? result.asPermanent() : result;
         }
 
+        // RAM that doesn't fit shouldn't prevent boot. This is usually the case for the Z80 e.g.
         if (!address.claim(context.getMemoryRangeAllocator(), device)) {
             closeDevice();
-            blob.close();
-            return VMDeviceLoadResult.fail().withErrorMessage(Component.translatable(Constants.COMPUTER_ERROR_DEVICE_DOES_NOT_FIT)).asPermanent();
+            blob.delete();
         }
 
         return VMDeviceLoadResult.success();

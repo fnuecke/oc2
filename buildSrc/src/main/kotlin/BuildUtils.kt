@@ -210,7 +210,7 @@ fun Project.registerApiJarTask(minecraftVersion: String, apiPackagePath: String?
     tasks.register<Javadoc>("apiJavadoc") {
         group = "documentation"
         description = "Generates the Javadoc of the public API of every module."
-        title = "OpenComputers II v${modVersion} API (Minecraft ${minecraftVersion})"
+        title = "OpenComputers II API"
         destinationDir = layout.buildDirectory.dir("docs/api-javadoc").get().asFile
         javadocTool.set(javaToolchains.javadocToolFor {
             languageVersion.set(JavaLanguageVersion.of(21))

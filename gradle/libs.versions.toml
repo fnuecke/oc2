@@ -8,7 +8,7 @@ injectables = "1.0.10"
 manual = "1.2.7"
 
 ceres = "0.0.7"
-sedna = "4.0.4"
+sedna = "5.0.0"
 sedna-buildroot = "0.2.9"
 sedna-cpm = "0.1.2"
 vox2mc = "1.0.1"

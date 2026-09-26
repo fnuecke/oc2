@@ -59,44 +59,44 @@ public final class FluidHandlerDevice extends IdentityProxy<FluidHandler> {
 
     // --------------------------------------------------------------------- //
 
-    @IOCallback(value = GET_TANK_COUNT_CODE, name = "getTankCount",
+    @IOCallback(value = GET_TANK_COUNT_CODE,
         description = "Reads how many tanks the container has.",
         resultsDescription = "one byte, the tank count, at most 255.")
-    public void getFluidTankCountIO(final IOOutputStream results) throws IOException {
+    public void getFluidTankCount(final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTankCount(identity, results);
     }
 
-    @IOCallback(value = GET_TANKS_CODE, name = "getTanks",
+    @IOCallback(value = GET_TANKS_CODE,
         description = """
             Reads a run of tanks in one call.
             Ask for 1 to 42 tanks; more than that fails with `OCEARG`, since the reply would not fit. Reading stops at the end of the container, so asking for 42 tanks starting at 0 gives you as many as there are.""",
         argumentsDescription = "two bytes, the tank to start at and how many tanks to read.",
         resultsDescription = "six bytes per tank: the fluid as two bytes and the amount as four bytes.")
-    public void getFluidTanksIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidTanks(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTanks(identity, arguments, results);
     }
 
-    @IOCallback(value = GET_TANK_CAPACITY_CODE, name = "getTankCapacity",
+    @IOCallback(value = GET_TANK_CAPACITY_CODE,
         description = "Reads how much the tank can hold.",
         argumentsDescription = "one byte, the tank.",
         resultsDescription = "four bytes, the capacity.")
-    public void getFluidTankCapacityIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidTankCapacity(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTankCapacity(identity, arguments, results);
     }
 
-    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false, name = "getFluidName",
+    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false,
         description = "Reads the name of a fluid.",
         argumentsDescription = "two bytes, the fluid id.",
         resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to get all of it.")
-    public void getFluidNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeFluidName(arguments, results);
     }
 
-    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false, name = "getFluidId",
+    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false,
         description = "Looks a fluid up by name.",
         argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
         resultsDescription = "two bytes, the fluid id.")
-    public void getFluidIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeFluidId(arguments, results);
     }
 }

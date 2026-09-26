@@ -59,44 +59,44 @@ public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> {
 
     // --------------------------------------------------------------------- //
 
-    @IOCallback(value = GET_SLOT_COUNT_CODE, name = "getSlotCount",
+    @IOCallback(value = GET_SLOT_COUNT_CODE,
         description = "Reads how many slots the inventory has.",
         resultsDescription = "one byte, the slot count, at most 255.")
-    public void getItemSlotCountIO(final IOOutputStream results) throws IOException {
+    public void getItemSlotCount(final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlotCount(identity, results);
     }
 
-    @IOCallback(value = GET_SLOTS_CODE, name = "getSlots",
+    @IOCallback(value = GET_SLOTS_CODE,
         description = """
             Reads a run of slots in one call.
             Ask for 1 to 64 slots; more than that fails with `OCEARG`, since the reply would not fit. Reading stops at the end of the inventory, so asking for 64 slots starting at 0 gives you as many as there are. Damage is in [0, 255], where 0 means undamaged, or an item that does not take damage at all, and 255 means about to break.""",
         argumentsDescription = "two bytes, the slot to start at and how many slots to read.",
         resultsDescription = "four bytes per slot: the item as two bytes, the number of items up to 255, and damage.")
-    public void getItemSlotsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemSlots(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlots(identity, arguments, results);
     }
 
-    @IOCallback(value = GET_SLOT_LIMIT_CODE, name = "getSlotLimit",
+    @IOCallback(value = GET_SLOT_LIMIT_CODE,
         description = "Reads how much the slot can hold.",
         argumentsDescription = "one byte, the slot.",
         resultsDescription = "one byte, the limit, at most 255.")
-    public void getItemSlotLimitIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemSlotLimit(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlotLimit(identity, arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false, name = "getItemName",
+    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
         description = "Reads the name of an item.",
         argumentsDescription = "two bytes, the item id.",
         resultsDescription = "the name, such as `minecraft:redstone`. Read while `OCDAV` is set to get all of it.")
-    public void getItemNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeItemName(arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false, name = "getItemId",
+    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false,
         description = "Looks an item up by name.",
         argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
         resultsDescription = "two bytes, the item id.")
-    public void getItemIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeItemId(arguments, results);
     }
 }

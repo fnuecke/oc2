@@ -255,52 +255,52 @@ public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice imple
 
     // --------------------------------------------------------------------- //
 
-    @IOCallback(value = GET_ADDRESS_CODE, synchronize = false, name = "getAddress",
+    @IOCallback(value = GET_ADDRESS_CODE, synchronize = false,
         description = "Reads the address this card is set to.",
         resultsDescription = "one byte, the address.")
-    public void getAddressIO(final IOOutputStream results) throws IOException {
+    public void getAddress(final IOOutputStream results) throws IOException {
         results.writeU8(getAddress());
     }
 
-    @IOCallback(value = GET_BAUD_RATE_CODE, synchronize = false, name = "getBaudRate",
+    @IOCallback(value = GET_BAUD_RATE_CODE, synchronize = false,
         description = "Reads the baud rate the serial port is configured to.",
         resultsDescription = "four bytes, the baud rate in bits per second.")
-    public void getBaudRateIO(final IOOutputStream results) throws IOException {
+    public void getBaudRate(final IOOutputStream results) throws IOException {
         results.writeU32(getBaudRate());
     }
 
-    @IOCallback(value = GET_OVERRUN_COUNT_CODE, synchronize = false, name = "getOverrunCount",
+    @IOCallback(value = GET_OVERRUN_COUNT_CODE, synchronize = false,
         description = "Reads how many received bytes were lost because this computer did not read them in time.",
         resultsDescription = "two bytes, the count.")
-    public void getOverrunCountIO(final IOOutputStream results) throws IOException {
+    public void getOverrunCount(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getOverrunCount()));
     }
 
-    @IOCallback(value = GET_RX_ERROR_COUNT_CODE, synchronize = false, name = "getRxErrorCount",
+    @IOCallback(value = GET_RX_ERROR_COUNT_CODE, synchronize = false,
         description = "Reads how often received data was corrupted by other endpoints sending at the same time.",
         resultsDescription = "two bytes, the count.")
-    public void getRxErrorCountIO(final IOOutputStream results) throws IOException {
+    public void getRxErrorCount(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getRxErrorCount()));
     }
 
-    @IOCallback(value = GET_NOISE_COUNT_CODE, synchronize = false, name = "getNoiseCount",
+    @IOCallback(value = GET_NOISE_COUNT_CODE, synchronize = false,
         description = "Reads how often traffic arrived at a baud rate this port is not set to.",
         resultsDescription = "two bytes, the count.")
-    public void getNoiseCountIO(final IOOutputStream results) throws IOException {
+    public void getNoiseCount(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getNoiseCount()));
     }
 
-    @IOCallback(value = GET_TX_ERROR_COUNT_CODE, synchronize = false, name = "getTxErrorCount",
+    @IOCallback(value = GET_TX_ERROR_COUNT_CODE, synchronize = false,
         description = "Reads how often sent data was corrupted by other endpoints sending at the same time. A change after a send means it failed.",
         resultsDescription = "two bytes, the count.")
-    public void getTxErrorCountIO(final IOOutputStream results) throws IOException {
+    public void getTxErrorCount(final IOOutputStream results) throws IOException {
         results.writeU16(clampToU16(getTxErrorCount()));
     }
 
-    @IOCallback(value = GET_BASE_ADDRESS_CODE, synchronize = false, name = "getBaseAddress",
+    @IOCallback(value = GET_BASE_ADDRESS_CODE, synchronize = false,
         description = "Reads the I/O port this card's serial port registers start at, to tell cards apart.",
         resultsDescription = "one byte, the port.")
-    public void getBaseAddressIO(final IOOutputStream results) throws IOException {
+    public void getBaseAddress(final IOOutputStream results) throws IOException {
         results.writeU8((int) getBaseAddress());
     }
 

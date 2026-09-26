@@ -331,51 +331,51 @@ public final class TransposerBlockEntity extends ModBlockEntity {
 
     // --------------------------------------------------------------------- //
 
-    @IOCallback(value = GET_ITEM_SLOT_COUNT_CODE, name = "getItemSlotCount",
+    @IOCallback(value = GET_ITEM_SLOT_COUNT_CODE,
         description = "Reads how many slots the inventory on that side has.",
         argumentsDescription = "one byte, the side.",
         resultsDescription = "one byte, the slot count, at most 255. A side without an inventory reads as 0.")
-    public void getItemSlotCountIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemSlotCount(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(Math.min(getItemSlotCount(Side.byIndex(arguments.readU8())), 0xFF));
     }
 
-    @IOCallback(value = GET_ITEM_SLOTS_CODE, name = "getSlots",
+    @IOCallback(value = GET_ITEM_SLOTS_CODE,
         description = "Reads a run of slots of the inventory on that side.",
         argumentsDescription = "three bytes, the side, the slot to start at and how many slots to read, from 1 to 64.",
         resultsDescription = "four bytes per slot: the item as two bytes, the number of items up to 255, and damage.")
-    public void getItemSlotsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemSlots(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlots(requireItemHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_SLOT_LIMIT_CODE, name = "getItemSlotLimit",
+    @IOCallback(value = GET_ITEM_SLOT_LIMIT_CODE,
         description = "Reads how much a slot of the inventory on that side can hold.",
         argumentsDescription = "two bytes, the side and the slot.",
         resultsDescription = "one byte, the limit, at most 255.")
-    public void getItemSlotLimitIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemSlotLimit(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlotLimit(requireItemHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false, name = "getItemName",
+    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
         description = "Reads the name of an item.",
         argumentsDescription = "two bytes, the item id.",
         resultsDescription = "the name, such as `minecraft:redstone`. Read while `OCDAV` is set to get all of it.")
-    public void getItemNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeItemName(arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false, name = "getItemId",
+    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false,
         description = "Looks an item up by name.",
         argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
         resultsDescription = "two bytes, the item id.")
-    public void getItemIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeItemId(arguments, results);
     }
 
-    @IOCallback(value = MOVE_ITEMS_CODE, name = "moveItems",
+    @IOCallback(value = MOVE_ITEMS_CODE,
         description = "Moves up to `count` items between two slots.",
         argumentsDescription = "five bytes, the side and slot to take from, the side and slot to put into, and how many items to move at most.",
         resultsDescription = "one byte, how many items were moved.")
-    public void moveItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void moveItems(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final int sourceSlot = arguments.readU8();
         final Side targetSide = Side.byIndex(arguments.readU8());
@@ -384,62 +384,62 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         results.writeU8(moveItems(sourceSide, sourceSlot, targetSide, targetSlot, count));
     }
 
-    @IOCallback(value = GET_FLUID_TANK_COUNT_CODE, name = "getFluidTankCount",
+    @IOCallback(value = GET_FLUID_TANK_COUNT_CODE,
         description = "Reads how many tanks the container on that side has.",
         argumentsDescription = "one byte, the side.",
         resultsDescription = "one byte, the tank count, at most 255. A side without a fluid container reads as 0.")
-    public void getFluidTankCountIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidTankCount(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(Math.min(getFluidTankCount(Side.byIndex(arguments.readU8())), 0xFF));
     }
 
-    @IOCallback(value = GET_FLUID_TANKS_CODE, name = "getTanks",
+    @IOCallback(value = GET_FLUID_TANKS_CODE,
         description = "Reads a run of tanks of the container on that side.",
         argumentsDescription = "three bytes, the side, the tank to start at and how many tanks to read, from 1 to 42.",
         resultsDescription = "six bytes per tank: the fluid as two bytes and the amount as four bytes.")
-    public void getFluidTanksIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidTanks(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTanks(requireFluidHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(value = GET_FLUID_TANK_CAPACITY_CODE, name = "getFluidTankCapacity",
+    @IOCallback(value = GET_FLUID_TANK_CAPACITY_CODE,
         description = "Reads how much a tank of the container on that side can hold.",
         argumentsDescription = "two bytes, the side and the tank.",
         resultsDescription = "four bytes, the capacity.")
-    public void getFluidTankCapacityIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidTankCapacity(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTankCapacity(requireFluidHandler(Side.byIndex(arguments.readU8())), arguments, results);
     }
 
-    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false, name = "getFluidName",
+    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false,
         description = "Reads the name of a fluid.",
         argumentsDescription = "two bytes, the fluid id.",
         resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to get all of it.")
-    public void getFluidNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeFluidName(arguments, results);
     }
 
-    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false, name = "getFluidId",
+    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false,
         description = "Looks a fluid up by name.",
         argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
         resultsDescription = "two bytes, the fluid id.")
-    public void getFluidIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeFluidId(arguments, results);
     }
 
-    @IOCallback(value = MOVE_FLUID_CODE, name = "moveFluid",
+    @IOCallback(value = MOVE_FLUID_CODE,
         description = "Moves up to `amount` millibuckets between two containers.",
         argumentsDescription = "six bytes, the side to drain, the side to fill, and four bytes for how much to move at most.",
         resultsDescription = "four bytes, how much was moved.")
-    public void moveFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void moveFluid(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());
         final int amount = (int) Math.min(arguments.readU32(), Integer.MAX_VALUE);
         results.writeU32(moveFluid(sourceSide, targetSide, amount));
     }
 
-    @IOCallback(value = DROP_ITEMS_CODE, name = "dropItems",
+    @IOCallback(value = DROP_ITEMS_CODE,
         description = "Drops up to `count` items from a slot into the world.",
         argumentsDescription = "four bytes, the side and slot to take from, the side to drop on, and how many items to drop at most.",
         resultsDescription = "one byte, how many items were dropped.")
-    public void dropItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void dropItems(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final int sourceSlot = arguments.readU8();
         final Side targetSide = Side.byIndex(arguments.readU8());
@@ -447,11 +447,11 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         results.writeU8(dropItems(sourceSide, sourceSlot, targetSide, count));
     }
 
-    @IOCallback(value = TAKE_ITEMS_CODE, name = "takeItems",
+    @IOCallback(value = TAKE_ITEMS_CODE,
         description = "Picks up to `count` items from the world into a slot.",
         argumentsDescription = "four bytes, the side to pick up from, the side and slot to put into, and how many items to take at most.",
         resultsDescription = "one byte, how many items were taken.")
-    public void takeItemsIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void takeItems(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());
         final int targetSlot = arguments.readU8();
@@ -459,21 +459,21 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         results.writeU8(takeItems(sourceSide, targetSide, targetSlot, count));
     }
 
-    @IOCallback(value = FILL_FLUID_CODE, name = "fillFluid",
+    @IOCallback(value = FILL_FLUID_CODE,
         description = "Places one bucket of fluid from a container into the world.",
         argumentsDescription = "two bytes, the side to drain and the side to place on.",
         resultsDescription = "four bytes, how much was placed, 1000 or 0.")
-    public void fillFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void fillFluid(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());
         results.writeU32(fillFluid(sourceSide, targetSide));
     }
 
-    @IOCallback(value = DRAIN_FLUID_CODE, name = "drainFluid",
+    @IOCallback(value = DRAIN_FLUID_CODE,
         description = "Takes a fluid block from the world into a container.",
         argumentsDescription = "two bytes, the side to take from and the side to fill.",
         resultsDescription = "four bytes, how much was taken, 1000 or 0.")
-    public void drainFluidIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void drainFluid(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final Side sourceSide = Side.byIndex(arguments.readU8());
         final Side targetSide = Side.byIndex(arguments.readU8());
         results.writeU32(drainFluid(sourceSide, targetSide));

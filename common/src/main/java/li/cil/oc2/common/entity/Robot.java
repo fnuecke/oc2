@@ -1168,11 +1168,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         // ----------------------------------------------------------------- //
 
-        @IOCallback(value = DETECT_CODE, name = "detect",
+        @IOCallback(value = DETECT_CODE,
             description = "Reports what occupies the space on that side.",
             argumentsDescription = "one byte, the side.",
             resultsDescription = "one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move.")
-        public void detectIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void detect(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(switch (detect(fromOrdinal(IO_SIDES, arguments.readU8()))) {
                 case DETECT_AIR -> 0;
                 case DETECT_FLUID -> 1;
@@ -1181,94 +1181,94 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             });
         }
 
-        @IOCallback(value = GET_ENERGY_STORED_CODE, synchronize = false, name = "getEnergyStored",
+        @IOCallback(value = GET_ENERGY_STORED_CODE, synchronize = false,
             description = "Reads how much energy the robot has left.",
             resultsDescription = "four bytes, the amount, low byte first.")
-        public void getEnergyStoredIO(final IOOutputStream results) throws IOException {
+        public void getEnergyStored(final IOOutputStream results) throws IOException {
             results.writeU32(energy.getEnergyStored());
         }
 
-        @IOCallback(value = GET_ENERGY_CAPACITY_CODE, synchronize = false, name = "getEnergyCapacity",
+        @IOCallback(value = GET_ENERGY_CAPACITY_CODE, synchronize = false,
             description = "Reads how much energy the robot holds when full.",
             resultsDescription = "four bytes, the amount, low byte first.")
-        public void getEnergyCapacityIO(final IOOutputStream results) throws IOException {
+        public void getEnergyCapacity(final IOOutputStream results) throws IOException {
             results.writeU32(energy.getMaxEnergyStored());
         }
 
-        @IOCallback(value = GET_SELECTED_SLOT_CODE, name = "getSelectedSlot",
+        @IOCallback(value = GET_SELECTED_SLOT_CODE,
             description = "Reads which inventory slot is selected.",
             resultsDescription = "one byte, the slot.")
-        public void getSelectedSlotIO(final IOOutputStream results) throws IOException {
+        public void getSelectedSlot(final IOOutputStream results) throws IOException {
             results.writeU8(getSelectedSlot());
         }
 
-        @IOCallback(value = SET_SELECTED_SLOT_CODE, name = "setSelectedSlot",
+        @IOCallback(value = SET_SELECTED_SLOT_CODE,
             description = "Selects an inventory slot.",
             argumentsDescription = "one byte, the slot. A slot the robot does not have is clamped into range.",
             resultsDescription = "one byte, the slot in effect after the call.")
-        public void setSelectedSlotIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void setSelectedSlot(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(setSelectedSlot(arguments.readU8()));
         }
 
-        @IOCallback(value = GET_STACK_IN_SLOT_CODE, name = "getStackInSlot",
+        @IOCallback(value = GET_STACK_IN_SLOT_CODE,
             description = "Reads what is in an inventory slot.",
             argumentsDescription = "one byte, the slot. A slot the robot does not have fails with `OCEARG`.",
             resultsDescription = "four bytes, one slot record in the form the `ITEMS` device uses: the item as two bytes, the number of items, and damage.")
-        public void getStackInSlotIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void getStackInSlot(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeSlot(inventory, arguments.readU8(), results);
         }
 
-        @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false, name = "getItemName",
+        @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
             description = "Reads the name of an item.",
             argumentsDescription = "two bytes, the item id.",
             resultsDescription = "the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to get all of it.")
-        public void getItemNameIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeItemName(arguments, results);
         }
 
-        @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false, name = "getItemId",
+        @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false,
             description = "Looks an item up by name.",
             argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
             resultsDescription = "two bytes, the item id.")
-        public void getItemIdIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void getItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeItemId(arguments, results);
         }
 
-        @IOCallback(value = MOVE_CODE, synchronize = false, name = "move",
+        @IOCallback(value = MOVE_CODE, synchronize = false,
             description = "Enqueues a movement.",
             argumentsDescription = "one byte, the direction.",
             resultsDescription = "one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.")
-        public void moveIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void move(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(move(fromOrdinal(IO_MOVEMENTS, arguments.readU8())) ? 1 : 0);
         }
 
-        @IOCallback(value = TURN_CODE, synchronize = false, name = "turn",
+        @IOCallback(value = TURN_CODE, synchronize = false,
             description = "Enqueues a rotation.",
             argumentsDescription = "one byte, the direction.",
             resultsDescription = "one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.")
-        public void turnIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void turn(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             results.writeU8(turn(fromOrdinal(IO_ROTATIONS, arguments.readU8())) ? 1 : 0);
         }
 
-        @IOCallback(value = GET_LAST_ACTION_ID_CODE, synchronize = false, name = "getLastActionId",
+        @IOCallback(value = GET_LAST_ACTION_ID_CODE, synchronize = false,
             description = "Reads the id of the last enqueued action.",
             resultsDescription = "two bytes, the id, low byte first. Read it right after a `move` or `turn` that returned `1`.")
-        public void getLastActionIdIO(final IOOutputStream results) throws IOException {
+        public void getLastActionId(final IOOutputStream results) throws IOException {
             results.writeU16(getLastActionId());
         }
 
-        @IOCallback(value = GET_QUEUED_ACTION_COUNT_CODE, synchronize = false, name = "getQueuedActionCount",
+        @IOCallback(value = GET_QUEUED_ACTION_COUNT_CODE, synchronize = false,
             description = "Reads how many actions are still waiting.",
             resultsDescription = "one byte, the count.")
-        public void getQueuedActionCountIO(final IOOutputStream results) throws IOException {
+        public void getQueuedActionCount(final IOOutputStream results) throws IOException {
             results.writeU8(getQueuedActionCount());
         }
 
-        @IOCallback(value = GET_ACTION_RESULT_CODE, synchronize = false, name = "getActionResult",
+        @IOCallback(value = GET_ACTION_RESULT_CODE, synchronize = false,
             description = "Reads how an action turned out. Poll it until it stops reading `1` to wait for an action to finish.",
             argumentsDescription = "two bytes, the id.",
             resultsDescription = "one byte: `0` unknown, `1` incomplete, `2` success, `3` failure.")
-        public void getActionResultIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        public void getActionResult(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             final int actionId = arguments.readU16();
             final RobotActionResult result = findActionResult(id -> (id & 0xFFFF) == actionId);
             results.writeU8(switch (result) {
@@ -1279,34 +1279,34 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             });
         }
 
-        @IOCallback(value = GET_STATUS_COLOR_CODE, name = "getStatusColor",
+        @IOCallback(value = GET_STATUS_COLOR_CODE,
             description = "Reads the color of the status light.",
             resultsDescription = "three bytes, the red, green and blue components.")
-        public void getStatusColorIO(final IOOutputStream results) throws IOException {
+        public void getStatusColor(final IOOutputStream results) throws IOException {
             final int color = getStatusColor();
             results.writeU8(color >>> 16);
             results.writeU8((color >>> 8) & 0xFF);
             results.writeU8(color & 0xFF);
         }
 
-        @IOCallback(value = SET_STATUS_COLOR_CODE, name = "setStatusColor",
+        @IOCallback(value = SET_STATUS_COLOR_CODE,
             description = "Sets the color of the status light.",
             argumentsDescription = "three bytes, the red, green and blue components.")
-        public void setStatusColorIO(final IOInputStream arguments) throws IOException {
+        public void setStatusColor(final IOInputStream arguments) throws IOException {
             setStatusColor((arguments.readU8() << 16) | (arguments.readU8() << 8) | arguments.readU8());
         }
 
-        @IOCallback(value = GET_STATUS_VALUE_CODE, name = "getStatusValue",
+        @IOCallback(value = GET_STATUS_VALUE_CODE,
             description = "Reads how far the status light is filled.",
             resultsDescription = "one byte, the fill value, where `0` is empty and `255` is full.")
-        public void getStatusValueIO(final IOOutputStream results) throws IOException {
+        public void getStatusValue(final IOOutputStream results) throws IOException {
             results.writeU8((int) Math.round(getStatusValue() * 0xFF));
         }
 
-        @IOCallback(value = SET_STATUS_VALUE_CODE, name = "setStatusValue",
+        @IOCallback(value = SET_STATUS_VALUE_CODE,
             description = "Sets how far the status light is filled.",
             argumentsDescription = "one byte, the fill value, where `0` is empty and `255` is full.")
-        public void setStatusValueIO(final IOInputStream arguments) throws IOException {
+        public void setStatusValue(final IOInputStream arguments) throws IOException {
             setStatusValue(arguments.readU8() / (double) 0xFF);
         }
 

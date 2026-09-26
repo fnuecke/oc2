@@ -157,26 +157,26 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
 
     // --------------------------------------------------------------------- //
 
-    @IOCallback(value = GET_REDSTONE_INPUT_CODE, synchronize = false, name = "getRedstoneInput",
+    @IOCallback(value = GET_REDSTONE_INPUT_CODE, synchronize = false,
         description = "Reads the level received on that side.",
         argumentsDescription = SIDE_IO,
         resultsDescription = LEVEL_IO)
-    public void getRedstoneInputIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getRedstoneInput(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(getRedstoneInput(Side.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = GET_REDSTONE_OUTPUT_CODE, synchronize = false, name = "getRedstoneOutput",
+    @IOCallback(value = GET_REDSTONE_OUTPUT_CODE, synchronize = false,
         description = "Reads the level currently being sent on that side.",
         argumentsDescription = SIDE_IO,
         resultsDescription = LEVEL_IO)
-    public void getRedstoneOutputIO(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+    public void getRedstoneOutput(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(getRedstoneOutput(Side.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = SET_REDSTONE_OUTPUT_CODE, name = "setRedstoneOutput",
+    @IOCallback(value = SET_REDSTONE_OUTPUT_CODE,
         description = "Sets the level sent on that side.",
         argumentsDescription = "two bytes, the side and the level.")
-    public void setRedstoneOutputIO(final IOInputStream arguments) throws IOException {
+    public void setRedstoneOutput(final IOInputStream arguments) throws IOException {
         final Side side = Side.byIndex(arguments.readU8());
         setRedstoneOutput(side, arguments.readU8());
     }

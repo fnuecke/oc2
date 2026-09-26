@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.fs;
 
 import dev.architectury.registry.ReloadListenerRegistry;
 import li.cil.oc2.api.API;

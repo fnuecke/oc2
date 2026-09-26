@@ -4,9 +4,9 @@ package li.cil.oc2.common.bus.device.rpc;
 
 import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.bus.device.io.IOCallback;
-import li.cil.oc2.api.bus.device.io.IOCallbacks;
 import li.cil.oc2.api.bus.device.io.IOMethod;
+import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;

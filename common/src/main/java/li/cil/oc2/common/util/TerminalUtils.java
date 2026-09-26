@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.util;
 
-import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.device.Terminal;
 
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;

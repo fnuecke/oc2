@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.api.bus.device.io;
+package li.cil.oc2.api.bus.device.object;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,11 +11,11 @@ import java.lang.annotation.Target;
  * Declares the name a device is known by to a low-level guest, and documents the device.
  * <p>
  * Required on any class carrying {@link IOCallback} methods; collecting throws if it's missing.
- * Unlike the type names of {@link li.cil.oc2.api.bus.device.object.RPCDeviceDescription}, the name must be
+ * Unlike the type names of {@link RPCDeviceDescription}, the name must be
  * declared explicitly, because guests read it off the device enumerator to find a device, so
  * it should be short and still unique.
  * <p>
- * This is the mid-level API counterpart of {@link li.cil.oc2.api.bus.device.object.RPCDeviceDescription}.
+ * This is the mid-level API counterpart of {@link RPCDeviceDescription}.
  *
  * @see IOCallbacks#getName(Object)
  */

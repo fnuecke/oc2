@@ -9,7 +9,7 @@ import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.device.Terminal;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.ConnectorFixture;
 import li.cil.oc2.gametest.util.TestSupport;

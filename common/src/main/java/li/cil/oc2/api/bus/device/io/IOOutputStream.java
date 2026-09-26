@@ -2,6 +2,8 @@
 
 package li.cil.oc2.api.bus.device.io;
 
+import li.cil.oc2.api.bus.device.object.IOCallback;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;

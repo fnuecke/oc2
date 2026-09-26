@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.device;
 
 import org.junit.jupiter.api.Test;
 

@@ -6,6 +6,7 @@ import li.cil.ceres.api.Serialized;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.FileSystems;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
+import li.cil.oc2.common.vm.device.MinecraftRealTimeCounter;
 import li.cil.sedna.api.Interrupt;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.device.serial.SerialDevice;

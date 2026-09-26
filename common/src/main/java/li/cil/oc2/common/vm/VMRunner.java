@@ -8,6 +8,7 @@ import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
+import li.cil.oc2.common.vm.arch.AbstractArchitecture;
 import net.minecraft.network.chat.Component;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

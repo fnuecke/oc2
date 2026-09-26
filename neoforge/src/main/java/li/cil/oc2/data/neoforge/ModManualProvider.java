@@ -4,8 +4,8 @@ package li.cil.oc2.data.neoforge;
 
 import com.google.common.hash.Hashing;
 import li.cil.oc2.api.API;
-import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.common.doc.DeviceDocumentation;
 import li.cil.oc2.common.doc.DevicePage;
 import net.minecraft.Util;

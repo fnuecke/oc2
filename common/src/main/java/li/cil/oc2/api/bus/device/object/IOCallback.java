@@ -1,8 +1,11 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.api.bus.device.io;
+package li.cil.oc2.api.bus.device.object;
 
-import li.cil.oc2.api.bus.device.object.ObjectDevice;
+import li.cil.oc2.api.bus.device.io.IODevice;
+import li.cil.oc2.api.bus.device.io.IOInputStream;
+import li.cil.oc2.api.bus.device.io.IOMethod;
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -3,7 +3,7 @@
 package li.cil.oc2.client.renderer;
 
 import li.cil.oc2.MinecraftBootstrap;
-import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.device.Terminal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

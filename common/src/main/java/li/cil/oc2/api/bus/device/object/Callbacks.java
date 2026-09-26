@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @see RPCMethod
  * @see Callback
- * @see li.cil.oc2.api.bus.device.io.IOCallbacks
+ * @see IOCallbacks
  */
 public final class Callbacks {
     private static final Logger LOGGER = LogManager.getLogger(Callbacks.class);

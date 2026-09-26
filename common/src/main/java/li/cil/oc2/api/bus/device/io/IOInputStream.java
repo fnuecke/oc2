@@ -2,11 +2,9 @@
 
 package li.cil.oc2.api.bus.device.io;
 
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import li.cil.oc2.api.bus.device.object.IOCallback;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 /**

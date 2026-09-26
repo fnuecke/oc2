@@ -2,14 +2,9 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
-import li.cil.oc2.api.bus.device.io.IOCallback;
-import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
-import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
-import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
+import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;

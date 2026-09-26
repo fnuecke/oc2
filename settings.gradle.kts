@@ -53,7 +53,7 @@ for (enabledPlatform in enabledPlatforms.split(",")) {
 
 for (module in listOf("common") + enabledPlatforms.split(",")) {
     include("instrumentation-$module")
-    project(":instrumentation-$module").projectDir = file("instrumentation/$module")
+    project(":instrumentation-$module").projectDir = file("tools/instrumentation/$module")
 
     include("gametest-$module")
     project(":gametest-$module").projectDir = file("gametest/$module")

@@ -1,6 +1,10 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.api.bus.device.io;
+package li.cil.oc2.api.bus.device.object;
+
+import li.cil.oc2.api.bus.device.io.IOInputStream;
+import li.cil.oc2.api.bus.device.io.IOMethod;
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
 
 import java.io.InputStream;
 import java.io.OutputStream;

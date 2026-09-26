@@ -29,7 +29,7 @@ import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.ServerUtils;
 import li.cil.oc2.common.util.SoundEvents;
 import li.cil.oc2.common.vm.Allocator;
-import li.cil.oc2.common.vm.CpmSystemDisk;
+import li.cil.oc2.common.vm.fs.CpmSystemDisk;
 import li.cil.oc2.common.vm.provider.DeviceDescriptionProviders;
 import li.cil.oc2.common.vm.provider.DeviceTreeProviders;
 import li.cil.sedna.Sedna;

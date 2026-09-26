@@ -13,7 +13,7 @@ import li.cil.oc2.common.serial.BufferedSerialDevice;
 import li.cil.oc2.common.serial.SerialEndpoint;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.TickUtils;
-import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.device.Terminal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

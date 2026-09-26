@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.arch;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
@@ -9,6 +9,8 @@ import li.cil.oc2.api.bus.device.vm.event.VMInitializingEvent;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
 import li.cil.oc2.common.bus.RPCDeviceBusAdapter;
+import li.cil.oc2.common.vm.BuiltinDevices;
+import li.cil.oc2.common.vm.DeviceLocation;
 import li.cil.oc2.common.vm.device.IODeviceBusWindow;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import li.cil.sedna.api.memory.MemoryAccessException;

@@ -3,11 +3,11 @@
 package li.cil.oc2.common.bus.device.vm.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.io.IOCallback;
 import li.cil.oc2.api.bus.device.io.IODevice;
-import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;

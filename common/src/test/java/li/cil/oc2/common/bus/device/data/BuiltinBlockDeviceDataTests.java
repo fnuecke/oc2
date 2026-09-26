@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.bus.device.data;
 
-import li.cil.oc2.common.vm.CpmSystemDisk;
+import li.cil.oc2.common.vm.fs.CpmSystemDisk;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.cpm.Cpm;
 import net.minecraft.world.item.DyeColor;

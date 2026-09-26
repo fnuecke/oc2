@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * <p>
  * Optional. Without type names, one is derived from the class name, see {@link Callbacks#getTypeNames(Object)}.
  * <p>
- * This is the high-level API counterpart of {@link li.cil.oc2.api.bus.device.io.IODeviceDescription}.
+ * This is the high-level API counterpart of {@link IODeviceDescription}.
  *
  * @see Callbacks#getTypeNames(Object)
  */

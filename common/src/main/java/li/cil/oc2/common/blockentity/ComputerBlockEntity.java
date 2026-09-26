@@ -30,6 +30,8 @@ import li.cil.oc2.common.network.message.*;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.*;
 import li.cil.oc2.common.vm.*;
+import li.cil.oc2.common.vm.arch.AbstractArchitecture;
+import li.cil.oc2.common.vm.device.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;

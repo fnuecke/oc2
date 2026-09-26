@@ -3,7 +3,7 @@
 package li.cil.oc2.common.neoforge;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.entity.CatSitOnDeviceGoal;
+import li.cil.oc2.common.entity.CatBehaviorGoal;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -16,7 +16,7 @@ public final class EntityEventsNeoForge {
             return;
         }
 
-        CatSitOnDeviceGoal.onEntityLoad(event.getEntity());
+        CatBehaviorGoal.onEntityLoad(event.getEntity());
     }
 
     private EntityEventsNeoForge() {

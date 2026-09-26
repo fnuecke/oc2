@@ -2,6 +2,8 @@
 
 package li.cil.oc2.api.bus.device.io;
 
+import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 
 import java.util.List;

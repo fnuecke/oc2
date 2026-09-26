@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.device;
 
 import li.cil.ceres.api.Serialized;
 
@@ -11,16 +11,6 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-/**
- * Splits a terminal's byte stream into characters and escape sequences.
- * <p>
- * Shaped after the VT500 parser at <a href="https://vt100.net/emu/dec_ansi_parser">vt100.net</a>,
- * collapsed to the states we need: the four CSI states become one plus an ignore flag, and every
- * string sequence is consumed and discarded. Everything it recognizes goes to a {@link Sink}; the
- * parser itself holds no terminal state.
- * <p>
- * Persisted, so a sequence split across a save resumes rather than being displayed as text.
- */
 @Serialized
 public final class TerminalParser {
     private static final byte ESC = 0x1B, BEL = 0x07, CAN = 0x18, SUB = 0x1A;

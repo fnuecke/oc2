@@ -3,7 +3,6 @@
 package li.cil.oc2.api.bus.device.object;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.io.IOCallbacks;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
@@ -22,7 +21,7 @@ import static java.util.Collections.singletonList;
 /**
  * A reflection based implementation of {@link RPCDevice} using the {@link Callback}
  * annotation to discover {@link RPCMethod}s in a target object via
- * {@link Callbacks#collectMethods(Object)}, and equally of {@link IODevice} using the {@link li.cil.oc2.api.bus.device.io.IOCallback}
+ * {@link Callbacks#collectMethods(Object)}, and equally of {@link IODevice} using the {@link IOCallback}
  * annotation to discover {@link IOMethod}s in a target object via
  * {@link IOCallbacks#collectMethods(Object)}.
  */

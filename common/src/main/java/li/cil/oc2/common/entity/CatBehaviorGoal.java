@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-public final class CatSitOnDeviceGoal extends MoveToBlockGoal {
+public final class CatBehaviorGoal extends MoveToBlockGoal {
     private static final int PRIORITY = 7;
     private static final double SPEED_MODIFIER = 0.8;
     private static final int SEARCH_RANGE = 8;
@@ -28,7 +28,7 @@ public final class CatSitOnDeviceGoal extends MoveToBlockGoal {
 
     // --------------------------------------------------------------------- //
 
-    public CatSitOnDeviceGoal(final Cat cat) {
+    public CatBehaviorGoal(final Cat cat) {
         super(cat, SPEED_MODIFIER, SEARCH_RANGE);
         this.cat = cat;
     }
@@ -37,8 +37,8 @@ public final class CatSitOnDeviceGoal extends MoveToBlockGoal {
 
     public static void onEntityLoad(final Entity entity) {
         if (entity instanceof final Cat cat && cat.goalSelector.getAvailableGoals().stream()
-            .noneMatch(goal -> goal.getGoal() instanceof CatSitOnDeviceGoal)) {
-            cat.goalSelector.addGoal(PRIORITY, new CatSitOnDeviceGoal(cat));
+            .noneMatch(goal -> goal.getGoal() instanceof CatBehaviorGoal)) {
+            cat.goalSelector.addGoal(PRIORITY, new CatBehaviorGoal(cat));
         }
     }
 

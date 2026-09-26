@@ -3,7 +3,7 @@
 package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.device.Terminal;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;

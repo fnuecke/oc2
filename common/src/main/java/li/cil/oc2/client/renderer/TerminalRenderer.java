@@ -5,7 +5,7 @@ package li.cil.oc2.client.renderer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.device.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.GameRenderer;
@@ -16,7 +16,7 @@ import org.joml.Matrix4f;
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static li.cil.oc2.common.vm.Terminal.*;
+import static li.cil.oc2.common.vm.device.Terminal.*;
 
 @Environment(EnvType.CLIENT)
 public final class TerminalRenderer implements Terminal.Listener, AutoCloseable {

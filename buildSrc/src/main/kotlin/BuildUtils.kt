@@ -58,7 +58,7 @@ fun Project.configurePmd(vararg additionalExcludes: String) {
     extensions.configure<PmdExtension> {
         toolVersion = "7.26.0"
         ruleSets = emptyList()
-        ruleSetFiles = rootProject.files("config/pmd/ruleset.xml")
+        ruleSetFiles = rootProject.files("pmd.xml")
         isConsoleOutput = true
         isIgnoreFailures = false
     }

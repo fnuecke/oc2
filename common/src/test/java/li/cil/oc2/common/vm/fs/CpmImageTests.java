@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.vm;
+package li.cil.oc2.common.vm.fs;
 
 import li.cil.sedna.cpm.Cpm;
 import org.junit.jupiter.api.Test;

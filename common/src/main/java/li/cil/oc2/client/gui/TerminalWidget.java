@@ -5,7 +5,7 @@ package li.cil.oc2.client.gui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
 import li.cil.oc2.client.renderer.TerminalRenderer;
-import li.cil.oc2.common.vm.Terminal;
+import li.cil.oc2.common.vm.device.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;

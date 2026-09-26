@@ -10,8 +10,8 @@ import li.cil.oc2.common.network.message.OpenRobotInventoryMessage;
 import li.cil.oc2.common.network.message.OpenRobotTerminalMessage;
 import li.cil.oc2.common.network.message.RobotPowerMessage;
 import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
-import li.cil.oc2.common.vm.Terminal;
 import li.cil.oc2.common.vm.VirtualMachine;
+import li.cil.oc2.common.vm.device.Terminal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 

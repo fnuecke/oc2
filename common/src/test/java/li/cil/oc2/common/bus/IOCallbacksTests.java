@@ -2,7 +2,12 @@
 
 package li.cil.oc2.common.bus;
 
-import li.cil.oc2.api.bus.device.io.*;
+import li.cil.oc2.api.bus.device.io.IOInputStream;
+import li.cil.oc2.api.bus.device.io.IOMethod;
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
+import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.api.bus.device.object.IOCallbacks;
+import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.util.Side;
 import net.minecraft.core.Direction;
 import org.junit.jupiter.api.Test;

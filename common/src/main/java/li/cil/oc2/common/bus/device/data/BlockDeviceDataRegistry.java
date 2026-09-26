@@ -17,7 +17,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BlockDeviceDataMessage;
 import li.cil.oc2.common.util.RegistryUtils;
-import li.cil.oc2.common.vm.CpmSystemDisk;
+import li.cil.oc2.common.vm.fs.CpmSystemDisk;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.cpm.Cpm;
 import net.minecraft.resources.ResourceLocation;

@@ -6,7 +6,7 @@ import com.mojang.serialization.MapCodec;
 import li.cil.oc2.client.gui.KeyboardScreen;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
-import li.cil.oc2.common.entity.CatSitOnDeviceGoal;
+import li.cil.oc2.common.entity.CatBehaviorGoal;
 import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -89,7 +89,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
             return super.useItemOn(stack, state, level, pos, player, hand, hit);
         }
 
-        if (level.isClientSide() && !CatSitOnDeviceGoal.isCatSittingAt(level, pos)) {
+        if (level.isClientSide() && !CatBehaviorGoal.isCatSittingAt(level, pos)) {
             openKeyboardScreen(keyboard);
         }
 
@@ -103,7 +103,7 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
             return super.useWithoutItem(state, level, pos, player, hit);
         }
 
-        if (level.isClientSide() && !CatSitOnDeviceGoal.isCatSittingAt(level, pos)) {
+        if (level.isClientSide() && !CatBehaviorGoal.isCatSittingAt(level, pos)) {
             openKeyboardScreen(keyboard);
         }
 

@@ -2,13 +2,7 @@
 
 package li.cil.oc2.common.doc;
 
-import li.cil.oc2.api.bus.device.io.IOCallback;
-import li.cil.oc2.api.bus.device.io.IOCallbacks;
-import li.cil.oc2.api.bus.device.io.IODeviceDescription;
-import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.Callbacks;
-import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
+import li.cil.oc2.api.bus.device.object.*;
 import org.apache.logging.log4j.util.Strings;
 
 import javax.annotation.Nullable;

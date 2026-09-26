@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.vm;
 
+import li.cil.oc2.common.vm.arch.AbstractArchitecture;
+import li.cil.oc2.common.vm.arch.R5Architecture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

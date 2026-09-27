@@ -51,6 +51,9 @@ Device name: `REDSTN`
 
 Sides are numbered as in the "Sides" section above, and levels are in [0, 15].
 
+### Events
+`1 redstoneChanged` is sent when the received signal on a side changes. The value's low byte is the side, the high byte the new level.
+
 `REDSTN.Z80` on the CP/M boot disk is an example consumer of the API. The [mid-level API](../mlapi.md) entry explains how to build and run it.
 
 ### Methods

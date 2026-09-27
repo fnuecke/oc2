@@ -36,12 +36,8 @@ public class CommonDeviceBusController implements DeviceBusController {
 
     // --------------------------------------------------------------------- //
 
-    public final Event onAfterBusScan = new Event();
     public final ParameterizedEvent<ArchitectureType> onArchitectureChanged = new ParameterizedEvent<>();
-    public final Event onBeforeDeviceScan = new Event();
     public final Event onAfterDeviceScan = new Event();
-    public final ParameterizedEvent<DevicesChangedEvent> onDevicesAdded = new ParameterizedEvent<>();
-    public final ParameterizedEvent<DevicesChangedEvent> onDevicesRemoved = new ParameterizedEvent<>();
     public final Event onSaving = new Event();
 
     private final DeviceBusElement root;
@@ -124,24 +120,13 @@ public class CommonDeviceBusController implements DeviceBusController {
             }
         }
 
-        final HashSet<Device> removedDevices = new HashSet<>(devices);
-        removedDevices.removeAll(newDevices);
-
-        final HashSet<Device> addedDevices = new HashSet<>(newDevices);
-        addedDevices.removeAll(devices);
-
-        final boolean didDevicesChange = !removedDevices.isEmpty() || !addedDevices.isEmpty();
+        final boolean didDevicesChange = !devices.equals(newDevices);
         final boolean didDeviceIdsChange = didDevicesChange || deviceIds.entrySet().stream().anyMatch(entry ->
             !Objects.equals(entry.getValue(), newDeviceIds.get(entry.getKey())));
 
         if (!didDeviceIdsChange) {
             return;
         }
-
-        onBeforeDeviceScan();
-
-        onDevicesRemoved(removedDevices);
-        onDevicesAdded(addedDevices);
 
         if (didDevicesChange) {
             devices.clear();
@@ -211,28 +196,15 @@ public class CommonDeviceBusController implements DeviceBusController {
         return elements;
     }
 
-    protected void onAfterBusScan() {
-        onAfterBusScan.run();
-    }
-
     protected void onArchitectureChanged(@Nullable final ArchitectureType architecture) {
         onArchitectureChanged.accept(architecture);
-    }
-
-    protected void onBeforeDeviceScan() {
-        onBeforeDeviceScan.run();
     }
 
     protected void onAfterDeviceScan() {
         onAfterDeviceScan.run();
     }
 
-    protected void onDevicesAdded(final Collection<Device> devices) {
-        onDevicesAdded.accept(new DevicesChangedEvent(devices));
-    }
-
-    protected void onDevicesRemoved(final Collection<Device> devices) {
-        onDevicesRemoved.accept(new DevicesChangedEvent(devices));
+    protected void onAfterBusScan() {
     }
 
     public void onSaving() {
@@ -377,10 +349,5 @@ public class CommonDeviceBusController implements DeviceBusController {
         } else {
             energyConsumption = (int) Math.ceil(accumulator);
         }
-    }
-
-    // --------------------------------------------------------------------- //
-
-    public record DevicesChangedEvent(Collection<Device> devices) {
     }
 }

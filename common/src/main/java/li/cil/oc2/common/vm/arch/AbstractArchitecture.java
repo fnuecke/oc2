@@ -10,7 +10,7 @@ import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.common.vm.DeviceLocation;
 import li.cil.oc2.common.vm.DeviceLocationProvider;
-import li.cil.oc2.common.vm.VMDeviceBusAdapter;
+import li.cil.oc2.common.vm.VMDeviceRegistry;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.DeviceBus;
@@ -19,14 +19,15 @@ import li.cil.sedna.api.device.serial.SerialDevice;
 import li.cil.sedna.api.memory.MemoryAccessException;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.function.LongSupplier;
 
 public abstract class AbstractArchitecture {
     @Serialized
     private final GlobalVMContext context;
-    private final transient VMDeviceBusAdapter vmAdapter;
+    private final transient VMDeviceRegistry vmRegistry;
+    private transient Set<Device> devices = Set.of();
 
     public record Config(
         DeviceLocationProvider deviceLocationProvider,
@@ -47,7 +48,7 @@ public abstract class AbstractArchitecture {
         @Nullable final DeviceBus deviceBus
     ) {
         context = new GlobalVMContext(board, clock, config.runtime(), deviceBus);
-        vmAdapter = new VMDeviceBusAdapter(context, device -> getDeviceAddress(config.deviceLocationProvider().getDeviceLocation(device)));
+        vmRegistry = new VMDeviceRegistry(context, device -> getDeviceAddress(config.deviceLocationProvider().getDeviceLocation(device)));
     }
 
     // --------------------------------------------------------------------- //
@@ -85,8 +86,9 @@ public abstract class AbstractArchitecture {
     public final void stopAndReset() {
         setRunning(false);
         reset();
-        resetDeviceLayer();
-        disposeDevices();
+        resetDynamicDevices();
+        unmountAllDevices();
+        devices.forEach(Device::dispose);
     }
 
     public abstract void sendInitializingEvent();
@@ -98,24 +100,12 @@ public abstract class AbstractArchitecture {
     // --------------------------------------------------------------------- //
     // General device bus API / lifecycle
 
-    public void addDevices(final Collection<Device> devices) {
-        vmAdapter.addDevices(devices);
+    public VMDeviceLoadResult mountVMDevices() {
+        return vmRegistry.mountDevices();
     }
 
-    public void removeDevices(final Collection<Device> devices) {
-        vmAdapter.removeDevices(devices);
-    }
-
-    public VMDeviceLoadResult mountDevices() {
-        return vmAdapter.mountDevices();
-    }
-
-    public void unmountDevices() {
-        vmAdapter.unmountDevices();
-    }
-
-    public void disposeDevices() {
-        vmAdapter.disposeDevices();
+    public void unmountAllDevices() {
+        vmRegistry.unmountDevices();
     }
 
     public void dispose() {
@@ -125,19 +115,18 @@ public abstract class AbstractArchitecture {
     // --------------------------------------------------------------------- //
     // High level device bus API
 
-    public void handleBeforeDeviceScan() {
+    public void handleAfterDeviceScan(final DeviceBusController controller) {
+        devices = Set.copyOf(controller.getDevices());
+        vmRegistry.rebuild(controller);
     }
 
-    public void handleAfterDeviceScan(DeviceBusController controller) {
+    public void mountDynamicDevices() {
     }
 
-    public void startDevicesLayer() {
+    public void tickDynamicDevices() {
     }
 
-    public void tickDeviceLayer() {
-    }
-
-    protected void resetDeviceLayer() {
+    protected void resetDynamicDevices() {
     }
 
     // --------------------------------------------------------------------- //

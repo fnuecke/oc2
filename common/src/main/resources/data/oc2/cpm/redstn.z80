@@ -1,6 +1,6 @@
 ; MIT licensed, see LICENSE.
 ;
-; REDSTN -- drive a redstone interface.
+; REDSTN - drive a redstone interface.
 ;
 ;	REDSTN <side>		 print that side's levels
 ;	REDSTN <side> <level>	 set that side's output level

@@ -5,6 +5,7 @@ package li.cil.oc2.common.entity;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
@@ -730,6 +731,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                             context.sendEvent(RobotActionCompletedEvent.TYPE,
                                 new RobotActionCompletedEvent(actionId, result));
                         }
+                        final IOBusContext ioContext = robotDevice.ioContext;
+                        if (ioContext != null) {
+                            ioContext.sendEvent(RobotDevice.ACTION_COMPLETED_EVENT_CODE, actionId & 0xFFFF);
+                        }
                     }
                 }
                 if (action == null) {
@@ -985,7 +990,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         Note that the `robot` Lua library described in the [robot](../item/robot.md) entry offers useful wrappers for all of these methods. It is recommended to use the library instead of interacting with the device directly.""")
     @IODeviceDescription(name = "ROBOT", description = """
-        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.""")
+        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.
+
+        ### Events
+        `1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.""")
     public final class RobotDevice implements LifecycleAwareDevice {
         private static final String DETECT_AIR = "air";
         private static final String DETECT_FLUID = "fluid";
@@ -1009,6 +1017,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final int GET_STATUS_VALUE_CODE = 16;
         private static final int SET_STATUS_VALUE_CODE = 17;
 
+        private static final int ACTION_COMPLETED_EVENT_CODE = 1;
+
         private static final RobotOperationSide[] IO_SIDES = {
             RobotOperationSide.FRONT, RobotOperationSide.UP, RobotOperationSide.DOWN};
         private static final MovementDirection[] IO_MOVEMENTS = {
@@ -1018,6 +1028,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         @Nullable
         private RPCBusContext context;
+        @Nullable
+        private IOBusContext ioContext;
 
         // ----------------------------------------------------------------- //
 
@@ -1029,6 +1041,16 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         @Override
         public void onDeviceUnmounted(final RPCBusContext context) {
             this.context = null;
+        }
+
+        @Override
+        public void onIODeviceMounted(final IOBusContext context) {
+            ioContext = context;
+        }
+
+        @Override
+        public void onIODeviceUnmounted(final IOBusContext context) {
+            ioContext = null;
         }
 
         // ----------------------------------------------------------------- //
@@ -1235,7 +1257,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @IOCallback(value = MOVE_CODE, synchronize = false,
-            description = "Enqueues a movement.",
+            description = "Tries to enqueue a movement action in the specified direction.",
             argumentsDescription = "one byte, the direction.",
             resultsDescription = "one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.")
         public void move(final IOInputStream arguments, final IOOutputStream results) throws IOException {
@@ -1243,7 +1265,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @IOCallback(value = TURN_CODE, synchronize = false,
-            description = "Enqueues a rotation.",
+            description = "Tries to enqueue a turn action towards the specified direction.",
             argumentsDescription = "one byte, the direction.",
             resultsDescription = "one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.")
         public void turn(final IOInputStream arguments, final IOOutputStream results) throws IOException {
@@ -1251,21 +1273,24 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @IOCallback(value = GET_LAST_ACTION_ID_CODE, synchronize = false,
-            description = "Reads the id of the last enqueued action.",
-            resultsDescription = "two bytes, the id, low byte first. Read it right after a `move` or `turn` that returned `1`.")
+            description = "Gets the opaque id of the last enqueued action. Call this after a successful `move` or " +
+                "`turn` call to obtain the id associated with the enqueued action.",
+            resultsDescription = "two bytes, the id, low byte first.")
         public void getLastActionId(final IOOutputStream results) throws IOException {
             results.writeU16(getLastActionId());
         }
 
         @IOCallback(value = GET_QUEUED_ACTION_COUNT_CODE, synchronize = false,
-            description = "Reads how many actions are still waiting.",
+            description = "Gets the number of actions currently waiting in the action queue to be processed. " +
+                "Use this to wait for actions to finish when enqueueing fails.",
             resultsDescription = "one byte, the count.")
         public void getQueuedActionCount(final IOOutputStream results) throws IOException {
             results.writeU8(getQueuedActionCount());
         }
 
         @IOCallback(value = GET_ACTION_RESULT_CODE, synchronize = false,
-            description = "Reads how an action turned out. Poll it until it stops reading `1` to wait for an action to finish.",
+            description = "Gets the result of the action with the specified id. Returns `1` until the action finishes. " +
+                "May be awaited using the `actionCompleted` event.",
             argumentsDescription = "two bytes, the id.",
             resultsDescription = "one byte: `0` unknown, `1` incomplete, `2` success, `3` failure.")
         public void getActionResult(final IOInputStream arguments, final IOOutputStream results) throws IOException {

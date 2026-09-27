@@ -8,7 +8,6 @@ import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.sedna.api.Sizes;
@@ -324,7 +323,7 @@ public final class ItemHandlerDeviceIOTests {
         when(controller.getDevices()).thenReturn(Set.of(device));
         when(controller.getDeviceIdentifiers(device)).thenReturn(Set.of(UUID.randomUUID()));
 
-        final IODeviceBusAdapter adapter = new IODeviceBusAdapter(mock(VMRuntime.class));
+        final IODeviceBusAdapter adapter = new IODeviceBusAdapter();
         adapter.rebuild(controller);
         return adapter;
     }

@@ -44,13 +44,6 @@ public record RPCDeviceList(ArrayList<RPCDevice> devices) implements RPCDevice {
         }
     }
 
-    @Override
-    public void dispose() {
-        for (final RPCDevice device : devices) {
-            device.dispose();
-        }
-    }
-
     // NB: We only use the list device in the adapter, for referencing grouped devices by their ID.
     //     As such, serialize/deserialize will never be called on this class.
 

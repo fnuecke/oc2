@@ -2,19 +2,17 @@
 
 package li.cil.oc2.common.vm;
 
+import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.oc2.common.vm.context.managed.ManagedVMContext;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.OptionalLong;
+import java.util.*;
 import java.util.function.Function;
 
-public final class VMDeviceBusAdapter {
+public final class VMDeviceRegistry {
     private final HashMap<VMDevice, ManagedVMContext> mountedDevices = new HashMap<>();
     private final LinkedHashSet<VMDevice> unmountedDevices = new LinkedHashSet<>();
     private final Function<VMDevice, OptionalLong> baseAddressProvider;
@@ -25,7 +23,7 @@ public final class VMDeviceBusAdapter {
 
     // --------------------------------------------------------------------- //
 
-    public VMDeviceBusAdapter(final GlobalVMContext context, final Function<VMDevice, OptionalLong> baseAddressProvider) {
+    public VMDeviceRegistry(final GlobalVMContext context, final Function<VMDevice, OptionalLong> baseAddressProvider) {
         this.globalContext = context;
         this.baseAddressProvider = baseAddressProvider;
     }
@@ -73,33 +71,28 @@ public final class VMDeviceBusAdapter {
         mountedDevices.clear();
     }
 
-    public void disposeDevices() {
-        unmountDevices();
-
-        unmountedDevices.forEach(VMDevice::dispose);
-    }
-
-    public void addDevices(final Collection<Device> devices) {
-        for (final Device device : devices) {
+    public void rebuild(final DeviceBusController controller) {
+        final Set<VMDevice> devices = new LinkedHashSet<>();
+        for (final Device device : controller.getDevices()) {
             if (device instanceof final VMDevice vmDevice) {
-                // Add to the set of unmounted devices if we don't already track it.
-                if (!mountedDevices.containsKey(vmDevice)) {
-                    unmountedDevices.add(vmDevice);
-                }
+                devices.add(vmDevice);
             }
         }
-    }
 
-    public void removeDevices(final Collection<Device> devices) {
-        for (final Device device : devices) {
-            if (device instanceof final VMDevice vmDevice) {
-                final ManagedVMContext context = mountedDevices.remove(vmDevice);
-                if (context != null) {
-                    vmDevice.unmount();
-                    context.invalidate();
-                } else {
-                    unmountedDevices.remove(vmDevice);
-                }
+        final Iterator<Map.Entry<VMDevice, ManagedVMContext>> iterator = mountedDevices.entrySet().iterator();
+        while (iterator.hasNext()) {
+            final Map.Entry<VMDevice, ManagedVMContext> entry = iterator.next();
+            if (!devices.contains(entry.getKey())) {
+                iterator.remove();
+                entry.getKey().unmount();
+                entry.getValue().invalidate();
+            }
+        }
+
+        unmountedDevices.retainAll(devices);
+        for (final VMDevice device : devices) {
+            if (!mountedDevices.containsKey(device)) {
+                unmountedDevices.add(device);
             }
         }
     }

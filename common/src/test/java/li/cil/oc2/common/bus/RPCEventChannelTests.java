@@ -59,7 +59,7 @@ public final class RPCEventChannelTests {
     @Test
     public void deviceChangeIsAnnounced() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.step(0);
 
         final JsonObject event = event();
@@ -71,11 +71,11 @@ public final class RPCEventChannelTests {
     @Test
     public void everyChangeIsAnnouncedInOrder() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         addDevice("inventory");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         addDevice("energy");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.step(0);
 
         int previous = 0;
@@ -163,7 +163,7 @@ public final class RPCEventChannelTests {
         final TestSerialDevice slow = new TestSerialDevice(256);
         adapter = newAdapter(slow);
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
 
         boolean refused = false;
         for (int i = 0; i < 4000 && !refused; i++) {
@@ -194,7 +194,7 @@ public final class RPCEventChannelTests {
     @Test
     public void eventsNeverAppearOnTheRpcChannel() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.step(0);
 
         assertNull(serialDevice.readMessageAsVM(), "an unsolicited message reached the RPC port");
@@ -206,10 +206,10 @@ public final class RPCEventChannelTests {
         final TestSerialDevice deafEvents = new TestSerialDevice(0);
         adapter = newAdapter(deafEvents);
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
 
         for (int i = 0; i < 500; i++) {
-            adapter.resume(busController);
+            adapter.rebuild(busController);
             adapter.step(0);
         }
 
@@ -222,7 +222,7 @@ public final class RPCEventChannelTests {
     @Test
     public void resetDropsAPendingEvent() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
 
         adapter.reset();
         adapter.step(0);
@@ -235,7 +235,7 @@ public final class RPCEventChannelTests {
         final TestSerialDevice trickle = new TestSerialDevice(4);
         adapter = newAdapter(trickle);
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.step(0);
 
         assertTrue(trickle.drainAsVM().length > 0, "precondition: some of the frame went out");
@@ -251,7 +251,7 @@ public final class RPCEventChannelTests {
     @Test
     public void eventsUseTheSameFramingAsReplies() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.step(0);
 
         final byte[] raw = eventDevice.drainAsVM();
@@ -264,7 +264,7 @@ public final class RPCEventChannelTests {
         final TestSerialDevice trickle = new TestSerialDevice(1);
         adapter = newAdapter(trickle);
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
 
         final StringBuilder message = new StringBuilder();
         for (int i = 0; i < 4096; i++) {
@@ -288,7 +288,7 @@ public final class RPCEventChannelTests {
         eventDevice.putRawAsVM("nonsense from a confused guest".getBytes(StandardCharsets.UTF_8));
 
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.step(0);
 
         assertEquals(-1, eventDevice.read(), "the guest's bytes were left sitting in the queue");
@@ -353,7 +353,7 @@ public final class RPCEventChannelTests {
     public void deviceEventNamesItsDevice() {
         final ContextCapture capture = new ContextCapture();
         final UUID id = addDevice(new ObjectDevice(capture, "capture"), UUID.randomUUID()).iterator().next();
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
         assertEquals("devicesChanged", event().get("type").getAsString());
@@ -373,7 +373,7 @@ public final class RPCEventChannelTests {
     public void unmountHandsBackTheContextAndInvalidatesIt() {
         final ContextCapture capture = new ContextCapture();
         addDevice(new ObjectDevice(capture, "capture"), UUID.randomUUID());
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
         event();
@@ -395,12 +395,12 @@ public final class RPCEventChannelTests {
         final ContextCapture capture = new ContextCapture();
         final RPCDevice device = new ObjectDevice(capture, "capture");
         addDevice(device, UUID.randomUUID());
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.mountDevices();
 
         devices.remove(device);
         identifiers.remove(device);
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         assertSame(capture.mounted, capture.unmounted);
         assertFalse(capture.mounted.sendEvent("ping", null));
     }
@@ -413,7 +413,7 @@ public final class RPCEventChannelTests {
         final UUID other = chosen.equals(first) ? second : first;
         final ContextCapture capture = new ContextCapture();
         final Set<UUID> ids = addDevice(new ObjectDevice(capture, "capture"), first, second);
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
         event();
@@ -423,7 +423,7 @@ public final class RPCEventChannelTests {
         assertEquals(chosen.toString(), event().get("deviceId").getAsString());
 
         ids.remove(chosen);
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.step(0);
         assertEquals("devicesChanged", event().get("type").getAsString());
         assertNull(capture.unmounted, "losing one of two identifiers is not a removal");
@@ -438,7 +438,7 @@ public final class RPCEventChannelTests {
     public void binaryEventPayloadIsRefused() {
         final ContextCapture capture = new ContextCapture();
         addDevice(new ObjectDevice(capture, "capture"), UUID.randomUUID());
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
         event();

@@ -24,7 +24,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Semaphore;
 
 public final class RPCDeviceBusAdapter implements Steppable {
     private static final Logger LOGGER = LogManager.getLogger(RPCDeviceBusAdapter.class);
@@ -65,8 +64,6 @@ public final class RPCDeviceBusAdapter implements Steppable {
     private int currentRequestId; // serialized for sync calls
 
     private final RPCBlobJsonSerializer blobs = new RPCBlobJsonSerializer();
-    private final Semaphore pauseLock = new Semaphore(1); // for tryAcquire in step()
-    private volatile boolean isPaused; // server thread -> worker thread
 
     // --------------------------------------------------------------------- //
 
@@ -98,15 +95,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
     // --------------------------------------------------------------------- //
 
     public void mountDevices() {
-        registry.mountAll();
+        registry.mountDevices();
     }
 
     public void unmountDevices() {
-        registry.unmountAll();
-    }
-
-    public void disposeDevices() {
-        registry.disposeAll();
+        registry.unmountDevices();
     }
 
     public void reset() {
@@ -117,30 +110,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
         synchronizedInvocation = null;
     }
 
-    public void pause() {
-        if (isPaused) {
-            return;
-        }
-
-        pauseLock.acquireUninterruptibly();
-        isPaused = true;
-        pauseLock.release();
-    }
-
-    public void resume(final DeviceBusController controller) {
-        try {
-            registry.rebuild(controller);
-            sendEvent(Message.MESSAGE_TYPE_DEVICES_CHANGED, null);
-        } finally {
-            isPaused = false;
-        }
+    public void rebuild(final DeviceBusController controller) {
+        registry.rebuild(controller);
+        sendEvent(Message.MESSAGE_TYPE_DEVICES_CHANGED, null);
     }
 
     public void tick() {
-        if (isPaused) {
-            return;
-        }
-
         if (synchronizedInvocation != null) {
             final MethodInvocation methodInvocation = synchronizedInvocation;
             processMethodInvocation(methodInvocation, true);
@@ -153,19 +128,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     public void step(final int cycles) {
-        if (isPaused || !pauseLock.tryAcquire()) {
-            return;
-        }
-
-        try {
-            payloads.receive();
-            readFromDevice();
-            writeToDevice();
-            announceDroppedEvents();
-            events.flush();
-        } finally {
-            pauseLock.release();
-        }
+        payloads.receive();
+        readFromDevice();
+        writeToDevice();
+        announceDroppedEvents();
+        events.flush();
     }
 
     public boolean sendEvent(final String type, @Nullable final Object data) {

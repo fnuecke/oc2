@@ -66,10 +66,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         this.busController = busController;
 
         busController.onArchitectureChanged.add(this::handleArchitectureChanged);
-        busController.onBeforeDeviceScan.add(this::handleBeforeDeviceScan);
         busController.onAfterDeviceScan.add(this::handleAfterDeviceScan);
-        busController.onDevicesAdded.add(this::handleDevicesAdded);
-        busController.onDevicesRemoved.add(this::handleDevicesRemoved);
         busController.onSaving.add(this::joinWorkerThread);
     }
 
@@ -92,7 +89,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         joinWorkerThread();
         if (architecture != null) {
             pending = capturePendingState(architecture);
-            architecture.unmountDevices();
+            architecture.unmountAllDevices();
         }
     }
 
@@ -346,7 +343,6 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
 
         applyPendingState(architecture);
 
-        architecture.addDevices(busController.getDevices());
         architecture.handleAfterDeviceScan(busController);
     }
 
@@ -412,7 +408,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             return;
         }
 
-        final VMDeviceLoadResult loadResult = architecture.mountDevices();
+        final VMDeviceLoadResult loadResult = architecture.mountVMDevices();
         if (!loadResult.wasSuccessful()) {
             final Component message = loadResult.getErrorMessage() != null
                 ? loadResult.getErrorMessage()
@@ -445,7 +441,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             runner = createRunner(architecture);
         }
 
-        architecture.startDevicesLayer();
+        architecture.mountDynamicDevices();
 
         setRunState(VMRunState.RUNNING);
 
@@ -508,35 +504,14 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             : Constants.COMPUTER_ERROR_STATE_LOST));
     }
 
-    private void handleBeforeDeviceScan() {
-        if (architecture != null) {
-            architecture.handleBeforeDeviceScan();
-        }
-
-        // Since scans can be delayed we must adjust our run state accordingly, to avoid
-        // running before the scan finishes.
-        if (runState == VMRunState.RUNNING) {
-            runState = VMRunState.LOADING_DEVICES;
-        }
-    }
-
     private void handleAfterDeviceScan() {
+        joinWorkerThread();
         if (architecture != null) {
             architecture.handleAfterDeviceScan(busController);
         }
-    }
 
-    private void handleDevicesAdded(final CommonDeviceBusController.DevicesChangedEvent event) {
-        joinWorkerThread();
-        if (architecture != null) {
-            architecture.addDevices(event.devices());
-        }
-    }
-
-    private void handleDevicesRemoved(final CommonDeviceBusController.DevicesChangedEvent event) {
-        joinWorkerThread();
-        if (architecture != null) {
-            architecture.removeDevices(event.devices());
+        if (runState == VMRunState.RUNNING) {
+            runState = VMRunState.LOADING_DEVICES;
         }
     }
 

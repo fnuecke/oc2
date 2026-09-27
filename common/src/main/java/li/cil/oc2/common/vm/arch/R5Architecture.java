@@ -22,7 +22,8 @@ public final class R5Architecture extends AbstractArchitecture {
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x20000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
     private static final long BUS_DEVICE_BASE_ADDRESS = 0x30000000L;
-    private static final long IO_WINDOW_ADDRESS = 0x03000000L;
+    private static final long MLAPI_WINDOW_ADDRESS = 0x03000000L;
+    private static final int MLAPI_INTERRUPT = 6;
     private static final String BOOT_ARGUMENTS = "root=/dev/vda rw uio_pdrv_genirq.of_id=oc2,mlapi";
 
     @Serialized
@@ -30,11 +31,11 @@ public final class R5Architecture extends AbstractArchitecture {
     @Serialized
     private final BuiltinDevices builtinDevices;
     @Serialized
-    private final RPCDeviceBusAdapter rpcAdapter;
+    private final RPCDeviceBusAdapter hlapiAdapter;
     @Serialized
-    private final IODeviceBusAdapter ioAdapter;
+    private final IODeviceBusAdapter mlapiAdapter;
     @Serialized
-    private final IODeviceBusWindow ioWindow;
+    private final IODeviceBusWindow mlapiWindow;
 
     // --------------------------------------------------------------------- //
 
@@ -47,12 +48,16 @@ public final class R5Architecture extends AbstractArchitecture {
         this.board = board;
         this.builtinDevices = new BuiltinDevices(getContext());
         builtinDevices.rtcMinecraft.setGameTimeSource(config.gameTimeProvider());
-        this.rpcAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort());
-        this.ioAdapter = new IODeviceBusAdapter(config.runtime());
-        this.ioWindow = new IODeviceBusWindow(ioAdapter);
-        if (!getContext().getMemoryRangeAllocator().claimMemoryRange(IO_WINDOW_ADDRESS, ioWindow)) {
+        this.hlapiAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort());
+        this.mlapiAdapter = new IODeviceBusAdapter();
+        this.mlapiWindow = new IODeviceBusWindow(mlapiAdapter);
+        if (!getContext().getMemoryRangeAllocator().claimMemoryRange(MLAPI_WINDOW_ADDRESS, mlapiWindow)) {
             throw new IllegalStateException("Mid-level API window does not fit the memory map.");
         }
+        if (!getContext().getInterruptAllocator().claimInterrupt(MLAPI_INTERRUPT)) {
+            throw new IllegalStateException("Mid-level API interrupt is already claimed.");
+        }
+        mlapiAdapter.getInterrupt().set(MLAPI_INTERRUPT, getContext().getInterruptController());
 
         board.getCpu().setFrequency(li.cil.oc2.common.Config.riscvCycleBudgetPerSecond);
         board.setStandardOutputDevice(builtinDevices.uart);
@@ -104,7 +109,8 @@ public final class R5Architecture extends AbstractArchitecture {
     @Override
     public void step(final int cycles) {
         board.step(cycles);
-        rpcAdapter.step(cycles);
+        hlapiAdapter.step(cycles);
+        mlapiAdapter.step();
     }
 
     @Override
@@ -135,44 +141,36 @@ public final class R5Architecture extends AbstractArchitecture {
     // --------------------------------------------------------------------- //
 
     @Override
-    public void unmountDevices() {
-        super.unmountDevices();
-        rpcAdapter.unmountDevices();
-    }
-
-    @Override
-    public void disposeDevices() {
-        rpcAdapter.disposeDevices();
-        super.disposeDevices();
+    public void unmountAllDevices() {
+        super.unmountAllDevices();
+        hlapiAdapter.unmountDevices();
+        mlapiAdapter.unmountDevices();
     }
 
     // --------------------------------------------------------------------- //
 
     @Override
-    public void handleBeforeDeviceScan() {
-        rpcAdapter.pause();
-    }
-
-    @Override
     public void handleAfterDeviceScan(final DeviceBusController controller) {
-        rpcAdapter.resume(controller);
-        ioAdapter.rebuild(controller);
+        super.handleAfterDeviceScan(controller);
+        hlapiAdapter.rebuild(controller);
+        mlapiAdapter.rebuild(controller);
     }
 
     @Override
-    public void startDevicesLayer() {
-        rpcAdapter.mountDevices();
+    public void mountDynamicDevices() {
+        hlapiAdapter.mountDevices();
+        mlapiAdapter.mountDevices();
     }
 
     @Override
-    public void tickDeviceLayer() {
-        rpcAdapter.tick();
-        ioAdapter.tick();
+    public void tickDynamicDevices() {
+        hlapiAdapter.tick();
+        mlapiAdapter.tick();
     }
 
     @Override
-    protected void resetDeviceLayer() {
-        rpcAdapter.reset();
-        ioAdapter.reset();
+    protected void resetDynamicDevices() {
+        hlapiAdapter.reset();
+        mlapiAdapter.reset();
     }
 }

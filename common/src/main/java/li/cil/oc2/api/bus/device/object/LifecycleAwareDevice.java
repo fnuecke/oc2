@@ -2,6 +2,8 @@
 
 package li.cil.oc2.api.bus.device.object;
 
+import li.cil.oc2.api.bus.device.io.IOBusContext;
+import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import net.minecraft.world.entity.Entity;
@@ -27,6 +29,18 @@ public interface LifecycleAwareDevice {
      * This method corresponds to {@link RPCDevice#unmount(RPCBusContext)}.
      */
     default void onDeviceUnmounted(final RPCBusContext context) {
+    }
+
+    /**
+     * This method corresponds to {@link IODevice#mountIO(IOBusContext)}.
+     */
+    default void onIODeviceMounted(final IOBusContext context) {
+    }
+
+    /**
+     * This method corresponds to {@link IODevice#unmountIO(IOBusContext)}.
+     */
+    default void onIODeviceUnmounted(final IOBusContext context) {
     }
 
     /**

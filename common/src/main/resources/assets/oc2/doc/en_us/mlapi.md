@@ -35,7 +35,18 @@ When `OCERR` is set in the status, the call failed and `OCDAT` gives the reason:
 - `OCEARG`, the arguments were not what the function wanted
 - `OCEINT`, the device failed internally
 
-The registers hold a single selection and a single call, so keep to one at a time and leave them out of interrupt handlers.
+The registers hold a single selection and a single call, so keep to one at a time and make no calls from interrupt handlers.
+
+## Waiting for Events
+Some devices report changes by themselves, such as the [redstone interface](block/redstone_interface.md) when the signal it receives changes. The device documentation found in the [list of devices](device/index.md) usually lists the device's events.
+
+The following registers deal with events:
+- `OCEVC` switches them on: write `OCEVQ` to have events queued, and add `OCEVI` to also get an interrupt
+- `OCEVD` gives back the oldest event, one byte per read: the MLAPI-device index, the event code, then a two-byte value
+
+Bit `OCEVP` in `OCEVC` is set while events are waiting. Events arriving while the queue is full are lost, and bit `OCEVO` is set every time it happens.
+
+On the Z80, with the interrupt switched on, `HALT` sleeps until the next event, and your interrupt handler reads it. `REDWAIT.Z80` on the boot disk does this: it waits for a redstone signal to change, then prints the side and the new level. Build it like `REDSTN.Z80` below.
 
 ## Example
 `REDSTN.Z80` on the boot disk drives a [redstone interface](block/redstone_interface.md), and its comments include the equivalent C, if that reads more easily. Writing to a floppy needs a [disk drive](block/disk_drive.md). Build it while staying on `A:`:  
@@ -55,5 +66,7 @@ Linux offers the same registers as a memory page in the file `/dev/uio0`, which 
 
 `/mnt/builtin/example/redstone.c` does the same as `REDSTN.Z80` does on the Z80. Run it directly:  
 `tcc -run /mnt/builtin/example/redstone.c 1 15`
+
+Without arguments, it does what `REDWAIT.Z80` does: `mlapi_events_wait` in `mlapi.h` sleeps until the next event.
 
 There is one selection and one call for the whole computer. Only let one program use the page at a time.

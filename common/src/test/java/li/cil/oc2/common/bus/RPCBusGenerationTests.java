@@ -47,7 +47,7 @@ public final class RPCBusGenerationTests {
     @Test
     public void generationStableWithoutChanges() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
 
         final int gen = request("list").get("gen").getAsInt();
         assertEquals(gen, request("list").get("gen").getAsInt(),
@@ -57,7 +57,7 @@ public final class RPCBusGenerationTests {
     @Test
     public void everyReplyKindCarriesGeneration() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         final int expected = generation();
 
         final JsonObject error = request("invoke", "\"data\":{\"deviceId\":\""
@@ -72,11 +72,11 @@ public final class RPCBusGenerationTests {
     @Test
     public void generationMovesWhenDevicesChange() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         final int before = generation();
 
         addDevice("inventory");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
 
         assertNotEquals(before, generation(), "generation did not move after the device set changed");
     }
@@ -84,12 +84,12 @@ public final class RPCBusGenerationTests {
     @Test
     public void generationNeverGoesBackwards() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         int previous = generation();
 
         for (int i = 0; i < 5; i++) {
             addDevice("device" + i);
-            adapter.resume(busController);
+            adapter.rebuild(busController);
             final int current = generation();
             assertTrue(current > previous,
                 "generation must increase monotonically, went " + previous + " -> " + current);
@@ -100,11 +100,11 @@ public final class RPCBusGenerationTests {
     @Test
     public void generationAndDeviceListAgreeInTheSameReply() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         final int before = generation();
 
         addDevice("inventory");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
 
         final JsonObject reply = request("list");
         assertNotEquals(before, reply.get("gen").getAsInt());
@@ -115,7 +115,7 @@ public final class RPCBusGenerationTests {
     @Test
     public void resetDoesNotRewindGeneration() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         final int before = generation();
 
         adapter.reset();
@@ -126,7 +126,7 @@ public final class RPCBusGenerationTests {
     @Test
     public void resultReplyCarriesGeneration() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         final int expected = generation();
 
         final JsonObject result = request("invoke", "\"data\":{\"deviceId\":\""
@@ -139,16 +139,15 @@ public final class RPCBusGenerationTests {
     @Test
     public void failedRebuildKeepsGenerationAndAdapter() {
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         final int before = generation();
 
-        adapter.pause();
         doThrow(new IllegalStateException("provider blew up")).when(busController).getDevices();
-        assertThrows(IllegalStateException.class, () -> adapter.resume(busController));
+        assertThrows(IllegalStateException.class, () -> adapter.rebuild(busController));
 
         doReturn(devices).when(busController).getDevices();
         assertEquals("list", request("list").get("type").getAsString(),
-            "the adapter stayed paused after a failed rebuild, so the machine is wedged");
+            "the adapter stopped answering after a failed rebuild, so the machine is wedged");
         assertEquals(before, generation(), "generation moved although the rebuild failed");
     }
 
@@ -157,9 +156,9 @@ public final class RPCBusGenerationTests {
         Sedna.initialize();
 
         addDevice("redstone");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         addDevice("inventory");
-        adapter.resume(busController);
+        adapter.rebuild(busController);
         final int saved = generation();
         assertTrue(saved > 0, "precondition: the counter has moved off its initial value");
 

@@ -3,6 +3,7 @@
 package li.cil.oc2.api.bus.device.object;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
@@ -121,6 +122,20 @@ public final class ObjectDevice implements RPCDevice, IODevice, ItemDevice {
     @Override
     public List<IOMethod> getIOMethods() {
         return ioMethods;
+    }
+
+    @Override
+    public void mountIO(final IOBusContext context) {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onIODeviceMounted(context);
+        }
+    }
+
+    @Override
+    public void unmountIO(final IOBusContext context) {
+        if (object instanceof LifecycleAwareDevice device) {
+            device.onIODeviceUnmounted(context);
+        }
     }
 
     // --------------------------------------------------------------------- //

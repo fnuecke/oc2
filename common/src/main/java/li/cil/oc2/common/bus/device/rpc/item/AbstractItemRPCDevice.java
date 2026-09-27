@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.rpc.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
+import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
@@ -66,5 +67,15 @@ public abstract class AbstractItemRPCDevice extends IdentityProxy<ItemStack> imp
     @Override
     public List<IOMethod> getIOMethods() {
         return device.getIOMethods();
+    }
+
+    @Override
+    public void mountIO(final IOBusContext context) {
+        device.mountIO(context);
+    }
+
+    @Override
+    public void unmountIO(final IOBusContext context) {
+        device.unmountIO(context);
     }
 }

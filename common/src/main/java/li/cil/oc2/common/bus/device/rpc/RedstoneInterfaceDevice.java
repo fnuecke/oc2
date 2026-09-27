@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
+import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
@@ -52,6 +53,9 @@ import java.util.Set;
 @IODeviceDescription(name = "REDSTN", description = """
     Sides are numbered as in the "Sides" section above, and levels are in [0, 15].
 
+    ### Events
+    `1 redstoneChanged` is sent when the received signal on a side changes. The value's low byte is the side, the high byte the new level.
+
     `REDSTN.Z80` on the CP/M boot disk is an example consumer of the API. The [mid-level API](../mlapi.md) entry explains how to build and run it.""")
 public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
     public record RedstoneChangedEvent(String side, int value) {
@@ -64,6 +68,8 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
     private static final int GET_REDSTONE_OUTPUT_CODE = 2;
     private static final int SET_REDSTONE_OUTPUT_CODE = 3;
 
+    private static final int REDSTONE_CHANGED_EVENT_CODE = 1;
+
     private static final String SIDE = "the side, by name (`front`, `back`, `left`, `right`, `up`, `down`, `north`, `south`, `west`, `east`) or by relative index.";
     private static final String SIDE_IO = "one byte, the side.";
     private static final String LEVEL_IO = "one byte, the level.";
@@ -74,6 +80,7 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
     private final byte[] input = new byte[Constants.BLOCK_FACE_COUNT];
     private final Set<RPCBusContext> contexts = new HashSet<>();
+    private final Set<IOBusContext> ioContexts = new HashSet<>();
 
     // --------------------------------------------------------------------- //
 
@@ -112,6 +119,16 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
     @Override
     public void onDeviceUnmounted(final RPCBusContext context) {
         contexts.remove(context);
+    }
+
+    @Override
+    public void onIODeviceMounted(final IOBusContext context) {
+        ioContexts.add(context);
+    }
+
+    @Override
+    public void onIODeviceUnmounted(final IOBusContext context) {
+        ioContexts.remove(context);
     }
 
     @Callback(synchronize = false,
@@ -217,6 +234,9 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
                 final RedstoneChangedEvent event = new RedstoneChangedEvent(side, value);
                 for (final RPCBusContext context : contexts) {
                     context.sendEvent(RedstoneChangedEvent.TYPE, event);
+                }
+                for (final IOBusContext context : ioContexts) {
+                    context.sendEvent(REDSTONE_CHANGED_EVENT_CODE, index | (value << 8));
                 }
             }
         }

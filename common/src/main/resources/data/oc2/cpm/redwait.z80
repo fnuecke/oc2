@@ -1,0 +1,197 @@
+; MIT licensed, see LICENSE.
+;
+; REDWAIT - wait for the input of a redstone interface to change.
+;
+;	REDWAIT		wait for the next change, print its side and level
+
+BDOS	equ	0005h
+PSTR	equ	9		; print the $ terminated string at DE
+CONOUT	equ	2		; print the character in E
+
+EVCHG	equ	1		; redstoneChanged: value is the side, then the level
+
+	CSEG
+
+; The interrupt handler needs more room than the stack CP/M leaves us.
+	ld	sp,STACK
+
+;	if (!ocfind("REDSTN", 0, &port, &index)) goto nodev;
+	ld	hl,RSNAME
+	ld	b,0
+	call	OCFIND
+	jp	c,NODEV
+	ld	(PORT),a
+	ld	a,e
+	ld	(INDEX),a
+
+; OCFIND leaves the enumeration window on the device it found, so BINT
+; reports its interrupt vector.
+	in	a,(BINT)
+	cp	0FFh
+	jp	z,NOINT
+
+; Interrupt mode 2 jumps to the address stored at I * 256 + vector. The table
+; goes into the first whole page after the program.
+	di
+	ld	hl,TABLE+0FFh
+	ld	l,a
+	ld	de,HANDLE
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	ld	a,h
+	ld	i,a
+	im	2
+
+;	outp(port + OCEVC, OCEVQ | OCEVI);
+	ld	a,OCEVC
+	call	PORTAT
+	ld	a,OCEVQ+OCEVI
+	out	(c),a
+
+	ld	de,MWAIT
+	call	PMSG
+
+; EI takes effect after the next instruction, so an event arriving in
+; between still wakes the HALT.
+WAIT:	ei
+	halt
+	di
+	ld	a,(GOT)
+	or	a
+	jr	z,WAIT
+
+;	outp(port + OCEVC, 0);	// events off, which also empties the queue
+	ld	a,OCEVC
+	call	PORTAT
+	xor	a
+	out	(c),a
+
+;	printf("side %d: level %d\n", side, level);
+	ld	de,MSIDE
+	call	PMSG
+	ld	a,(SIDE)
+	call	PDEC
+	ld	de,MLEVEL
+	call	PMSG
+	ld	a,(LEVEL)
+	call	PDEC
+	ld	de,CRLF
+	call	PMSG
+	jp	0		; warm boot, back to A>
+
+NODEV:
+	ld	de,MNODEV
+	call	PMSG
+	jp	0
+
+NOINT:
+	ld	de,MNOINT
+	call	PMSG
+	jp	0
+
+; The interrupt handler. Reads every queued event, since the interrupt stays
+; raised until the queue is empty, and keeps the last change of our device.
+HANDLE:
+	push	af
+	push	bc
+	push	de
+	push	hl
+HNEXT:	ld	a,OCEVC
+	call	PORTAT
+	in	a,(c)
+	and	OCEVP
+	jr	z,HDONE
+	ld	a,OCEVD
+	call	PORTAT
+	in	h,(c)		; sub-device index
+	in	l,(c)		; event code
+	in	d,(c)		; value low byte, the side
+	in	e,(c)		; value high byte, the level
+	ld	a,(INDEX)
+	cp	h
+	jr	nz,HNEXT
+	ld	a,l
+	cp	EVCHG
+	jr	nz,HNEXT
+	ld	a,d
+	ld	(SIDE),a
+	ld	a,e
+	ld	(LEVEL),a
+	ld	a,1
+	ld	(GOT),a
+	jr	HNEXT
+HDONE:	pop	hl
+	pop	de
+	pop	bc
+	pop	af
+	ei
+	reti
+
+;	word portat(byte offset) { return port + offset; }
+PORTAT:
+	ld	b,0
+	ld	c,a
+	ld	a,(PORT)
+	add	a,c
+	ld	c,a
+	ret
+
+;	void pdec(byte n) {		// 0 to 99, no leading zero
+;		if (n >= 10) putchar('0' + n / 10);
+;		putchar('0' + n % 10);
+;	}
+PDEC:
+	ld	b,0
+PDEC1:	cp	10
+	jr	c,PDEC2
+	sub	10
+	inc	b
+	jr	PDEC1
+PDEC2:	ld	c,a
+	ld	a,b
+	or	a
+	jr	z,PDEC3
+	add	a,'0'
+	call	PCHAR
+PDEC3:	ld	a,c
+	add	a,'0'
+;	void pchar(char c) { bdos(CONOUT, c); }
+PCHAR:
+	push	bc
+	ld	e,a
+	ld	c,CONOUT
+	call	BDOS
+	pop	bc
+	ret
+
+;	void pmsg(char *s) { bdos(PSTR, s); }	// s ends with '$'
+PMSG:
+	ld	c,PSTR
+	jp	BDOS
+
+PORT:	db	0
+INDEX:	db	0
+GOT:	db	0
+SIDE:	db	0
+LEVEL:	db	0
+
+RSNAME:	db	'REDSTN',0
+
+MWAIT:	db	'Waiting for a redstone change...',0Dh,0Ah,'$'
+MSIDE:	db	'side $'
+MLEVEL:	db	': level $'
+CRLF:	db	0Dh,0Ah,'$'
+MNODEV:	db	'No redstone interface on the bus.',0Dh,0Ah,'$'
+MNOINT:	db	'The device API has no interrupt.',0Dh,0Ah,'$'
+
+	INCLUDE	DEVLIB.INC
+	INCLUDE	OCAPI.INC
+
+	ds	64
+STACK:
+
+; Must stay last: the vector table is written past it.
+TABLE:
+
+	END

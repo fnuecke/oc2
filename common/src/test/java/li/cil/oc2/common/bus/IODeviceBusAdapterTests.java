@@ -4,14 +4,16 @@ package li.cil.oc2.common.bus;
 
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.IODeviceDescription;
+import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.common.bus.device.rpc.RedstoneInterfaceDevice;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
+import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.device.bus.DeviceDescription;
 import net.minecraft.nbt.CompoundTag;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,10 +34,20 @@ public final class IODeviceBusAdapterTests {
     private static final int REG_FUNCTION = 1;
     private static final int REG_DATA = 2;
     private static final int REG_STATUS = 3;
+    private static final int REG_EVENT_CONTROL = 4;
+    private static final int REG_EVENT_DATA = 5;
 
     private static final int STATUS_BUSY = 0b0000_0001;
     private static final int STATUS_DATA_AVAILABLE = 0b0000_0010;
     private static final int STATUS_ERROR = 0b1000_0000;
+
+    private static final int EVENT_QUEUE = 0b0000_0001;
+    private static final int EVENT_INTERRUPT = 0b0000_0010;
+    private static final int EVENT_OVERFLOW = 0b0100_0000;
+    private static final int EVENT_PENDING = 0b1000_0000;
+    private static final int NO_EVENT = 0xFF;
+
+    private static final int INTERRUPT = 5;
 
     private static final int CONTROL_ABORT = 0x00;
     private static final int CONTROL_EXECUTE = 0x01;
@@ -53,18 +65,22 @@ public final class IODeviceBusAdapterTests {
     private static final UUID LOWER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     private IODeviceBusAdapter adapter;
+    private TestInterruptController interrupts;
     private DeviceBusController controller;
     private TestTarget target;
     private ObjectDevice subject;
 
     @BeforeEach
     public void setupEach() {
-        adapter = new IODeviceBusAdapter(mock(VMRuntime.class));
+        adapter = new IODeviceBusAdapter();
+        interrupts = new TestInterruptController();
+        adapter.getInterrupt().set(INTERRUPT, interrupts);
         controller = mock(DeviceBusController.class);
         target = new TestTarget();
         subject = new ObjectDevice(target, "test");
         setDevices(subject);
         adapter.rebuild(controller);
+        adapter.mountDevices();
     }
 
     // --------------------------------------------------------------------- //
@@ -321,7 +337,7 @@ public final class IODeviceBusAdapterTests {
 
         final CompoundTag tag = assertDoesNotThrow(() -> NBTSerialization.serialize(adapter));
 
-        final IODeviceBusAdapter restored = new IODeviceBusAdapter(mock(VMRuntime.class));
+        final IODeviceBusAdapter restored = new IODeviceBusAdapter();
         assertDoesNotThrow(() -> NBTSerialization.deserialize(tag, restored));
         restored.rebuild(controller);
 
@@ -348,6 +364,199 @@ public final class IODeviceBusAdapterTests {
     }
 
     @Test
+    public void eventsAreDroppedUntilTheGuestOptsIn() {
+        assertFalse(target.context.sendEvent(1, 2));
+        assertEquals(0, read(REG_EVENT_CONTROL));
+        assertEquals(NO_EVENT, read(REG_EVENT_DATA));
+    }
+
+    @Test
+    public void eventRecordRoundTrips() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        assertTrue(target.context.sendEvent(0x12, 0xABCD));
+
+        assertEquals(EVENT_QUEUE | EVENT_PENDING, read(REG_EVENT_CONTROL));
+        assertEquals(0, read(REG_EVENT_DATA), "the first byte is the device index");
+        assertEquals(0x12, read(REG_EVENT_DATA));
+        assertEquals(0xCD, read(REG_EVENT_DATA));
+        assertEquals(0xAB, read(REG_EVENT_DATA));
+        assertEquals(EVENT_QUEUE, read(REG_EVENT_CONTROL), "reading the last byte removes the record");
+        assertEquals(NO_EVENT, read(REG_EVENT_DATA));
+    }
+
+    @Test
+    public void eventsAreDeliveredInOrder() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        target.context.sendEvent(1, 0);
+        target.context.sendEvent(2, 0);
+
+        assertArrayEquals(new int[]{0, 1, 0, 0}, readEvent());
+        assertArrayEquals(new int[]{0, 2, 0, 0}, readEvent());
+    }
+
+    @Test
+    public void interruptIsRaisedWhileEventsArePending() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        target.context.sendEvent(1, 0);
+        adapter.step();
+        assertEquals(0, interrupts.raised, "without the interrupt bit events are only queued");
+
+        write(REG_EVENT_CONTROL, EVENT_QUEUE | EVENT_INTERRUPT);
+        assertEquals(1 << INTERRUPT, interrupts.raised, "enabling with an event pending raises the line");
+
+        readEvent();
+        assertEquals(0, interrupts.raised, "draining the queue lowers the line");
+
+        target.context.sendEvent(1, 0);
+        assertEquals(0, interrupts.raised, "the line is raised on the worker thread");
+        adapter.step();
+        assertEquals(1 << INTERRUPT, interrupts.raised);
+
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        assertEquals(0, interrupts.raised, "disabling the interrupt lowers the line");
+    }
+
+    @Test
+    public void overflowIsReportedUntilControlIsWritten() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        int accepted = 0;
+        while (target.context.sendEvent(1, accepted)) {
+            accepted++;
+        }
+
+        assertEquals(16, accepted);
+        assertEquals(EVENT_QUEUE | EVENT_OVERFLOW | EVENT_PENDING, read(REG_EVENT_CONTROL));
+
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        assertEquals(EVENT_QUEUE | EVENT_PENDING, read(REG_EVENT_CONTROL), "writing control clears overflow, not the queue");
+        assertArrayEquals(new int[]{0, 1, 0, 0}, readEvent(), "the oldest events are kept");
+    }
+
+    @Test
+    public void disablingTheQueueDiscardsEvents() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        target.context.sendEvent(1, 0);
+        write(REG_EVENT_CONTROL, 0);
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+
+        assertEquals(EVENT_QUEUE, read(REG_EVENT_CONTROL));
+    }
+
+    @Test
+    public void eventRegistersDoNotDisturbABusyTransaction() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE | EVENT_INTERRUPT);
+        write(REG_SELECT, 0);
+        write(REG_FUNCTION, FUNCTION_SYNCHRONIZED);
+        write(REG_STATUS, CONTROL_EXECUTE);
+
+        target.context.sendEvent(1, 0);
+        assertArrayEquals(new int[]{0, 1, 0, 0}, readEvent());
+
+        adapter.tick();
+
+        assertEquals(STATUS_DATA_AVAILABLE, read(REG_STATUS));
+        assertEquals(0x5A, read(REG_DATA));
+    }
+
+    @Test
+    public void eventIndexFollowsARescan() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        target.context.sendEvent(1, 0);
+
+        final ObjectDevice other = new ObjectDevice(new OtherTarget(), "other");
+        when(controller.getDevices()).thenReturn(Set.of(subject, other));
+        when(controller.getDeviceIdentifiers(subject)).thenReturn(Set.of(DEVICE_UUID));
+        when(controller.getDeviceIdentifiers(other)).thenReturn(Set.of(LOWER_UUID));
+        adapter.rebuild(controller);
+
+        assertArrayEquals(new int[]{1, 1, 0, 0}, readEvent(), "the event must name the device's current index");
+    }
+
+    @Test
+    public void removedDeviceIsUnmountedAndItsEventsDropped() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE | EVENT_INTERRUPT);
+        final IOBusContext context = target.context;
+        context.sendEvent(1, 0);
+        adapter.step();
+
+        setDevices();
+        adapter.rebuild(controller);
+
+        assertNull(target.context, "the device should have been unmounted");
+        assertEquals(EVENT_QUEUE | EVENT_INTERRUPT, read(REG_EVENT_CONTROL));
+        assertEquals(0, interrupts.raised);
+        assertFalse(context.sendEvent(1, 0), "a stale context must not queue events");
+    }
+
+    @Test
+    public void partiallyReadEventSurvivesItsDeviceLeaving() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        target.context.sendEvent(1, 0x0302);
+        target.context.sendEvent(2, 0);
+        assertEquals(0, read(REG_EVENT_DATA));
+
+        setDevices();
+        adapter.rebuild(controller);
+
+        assertEquals(1, read(REG_EVENT_DATA), "the rest of the started event must stay aligned");
+        assertEquals(0x02, read(REG_EVENT_DATA));
+        assertEquals(0x03, read(REG_EVENT_DATA));
+        assertEquals(EVENT_QUEUE, read(REG_EVENT_CONTROL), "the unstarted event of the gone device is dropped");
+    }
+
+    @Test
+    public void unmountInvalidatesContexts() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE);
+        final IOBusContext context = target.context;
+
+        adapter.unmountDevices();
+
+        assertNull(target.context);
+        assertFalse(context.sendEvent(1, 0));
+
+        adapter.mountDevices();
+        assertTrue(target.context.sendEvent(1, 0));
+    }
+
+    @Test
+    public void eventOutOfRangeThrows() {
+        assertThrows(IllegalArgumentException.class, () -> target.context.sendEvent(0x100, 0));
+        assertThrows(IllegalArgumentException.class, () -> target.context.sendEvent(0, 0x10000));
+    }
+
+    @Test
+    public void resetClearsEvents() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE | EVENT_INTERRUPT);
+        target.context.sendEvent(1, 0);
+        adapter.step();
+
+        adapter.reset();
+
+        assertEquals(0, read(REG_EVENT_CONTROL));
+        assertEquals(0, interrupts.raised);
+        assertFalse(target.context.sendEvent(1, 0), "a reset machine has not opted in");
+    }
+
+    @Test
+    public void pendingEventsSurviveSaveAndLoad() {
+        write(REG_EVENT_CONTROL, EVENT_QUEUE | EVENT_INTERRUPT);
+        target.context.sendEvent(3, 0x0102);
+        read(REG_EVENT_DATA);
+
+        final CompoundTag tag = assertDoesNotThrow(() -> NBTSerialization.serialize(adapter));
+
+        final IODeviceBusAdapter restored = new IODeviceBusAdapter();
+        assertDoesNotThrow(() -> NBTSerialization.deserialize(tag, restored));
+        restored.rebuild(controller);
+
+        assertEquals(EVENT_QUEUE | EVENT_INTERRUPT | EVENT_PENDING, (int) restored.load(REG_EVENT_CONTROL, Sizes.SIZE_8_LOG2));
+        assertEquals(3, (int) restored.load(REG_EVENT_DATA, Sizes.SIZE_8_LOG2), "the partially read record continues");
+        assertEquals(0x02, (int) restored.load(REG_EVENT_DATA, Sizes.SIZE_8_LOG2));
+        assertEquals(0x01, (int) restored.load(REG_EVENT_DATA, Sizes.SIZE_8_LOG2));
+        assertEquals(EVENT_QUEUE | EVENT_INTERRUPT, (int) restored.load(REG_EVENT_CONTROL, Sizes.SIZE_8_LOG2));
+    }
+
+    @Test
     public void redstoneDeviceExposesItsFunctions() {
         assertTrue(IOCallbacks.hasMethods(RedstoneInterfaceDevice.class));
         assertEquals("REDSTN", IOCallbacks.getName(RedstoneInterfaceDevice.class));
@@ -370,6 +579,10 @@ public final class IODeviceBusAdapterTests {
         return (int) adapter.load(register, Sizes.SIZE_8_LOG2);
     }
 
+    private int[] readEvent() {
+        return new int[]{read(REG_EVENT_DATA), read(REG_EVENT_DATA), read(REG_EVENT_DATA), read(REG_EVENT_DATA)};
+    }
+
     // --------------------------------------------------------------------- //
 
     @IODeviceDescription(name = "OTHER")
@@ -381,8 +594,19 @@ public final class IODeviceBusAdapterTests {
     }
 
     @IODeviceDescription(name = "TEST")
-    public static final class TestTarget {
+    public static final class TestTarget implements LifecycleAwareDevice {
         public int synchronizedCalls;
+        public IOBusContext context;
+
+        @Override
+        public void onIODeviceMounted(final IOBusContext context) {
+            this.context = context;
+        }
+
+        @Override
+        public void onIODeviceUnmounted(final IOBusContext context) {
+            this.context = null;
+        }
 
         @IOCallback(value = FUNCTION_ECHO, synchronize = false)
         public void echo(final InputStream arguments, final OutputStream results) throws Exception {
@@ -403,6 +627,25 @@ public final class IODeviceBusAdapterTests {
         @IOCallback(value = FUNCTION_THROWS_INTERNAL, synchronize = false)
         public void failsInternally() {
             throw new UnsupportedOperationException("boom");
+        }
+    }
+
+    private static final class TestInterruptController implements InterruptController {
+        public int raised;
+
+        @Override
+        public void raiseInterrupts(final int mask) {
+            raised |= mask;
+        }
+
+        @Override
+        public void lowerInterrupts(final int mask) {
+            raised &= ~mask;
+        }
+
+        @Override
+        public int getRaisedInterrupts() {
+            return raised;
         }
     }
 }

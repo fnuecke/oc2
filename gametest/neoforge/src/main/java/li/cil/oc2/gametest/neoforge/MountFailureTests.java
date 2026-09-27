@@ -2,7 +2,10 @@
 
 package li.cil.oc2.gametest.neoforge;
 
+import li.cil.oc2.api.bus.DeviceBusController;
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
@@ -17,7 +20,7 @@ import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.oc2.common.util.StorageItemUtils.State;
-import li.cil.oc2.common.vm.VMDeviceBusAdapter;
+import li.cil.oc2.common.vm.VMDeviceRegistry;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
@@ -44,6 +47,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.UUID;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
@@ -54,13 +58,13 @@ public final class MountFailureTests {
     @GameTest(template = TEMPLATE)
     public static void missingMemoryBlobReleasesHandle(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
-        final VMDeviceBusAdapter adapter = adapter();
+        final VMDeviceRegistry registry = registry();
         final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
 
         device.deserializeNBT(tagReferencing(handle));
-        adapter.addDevices(List.of(device));
+        registry.rebuild(bus(device));
 
-        final VMDeviceLoadResult first = adapter.mountDevices();
+        final VMDeviceLoadResult first = registry.mountDevices();
         if (first.wasSuccessful()) {
             throw new GameTestAssertException("Mounting memory whose blob is gone should fail");
         }
@@ -68,11 +72,12 @@ public final class MountFailureTests {
             throw new GameTestAssertException("missing blob should fail permanently");
         }
 
-        if (!adapter.mountDevices().wasSuccessful()) {
+        if (!registry.mountDevices().wasSuccessful()) {
             throw new GameTestAssertException("memory should release a handle it cannot open");
         }
 
-        adapter.disposeDevices();
+        registry.unmountDevices();
+        device.dispose();
         release(handle);
 
         helper.succeed();
@@ -84,17 +89,18 @@ public final class MountFailureTests {
         try {
             final UUID handle = createBlob(blob);
 
-            final VMDeviceBusAdapter adapter = adapter();
+            final VMDeviceRegistry registry = registry();
             final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
             device.deserializeNBT(tagReferencing(handle));
-            adapter.addDevices(List.of(device));
+            registry.rebuild(bus(device));
 
-            final VMDeviceLoadResult result = adapter.mountDevices();
+            final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent()) {
                 throw new GameTestAssertException("memory blob in use should fail permanently");
             }
 
-            adapter.disposeDevices();
+            registry.unmountDevices();
+            device.dispose();
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
         } finally {
@@ -108,13 +114,13 @@ public final class MountFailureTests {
     public static void missingDriveBlobKeepsHandle(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
-        final VMDeviceBusAdapter adapter = adapter();
+        final VMDeviceRegistry registry = registry();
         final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
 
         device.deserializeNBT(tagReferencing(handle));
-        adapter.addDevices(List.of(device));
+        registry.rebuild(bus(device));
 
-        final VMDeviceLoadResult result = adapter.mountDevices();
+        final VMDeviceLoadResult result = registry.mountDevices();
         if (result.wasSuccessful() || !result.isPermanent()) {
             throw new GameTestAssertException("missing drive blob should fail permanently");
         }
@@ -122,7 +128,8 @@ public final class MountFailureTests {
             throw new GameTestAssertException("drive should keep its handle and be flagged");
         }
 
-        adapter.disposeDevices();
+        registry.unmountDevices();
+        device.dispose();
         StorageItemUtils.clearBlobData(stack);
         release(handle);
 
@@ -136,17 +143,18 @@ public final class MountFailureTests {
         try {
             final UUID handle = createBlob(blob);
 
-            final VMDeviceBusAdapter adapter = adapter();
+            final VMDeviceRegistry registry = registry();
             final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
             device.deserializeNBT(tagReferencing(handle));
-            adapter.addDevices(List.of(device));
+            registry.rebuild(bus(device));
 
-            final VMDeviceLoadResult result = adapter.mountDevices();
+            final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent() || !isCorrupted(stack)) {
                 throw new GameTestAssertException("A drive whose blob another device holds is a duplicate");
             }
 
-            adapter.disposeDevices();
+            registry.unmountDevices();
+            device.dispose();
             if (!BlobStorage.isOpen(handle)) {
                 throw new GameTestAssertException("failed mount released the blob of the device holding it");
             }
@@ -169,10 +177,11 @@ public final class MountFailureTests {
             Config.blobEvictionGraceHours = 24 * 365;
             Config.maxBlobCount = Math.max(1, BlobStorage.getBlobCount());
 
-            final VMDeviceBusAdapter adapter = adapter();
-            adapter.addDevices(List.of(new HardDriveDevice(stack, 4096, false, Optional::empty)));
+            final VMDeviceRegistry registry = registry();
+            final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
+            registry.rebuild(bus(device));
 
-            final VMDeviceLoadResult result = adapter.mountDevices();
+            final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful()) {
                 throw new GameTestAssertException("Mounting should fail while blob storage is full");
             }
@@ -183,7 +192,8 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("full storage should not flag the drive");
             }
 
-            adapter.disposeDevices();
+            registry.unmountDevices();
+            device.dispose();
         } finally {
             Config.maxBlobCount = maxBlobCount;
             Config.blobEvictionGraceHours = graceHours;
@@ -203,8 +213,8 @@ public final class MountFailureTests {
             final FlashStorageDevice device = new FlashStorageDevice(stack, 4096);
             device.deserializeNBT(tagReferencing(handle));
 
-            final VMDeviceBusAdapter refusing = adapter();
-            refusing.addDevices(List.of(device));
+            final VMDeviceRegistry refusing = registry();
+            refusing.rebuild(bus(device));
 
             final VMDeviceLoadResult refused = refusing.mountDevices();
             if (refused.wasSuccessful() || !refused.isPermanent()) {
@@ -217,10 +227,10 @@ public final class MountFailureTests {
 
             StorageItemUtils.setState(stack, State.ACKNOWLEDGED);
 
-            final VMDeviceBusAdapter accepting = adapter();
+            final VMDeviceRegistry accepting = registry();
             final FlashStorageDevice retry = new FlashStorageDevice(stack, 4096);
             retry.deserializeNBT(tagReferencing(handle));
-            accepting.addDevices(List.of(retry));
+            accepting.rebuild(bus(retry));
 
             if (!accepting.mountDevices().wasSuccessful()) {
                 throw new GameTestAssertException("acknowledged flash memory should mount");
@@ -229,7 +239,8 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it; got " + StorageItemUtils.getState(stack));
             }
 
-            accepting.disposeDevices();
+            accepting.unmountDevices();
+            retry.dispose();
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
         } finally {
@@ -250,8 +261,8 @@ public final class MountFailureTests {
             final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
             device.deserializeNBT(tagReferencing(handle));
 
-            final VMDeviceBusAdapter refusing = adapter();
-            refusing.addDevices(List.of(device));
+            final VMDeviceRegistry refusing = registry();
+            refusing.rebuild(bus(device));
 
             final VMDeviceLoadResult refused = refusing.mountDevices();
             if (refused.wasSuccessful() || !refused.isPermanent()) {
@@ -267,10 +278,10 @@ public final class MountFailureTests {
 
             StorageItemUtils.setState(stack, State.ACKNOWLEDGED);
 
-            final VMDeviceBusAdapter accepting = adapter();
+            final VMDeviceRegistry accepting = registry();
             final HardDriveDevice retry = new HardDriveDevice(stack, 4096, false, Optional::empty);
             retry.deserializeNBT(tagReferencing(handle));
-            accepting.addDevices(List.of(retry));
+            accepting.rebuild(bus(retry));
 
             if (!accepting.mountDevices().wasSuccessful()) {
                 throw new GameTestAssertException("Once the player has accepted it, the drive mounts");
@@ -279,7 +290,8 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it");
             }
 
-            accepting.disposeDevices();
+            accepting.unmountDevices();
+            retry.dispose();
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
         } finally {
@@ -296,12 +308,12 @@ public final class MountFailureTests {
         try {
             markStale(handle);
 
-            final VMDeviceBusAdapter adapter = adapter();
+            final VMDeviceRegistry registry = registry();
             final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
             device.deserializeNBT(tagReferencing(handle));
-            adapter.addDevices(List.of(device));
+            registry.rebuild(bus(device));
 
-            final VMDeviceLoadResult result = adapter.mountDevices();
+            final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent()) {
                 throw new GameTestAssertException("stale memory should stop the machine");
             }
@@ -309,11 +321,12 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("discarded memory should not keep its blob");
             }
 
-            if (!adapter.mountDevices().wasSuccessful()) {
+            if (!registry.mountDevices().wasSuccessful()) {
                 throw new GameTestAssertException("The machine has to be startable again afterwards");
             }
 
-            adapter.disposeDevices();
+            registry.unmountDevices();
+            device.dispose();
         } catch (final IOException e) {
             throw new GameTestAssertException("Unexpected failure: " + e);
         } finally {
@@ -429,9 +442,36 @@ public final class MountFailureTests {
         }
     }
 
-    private static VMDeviceBusAdapter adapter() {
+    private static DeviceBusController bus(final Device device) {
+        return new DeviceBusController() {
+            @Override
+            public Optional<ArchitectureType> getArchitectureType() {
+                return Optional.empty();
+            }
+
+            @Override
+            public void scheduleBusScan(final ScanReason reason) {
+            }
+
+            @Override
+            public void scanDevices() {
+            }
+
+            @Override
+            public Set<Device> getDevices() {
+                return Set.of(device);
+            }
+
+            @Override
+            public Set<UUID> getDeviceIdentifiers(final Device unused) {
+                return Set.of();
+            }
+        };
+    }
+
+    private static VMDeviceRegistry registry() {
         final R5Board board = new R5Board();
-        return new VMDeviceBusAdapter(new GlobalVMContext(board, board.getCpu(), () -> {
+        return new VMDeviceRegistry(new GlobalVMContext(board, board.getCpu(), () -> {
         }, null), unused -> OptionalLong.empty());
     }
 

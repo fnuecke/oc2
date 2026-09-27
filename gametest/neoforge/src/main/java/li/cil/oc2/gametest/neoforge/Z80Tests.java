@@ -13,6 +13,7 @@ import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -25,6 +26,7 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 public final class Z80Tests {
     private static final int BOOT_TIMEOUT_TICKS = 20000;
     private static final String DEVS_BATCH = "oc2_z80_devs";
+    private static final String EVENTS_BATCH = "oc2_z80_events";
     private static final String ITEMS_BATCH = "oc2_z80_items";
     private static final String SERIAL_BATCH = "oc2_z80_serial";
 
@@ -98,6 +100,33 @@ public final class Z80Tests {
             .thenExecute(() -> z80.command("DEVS"))
             .thenWaitUntil(() -> z80.assertScreenContains("REDSTN",
                 "the redstone card should enumerate through the device API port"))
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = EVENTS_BATCH)
+    public static void redwaitWakesOnRedstoneChange(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        final Z80Fixture z80 = Z80Fixture.place(helper, player);
+        placePower(helper, player);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, z80::install)
+            .thenExecuteAfter(20, z80::start)
+            .thenWaitUntil(() -> z80.assertScreenContains("A>", "CP/M should reach its prompt"))
+            .thenExecute(z80::withRedstoneCard)
+            .thenExecute(() -> z80.command("ZMAC REDWAIT /E"))
+            .thenWaitUntil(() -> z80.assertScreenContains("REDWAIT.Z80    assembled with   NO ERRORS", "the example should assemble"))
+            .thenWaitUntil(() -> assertBackAtPrompt(z80))
+            .thenExecuteAfter(20, () -> z80.command("ZML REDWAIT"))
+            .thenWaitUntil(() -> assertBackAtPrompt(z80))
+            .thenExecuteAfter(20, () -> z80.command(""))
+            .thenExecuteAfter(20, () -> z80.command("REDWAIT"))
+            .thenWaitUntil(() -> z80.assertScreenContains("Waiting for a redstone change",
+                "REDWAIT should find the card and its interrupt"))
+            .thenExecuteAfter(20, () -> helper.setBlock(COMPUTER_POS.above(), Blocks.REDSTONE_BLOCK))
+            .thenWaitUntil(() -> z80.assertScreenContains("side 1: level 15",
+                "the change event should wake REDWAIT through the interrupt"))
+            .thenWaitUntil(() -> assertBackAtPrompt(z80))
             .thenSucceed();
     }
 

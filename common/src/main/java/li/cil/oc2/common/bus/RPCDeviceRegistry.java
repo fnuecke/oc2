@@ -26,8 +26,6 @@ final class RPCDeviceRegistry {
     private final EventSink events;
     private final ArrayList<RPCDeviceWithIdentifier> devices = new ArrayList<>();
     private final BiMap<UUID, RPCDeviceList> devicesById = HashBiMap.create();
-    private final Set<RPCDeviceList> unmountedDevices = new HashSet<>();
-    private final Set<RPCDeviceList> mountedDevices = new HashSet<>();
     private final HashMap<RPCDeviceList, MountedContext> contexts = new HashMap<>();
 
     @Serialized
@@ -54,30 +52,19 @@ final class RPCDeviceRegistry {
         return devicesById.get(identifier);
     }
 
-    void mountAll() {
-        for (final RPCDeviceList device : unmountedDevices) {
-            final MountedContext context = new MountedContext(events, devicesById.inverse().get(device));
-            contexts.put(device, context);
-            device.mount(context);
-        }
-
-        mountedDevices.addAll(unmountedDevices);
-        unmountedDevices.clear();
+    void mountDevices() {
+        devicesById.forEach((identifier, device) -> {
+            if (!contexts.containsKey(device)) {
+                final MountedContext context = new MountedContext(events, identifier);
+                contexts.put(device, context);
+                device.mount(context);
+            }
+        });
     }
 
-    void unmountAll() {
-        for (final RPCDeviceList device : mountedDevices) {
-            device.unmount(detach(device));
-        }
-
-        unmountedDevices.addAll(mountedDevices);
-        mountedDevices.clear();
-    }
-
-    void disposeAll() {
-        unmountAll();
-
-        unmountedDevices.forEach(RPCDeviceList::dispose);
+    void unmountDevices() {
+        contexts.forEach((device, context) -> device.unmount(context.detach()));
+        contexts.clear();
     }
 
     void rebuild(final DeviceBusController controller) {
@@ -128,46 +115,30 @@ final class RPCDeviceRegistry {
         devices.clear();
         devicesById.clear();
 
-        final Set<RPCDeviceList> devices = new HashSet<>();
         identifiersByDevice.forEach((device, identifiers) -> {
             final UUID identifier = selectIdentifierDeterministically(identifiers);
             this.devices.add(new RPCDeviceWithIdentifier(identifier, device));
             devicesById.put(identifier, device);
-            devices.add(device);
-
-            final MountedContext context = contexts.get(device);
-            if (context != null) {
-                context.identifier = identifier;
-            }
-
-            // Add to set of unmounted devices if we don't already track it. It's a set, so
-            // there won't be duplicates in the unmounted set due to this.
-            if (!mountedDevices.contains(device)) {
-                unmountedDevices.add(device);
-            }
         });
 
-        // Remove devices from mounted set, call appropriate callbacks.
-        final HashSet<RPCDeviceList> removedMountedDevices = new HashSet<>(mountedDevices);
-        removedMountedDevices.removeAll(devices);
-        mountedDevices.removeAll(removedMountedDevices);
-        for (final RPCDeviceList device : removedMountedDevices) {
-            device.unmount(detach(device));
+        final Iterator<Map.Entry<RPCDeviceList, MountedContext>> iterator = contexts.entrySet().iterator();
+        while (iterator.hasNext()) {
+            final Map.Entry<RPCDeviceList, MountedContext> entry = iterator.next();
+            final RPCDeviceList device = entry.getKey();
+            final MountedContext context = entry.getValue();
+            final UUID identifier = devicesById.inverse().get(device);
+            if (identifier != null) {
+                context.identifier = identifier;
+            } else {
+                iterator.remove();
+                device.unmount(context.detach());
+            }
         }
-
-        // Remove devices from unmounted set.
-        unmountedDevices.retainAll(devices);
 
         generation++;
     }
 
     // --------------------------------------------------------------------- //
-
-    private MountedContext detach(final RPCDeviceList device) {
-        final MountedContext context = contexts.remove(device);
-        context.events = null;
-        return context;
-    }
 
     private static UUID selectIdentifierDeterministically(final ArrayList<UUID> identifiers) {
         UUID lowestIdentifier = identifiers.get(0);
@@ -189,6 +160,11 @@ final class RPCDeviceRegistry {
         MountedContext(final EventSink events, final UUID identifier) {
             this.events = events;
             this.identifier = identifier;
+        }
+
+        MountedContext detach() {
+            events = null;
+            return this;
         }
 
         @Override

@@ -4,7 +4,9 @@ package li.cil.oc2.common.vm.device;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
+import li.cil.sedna.api.Interrupt;
 import li.cil.sedna.api.Sizes;
+import li.cil.sedna.api.device.InterruptSource;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.device.bus.InterruptVectorMap;
 import li.cil.sedna.api.memory.MemoryAccessException;
@@ -13,7 +15,7 @@ import li.cil.sedna.memory.SimpleMemoryMap;
 
 import java.util.List;
 
-public final class IODeviceBusWindow implements MemoryMappedDevice {
+public final class IODeviceBusWindow implements MemoryMappedDevice, InterruptSource {
     public static final int LENGTH = 0x1000;
 
     private static final int ADAPTER_OFFSET = 0x00;
@@ -21,6 +23,7 @@ public final class IODeviceBusWindow implements MemoryMappedDevice {
 
     // --------------------------------------------------------------------- //
 
+    private final IODeviceBusAdapter adapter;
     @Serialized
     private final DeviceEnumerator enumerator;
     private final SimpleMemoryMap registers = new SimpleMemoryMap();
@@ -28,6 +31,7 @@ public final class IODeviceBusWindow implements MemoryMappedDevice {
     // --------------------------------------------------------------------- //
 
     public IODeviceBusWindow(final IODeviceBusAdapter adapter) {
+        this.adapter = adapter;
         enumerator = new DeviceEnumerator(registers, List.of(adapter), interrupt -> InterruptVectorMap.NO_VECTOR);
         registers.addDevice(ADAPTER_OFFSET, adapter);
         registers.addDevice(ENUMERATOR_OFFSET, enumerator);
@@ -53,5 +57,10 @@ public final class IODeviceBusWindow implements MemoryMappedDevice {
     @Override
     public void store(final int offset, final long value, final int sizeLog2) throws MemoryAccessException {
         registers.store(offset, value, sizeLog2);
+    }
+
+    @Override
+    public Iterable<Interrupt> getInterrupts() {
+        return adapter.getInterrupts();
     }
 }

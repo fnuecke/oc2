@@ -60,7 +60,7 @@ public class VMRunner implements Runnable {
     }
 
     public void tick() {
-        architecture.tickDeviceLayer();
+        architecture.tickDynamicDevices();
 
         cycleLimit += getCyclesPerTick();
 

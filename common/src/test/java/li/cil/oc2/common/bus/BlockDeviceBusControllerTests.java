@@ -240,8 +240,7 @@ public class BlockDeviceBusControllerTests {
         busController.scheduleBusScan();
 
         final RPCDeviceBusAdapter rpcDeviceBusAdapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class));
-        busController.onBeforeDeviceScan.add(rpcDeviceBusAdapter::pause);
-        busController.onAfterDeviceScan.add(() -> rpcDeviceBusAdapter.resume(busController));
+        busController.onAfterDeviceScan.add(() -> rpcDeviceBusAdapter.rebuild(busController));
 
         busController.scan();
 

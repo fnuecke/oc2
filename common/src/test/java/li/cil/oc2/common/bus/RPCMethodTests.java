@@ -121,7 +121,7 @@ public final class RPCMethodTests {
         when(busController.getDevices()).thenReturn(singleton(device));
         when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
 
-        rpcAdapter.resume(busController);
+        rpcAdapter.rebuild(busController);
     }
 
     private JsonObject invokeMethodRaw(final UUID deviceId, final String name, final Object... parameters) {

@@ -90,6 +90,9 @@ Device name: `ROBOT`
 
 Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.
 
+### Events
+`1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.
+
 ### Methods
 
 `1 detect`
@@ -130,25 +133,25 @@ Looks an item up by name.
 - Returns two bytes, the item id.
 
 `9 move`
-Enqueues a movement.
+Tries to enqueue a movement action in the specified direction.
 - Takes one byte, the direction.
 - Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
 
 `10 turn`
-Enqueues a rotation.
+Tries to enqueue a turn action towards the specified direction.
 - Takes one byte, the direction.
 - Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
 
 `11 getLastActionId`
-Reads the id of the last enqueued action.
-- Returns two bytes, the id, low byte first. Read it right after a `move` or `turn` that returned `1`.
+Gets the opaque id of the last enqueued action. Call this after a successful `move` or `turn` call to obtain the id associated with the enqueued action.
+- Returns two bytes, the id, low byte first.
 
 `12 getQueuedActionCount`
-Reads how many actions are still waiting.
+Gets the number of actions currently waiting in the action queue to be processed. Use this to wait for actions to finish when enqueueing fails.
 - Returns one byte, the count.
 
 `13 getActionResult`
-Reads how an action turned out. Poll it until it stops reading `1` to wait for an action to finish.
+Gets the result of the action with the specified id. Returns `1` until the action finishes. May be awaited using the `actionCompleted` event.
 - Takes two bytes, the id.
 - Returns one byte: `0` unknown, `1` incomplete, `2` success, `3` failure.
 

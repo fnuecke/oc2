@@ -24,6 +24,7 @@ import java.util.Arrays;
 
 public final class Z80Architecture extends AbstractArchitecture {
     private static final int ENUMERATOR_PORT = 0xE0;
+    private static final int MLAPI_INTERRUPT = 1;
 
     // --------------------------------------------------------------------- //
 
@@ -32,7 +33,7 @@ public final class Z80Architecture extends AbstractArchitecture {
     @Serialized
     private final UART16550A uart;
     @Serialized
-    private final IODeviceBusAdapter ioAdapter;
+    private final IODeviceBusAdapter mlapiAdapter;
     @Serialized
     private final byte[] bootRom = new byte[Constants.FLASH_MEMORY_SIZE];
 
@@ -48,7 +49,12 @@ public final class Z80Architecture extends AbstractArchitecture {
         super(board, board.getCpu(), config, board.getPortBus());
         this.board = board;
         this.uart = new UART16550A();
-        this.ioAdapter = new IODeviceBusAdapter(config.runtime());
+        this.mlapiAdapter = new IODeviceBusAdapter();
+
+        if (!getContext().getInterruptAllocator().claimInterrupt(MLAPI_INTERRUPT)) {
+            throw new IllegalStateException("Mid-level API interrupt is already claimed.");
+        }
+        mlapiAdapter.getInterrupt().set(MLAPI_INTERRUPT, board.getInterruptController());
 
         board.getCpu().setFrequency(li.cil.oc2.common.Config.z80CycleBudgetPerSecond);
 
@@ -99,6 +105,7 @@ public final class Z80Architecture extends AbstractArchitecture {
     @Override
     public void step(final int cycles) {
         board.step(cycles);
+        mlapiAdapter.step();
     }
 
     @Override
@@ -125,18 +132,32 @@ public final class Z80Architecture extends AbstractArchitecture {
     // --------------------------------------------------------------------- //
 
     @Override
+    public void unmountAllDevices() {
+        super.unmountAllDevices();
+        mlapiAdapter.unmountDevices();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
     public void handleAfterDeviceScan(final DeviceBusController controller) {
-        ioAdapter.rebuild(controller);
+        super.handleAfterDeviceScan(controller);
+        mlapiAdapter.rebuild(controller);
     }
 
     @Override
-    public void tickDeviceLayer() {
-        ioAdapter.tick();
+    public void mountDynamicDevices() {
+        mlapiAdapter.mountDevices();
     }
 
     @Override
-    protected void resetDeviceLayer() {
-        ioAdapter.reset();
+    public void tickDynamicDevices() {
+        mlapiAdapter.tick();
+    }
+
+    @Override
+    protected void resetDynamicDevices() {
+        mlapiAdapter.reset();
     }
 
     // --------------------------------------------------------------------- //
@@ -145,9 +166,9 @@ public final class Z80Architecture extends AbstractArchitecture {
         final DeviceEnumerator enumerator = new DeviceEnumerator(
             board.getPortMap(), board.getDevices(), board.getInterruptController());
         if (!board.addPortDevice(ENUMERATOR_PORT, enumerator)
-            || board.addPortDevice(uart).isEmpty()
-            || board.addPortDevice(ioAdapter).isEmpty()
-            || board.addPortDevice(new BootRomLatch(board)).isEmpty()) {
+            || board.addPortDevice(mlapiAdapter).isEmpty()
+            || board.addPortDevice(new BootRomLatch(board)).isEmpty()
+            || board.addPortDevice(uart).isEmpty()) {
             throw new IllegalStateException("Built-in devices do not fit the port space.");
         }
     }

@@ -8,7 +8,7 @@
 ; matches on the name instead.
 ;
 ; Not re-entrant. The port holds one selection and one transaction, so do not
-; call it from an interrupt handler.
+; call it from an interrupt handler. For those, there are the 'event' registers.
 
 CLSOC	equ	80h		; the class every OpenComputers device reports
 
@@ -22,10 +22,15 @@ CLSOC	equ	80h		; the class every OpenComputers device reports
 ;       write the next argument byte
 ;   +3  read  status, see the bits below
 ;       write OCEXEC to run the transaction, OCABRT to abandon it
+;   +4  read  event status, see the OCEV bits below
+;       write OCEVQ and OCEVI to switch events on; any write clears OCEVO
+;   +5  read  the next byte of the oldest event, FFh when none is queued
 OCSEL	equ	0
 OCFUN	equ	1
 OCDAT	equ	2
 OCSTA	equ	3
+OCEVC	equ	4
+OCEVD	equ	5
 
 OCBUSY	equ	00000001b	; the call has not finished yet
 OCDAV	equ	00000010b	; a result byte is waiting at OCDAT
@@ -42,6 +47,17 @@ OCENOD	equ	01h		; no such sub-device
 OCENOF	equ	02h		; no such function
 OCEARG	equ	05h		; not the arguments the function wanted
 OCEINT	equ	06h		; the device failed internally
+
+OCEVQ	equ	00000001b	; queue events
+OCEVI	equ	00000010b	; raise the interrupt while events are queued
+OCEVO	equ	01000000b	; overflow indicator, events were dropped
+OCEVP	equ	10000000b	; an event is pending at OCEVD
+
+; An event is four bytes: the sub-device index, the event code, and a 16-bit
+; value, low byte first. Reading the last byte consumes it. Switching OCEVQ off
+; discards queued events. All devices share one interrupt; BINT reports its
+; vector. The line stays raised while events are queued, a handler must read
+; until OCEVP clears.
 
 ; OCABRT discards the result; it does not cancel the call. A synchronized call
 ; already handed to the host still runs and still has its effect on the world.

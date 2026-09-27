@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.GameTestSequence;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -27,6 +28,8 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 public final class RedstoneEventTests {
     private static final String BATCH = "oc2_redstone_events";
     private static final String SUITE = "redstone_events";
+    private static final String MLAPI_BATCH = "oc2_redstone_mlapi_events";
+    private static final String MLAPI_SUITE = "mlapi_events";
 
     private static final BlockPos SIGNAL_POS = DEVICE_POS.above();
 
@@ -34,28 +37,10 @@ public final class RedstoneEventTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
     public static void guestReceivesInputChanges(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
-        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
-        place(helper, player, new ItemStack(Items.REDSTONE_INTERFACE.get()), DEVICE_POS);
-
+        final ComputerFixture computer = placeComputerWithRedstoneInterface(helper);
         final GuestTests tests = computer.guestTests();
 
-        helper.startSequence()
-            .thenExecuteAfter(20, () -> computer
-                .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                .install(DeviceTypes.CARD.get(), new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
-            .thenExecuteAfter(20, computer::start)
-            .thenWaitUntil(() -> {
-                computer.assertNoGuestPanic();
-                tests.requireReady();
-            })
-            .thenExecute(() -> tests.run(SUITE))
+        startSequence(helper, computer, tests, SUITE)
             .thenWaitUntil(() -> {
                 computer.assertNoGuestPanic();
                 assertTrue(helper, "the guest did not signal that it is listening",
@@ -75,7 +60,52 @@ public final class RedstoneEventTests {
             .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MLAPI_BATCH)
+    public static void guestExampleWaitsForInputChange(final GameTestHelper helper) {
+        final ComputerFixture computer = placeComputerWithRedstoneInterface(helper);
+        final GuestTests tests = computer.guestTests();
+
+        startSequence(helper, computer, tests, MLAPI_SUITE)
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                assertTrue(helper, "the guest did not start the example",
+                    redstoneInterface(helper).getOutputForDirection(Direction.SOUTH) == 15);
+            })
+            .thenExecute(() -> helper.setBlock(SIGNAL_POS, Blocks.REDSTONE_BLOCK))
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                tests.requireSuccess();
+            })
+            .thenSucceed();
+    }
+
     // --------------------------------------------------------------------- //
+
+    private static ComputerFixture placeComputerWithRedstoneInterface(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        final ComputerFixture computer = ComputerFixture.place(helper, player);
+        placePower(helper, player);
+        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
+        place(helper, player, new ItemStack(Items.REDSTONE_INTERFACE.get()), DEVICE_POS);
+        return computer;
+    }
+
+    private static GameTestSequence startSequence(final GameTestHelper helper, final ComputerFixture computer, final GuestTests tests, final String suite) {
+        return helper.startSequence()
+            .thenExecuteAfter(20, () -> computer
+                .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
+                .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
+                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
+                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
+                .install(DeviceTypes.CARD.get(), new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get())))
+            .thenExecuteAfter(20, computer::start)
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                tests.requireReady();
+            })
+            .thenExecute(() -> tests.run(suite));
+    }
 
     private static RedstoneInterfaceBlockEntity redstoneInterface(final GameTestHelper helper) {
         return helper.getBlockEntity(DEVICE_POS);

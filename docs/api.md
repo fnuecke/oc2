@@ -120,6 +120,10 @@ These methods are called in the following cases:
 
 Note that `unmount()` is called both for suspending and stopping. When stopping, `dispose()` is called as well.
 
+Devices providing a mid-level API receive `mountIO(IOBusContext)` and `unmountIO(IOBusContext)` at the same points, on
+RISC-V and Z80 computers alike. For an `ObjectDevice`, implement `onIODeviceMounted()` and `onIODeviceUnmounted()` of
+`LifecycleAwareDevice`.
+
 The `RPCBusContext` is the device's handle on the computer it was mounted in. A device reachable from several computers,
 such as a block entity with computers on two sides, is mounted once per computer and receives a distinct context for
 each. Thus, a device may receive more than one context; keep them in a `Set`, and remove entries passed by `unmount()`.
@@ -144,6 +148,12 @@ that follow once the queue is full are dropped.
 `sendEvent` may be called from any thread. `data` is serialized on the calling thread, so only pass game objects such as
 an `ItemStack` from the server thread. Binary payloads (`byte[]`) are not supported in events; such an event is logged
 and dropped. After `unmount()`, `sendEvent` returns `false`.
+
+`IOBusContext.sendEvent(code, value)` is the mid-level API counterpart: an event code of one byte and a value of two,
+attributed to the device's index. Guests opt in to receiving events, and may have an interrupt raised for them;
+until then `sendEvent` returns `false`. Event codes are per device, like function codes; document them in the
+`IODeviceDescription`. The queue holds 16 events and is shared by all devices of a computer. May be called from any
+thread. After `unmountIO()`, `sendEvent` returns `false`.
 
 ## The `BlockDeviceProvider` and `ItemDeviceProvider`
 

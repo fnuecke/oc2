@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.io.IODevice;
+import li.cil.oc2.api.bus.device.io.IOInvocation;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
@@ -14,6 +15,8 @@ import net.minecraft.gametest.framework.GameTestAssertException;
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Optional;
 
 public final class DeviceCalls {
@@ -51,7 +54,7 @@ public final class DeviceCalls {
             }
             final ByteArrayOutputStream results = new ByteArrayOutputStream();
             try {
-                method.invoke(new ByteArrayInputStream(bytes), results);
+                method.invoke(ioInvocation(new ByteArrayInputStream(bytes), results));
             } catch (final IllegalArgumentException e) {
                 throw e;
             } catch (final Throwable e) {
@@ -98,6 +101,30 @@ public final class DeviceCalls {
                     }
                 }
                 return Optional.of(result);
+            }
+
+            @Override
+            public boolean consumeEnergy(final int amount) {
+                return true;
+            }
+        };
+    }
+
+    private static IOInvocation ioInvocation(final InputStream input, final OutputStream output) {
+        return new IOInvocation() {
+            @Override
+            public InputStream getInput() {
+                return input;
+            }
+
+            @Override
+            public OutputStream getOutput() {
+                return output;
+            }
+
+            @Override
+            public boolean consumeEnergy(final int amount) {
+                return true;
             }
         };
     }

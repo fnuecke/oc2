@@ -17,7 +17,7 @@ public record DeviceDocumentation(@Nullable RPC rpc, @Nullable IO io) {
     }
 
     public record RPCMethod(String name, Class<?> returnType, Optional<String> description,
-                            Optional<String> returnValueDescription, List<RPCParameter> parameters) {
+                            Optional<String> returnValueDescription, List<RPCParameter> parameters, int energy) {
     }
 
     public record RPCParameter(Optional<String> name, Class<?> type, Optional<String> description, boolean optional) {
@@ -27,7 +27,7 @@ public record DeviceDocumentation(@Nullable RPC rpc, @Nullable IO io) {
     }
 
     public record IOMethod(int code, String name, Optional<String> description,
-                           Optional<String> argumentsDescription, Optional<String> resultsDescription) {
+                           Optional<String> argumentsDescription, Optional<String> resultsDescription, int energy) {
     }
 
     // --------------------------------------------------------------------- //
@@ -53,7 +53,8 @@ public record DeviceDocumentation(@Nullable RPC rpc, @Nullable IO io) {
             method.getReturnType(),
             text(annotation.description()),
             text(annotation.returnValueDescription()),
-            Arrays.stream(method.getParameters()).map(DeviceDocumentation::rpcParameter).toList());
+            Arrays.stream(method.getParameters()).map(DeviceDocumentation::rpcParameter).toList(),
+            annotation.energy());
     }
 
     private static RPCParameter rpcParameter(final java.lang.reflect.Parameter parameter) {
@@ -81,7 +82,8 @@ public record DeviceDocumentation(@Nullable RPC rpc, @Nullable IO io) {
             text(annotation.name()).orElse(method.getName()),
             text(annotation.description()),
             text(annotation.argumentsDescription()),
-            text(annotation.resultsDescription()));
+            text(annotation.resultsDescription()),
+            annotation.energy());
     }
 
     private static java.util.stream.Stream<Method> methods(final Class<?> type, final Class<? extends Annotation> annotation) {

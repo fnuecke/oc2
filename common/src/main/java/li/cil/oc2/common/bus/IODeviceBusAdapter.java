@@ -5,6 +5,7 @@ package li.cil.oc2.common.bus;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.io.IODevice;
+import li.cil.oc2.api.bus.device.io.IOInvocation;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.common.util.ThrottledLogger;
@@ -21,10 +22,12 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.IntPredicate;
 
 public final class IODeviceBusAdapter implements MemoryMappedDevice, InterruptSource {
     private static final Logger LOGGER = LogManager.getLogger(IODeviceBusAdapter.class);
@@ -105,9 +108,16 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice, InterruptSo
 
     // --------------------------------------------------------------------- //
 
+    private final transient IntPredicate consumeEnergy;
     private final transient IODeviceRegistry registry = new IODeviceRegistry(this::sendEvent);
     @Serialized
     private final IOEventQueue events = new IOEventQueue(registry);
+
+    // --------------------------------------------------------------------- //
+
+    public IODeviceBusAdapter(final IntPredicate consumeEnergy) {
+        this.consumeEnergy = consumeEnergy;
+    }
 
     // --------------------------------------------------------------------- //
 
@@ -164,7 +174,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice, InterruptSo
         } else if (function == null) {
             completionError = ERROR_NO_SUCH_FUNCTION;
         } else {
-            completionError = invoke(function);
+            completionError = invoke(function, consumeEnergy);
         }
 
         completedSequence = request; // release; publishes the results
@@ -346,7 +356,7 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice, InterruptSo
             requestSequence = sequence; // release; publishes the arguments
         } else {
             resultCount = 0;
-            errorCode = invoke(function);
+            errorCode = invoke(function, null);
             resultCursor = 0;
             state = STATE_DONE;
         }
@@ -362,9 +372,9 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice, InterruptSo
         isAbandoned = false;
     }
 
-    private int invoke(final IOMethod function) {
+    private int invoke(final IOMethod function, @Nullable final IntPredicate consumeEnergy) {
         try {
-            function.invoke(new ByteArrayInputStream(arguments, 0, argumentCount), new ResultStream());
+            function.invoke(new Invocation(new ByteArrayInputStream(arguments, 0, argumentCount), new ResultStream(), consumeEnergy));
             return ERROR_NONE;
         } catch (final EOFException | IllegalArgumentException | IllegalStateException e) {
             resultCount = 0;
@@ -391,6 +401,26 @@ public final class IODeviceBusAdapter implements MemoryMappedDevice, InterruptSo
     }
 
     // --------------------------------------------------------------------- //
+
+    private record Invocation(InputStream input, OutputStream output, @Nullable IntPredicate consumeEnergy) implements IOInvocation {
+        @Override
+        public InputStream getInput() {
+            return input;
+        }
+
+        @Override
+        public OutputStream getOutput() {
+            return output;
+        }
+
+        @Override
+        public boolean consumeEnergy(final int amount) {
+            if (consumeEnergy == null) {
+                throw new IllegalStateException("energy can only be consumed in synchronized calls");
+            }
+            return consumeEnergy.test(amount);
+        }
+    }
 
     private final class ResultStream extends OutputStream {
         @Override

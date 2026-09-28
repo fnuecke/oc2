@@ -48,8 +48,8 @@ public final class R5Architecture extends AbstractArchitecture {
         this.board = board;
         this.builtinDevices = new BuiltinDevices(getContext());
         builtinDevices.rtcMinecraft.setGameTimeSource(config.gameTimeProvider());
-        this.hlapiAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort());
-        this.mlapiAdapter = new IODeviceBusAdapter();
+        this.hlapiAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort(), config.consumeEnergy());
+        this.mlapiAdapter = new IODeviceBusAdapter(config.consumeEnergy());
         this.mlapiWindow = new IODeviceBusWindow(mlapiAdapter);
         if (!getContext().getMemoryRangeAllocator().claimMemoryRange(MLAPI_WINDOW_ADDRESS, mlapiWindow)) {
             throw new IllegalStateException("Mid-level API window does not fit the memory map.");

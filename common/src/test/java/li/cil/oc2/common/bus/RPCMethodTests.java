@@ -37,7 +37,7 @@ public final class RPCMethodTests {
         busController = mock(DeviceBusController.class);
         blobDevice = new TestSerialDevice();
         eventDevice = new TestSerialDevice();
-        rpcAdapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice);
+        rpcAdapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
     }
 
     @Test

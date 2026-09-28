@@ -24,11 +24,13 @@ public final class RPCSynchronizedCallTests {
     private RPCDeviceBusAdapter adapter;
     private UUID deviceId;
     private Counter counter;
+    private int energy;
 
     @BeforeEach
     public void setupEach() {
+        energy = Integer.MAX_VALUE;
         serialDevice = new TestSerialDevice();
-        adapter = new RPCDeviceBusAdapter(serialDevice, new TestSerialDevice(), new TestSerialDevice());
+        adapter = new RPCDeviceBusAdapter(serialDevice, new TestSerialDevice(), new TestSerialDevice(), this::consumeEnergy);
 
         counter = new Counter();
         final RPCDevice device = new ObjectDevice(counter, "counter");
@@ -100,7 +102,45 @@ public final class RPCSynchronizedCallTests {
         assertEquals("result", reply().get("type").getAsString());
     }
 
+    @Test
+    public void pricedCallDrainsEnergyOnTick() {
+        energy = 5;
+        serialDevice.putAsVM(invocation("bumpPriced"));
+        adapter.step(0);
+        assertEquals(5, energy, "energy was drained off the server thread");
+
+        adapter.tick();
+        assertEquals(3, energy);
+        assertEquals(1, counter.bumps);
+
+        adapter.step(0);
+        assertEquals("result", reply().get("type").getAsString());
+    }
+
+    @Test
+    public void pricedCallFailsWithoutEnergy() {
+        energy = 1;
+        serialDevice.putAsVM(invocation("bumpPriced"));
+        adapter.step(0);
+        adapter.tick();
+        assertEquals(1, energy);
+        assertEquals(0, counter.bumps);
+
+        adapter.step(0);
+        final JsonObject reply = reply();
+        assertEquals("error", reply.get("type").getAsString());
+        assertEquals("not enough energy", reply.get("data").getAsString());
+    }
+
     // --------------------------------------------------------------------- //
+
+    private boolean consumeEnergy(final int amount) {
+        if (amount > energy) {
+            return false;
+        }
+        energy -= amount;
+        return true;
+    }
 
     private String invocation(final String method) {
         return "{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
@@ -123,6 +163,11 @@ public final class RPCSynchronizedCallTests {
 
         @Callback(synchronize = false)
         public int bumpNow() {
+            return ++bumps;
+        }
+
+        @Callback(energy = 2)
+        public int bumpPriced() {
             return ++bumps;
         }
     }

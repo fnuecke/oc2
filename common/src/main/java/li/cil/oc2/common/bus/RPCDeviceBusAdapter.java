@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.IntPredicate;
 
 public final class RPCDeviceBusAdapter implements Steppable {
     private static final Logger LOGGER = LogManager.getLogger(RPCDeviceBusAdapter.class);
@@ -49,6 +50,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     private final Gson gson;
     private final Gson eventGson;
+    private final IntPredicate consumeEnergy;
 
     @Serialized
     private final RPCDeviceRegistry registry = new RPCDeviceRegistry(this::sendEvent);
@@ -67,11 +69,12 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     // --------------------------------------------------------------------- //
 
-    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final SerialDevice blobDevice, final SerialDevice eventDevice) {
-        this(serialDevice, blobDevice, eventDevice, DEFAULT_MAX_MESSAGE_SIZE);
+    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final SerialDevice blobDevice, final SerialDevice eventDevice, final IntPredicate consumeEnergy) {
+        this(serialDevice, blobDevice, eventDevice, DEFAULT_MAX_MESSAGE_SIZE, consumeEnergy);
     }
 
-    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final SerialDevice blobDevice, final SerialDevice eventDevice, final int maxMessageSize) {
+    public RPCDeviceBusAdapter(final SerialDevice serialDevice, final SerialDevice blobDevice, final SerialDevice eventDevice, final int maxMessageSize, final IntPredicate consumeEnergy) {
+        this.consumeEnergy = consumeEnergy;
         this.messages = new RPCMessageChannel(serialDevice, maxMessageSize);
         this.payloads = new RPCPayloadChannel(blobDevice);
         this.events = new RPCEventChannel(eventDevice);
@@ -302,7 +305,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
             return;
         }
 
-        final RPCInvocation invocation = new RPCInvocationImpl(methodInvocation.parameters, gson);
+        final RPCInvocation invocation = new RPCInvocationImpl(methodInvocation.parameters, gson, isMainThread ? consumeEnergy : null);
 
         // Yes, we could hashmap this lookup, but the expectation is that we'll generally
         // have relatively few methods per object, so the overhead of hashing would not
@@ -470,7 +473,8 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     // --------------------------------------------------------------------- //
 
-    private record RPCInvocationImpl(JsonArray parameters, Gson gson) implements RPCInvocation {
+    private record RPCInvocationImpl(JsonArray parameters, Gson gson,
+                                     @Nullable IntPredicate consumeEnergy) implements RPCInvocation {
         @Override
         public JsonArray getParameters() {
             return parameters;
@@ -497,6 +501,14 @@ public final class RPCDeviceBusAdapter implements Steppable {
                 }
             }
             return Optional.of(result);
+        }
+
+        @Override
+        public boolean consumeEnergy(final int amount) {
+            if (consumeEnergy == null) {
+                throw new IllegalStateException("energy can only be consumed in synchronized calls");
+            }
+            return consumeEnergy.test(amount);
         }
     }
 }

@@ -4,6 +4,7 @@ package li.cil.oc2.common.entity;
 
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceContext;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
@@ -726,15 +727,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
                         action = null;
 
-                        final RPCBusContext context = robotDevice.context;
-                        if (context != null) {
-                            context.sendEvent(RobotActionCompletedEvent.TYPE,
-                                new RobotActionCompletedEvent(actionId, result));
-                        }
-                        final IOBusContext ioContext = robotDevice.ioContext;
-                        if (ioContext != null) {
-                            ioContext.sendEvent(RobotDevice.ACTION_COMPLETED_EVENT_CODE, actionId & 0xFFFF);
-                        }
+                        robotDevice.contexts.sendEvent(RobotActionCompletedEvent.TYPE, new RobotActionCompletedEvent(actionId, result));
+                        robotDevice.contexts.sendEvent(RobotDevice.ACTION_COMPLETED_EVENT_CODE, actionId & 0xFFFF);
                     }
                 }
                 if (action == null) {
@@ -1026,31 +1020,28 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final RotationDirection[] IO_ROTATIONS = {
             RotationDirection.LEFT, RotationDirection.RIGHT};
 
-        @Nullable
-        private RPCBusContext context;
-        @Nullable
-        private IOBusContext ioContext;
+        private final DeviceContext contexts = new DeviceContext();
 
         // ----------------------------------------------------------------- //
 
         @Override
         public void onDeviceMounted(final RPCBusContext context) {
-            this.context = context;
+            contexts.add(context);
         }
 
         @Override
         public void onDeviceUnmounted(final RPCBusContext context) {
-            this.context = null;
+            contexts.remove(context);
         }
 
         @Override
         public void onIODeviceMounted(final IOBusContext context) {
-            ioContext = context;
+            contexts.add(context);
         }
 
         @Override
         public void onIODeviceUnmounted(final IOBusContext context) {
-            ioContext = null;
+            contexts.remove(context);
         }
 
         // ----------------------------------------------------------------- //

@@ -19,6 +19,7 @@ Drains a fluid source block, or out of a waterlogged block, into a container. No
 - `sourceSide`: the side to take the fluid from.
 - `targetSide`: the side of the container to fill.
 - Returns the amount transferred in millibuckets, `1000` or `0`.
+- Energy cost: `1`
 
 `dropItems(sourceSide:string, sourceSlot:number, targetSide:string, count:number):number`
 Drops items from an inventory into the world. The target side must not be blocked.
@@ -27,12 +28,14 @@ Drops items from an inventory into the world. The target side must not be blocke
 - `targetSide`: the side to drop the items on.
 - `count`: the most items to drop.
 - Returns the number of items transferred.
+- Energy cost: `1`
 
 `fillFluid(sourceSide:string, targetSide:string):number`
 Pours one bucket of fluid from a container into the world. Nothing is transferred if the container holds less than a bucket, or the fluid cannot go there. Water placed in the Nether evaporates and still counts as placed.
 - `sourceSide`: the side of the container to drain.
 - `targetSide`: the side to place the fluid on.
 - Returns the amount transferred in millibuckets, `1000` or `0`.
+- Energy cost: `1`
 
 `getFluidInTank(side:string, tank:number):table`
 Gets what is in the specified tank of the container on the specified side.
@@ -74,6 +77,7 @@ Moves fluid from one container to another. It moves as much as the source yields
 - `targetSide`: the side of the container to fill.
 - `amount`: the most millibuckets to move.
 - Returns the amount transferred in millibuckets.
+- Energy cost: `1`
 
 `moveItems(sourceSide:string, sourceSlot:number, targetSide:string, targetSlot:number, count:number):number`
 Moves items from one inventory to another. It moves as many items as the source slot yields and the target slot accepts, up to `count`.
@@ -83,6 +87,7 @@ Moves items from one inventory to another. It moves as many items as the source 
 - `targetSlot`: the number of the slot to put items into.
 - `count`: the most items to move.
 - Returns the number of items transferred.
+- Energy cost: `1`
 
 `takeItems(sourceSide:string, targetSide:string, targetSlot:number, count:number):number`
 Picks up items lying in the world into an inventory. It takes as many items as the target slot accepts, up to `count`.
@@ -91,6 +96,7 @@ Picks up items lying in the world into an inventory. It takes as many items as t
 - `targetSlot`: the number of the slot to put items into.
 - `count`: the most items to take.
 - Returns the number of items transferred.
+- Energy cost: `1`
 
 ## Mid-level API
 Device name: `TRANSP`
@@ -106,7 +112,7 @@ Reads how many slots the inventory on that side has.
 - Takes one byte, the side.
 - Returns one byte, the slot count, at most 255. A side without an inventory reads as 0.
 
-`2 getSlots`
+`2 getItemSlots`
 Reads a run of slots of the inventory on that side.
 - Takes three bytes, the side, the slot to start at and how many slots to read, from 1 to 64.
 - Returns four bytes per slot: the item as two bytes, the number of items up to 255, and damage.
@@ -130,13 +136,14 @@ Looks an item up by name.
 Moves up to `count` items between two slots.
 - Takes five bytes, the side and slot to take from, the side and slot to put into, and how many items to move at most.
 - Returns one byte, how many items were moved.
+- Energy cost: `1`
 
 `7 getFluidTankCount`
 Reads how many tanks the container on that side has.
 - Takes one byte, the side.
 - Returns one byte, the tank count, at most 255. A side without a fluid container reads as 0.
 
-`8 getTanks`
+`8 getFluidTanks`
 Reads a run of tanks of the container on that side.
 - Takes three bytes, the side, the tank to start at and how many tanks to read, from 1 to 42.
 - Returns six bytes per tank: the fluid as two bytes and the amount as four bytes.
@@ -160,23 +167,28 @@ Looks a fluid up by name.
 Moves up to `amount` millibuckets between two containers.
 - Takes six bytes, the side to drain, the side to fill, and four bytes for how much to move at most.
 - Returns four bytes, how much was moved.
+- Energy cost: `1`
 
 `13 dropItems`
 Drops up to `count` items from a slot into the world.
 - Takes four bytes, the side and slot to take from, the side to drop on, and how many items to drop at most.
 - Returns one byte, how many items were dropped.
+- Energy cost: `1`
 
 `14 takeItems`
 Picks up to `count` items from the world into a slot.
 - Takes four bytes, the side to pick up from, the side and slot to put into, and how many items to take at most.
 - Returns one byte, how many items were taken.
+- Energy cost: `1`
 
 `15 fillFluid`
 Places one bucket of fluid from a container into the world.
 - Takes two bytes, the side to drain and the side to place on.
 - Returns four bytes, how much was placed, 1000 or 0.
+- Energy cost: `1`
 
 `16 drainFluid`
 Takes a fluid block from the world into a container.
 - Takes two bytes, the side to take from and the side to fill.
 - Returns four bytes, how much was taken, 1000 or 0.
+- Energy cost: `1`

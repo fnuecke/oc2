@@ -51,7 +51,7 @@ public final class RPCEventChannelTests {
         when(busController.getDevices()).thenReturn(devices);
         when(busController.getDeviceIdentifiers(any()))
             .then(invocation -> identifiers.get(invocation.getArgument(0)));
-        return new RPCDeviceBusAdapter(serialDevice, blobDevice, events);
+        return new RPCDeviceBusAdapter(serialDevice, blobDevice, events, amount -> true);
     }
 
     // --------------------------------------------------------------------- //

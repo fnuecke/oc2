@@ -4,9 +4,6 @@ package li.cil.oc2.api.bus.device.io;
 
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-
 /**
  * Represents a single method than can be exposed by an {@link IODevice}.
  * <p>
@@ -42,17 +39,16 @@ public interface IOMethod {
      * perform internal error handling to prevent state corruption and only throw
      * exceptions to communicate that an error happened during the invocation.
      * <p>
-     * Reading past the end of {@code arguments} yields {@code -1}, as usual; implementations are
+     * Reading past the end of the input yields {@code -1}, as usual; implementations are
      * responsible for validating that they got the arguments they need. Throwing
      * {@link java.io.EOFException}, {@link IllegalArgumentException} or {@link IllegalStateException}
      * tells the guest it called the method wrong; anything else is reported as an internal error.
      * The readers on {@link IOInputStream} throw {@link java.io.EOFException} for you.
      *
-     * @param arguments the bytes the guest wrote for this call.
-     * @param results   the bytes to hand back to the guest.
+     * @param invocation the invocation information.
      * @throws Throwable if the parameters did not match or something inside the
      *                   method caused an exception. The caller is responsible for
      *                   catching these and passing them on appropriately.
      */
-    void invoke(InputStream arguments, OutputStream results) throws Throwable;
+    void invoke(IOInvocation invocation) throws Throwable;
 }

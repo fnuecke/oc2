@@ -16,7 +16,7 @@ public final class VMRunnerTests {
     public void setupEach() {
         architecture = new R5Architecture(new AbstractArchitecture.Config(
             unused -> DeviceLocation.UNSPECIFIED, () -> {
-        }, () -> 0L));
+        }, () -> 0L, amount -> true));
     }
 
     @Test

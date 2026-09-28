@@ -44,6 +44,17 @@ public @interface Callback {
     boolean synchronize() default true;
 
     /**
+     * The energy drained from the calling computer before each invocation.
+     * <p>
+     * When the computer does not have enough energy stored, the method is not invoked
+     * and the call fails. Energy is not refunded if the method fails. Requires {@link #synchronize()}.
+     *
+     * @return the energy cost of a call.
+     * @see li.cil.oc2.api.bus.device.rpc.RPCInvocation#consumeEnergy(int)
+     */
+    int energy() default 0;
+
+    /**
      * Explicitly defines the name of this method. If left blank the name of the
      * annotated method will be used.
      *

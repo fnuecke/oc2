@@ -97,7 +97,7 @@ public final class ArchitectureDisposeTests {
 
     private AbstractArchitecture.Config config() {
         return new AbstractArchitecture.Config(unused -> DeviceLocation.UNSPECIFIED, () -> {
-        }, () -> 0L);
+        }, () -> 0L, amount -> true);
     }
 
     private void setDevices(final Device... devices) {

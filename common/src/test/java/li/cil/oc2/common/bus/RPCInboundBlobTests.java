@@ -39,7 +39,7 @@ public final class RPCInboundBlobTests {
         serialDevice = new TestSerialDevice();
         blobDevice = new TestSerialDevice();
         eventDevice = new TestSerialDevice();
-        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice);
+        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
 
         sink = new BlobSink();
         final RPCDevice device = new ObjectDevice(sink, "blobs");
@@ -244,7 +244,7 @@ public final class RPCInboundBlobTests {
 
         serialDevice = new TestSerialDevice();
         blobDevice = new TestSerialDevice(Integer.MAX_VALUE, 64);
-        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice);
+        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
         adapter.rebuild(busController);
 
         int offered = 0;

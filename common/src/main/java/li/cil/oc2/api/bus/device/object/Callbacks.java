@@ -2,10 +2,7 @@
 
 package li.cil.oc2.api.bus.device.object;
 
-import li.cil.oc2.api.bus.device.rpc.AbstractRPCMethod;
-import li.cil.oc2.api.bus.device.rpc.RPCMethod;
-import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
-import li.cil.oc2.api.bus.device.rpc.RPCParameter;
+import li.cil.oc2.api.bus.device.rpc.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -31,6 +28,8 @@ import static java.util.Objects.requireNonNull;
  */
 public final class Callbacks {
     private static final Logger LOGGER = LogManager.getLogger(Callbacks.class);
+
+    static final String ERROR_NOT_ENOUGH_ENERGY = "not enough energy";
 
     // --------------------------------------------------------------------- //
 
@@ -59,6 +58,7 @@ public final class Callbacks {
      *
      * @param methodContainer an instance of a class with annotated methods.
      * @return the list of methods extracted from the specified object.
+     * @throws IllegalArgumentException if an annotated method has an invalid energy cost.
      */
     public static List<RPCMethodGroup> collectMethods(final Object methodContainer) {
         final List<Method> reflectedMethods = getMethods(methodContainer.getClass());
@@ -116,6 +116,15 @@ public final class Callbacks {
 
     // --------------------------------------------------------------------- //
 
+    static void validateEnergy(final Method method, final int energy, final boolean synchronize) {
+        if (energy < 0) {
+            throw new IllegalArgumentException("Energy cost [" + energy + "] on [" + method + "] is negative.");
+        }
+        if (energy > 0 && !synchronize) {
+            throw new IllegalArgumentException("Energy cost on [" + method + "] requires the method to be synchronized.");
+        }
+    }
+
     private static String toNiceTypeName(final Class<?> deviceClass) {
         final String name = deviceClass.getSimpleName()
             .replaceFirst("VMDevice$", "")
@@ -136,6 +145,7 @@ public final class Callbacks {
 
     private static final class ObjectRPCMethod extends AbstractRPCMethod {
         private final MethodHandle handle;
+        private final int energy;
         private final String description;
         private final String returnValueDescription;
 
@@ -147,8 +157,18 @@ public final class Callbacks {
             super(data.methodName, data.annotation.synchronize(), data.method.getReturnType(), data.parameters);
 
             this.handle = MethodHandles.lookup().unreflect(data.method).bindTo(data.target);
+            this.energy = data.annotation.energy();
             this.description = data.description;
             this.returnValueDescription = data.returnValueDescription;
+        }
+
+        @Nullable
+        @Override
+        public Object invoke(final RPCInvocation invocation) throws Throwable {
+            if (energy > 0 && !invocation.consumeEnergy(energy)) {
+                throw new IllegalStateException(ERROR_NOT_ENOUGH_ENERGY);
+            }
+            return super.invoke(invocation);
         }
 
         @Nullable
@@ -201,6 +221,7 @@ public final class Callbacks {
                 this.target = target;
                 this.method = method;
                 this.annotation = requireNonNull(method.getAnnotation(Callback.class), "Method without Callback annotation.");
+                validateEnergy(method, annotation.energy(), annotation.synchronize());
                 this.methodName = Strings.isNotBlank(annotation.name()) ? annotation.name() : method.getName();
                 this.description = Strings.isNotBlank(annotation.description()) ? annotation.description() : null;
                 this.returnValueDescription = Strings.isNotBlank(annotation.returnValueDescription()) ? annotation.returnValueDescription() : null;

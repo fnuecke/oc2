@@ -41,4 +41,16 @@ public interface RPCInvocation {
      * @return the deserialized parameters, if possible.
      */
     Optional<Object[]> tryDeserializeParameters(RPCParameter... parameterTypes);
+
+    /**
+     * Drains energy from the computer that made this call.
+     * <p>
+     * Only possible in synchronized invocations, see {@link RPCMethod#isSynchronized()}.
+     *
+     * @param amount the amount of energy to drain.
+     * @return whether the energy was successfully drained.
+     * @throws IllegalArgumentException if {@code amount} is negative.
+     * @throws IllegalStateException    if the invocation is not synchronized.
+     */
+    boolean consumeEnergy(int amount);
 }

@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
+import li.cil.oc2.common.bus.TestIOInvocation;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.sedna.api.Sizes;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,8 +18,6 @@ import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -323,7 +322,7 @@ public final class ItemHandlerDeviceIOTests {
         when(controller.getDevices()).thenReturn(Set.of(device));
         when(controller.getDeviceIdentifiers(device)).thenReturn(Set.of(UUID.randomUUID()));
 
-        final IODeviceBusAdapter adapter = new IODeviceBusAdapter();
+        final IODeviceBusAdapter adapter = new IODeviceBusAdapter(amount -> true);
         adapter.rebuild(controller);
         return adapter;
     }
@@ -346,9 +345,9 @@ public final class ItemHandlerDeviceIOTests {
             .findFirst()
             .orElseThrow(() -> new AssertionError("no function with code " + code));
 
-        final ByteArrayOutputStream results = new ByteArrayOutputStream();
-        method.invoke(new ByteArrayInputStream(arguments), results);
-        return results.toByteArray();
+        final TestIOInvocation invocation = new TestIOInvocation(arguments);
+        method.invoke(invocation);
+        return invocation.results.toByteArray();
     }
 
     // --------------------------------------------------------------------- //

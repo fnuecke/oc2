@@ -39,7 +39,7 @@ public final class RPCBlobChannelTests {
         serialDevice = rpc;
         blobDevice = blob;
         eventDevice = new TestSerialDevice();
-        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice);
+        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
 
         final RPCDevice device = new ObjectDevice(new BlobSource(), "blobs");
         deviceId = UUID.randomUUID();

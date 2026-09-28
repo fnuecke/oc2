@@ -35,7 +35,7 @@ public final class RPCBusGenerationTests {
         serialDevice = new TestSerialDevice();
         blobDevice = new TestSerialDevice();
         eventDevice = new TestSerialDevice();
-        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice);
+        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
         devices = new HashSet<>();
         identifiers = new HashMap<>();
         busController = mock(DeviceBusController.class);
@@ -166,7 +166,7 @@ public final class RPCBusGenerationTests {
 
         final TestSerialDevice restoredSerial = new TestSerialDevice();
         final RPCDeviceBusAdapter restored = new RPCDeviceBusAdapter(
-            restoredSerial, new TestSerialDevice(), new TestSerialDevice());
+            restoredSerial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
         BinarySerialization.deserialize(data, restored);
 
         restoredSerial.putAsVM("{\"type\":\"list\"}");

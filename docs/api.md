@@ -39,6 +39,14 @@ just introduce a deadlock.
 To have methods called asynchronously, either declare them as non-synchronized in your `RPCMethod`/`IOMethod`, or when
 using the annotations, by using `@Callback(synchronize = false)`/`IOCallback(synchronize = false)`.
 
+### Energy
+
+Synchronized methods may drain energy from the calling computer, via `consumeEnergy(amount)` on the `RPCInvocation` or
+`IOInvocation`. If the computer does not store enough it returns `false` without draining anything. With the
+annotations, `@Callback(energy = n)`/`@IOCallback(energy = n)`, each call drains `n` before the actual invocation, and
+fails if there's not enough energy. The energy is not refunded when the method itself fails (e.g. raises an exception
+due to bad arguments). Calling `consumeEnergy` from a non-synchronized method throws an `IllegalStateException`.
+
 ### The `ObjectDevice`
 
 It is perfectly fine to implement these interfaces manually. There is a more convenient way, however, when adding a
@@ -126,7 +134,8 @@ RISC-V and Z80 computers alike. For an `ObjectDevice`, implement `onIODeviceMoun
 
 The `RPCBusContext` is the device's handle on the computer it was mounted in. A device reachable from several computers,
 such as a block entity with computers on two sides, is mounted once per computer and receives a distinct context for
-each. Thus, a device may receive more than one context; keep them in a `Set`, and remove entries passed by `unmount()`.
+each. Thus, a device may receive more than one context. Consider using an [DeviceContext] instance to track them and use
+the `sendEvent` method on it to send events to all computers.
 
 This can be useful for various things. For example:
 
@@ -275,6 +284,7 @@ the memory tracker. In most cases, `VMDevices` will add a `MemoryMappedDevice` t
 [card provider]: ../examples/card-neoforge/src/main/java/com/example/card/DiceCardDeviceProvider.java
 [card slot tag]: ../examples/card-neoforge/src/main/resources/data/oc2/tags/item/devices/card.json
 [DeviceTypes]: ../common/src/main/java/li/cil/oc2/api/bus/device/DeviceTypes.java
+[DeviceContext]: ../common/src/main/java/li/cil/oc2/api/bus/device/DeviceContext.java
 [VMDevice]: ../common/src/main/java/li/cil/oc2/api/bus/device/vm/VMDevice.java
 [VMContext]: ../common/src/main/java/li/cil/oc2/api/bus/device/vm/context/VMContext.java
 [examples]: ../examples

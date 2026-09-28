@@ -60,6 +60,7 @@ public final class IODeviceBusAdapterTests {
     private static final int FUNCTION_SYNCHRONIZED = 2;
     private static final int FUNCTION_THROWS_ILLEGAL_ARGUMENT = 3;
     private static final int FUNCTION_THROWS_INTERNAL = 4;
+    private static final int FUNCTION_PRICED = 5;
 
     private static final UUID DEVICE_UUID = UUID.fromString("00000000-0000-0000-0000-00000000000a");
     private static final UUID LOWER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -69,10 +70,12 @@ public final class IODeviceBusAdapterTests {
     private DeviceBusController controller;
     private TestTarget target;
     private ObjectDevice subject;
+    private int energy;
 
     @BeforeEach
     public void setupEach() {
-        adapter = new IODeviceBusAdapter();
+        energy = Integer.MAX_VALUE;
+        adapter = new IODeviceBusAdapter(this::consumeEnergy);
         interrupts = new TestInterruptController();
         adapter.getInterrupt().set(INTERRUPT, interrupts);
         controller = mock(DeviceBusController.class);
@@ -143,6 +146,36 @@ public final class IODeviceBusAdapterTests {
 
         assertEquals(STATUS_DATA_AVAILABLE, read(REG_STATUS));
         assertEquals(0x5A, read(REG_DATA));
+    }
+
+    @Test
+    public void pricedCallDrainsEnergyOnTick() {
+        energy = 5;
+        write(REG_SELECT, 0);
+        write(REG_FUNCTION, FUNCTION_PRICED);
+        write(REG_STATUS, CONTROL_EXECUTE);
+        assertEquals(5, energy, "energy was drained off the server thread");
+
+        adapter.tick();
+
+        assertEquals(3, energy);
+        assertEquals(1, target.pricedCalls);
+        assertEquals(STATUS_DATA_AVAILABLE, read(REG_STATUS));
+    }
+
+    @Test
+    public void pricedCallFailsWithoutEnergy() {
+        energy = 1;
+        write(REG_SELECT, 0);
+        write(REG_FUNCTION, FUNCTION_PRICED);
+        write(REG_STATUS, CONTROL_EXECUTE);
+
+        adapter.tick();
+
+        assertEquals(1, energy);
+        assertEquals(0, target.pricedCalls);
+        assertEquals(STATUS_ERROR, read(REG_STATUS));
+        assertEquals(ERROR_INVALID_ARGUMENTS, read(REG_DATA));
     }
 
     @Test
@@ -337,7 +370,7 @@ public final class IODeviceBusAdapterTests {
 
         final CompoundTag tag = assertDoesNotThrow(() -> NBTSerialization.serialize(adapter));
 
-        final IODeviceBusAdapter restored = new IODeviceBusAdapter();
+        final IODeviceBusAdapter restored = new IODeviceBusAdapter(amount -> true);
         assertDoesNotThrow(() -> NBTSerialization.deserialize(tag, restored));
         restored.rebuild(controller);
 
@@ -545,7 +578,7 @@ public final class IODeviceBusAdapterTests {
 
         final CompoundTag tag = assertDoesNotThrow(() -> NBTSerialization.serialize(adapter));
 
-        final IODeviceBusAdapter restored = new IODeviceBusAdapter();
+        final IODeviceBusAdapter restored = new IODeviceBusAdapter(amount -> true);
         assertDoesNotThrow(() -> NBTSerialization.deserialize(tag, restored));
         restored.rebuild(controller);
 
@@ -563,6 +596,14 @@ public final class IODeviceBusAdapterTests {
     }
 
     // --------------------------------------------------------------------- //
+
+    private boolean consumeEnergy(final int amount) {
+        if (amount > energy) {
+            return false;
+        }
+        energy -= amount;
+        return true;
+    }
 
     private void setDevices(final Device... devices) {
         when(controller.getDevices()).thenReturn(Set.of(devices));
@@ -596,6 +637,7 @@ public final class IODeviceBusAdapterTests {
     @IODeviceDescription(name = "TEST")
     public static final class TestTarget implements LifecycleAwareDevice {
         public int synchronizedCalls;
+        public int pricedCalls;
         public IOBusContext context;
 
         @Override
@@ -627,6 +669,12 @@ public final class IODeviceBusAdapterTests {
         @IOCallback(value = FUNCTION_THROWS_INTERNAL, synchronize = false)
         public void failsInternally() {
             throw new UnsupportedOperationException("boom");
+        }
+
+        @IOCallback(value = FUNCTION_PRICED, energy = 2)
+        public void priced(final OutputStream results) throws Exception {
+            pricedCalls++;
+            results.write(1);
         }
     }
 

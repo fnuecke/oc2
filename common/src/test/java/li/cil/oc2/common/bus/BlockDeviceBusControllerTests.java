@@ -239,7 +239,7 @@ public class BlockDeviceBusControllerTests {
         fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
         busController.scheduleBusScan();
 
-        final RPCDeviceBusAdapter rpcDeviceBusAdapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class));
+        final RPCDeviceBusAdapter rpcDeviceBusAdapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class), amount -> true);
         busController.onAfterDeviceScan.add(() -> rpcDeviceBusAdapter.rebuild(busController));
 
         busController.scan();

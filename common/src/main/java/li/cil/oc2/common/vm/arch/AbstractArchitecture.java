@@ -21,6 +21,7 @@ import li.cil.sedna.api.memory.MemoryAccessException;
 import javax.annotation.Nullable;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.function.IntPredicate;
 import java.util.function.LongSupplier;
 
 public abstract class AbstractArchitecture {
@@ -32,7 +33,8 @@ public abstract class AbstractArchitecture {
     public record Config(
         DeviceLocationProvider deviceLocationProvider,
         VMRuntime runtime,
-        LongSupplier gameTimeProvider) {
+        LongSupplier gameTimeProvider,
+        IntPredicate consumeEnergy) {
     }
 
     // --------------------------------------------------------------------- //

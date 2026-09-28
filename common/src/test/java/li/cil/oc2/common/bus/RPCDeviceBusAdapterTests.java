@@ -31,7 +31,7 @@ public final class RPCDeviceBusAdapterTests {
 
     @BeforeEach
     public void setupEach() {
-        adapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class));
+        adapter = new RPCDeviceBusAdapter(mock(SerialDevice.class), mock(SerialDevice.class), mock(SerialDevice.class), amount -> true);
         busDevices = new HashSet<>();
         deviceIdentifiers = new HashMap<>();
         controller = mock(DeviceBusController.class);
@@ -43,7 +43,7 @@ public final class RPCDeviceBusAdapterTests {
     public void unattributableReplyEchoesNoRequestId() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-            serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
         addDevice();
         busAdapter.rebuild(controller);
 
@@ -64,7 +64,7 @@ public final class RPCDeviceBusAdapterTests {
     public void guestThatSendsNoIdIsStillAnswered() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-            serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
         addDevice();
         busAdapter.rebuild(controller);
 
@@ -80,7 +80,7 @@ public final class RPCDeviceBusAdapterTests {
     public void idThatIsNotANumberIsRefused() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-            serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
         addDevice();
         busAdapter.rebuild(controller);
 
@@ -96,7 +96,7 @@ public final class RPCDeviceBusAdapterTests {
     public void oversizedMessageIsRefusedAndTheChannelRecovers() {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-            serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
         addDevice();
         busAdapter.rebuild(controller);
 
@@ -127,7 +127,7 @@ public final class RPCDeviceBusAdapterTests {
 
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
-            serial, new TestSerialDevice(), new TestSerialDevice());
+            serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
         addDevice(new ObjectDevice(new Pingable(), "pingable"), second, first);
         busAdapter.rebuild(controller);
 

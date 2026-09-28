@@ -3,6 +3,7 @@
 package li.cil.oc2.api.bus.device.object;
 
 import li.cil.oc2.api.bus.device.io.IOInputStream;
+import li.cil.oc2.api.bus.device.io.IOInvocation;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 
@@ -13,6 +14,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Provides automated extraction of {@link IOMethod}s from instances of
@@ -39,8 +42,8 @@ public final class IOCallbacks {
      *
      * @param methodContainer an instance of a class with annotated methods.
      * @return the list of methods extracted from the specified object.
-     * @throws IllegalArgumentException if an annotated method has an unsupported signature or an
-     *                                  invalid method code, or if two share a method code.
+     * @throws IllegalArgumentException if an annotated method has an unsupported signature, an
+     *                                  invalid method code or energy cost, or if two share a method code.
      */
     public static List<IOMethod> collectMethods(final Object methodContainer) {
         final List<Method> reflectedMethods = getMethods(methodContainer.getClass());
@@ -48,7 +51,8 @@ public final class IOCallbacks {
         final ArrayList<IOMethod> methods = new ArrayList<>(reflectedMethods.size());
         final Set<Integer> codes = new HashSet<>();
         for (final Method method : reflectedMethods) {
-            final IOCallback annotation = method.getAnnotation(IOCallback.class);
+            final IOCallback annotation = requireNonNull(method.getAnnotation(IOCallback.class), "Method without IOCallback annotation.");
+            Callbacks.validateEnergy(method, annotation.energy(), annotation.synchronize());
             final int code = annotation.value();
             if (code < 0 || code > IOCallback.MAX_CODE) {
                 throw new IllegalArgumentException("Function code [" + code + "] on [" + method +
@@ -58,7 +62,7 @@ public final class IOCallbacks {
                 throw new IllegalArgumentException("Duplicate method code [" + code + "] on [" + method + "].");
             }
 
-            methods.add(new ObjectIOMethod(methodContainer, method, code, annotation.synchronize()));
+            methods.add(new ObjectIOMethod(methodContainer, method, code, annotation.synchronize(), annotation.energy()));
         }
 
         return methods;
@@ -180,11 +184,13 @@ public final class IOCallbacks {
         private final Signature signature;
         private final int code;
         private final boolean isSynchronized;
+        private final int energy;
 
-        ObjectIOMethod(final Object target, final Method method, final int code, final boolean isSynchronized) {
+        ObjectIOMethod(final Object target, final Method method, final int code, final boolean isSynchronized, final int energy) {
             this.signature = Signature.of(method);
             this.code = code;
             this.isSynchronized = isSynchronized;
+            this.energy = energy;
             try {
                 this.handle = MethodHandles.lookup().unreflect(method).bindTo(target);
             } catch (final IllegalAccessException e) {
@@ -203,12 +209,16 @@ public final class IOCallbacks {
         }
 
         @Override
-        public void invoke(final InputStream arguments, final OutputStream results) throws Throwable {
+        public void invoke(final IOInvocation invocation) throws Throwable {
+            if (energy > 0 && !invocation.consumeEnergy(energy)) {
+                throw new IllegalStateException(Callbacks.ERROR_NOT_ENOUGH_ENERGY);
+            }
+
             switch (signature) {
                 case NONE -> handle.invoke();
-                case ARGUMENTS -> handle.invoke(wrap(arguments));
-                case RESULTS -> handle.invoke(wrap(results));
-                case ARGUMENTS_AND_RESULTS -> handle.invoke(wrap(arguments), wrap(results));
+                case ARGUMENTS -> handle.invoke(wrap(invocation.getInput()));
+                case RESULTS -> handle.invoke(wrap(invocation.getOutput()));
+                case ARGUMENTS_AND_RESULTS -> handle.invoke(wrap(invocation.getInput()), wrap(invocation.getOutput()));
             }
         }
 

@@ -335,7 +335,8 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         final var config = new AbstractArchitecture.Config(
             device -> deviceLocationProvider.getDeviceLocation(device),
             this::joinWorkerThread,
-            () -> gameTimeSource.getAsLong());
+            () -> gameTimeSource.getAsLong(),
+            this::consumeInvocationEnergy);
         architecture = switch (type) {
             case RISCV -> new R5Architecture(config);
             case Z80 -> new Z80Architecture(config);
@@ -467,6 +468,13 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         }
 
         runner.tick();
+    }
+
+    private boolean consumeInvocationEnergy(final int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Energy amount [" + amount + "] is negative.");
+        }
+        return consumeEnergy(amount, false);
     }
 
     private void setBusState(final CommonDeviceBusController.BusState value) {

@@ -7,6 +7,7 @@ import li.cil.oc2.common.doc.DeviceDocumentation.IOMethod;
 import li.cil.oc2.common.doc.DeviceDocumentation.RPCMethod;
 import li.cil.oc2.common.doc.DeviceDocumentation.RPCParameter;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -147,12 +148,20 @@ public final class DevicePage {
             parameter.description().ifPresent(description -> lines.add("- `" + name + "`: " + description));
         }
         method.returnValueDescription().ifPresent(description -> lines.add("- Returns " + description));
+        addEnergy(lines, method.energy());
     }
 
     private static void addMethod(final List<String> lines, final IOMethod method) {
         addSignature(lines, "`" + method.code() + " " + method.name() + "`", method.description());
         method.argumentsDescription().ifPresent(description -> lines.add("- Takes " + description));
         method.resultsDescription().ifPresent(description -> lines.add("- Returns " + description));
+        addEnergy(lines, method.energy());
+    }
+
+    private static void addEnergy(final List<String> lines, final int energy) {
+        if (energy > 0) {
+            lines.add("- Energy cost: `" + energy + "`");
+        }
     }
 
     private static void addSignature(final List<String> lines, final String signature, final Optional<String> description) {
@@ -168,6 +177,7 @@ public final class DevicePage {
         return parameter.name().orElse("arg" + index);
     }
 
+    @Nullable
     private static String luaType(final Class<?> type) {
         if (type == void.class || type == Void.class) {
             return null;

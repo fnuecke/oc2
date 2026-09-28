@@ -49,7 +49,7 @@ public final class Z80Architecture extends AbstractArchitecture {
         super(board, board.getCpu(), config, board.getPortBus());
         this.board = board;
         this.uart = new UART16550A();
-        this.mlapiAdapter = new IODeviceBusAdapter();
+        this.mlapiAdapter = new IODeviceBusAdapter(config.consumeEnergy());
 
         if (!getContext().getInterruptAllocator().claimInterrupt(MLAPI_INTERRUPT)) {
             throw new IllegalStateException("Mid-level API interrupt is already claimed.");

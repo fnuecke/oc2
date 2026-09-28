@@ -12,8 +12,6 @@ import li.cil.oc2.api.util.Side;
 import net.minecraft.core.Direction;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -76,6 +74,30 @@ public final class IOCallbacksTests {
     }
 
     @Test
+    public void energyIsConsumedBeforeInvocation() throws Throwable {
+        final Priced target = new Priced();
+        final TestIOInvocation invocation = new TestIOInvocation(new byte[0], 5);
+        function(target, 1).invoke(invocation);
+        assertEquals(1, target.calls);
+        assertEquals(2, invocation.energy);
+    }
+
+    @Test
+    public void insufficientEnergySkipsInvocation() {
+        final Priced target = new Priced();
+        final TestIOInvocation invocation = new TestIOInvocation(new byte[0], 2);
+        assertThrows(IllegalStateException.class, () -> function(target, 1).invoke(invocation));
+        assertEquals(0, target.calls);
+        assertEquals(2, invocation.energy);
+    }
+
+    @Test
+    public void invalidEnergyCostThrows() {
+        assertThrows(IllegalArgumentException.class, () -> IOCallbacks.collectMethods(new NegativeEnergy()));
+        assertThrows(IllegalArgumentException.class, () -> IOCallbacks.collectMethods(new UnsynchronizedEnergy()));
+    }
+
+    @Test
     public void missingNameThrows() {
         assertThrows(IllegalArgumentException.class, () -> IOCallbacks.getName(new Unnamed()));
     }
@@ -129,9 +151,9 @@ public final class IOCallbacksTests {
     }
 
     private static byte[] invoke(final IOMethod function, final byte[] arguments) throws Throwable {
-        final ByteArrayOutputStream results = new ByteArrayOutputStream();
-        function.invoke(new ByteArrayInputStream(arguments), results);
-        return results.toByteArray();
+        final TestIOInvocation invocation = new TestIOInvocation(arguments);
+        function.invoke(invocation);
+        return invocation.results.toByteArray();
     }
 
     // --------------------------------------------------------------------- //
@@ -179,6 +201,30 @@ public final class IOCallbacksTests {
         @IOCallback(value = 4, synchronize = false)
         public void bothStreams(final InputStream arguments, final OutputStream results) throws Exception {
             results.write(arguments.read());
+        }
+    }
+
+    @IODeviceDescription(name = "COST")
+    public static final class Priced {
+        public int calls;
+
+        @IOCallback(value = 1, energy = 3)
+        public void priced() {
+            calls++;
+        }
+    }
+
+    @IODeviceDescription(name = "NEG")
+    public static final class NegativeEnergy {
+        @IOCallback(value = 1, energy = -1)
+        public void priced() {
+        }
+    }
+
+    @IODeviceDescription(name = "ASYNC")
+    public static final class UnsynchronizedEnergy {
+        @IOCallback(value = 1, synchronize = false, energy = 1)
+        public void priced() {
         }
     }
 

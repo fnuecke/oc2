@@ -31,6 +31,8 @@ import net.minecraft.world.phys.AABB;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
+import static java.util.Objects.requireNonNull;
+
 @RPCDeviceDescription(typeNames = {"transposer"}, description = """
     Provided by the [transposer](../block/transposer.md) block.
 
@@ -106,7 +108,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         return handler.getSlotLimit(ItemHandlerProtocol.requireValidSlot(handler, slot));
     }
 
-    @Callback(description = "Moves items from one inventory to another. It moves as many items as the source slot yields and the target slot accepts, up to `count`.",
+    @Callback(energy = 1, description = "Moves items from one inventory to another. It moves as many items as the source slot yields and the target slot accepts, up to `count`.",
         returnValueDescription = ITEMS_TRANSFERRED)
     public int moveItems(@Parameter(value = "sourceSide", description = SIDE_TO_TAKE_ITEMS_FROM) @Nullable final Side sourceSide,
                          @Parameter(value = "sourceSlot", description = SLOT_TO_TAKE_ITEMS_FROM) final int sourceSlot,
@@ -166,7 +168,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         return handler.getTankCapacity(FluidHandlerProtocol.requireValidTank(handler, tank));
     }
 
-    @Callback(description = "Moves fluid from one container to another. It moves as much as the source yields and the target accepts, up to `amount`. A bucket is 1000.",
+    @Callback(energy = 1, description = "Moves fluid from one container to another. It moves as much as the source yields and the target accepts, up to `amount`. A bucket is 1000.",
         returnValueDescription = "the amount transferred in millibuckets.")
     public int moveFluid(@Parameter(value = "sourceSide", description = SIDE_TO_DRAIN) @Nullable final Side sourceSide,
                          @Parameter(value = "targetSide", description = SIDE_TO_FILL) @Nullable final Side targetSide,
@@ -203,7 +205,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         return filled;
     }
 
-    @Callback(description = "Drops items from an inventory into the world. The target side must not be blocked.",
+    @Callback(energy = 1, description = "Drops items from an inventory into the world. The target side must not be blocked.",
         returnValueDescription = ITEMS_TRANSFERRED)
     public int dropItems(@Parameter(value = "sourceSide", description = SIDE_TO_TAKE_ITEMS_FROM) @Nullable final Side sourceSide,
                          @Parameter(value = "sourceSlot", description = SLOT_TO_TAKE_ITEMS_FROM) final int sourceSlot,
@@ -212,7 +214,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         final ItemHandler source = requireItemHandler(sourceSide);
         final BlockPos targetPos = requireWorldAccess(requireDirection(targetSide));
         ItemHandlerProtocol.requireValidSlot(source, sourceSlot);
-        if (!level.getBlockState(targetPos).getCollisionShape(level, targetPos).isEmpty()) {
+        if (!requireNonNull(level).getBlockState(targetPos).getCollisionShape(level, targetPos).isEmpty()) {
             throw new IllegalArgumentException("side is obstructed: " + targetSide);
         }
 
@@ -235,7 +237,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         return stack.getCount();
     }
 
-    @Callback(description = "Picks up items lying in the world into an inventory. It takes as many items as the target slot accepts, up to `count`.",
+    @Callback(energy = 1, description = "Picks up items lying in the world into an inventory. It takes as many items as the target slot accepts, up to `count`.",
         returnValueDescription = ITEMS_TRANSFERRED)
     public int takeItems(@Parameter(value = "sourceSide", description = "the side to pick items up from.") @Nullable final Side sourceSide,
                          @Parameter(value = "targetSide", description = SIDE_TO_PUT_ITEMS_INTO) @Nullable final Side targetSide,
@@ -250,7 +252,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         }
 
         int remaining = count;
-        for (final ItemEntity entity : level.getEntitiesOfClass(ItemEntity.class, new AABB(sourcePos))) {
+        for (final ItemEntity entity : requireNonNull(level).getEntitiesOfClass(ItemEntity.class, new AABB(sourcePos))) {
             if (remaining <= 0) {
                 break;
             }
@@ -273,13 +275,13 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         return count - remaining;
     }
 
-    @Callback(description = "Pours one bucket of fluid from a container into the world. Nothing is transferred if the container holds less than a bucket, or the fluid cannot go there. Water placed in the Nether evaporates and still counts as placed.",
+    @Callback(energy = 1, description = "Pours one bucket of fluid from a container into the world. Nothing is transferred if the container holds less than a bucket, or the fluid cannot go there. Water placed in the Nether evaporates and still counts as placed.",
         returnValueDescription = BUCKET_OR_NOTHING)
     public int fillFluid(@Parameter(value = "sourceSide", description = SIDE_TO_DRAIN) @Nullable final Side sourceSide,
                          @Parameter(value = "targetSide", description = "the side to place the fluid on.") @Nullable final Side targetSide) {
         final FluidHandler source = requireFluidHandler(sourceSide);
         final BlockPos targetPos = requireWorldAccess(requireDirection(targetSide));
-        if (level.getFluidState(targetPos).isSource()) {
+        if (requireNonNull(level).getFluidState(targetPos).isSource()) {
             return 0;
         }
 
@@ -302,14 +304,14 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         return FluidHandler.BUCKET;
     }
 
-    @Callback(description = "Drains a fluid source block, or out of a waterlogged block, into a container. Nothing is transferred if the container cannot hold a full bucket of it.",
+    @Callback(energy = 1, description = "Drains a fluid source block, or out of a waterlogged block, into a container. Nothing is transferred if the container cannot hold a full bucket of it.",
         returnValueDescription = BUCKET_OR_NOTHING)
     public int drainFluid(@Parameter(value = "sourceSide", description = "the side to take the fluid from.") @Nullable final Side sourceSide,
                           @Parameter(value = "targetSide", description = SIDE_TO_FILL) @Nullable final Side targetSide) {
         final BlockPos sourcePos = requireWorldAccess(requireDirection(sourceSide));
         final FluidHandler target = requireFluidHandler(targetSide);
 
-        final BlockState state = level.getBlockState(sourcePos);
+        final BlockState state = requireNonNull(level).getBlockState(sourcePos);
         final FluidState fluidState = state.getFluidState();
         if (!fluidState.isSource() || !(fluidState.getType().getBucket() instanceof BucketItem)
             || !(state.getBlock() instanceof final BucketPickup pickup)) {
@@ -371,7 +373,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         ItemHandlerProtocol.writeItemId(arguments, results);
     }
 
-    @IOCallback(value = MOVE_ITEMS_CODE,
+    @IOCallback(value = MOVE_ITEMS_CODE, energy = 1,
         description = "Moves up to `count` items between two slots.",
         argumentsDescription = "five bytes, the side and slot to take from, the side and slot to put into, and how many items to move at most.",
         resultsDescription = "one byte, how many items were moved.")
@@ -424,7 +426,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         FluidHandlerProtocol.writeFluidId(arguments, results);
     }
 
-    @IOCallback(value = MOVE_FLUID_CODE,
+    @IOCallback(value = MOVE_FLUID_CODE, energy = 1,
         description = "Moves up to `amount` millibuckets between two containers.",
         argumentsDescription = "six bytes, the side to drain, the side to fill, and four bytes for how much to move at most.",
         resultsDescription = "four bytes, how much was moved.")
@@ -435,7 +437,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         results.writeU32(moveFluid(sourceSide, targetSide, amount));
     }
 
-    @IOCallback(value = DROP_ITEMS_CODE,
+    @IOCallback(value = DROP_ITEMS_CODE, energy = 1,
         description = "Drops up to `count` items from a slot into the world.",
         argumentsDescription = "four bytes, the side and slot to take from, the side to drop on, and how many items to drop at most.",
         resultsDescription = "one byte, how many items were dropped.")
@@ -447,7 +449,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         results.writeU8(dropItems(sourceSide, sourceSlot, targetSide, count));
     }
 
-    @IOCallback(value = TAKE_ITEMS_CODE,
+    @IOCallback(value = TAKE_ITEMS_CODE, energy = 1,
         description = "Picks up to `count` items from the world into a slot.",
         argumentsDescription = "four bytes, the side to pick up from, the side and slot to put into, and how many items to take at most.",
         resultsDescription = "one byte, how many items were taken.")
@@ -459,7 +461,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         results.writeU8(takeItems(sourceSide, targetSide, targetSlot, count));
     }
 
-    @IOCallback(value = FILL_FLUID_CODE,
+    @IOCallback(value = FILL_FLUID_CODE, energy = 1,
         description = "Places one bucket of fluid from a container into the world.",
         argumentsDescription = "two bytes, the side to drain and the side to place on.",
         resultsDescription = "four bytes, how much was placed, 1000 or 0.")
@@ -469,7 +471,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         results.writeU32(fillFluid(sourceSide, targetSide));
     }
 
-    @IOCallback(value = DRAIN_FLUID_CODE,
+    @IOCallback(value = DRAIN_FLUID_CODE, energy = 1,
         description = "Takes a fluid block from the world into a container.",
         argumentsDescription = "two bytes, the side to take from and the side to fill.",
         resultsDescription = "four bytes, how much was taken, 1000 or 0.")

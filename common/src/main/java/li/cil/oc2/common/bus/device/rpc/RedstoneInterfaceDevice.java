@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
+import li.cil.oc2.api.bus.device.DeviceContext;
 import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
@@ -20,9 +21,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 @RPCDeviceDescription(typeNames = {"redstone"}, description = """
     Provided by the [redstone interface](../block/redstone_interface.md) block and the [redstone interface card](../item/redstone_interface_card.md).
@@ -79,8 +78,7 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
     private final BlockEntity host;
     private final byte[] output = new byte[Constants.BLOCK_FACE_COUNT];
     private final byte[] input = new byte[Constants.BLOCK_FACE_COUNT];
-    private final Set<RPCBusContext> contexts = new HashSet<>();
-    private final Set<IOBusContext> ioContexts = new HashSet<>();
+    private final DeviceContext contexts = new DeviceContext();
 
     // --------------------------------------------------------------------- //
 
@@ -123,12 +121,12 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
 
     @Override
     public void onIODeviceMounted(final IOBusContext context) {
-        ioContexts.add(context);
+        contexts.add(context);
     }
 
     @Override
     public void onIODeviceUnmounted(final IOBusContext context) {
-        ioContexts.remove(context);
+        contexts.remove(context);
     }
 
     @Callback(synchronize = false,
@@ -231,13 +229,8 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
 
             if (sendEvents) {
                 final String side = Side.byIndex(index).name().toLowerCase(Locale.ROOT);
-                final RedstoneChangedEvent event = new RedstoneChangedEvent(side, value);
-                for (final RPCBusContext context : contexts) {
-                    context.sendEvent(RedstoneChangedEvent.TYPE, event);
-                }
-                for (final IOBusContext context : ioContexts) {
-                    context.sendEvent(REDSTONE_CHANGED_EVENT_CODE, index | (value << 8));
-                }
+                contexts.sendEvent(RedstoneChangedEvent.TYPE, new RedstoneChangedEvent(side, value));
+                contexts.sendEvent(REDSTONE_CHANGED_EVENT_CODE, index | (value << 8));
             }
         }
     }

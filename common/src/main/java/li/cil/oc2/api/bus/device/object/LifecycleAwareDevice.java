@@ -15,8 +15,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  * In particular, this also includes {@link BlockEntity}s and {@link Entity}s providing {@link Callback}s.
  * <p>
  * A target may be mounted more than once at a time, e.g. once per computer it is reachable
- * from, with a distinct {@link RPCBusContext} each time. Keep the contexts in a {@code Set} to
- * send events.
+ * from, with a distinct {@link RPCBusContext} each time. Track them in a
+ * {@link li.cil.oc2.api.bus.device.DeviceContext} to send events.
  */
 public interface LifecycleAwareDevice {
     /**

@@ -27,6 +27,7 @@ Gets the remaining durability of the tool in the currently selected inventory sl
 Tries to break a block in the specified direction using the tool in the currently selected inventory slot. Collected blocks will be inserted starting after the currently selected inventory slot. If a slot is full, the next slot will be used. If the inventory has no space for the dropped block, it will drop into the world.
 - `side`: the relative direction to break a block in. Optional, defaults to `front`. One of `front`, `up` or `down`.
 - Returns whether the operation was successful.
+- Energy cost: `1`
 
 `place([side:string]):boolean`
 Tries to place a block in the specified direction. Blocks will be placed from the currently selected inventory slot. If the slot is empty, no block will be placed.

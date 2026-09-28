@@ -100,12 +100,12 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         cooldown = Mth.clamp(tag.getInt(COOLDOWN_TAG_NAME), MIN_COOLDOWN, MAX_COOLDOWN);
     }
 
-    @Callback(description = EXCAVATE_DESCRIPTION, returnValueDescription = SUCCESS)
+    @Callback(description = EXCAVATE_DESCRIPTION, energy = 1, returnValueDescription = SUCCESS)
     public boolean excavate() {
         return excavate(null);
     }
 
-    @Callback(description = EXCAVATE_DESCRIPTION, returnValueDescription = SUCCESS)
+    @Callback(description = EXCAVATE_DESCRIPTION, energy = 1, returnValueDescription = SUCCESS)
     public boolean excavate(@Parameter(value = "side", description = "the relative direction to break a block in. Optional, defaults to `front`. One of `front`, `up` or `down`.", optional = true) @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;

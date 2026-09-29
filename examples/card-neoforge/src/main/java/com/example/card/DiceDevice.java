@@ -1,10 +1,10 @@
 package com.example.card;
 
-import li.cil.oc2.api.bus.device.io.IOCallback;
-import li.cil.oc2.api.bus.device.io.IODeviceDescription;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.Parameter;
 import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 

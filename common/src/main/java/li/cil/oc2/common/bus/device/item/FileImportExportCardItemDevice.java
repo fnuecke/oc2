@@ -9,7 +9,6 @@ import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ExportedFileMessage;
 import li.cil.oc2.common.network.message.RequestImportedFileMessage;
@@ -39,7 +38,7 @@ import java.util.WeakHashMap;
     Call `requestImportFile()` to prompt every user at the terminal for a file. Poll `beginImportFile()` until it returns the file's name and size; the first file a user picks wins, and the prompts on other clients are canceled. Then call `readImportFile()` until it returns nothing. `reset()` cancels either operation.
 
     Methods fail with an error when called in the wrong order, or when the users canceled.""")
-public final class FileImportExportCardItemDevice extends AbstractItemRPCDevice {
+public final class FileImportExportCardItemDevice extends AbstractItemDevice {
     public static final int MAX_TRANSFERRED_FILE_SIZE = 512 * Constants.KILOBYTE;
     private static final int IMPORT_CHUNK_SIZE = 4 * Constants.KILOBYTE;
 

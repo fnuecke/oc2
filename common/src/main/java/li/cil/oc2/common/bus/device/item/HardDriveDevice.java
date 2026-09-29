@@ -2,8 +2,11 @@
 
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
-import li.cil.oc2.common.util.*;
+import li.cil.oc2.common.bus.device.storage.AbstractBlockStorageItemDevice;
+import li.cil.oc2.common.util.BlockLocation;
+import li.cil.oc2.common.util.ChunkUtils;
+import li.cil.oc2.common.util.SoundEvents;
+import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.world.item.ItemStack;
 
@@ -14,7 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public class HardDriveDevice extends AbstractBlockStorageDevice<ByteBufferBlockDevice, ItemStack> {
+public class HardDriveDevice extends AbstractBlockStorageItemDevice<ByteBufferBlockDevice, ItemStack> {
     private final int size;
     private final Supplier<Optional<BlockLocation>> location;
     private final ThrottledSoundEmitter soundEmitter;

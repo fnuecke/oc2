@@ -7,11 +7,11 @@ import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.provider.item.FloppyItemDeviceProvider;
-import li.cil.oc2.common.bus.device.vm.block.AbstractRemovableMediaDevice;
-import li.cil.oc2.common.bus.device.vm.block.RemovableMediaContainer;
-import li.cil.oc2.common.bus.device.vm.item.FloppyControllerStorage;
-import li.cil.oc2.common.bus.device.vm.item.FloppyMedia;
-import li.cil.oc2.common.bus.device.vm.item.MappedStorage;
+import li.cil.oc2.common.bus.device.storage.AbstractRemovableMediaDevice;
+import li.cil.oc2.common.bus.device.storage.FloppyControllerStorage;
+import li.cil.oc2.common.bus.device.storage.FloppyMedia;
+import li.cil.oc2.common.bus.device.storage.MappedStorage;
+import li.cil.oc2.common.bus.device.storage.RemovableMediaContainer;
 import li.cil.oc2.common.item.FloppyItem;
 import net.minecraft.world.item.ItemStack;
 

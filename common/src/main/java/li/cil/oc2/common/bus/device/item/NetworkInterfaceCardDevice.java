@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.oc2.common.bus.device.vm.item.AbstractNetworkInterfaceDevice;
+import li.cil.oc2.common.bus.device.storage.AbstractNetworkInterfaceDevice;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import net.minecraft.core.Direction;

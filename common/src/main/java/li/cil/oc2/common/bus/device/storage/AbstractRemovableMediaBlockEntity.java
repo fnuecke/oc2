@@ -1,10 +1,9 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.blockentity;
+package li.cil.oc2.common.bus.device.storage;
 
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.vm.block.AbstractRemovableMediaDevice;
-import li.cil.oc2.common.bus.device.vm.block.RemovableMediaContainer;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.TypedItemStackHandler;
 import li.cil.oc2.common.network.Network;
@@ -278,6 +277,7 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
             }
 
             final CompoundTag tag = new CompoundTag();
+
             device.exportToItemStack(tag);
 
             if (tag.isEmpty()) {

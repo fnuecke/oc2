@@ -7,7 +7,6 @@ import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
-import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.util.FakePlayerUtils;
@@ -58,7 +57,7 @@ import java.util.Objects;
     Unbreakable blocks, such as bedrock, and blocks that would take longer than fifteen seconds cannot be broken.""")
 @IODeviceDescription(name = "BLKOPS", description = """
     Sides are numbered: `0` front, `1` up and `2` down.""")
-public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
+public final class BlockOperationsModuleDevice extends AbstractItemDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
     private static final String COOLDOWN_TAG_NAME = "cooldown_ticks";
 

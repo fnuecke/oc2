@@ -3,7 +3,7 @@
 package li.cil.oc2.common.network.message;
 
 import dev.architectury.networking.NetworkManager;
-import li.cil.oc2.common.blockentity.AbstractRemovableMediaBlockEntity;
+import li.cil.oc2.common.bus.device.storage.AbstractRemovableMediaBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;

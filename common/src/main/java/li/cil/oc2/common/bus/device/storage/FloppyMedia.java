@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.vm.item;
+package li.cil.oc2.common.bus.device.storage;
 
 import com.google.common.io.ByteStreams;
 import li.cil.sedna.api.device.BlockDevice;

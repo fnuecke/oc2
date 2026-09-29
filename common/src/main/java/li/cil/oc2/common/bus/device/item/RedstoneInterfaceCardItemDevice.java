@@ -4,8 +4,7 @@ package li.cil.oc2.common.bus.device.item;
 
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.rpc.RedstoneInterfaceDevice;
-import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
+import li.cil.oc2.common.bus.device.RedstoneInterfaceDevice;
 import li.cil.oc2.common.bus.device.util.NeighborChangeListener;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
@@ -17,7 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
 
-public final class RedstoneInterfaceCardItemDevice extends AbstractItemRPCDevice implements CapabilityProvider, NeighborChangeListener {
+public final class RedstoneInterfaceCardItemDevice extends AbstractItemDevice implements CapabilityProvider, NeighborChangeListener {
     private final RedstoneInterfaceDevice redstoneInterface;
     private final RedstoneEmitter[] capabilities;
 

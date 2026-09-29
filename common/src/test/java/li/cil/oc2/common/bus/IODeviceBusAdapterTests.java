@@ -10,7 +10,7 @@ import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.common.bus.device.rpc.RedstoneInterfaceDevice;
+import li.cil.oc2.common.bus.device.RedstoneInterfaceDevice;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.InterruptController;

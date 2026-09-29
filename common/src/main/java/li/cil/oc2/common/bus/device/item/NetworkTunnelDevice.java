@@ -7,7 +7,7 @@ import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.capabilities.NetworkInterface;
-import li.cil.oc2.common.bus.device.vm.item.AbstractNetworkInterfaceDevice;
+import li.cil.oc2.common.bus.device.storage.AbstractNetworkInterfaceDevice;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.item.NetworkTunnelItem;
 import li.cil.oc2.common.util.TickUtils;

@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.vm.block;
+package li.cil.oc2.common.bus.device.storage;
 
-import li.cil.oc2.common.bus.device.vm.item.AbstractBlockStorageDevice;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.sedna.api.device.BlockDevice;

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.rpc.item;
+package li.cil.oc2.common.bus.device.item;
 
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.io.IOBusContext;
@@ -15,17 +15,17 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-public abstract class AbstractItemRPCDevice extends IdentityProxy<ItemStack> implements RPCDevice, IODevice, ItemDevice {
+public abstract class AbstractItemDevice extends IdentityProxy<ItemStack> implements RPCDevice, IODevice, ItemDevice {
     private final ObjectDevice device;
 
     // --------------------------------------------------------------------- //
 
-    protected AbstractItemRPCDevice(final ItemStack identity) {
+    protected AbstractItemDevice(final ItemStack identity) {
         super(identity);
         this.device = new ObjectDevice(this);
     }
 
-    protected AbstractItemRPCDevice(final ItemStack identity, final Object target) {
+    protected AbstractItemDevice(final ItemStack identity, final Object target) {
         super(identity);
         this.device = new ObjectDevice(target);
     }

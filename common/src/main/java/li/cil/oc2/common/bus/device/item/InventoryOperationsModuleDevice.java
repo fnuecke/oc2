@@ -7,7 +7,6 @@ import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
-import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
 import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ItemHandlerUtils;
@@ -36,7 +35,7 @@ import java.util.stream.Stream;
     The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.""")
 @IODeviceDescription(name = "INVOPS", description = """
     Sides are numbered: `0` front, `1` up and `2` down.""")
-public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice {
+public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
     private static final int MOVE_CODE = 1;
     private static final int DROP_CODE = 2;
     private static final int DROP_INTO_CODE = 3;

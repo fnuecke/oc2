@@ -7,9 +7,10 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
+import li.cil.oc2.common.bus.device.ItemHandlerDevice;
+import li.cil.oc2.common.bus.device.item.AbstractItemDevice;
 import li.cil.oc2.common.bus.device.item.BlockOperationsModuleDevice;
 import li.cil.oc2.common.bus.device.item.InventoryOperationsModuleDevice;
-import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ public class RPCDeviceDocumentationTests {
 
     @Test
     public void robotModuleCallbacksAreFullyDocumented() {
-        for (final AbstractItemRPCDevice device : documentedRobotModules()) {
+        for (final AbstractItemDevice device : documentedRobotModules()) {
             for (final RPCMethodGroup group : device.getMethodGroups()) {
                 for (final RPCMethod overload : group.getOverloads()) {
                     assertTrue(overload.getDescription().isPresent(),
@@ -68,7 +69,7 @@ public class RPCDeviceDocumentationTests {
 
     // --------------------------------------------------------------------- //
 
-    private static List<AbstractItemRPCDevice> documentedRobotModules() {
+    private static List<AbstractItemDevice> documentedRobotModules() {
         return List.of(
             new BlockOperationsModuleDevice(ItemStack.EMPTY, null, null),
             new InventoryOperationsModuleDevice(ItemStack.EMPTY, null, null));

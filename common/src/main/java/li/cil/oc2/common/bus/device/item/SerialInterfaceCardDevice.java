@@ -15,7 +15,6 @@ import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.rpc.item.AbstractItemRPCDevice;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -51,7 +50,7 @@ import java.util.function.Supplier;
     Counters are clamped to two bytes. Values wider than a byte are low byte first.
 
     Device order here may differ from the order the cards were installed in, so match them up by `getBaseAddress`.""")
-public final class SerialInterfaceCardDevice extends AbstractItemRPCDevice implements VMDevice, ItemDevice, CapabilityProvider, RPCDevice, IODevice {
+public final class SerialInterfaceCardDevice extends AbstractItemDevice implements VMDevice, ItemDevice, CapabilityProvider, RPCDevice, IODevice {
     private static final String DEVICE_TAG_NAME = "device";
     private static final String LINE_TAG_NAME = "line";
     private static final String ADDRESS_TAG_NAME = "address";

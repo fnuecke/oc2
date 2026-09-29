@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.vm.block;
+package li.cil.oc2.common.bus.device.storage;
 
 import net.minecraft.world.item.ItemStack;
 

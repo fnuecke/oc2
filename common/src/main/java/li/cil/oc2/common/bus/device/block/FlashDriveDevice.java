@@ -5,9 +5,9 @@ package li.cil.oc2.common.bus.device.block;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.provider.item.FlashMemoryItemDeviceProvider;
-import li.cil.oc2.common.bus.device.vm.block.AbstractRemovableMediaDevice;
-import li.cil.oc2.common.bus.device.vm.block.RemovableMediaContainer;
-import li.cil.oc2.common.bus.device.vm.item.FloppyMedia;
+import li.cil.oc2.common.bus.device.storage.AbstractRemovableMediaDevice;
+import li.cil.oc2.common.bus.device.storage.FloppyMedia;
+import li.cil.oc2.common.bus.device.storage.RemovableMediaContainer;
 import li.cil.oc2.common.item.FlashMemoryItem;
 import net.minecraft.world.item.ItemStack;
 

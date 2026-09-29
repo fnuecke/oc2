@@ -4,6 +4,7 @@ package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.bus.device.block.DiskDriveDevice;
+import li.cil.oc2.common.bus.device.storage.AbstractRemovableMediaBlockEntity;
 import li.cil.oc2.common.network.message.AbstractMessage;
 import li.cil.oc2.common.network.message.DiskDriveFloppyMessage;
 import li.cil.oc2.common.tags.ItemTags;

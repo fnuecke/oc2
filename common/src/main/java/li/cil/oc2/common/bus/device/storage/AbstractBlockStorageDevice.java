@@ -1,9 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.vm.item;
+package li.cil.oc2.common.bus.device.storage;
 
 import com.google.common.eventbus.Subscribe;
-import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
@@ -37,7 +36,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice, ItemDevice {
+public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TIdentity> extends IdentityProxy<TIdentity> implements VMDevice {
     protected static final Logger LOGGER = LogManager.getLogger(AbstractBlockStorageDevice.class);
 
     private static final String DEVICE_TAG_NAME = "device";
@@ -73,6 +72,16 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     protected AbstractBlockStorageDevice(final TIdentity identity, final boolean readonly) {
         super(identity);
         this.readonly = readonly;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    public void exportToItemStack(final CompoundTag tag) {
+        blob.writeTo(tag);
+    }
+
+    public void importFromItemStack(final CompoundTag tag) {
+        blob.readFrom(tag);
     }
 
     // --------------------------------------------------------------------- //
@@ -119,16 +128,6 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
         deviceTag = null;
         address.clear();
         interrupt.clear();
-    }
-
-    @Override
-    public void exportToItemStack(final CompoundTag nbt) {
-        blob.writeTo(nbt);
-    }
-
-    @Override
-    public void importFromItemStack(final CompoundTag nbt) {
-        blob.readFrom(nbt);
     }
 
     @Override

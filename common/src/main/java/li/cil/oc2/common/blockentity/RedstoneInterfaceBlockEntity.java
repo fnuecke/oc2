@@ -3,7 +3,7 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.common.bus.device.rpc.RedstoneInterfaceDevice;
+import li.cil.oc2.common.bus.device.RedstoneInterfaceDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.core.BlockPos;

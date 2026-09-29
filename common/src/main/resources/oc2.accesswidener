@@ -14,3 +14,14 @@ accessible	method	net/minecraft/client/renderer/LevelRenderer	setupRender	(Lnet/
 accessible	method	net/minecraft/client/renderer/LevelRenderer	renderSectionLayer	(Lnet/minecraft/client/renderer/RenderType;DDDLorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V
 accessible	method	net/minecraft/client/renderer/LevelRenderer	renderEntity	(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V
 accessible	method	net/minecraft/client/renderer/LevelRenderer	renderSnowAndRain	(Lnet/minecraft/client/renderer/LightTexture;FDDD)V
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	litTime	I
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	litDuration	I
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	cookingProgress	I
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	cookingTotalTime	I
+accessible	field	net/minecraft/world/level/block/entity/BrewingStandBlockEntity	brewTime	I
+accessible	field	net/minecraft/world/level/block/entity/BrewingStandBlockEntity	fuel	I
+accessible	field	net/minecraft/world/level/block/entity/BeaconBlockEntity	levels	I
+accessible	field	net/minecraft/world/level/block/entity/BeaconBlockEntity	primaryPower	Lnet/minecraft/core/Holder;
+accessible	field	net/minecraft/world/level/block/entity/BeaconBlockEntity	secondaryPower	Lnet/minecraft/core/Holder;
+accessible	field	net/minecraft/world/level/BaseSpawner	nextSpawnData	Lnet/minecraft/world/level/SpawnData;
+accessible	field	net/minecraft/world/level/block/entity/LecternBlockEntity	pageCount	I

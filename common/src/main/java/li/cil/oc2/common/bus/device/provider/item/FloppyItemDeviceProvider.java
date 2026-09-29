@@ -19,8 +19,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
-    public static final String NAME = "floppy";
-    public static final String DEVICE_DATA_KEY = API.MOD_ID + ":" + NAME;
+    public static final String DEVICE_DATA_KEY = API.MOD_ID + ":floppy";
 
     // --------------------------------------------------------------------- //
 

@@ -73,6 +73,14 @@ public final class ItemHandlerProtocol {
         results.writeU16(toItemId(item));
     }
 
+    public static int toItemId(final Item item) throws IOException {
+        final int id = BuiltInRegistries.ITEM.getId(item);
+        if (id > 0xFFFF) {
+            throw new IOException("item id does not fit the guest protocol: " + id);
+        }
+        return id;
+    }
+
     // --------------------------------------------------------------------- //
 
     private static void writeSlotAt(final ItemHandler handler, final int slot, final IOOutputStream results) throws IOException {
@@ -80,14 +88,6 @@ public final class ItemHandlerProtocol {
         results.writeU16(toItemId(stack.getItem()));
         results.writeU8(Math.min(stack.getCount(), 0xFF));
         results.writeU8(toDamage(stack));
-    }
-
-    private static int toItemId(final Item item) throws IOException {
-        final int id = BuiltInRegistries.ITEM.getId(item);
-        if (id > 0xFFFF) {
-            throw new IOException("item id does not fit the guest protocol: " + id);
-        }
-        return id;
     }
 
     private static int toDamage(final ItemStack stack) {

@@ -15,8 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Optional;
 
 public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvider {
-    public static final String NAME = "flash_memory";
-    public static final String DEVICE_DATA_KEY = API.MOD_ID + ":" + NAME;
+    public static final String DEVICE_DATA_KEY = API.MOD_ID + ":flash_memory";
 
     // --------------------------------------------------------------------- //
 

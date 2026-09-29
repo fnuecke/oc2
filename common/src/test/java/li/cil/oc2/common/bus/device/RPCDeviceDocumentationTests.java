@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.rpc;
+package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 import li.cil.oc2.api.bus.device.rpc.RPCParameter;
-import li.cil.oc2.common.bus.device.ItemHandlerDevice;
 import li.cil.oc2.common.bus.device.item.AbstractItemDevice;
 import li.cil.oc2.common.bus.device.item.BlockOperationsModuleDevice;
 import li.cil.oc2.common.bus.device.item.InventoryOperationsModuleDevice;

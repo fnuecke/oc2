@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.rpc;
+package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.bus.DeviceBusController;
@@ -10,7 +10,6 @@ import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
 import li.cil.oc2.common.bus.TestIOInvocation;
-import li.cil.oc2.common.bus.device.ItemHandlerDevice;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.sedna.api.Sizes;
 import net.minecraft.core.registries.BuiltInRegistries;

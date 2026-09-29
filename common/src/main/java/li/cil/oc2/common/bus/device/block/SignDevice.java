@@ -5,7 +5,6 @@ package li.cil.oc2.common.bus.device.block;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
-import li.cil.oc2.common.bus.device.rpc.block.AbstractBlockDevice;
 import li.cil.oc2.common.util.BlockLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.SignBlockEntity;

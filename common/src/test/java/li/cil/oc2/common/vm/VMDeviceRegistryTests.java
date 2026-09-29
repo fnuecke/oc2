@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus;
+package li.cil.oc2.common.vm;
 
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
-import li.cil.oc2.common.vm.VMDeviceRegistry;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.DeviceBus;

@@ -1,12 +1,11 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.rpc;
+package li.cil.oc2.common.bus.device;
 
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.util.Side;
-import li.cil.oc2.common.bus.device.ItemHandlerDevice;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.serialization.gson.SideJsonDeserializer;
 import net.minecraft.world.item.ItemStack;

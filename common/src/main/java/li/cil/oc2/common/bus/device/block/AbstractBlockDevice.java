@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package li.cil.oc2.common.bus.device.rpc.block;
+package li.cil.oc2.common.bus.device.block;
 
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.util.BlockLocation;

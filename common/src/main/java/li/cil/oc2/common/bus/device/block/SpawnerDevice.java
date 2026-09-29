@@ -7,7 +7,6 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
-import li.cil.oc2.common.bus.device.rpc.block.AbstractBlockDevice;
 import li.cil.oc2.common.util.BlockLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.SpawnData;

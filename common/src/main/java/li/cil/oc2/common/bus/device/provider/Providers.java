@@ -5,6 +5,7 @@ package li.cil.oc2.common.bus.device.provider;
 import dev.architectury.registry.registries.Registrar;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
+import li.cil.oc2.common.bus.device.block.*;
 import li.cil.oc2.common.bus.device.provider.block.BlockEntityCapabilityDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.block.DiskDriveDeviceProvider;
 import li.cil.oc2.common.bus.device.provider.block.FlashDriveDeviceProvider;

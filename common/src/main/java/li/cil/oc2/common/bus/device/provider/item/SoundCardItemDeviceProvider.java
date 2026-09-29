@@ -6,8 +6,8 @@ import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.bus.device.item.SoundCardDevice;
 import li.cil.oc2.common.bus.device.provider.util.AbstractItemDeviceProvider;
-import li.cil.oc2.common.bus.device.vm.item.SoundCardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 

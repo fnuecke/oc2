@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import li.cil.oc2.client.ClientPlatform;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
-import li.cil.oc2.common.bus.device.vm.block.KeyboardDevice;
+import li.cil.oc2.common.bus.device.block.KeyboardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.KeyboardInputMessage;

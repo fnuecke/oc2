@@ -4,8 +4,8 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
-import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
-import li.cil.oc2.common.bus.device.vm.block.KeyboardDevice;
+import li.cil.oc2.common.bus.device.block.KeyboardDevice;
+import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.util.BusCables;

@@ -3,7 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.bus.device.vm.item.SoundCardDevice;
+import li.cil.oc2.common.bus.device.item.SoundCardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.Hardware;

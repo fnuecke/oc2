@@ -3,7 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.util.RobotOperationSide;
-import li.cil.oc2.common.bus.device.rpc.item.BlockOperationsModuleDevice;
+import li.cil.oc2.common.bus.device.item.BlockOperationsModuleDevice;
 import li.cil.oc2.gametest.BlockOperationsModuleTests;
 import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;

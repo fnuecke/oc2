@@ -9,7 +9,7 @@ import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
-import li.cil.oc2.common.bus.device.vm.block.DiskDriveDevice;
+import li.cil.oc2.common.bus.device.block.DiskDriveDevice;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.Optional;

@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
-import li.cil.oc2.common.bus.device.vm.block.KeyboardDevice;
+import li.cil.oc2.common.bus.device.block.KeyboardDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

@@ -3,7 +3,7 @@
 package li.cil.oc2.common.network.message;
 
 import dev.architectury.networking.NetworkManager;
-import li.cil.oc2.common.bus.device.rpc.item.FileImportExportCardItemDevice;
+import li.cil.oc2.common.bus.device.item.FileImportExportCardItemDevice;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 

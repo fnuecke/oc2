@@ -5,7 +5,7 @@ package li.cil.oc2.common.network;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.common.Config;
-import li.cil.oc2.common.bus.device.vm.item.SoundCardDevice;
+import li.cil.oc2.common.bus.device.item.SoundCardDevice;
 import li.cil.oc2.common.network.message.SoundCardAudioMessage;
 import li.cil.oc2.common.util.BlockLocation;
 import net.minecraft.core.BlockPos;

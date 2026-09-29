@@ -4,7 +4,7 @@ package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
-import li.cil.oc2.common.bus.device.vm.block.FlashDriveDevice;
+import li.cil.oc2.common.bus.device.block.FlashDriveDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.util.BusCables;

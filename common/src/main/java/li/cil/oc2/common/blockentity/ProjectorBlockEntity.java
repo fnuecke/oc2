@@ -6,7 +6,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.block.FlippableOrientableBlock;
 import li.cil.oc2.common.block.FlippableOrientation;
 import li.cil.oc2.common.block.ProjectorBlock;
-import li.cil.oc2.common.bus.device.vm.block.ProjectorDevice;
+import li.cil.oc2.common.bus.device.block.ProjectorDevice;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.network.Network;

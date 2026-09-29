@@ -6,7 +6,7 @@ import dev.architectury.event.events.client.ClientTickEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-import li.cil.oc2.common.bus.device.vm.item.SoundCardDevice;
+import li.cil.oc2.common.bus.device.item.SoundCardDevice;
 import li.cil.oc2.common.util.MuLaw;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;

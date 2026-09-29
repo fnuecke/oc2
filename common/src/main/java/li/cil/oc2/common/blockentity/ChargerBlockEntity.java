@@ -2,7 +2,10 @@
 
 package li.cil.oc2.common.blockentity;
 
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.Callback;
+import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
@@ -25,13 +28,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
 
 
 @RPCDeviceDescription(typeNames = {"charger"}, description = "Provided by the [charger](../block/charger.md) block.")
+@IODeviceDescription(name = "CHARGR")
 public final class ChargerBlockEntity extends ModBlockEntity implements TickableBlockEntity {
     private static final String HAS_ENERGY_TAG_NAME = "has_energy";
+
+    private static final int IS_CHARGING_CODE = 1;
 
     private static final Predicate<Entity> ENTITY_PREDICATE =
         EntitySelector.NO_SPECTATORS
@@ -61,10 +68,17 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
         hasEnergy = value;
     }
 
-    @Callback(description = "Checks whether the charger is currently transferring energy to something on top of it.",
-        returnValueDescription = "`true` if energy is being transferred; `false` otherwise.")
+    @Callback(description = "Gets whether the charger is currently transferring energy to something on top of it.",
+        returnValueDescription = "whether energy is being transferred.")
     public boolean isCharging() {
         return isCharging;
+    }
+
+    @IOCallback(value = IS_CHARGING_CODE,
+        description = "Gets whether the charger is currently transferring energy to something on top of it.",
+        resultsDescription = "one byte, `1` if energy is being transferred, `0` otherwise.")
+    public void isCharging(final IOOutputStream results) throws IOException {
+        results.writeU8(isCharging ? 1 : 0);
     }
 
     @Override

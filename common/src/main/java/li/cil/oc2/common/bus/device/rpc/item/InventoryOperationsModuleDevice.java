@@ -2,11 +2,12 @@
 
 package li.cil.oc2.common.bus.device.rpc.item;
 
-import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
+import li.cil.oc2.api.bus.device.io.IOInputStream;
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
+import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
+import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ItemHandlerUtils;
 import li.cil.oc2.common.inventory.ItemHandler;
@@ -20,6 +21,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,7 +33,15 @@ import java.util.stream.Stream;
 
     ### Sides
     The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.""")
+@IODeviceDescription(name = "INVOPS", description = """
+    Sides are numbered: `0` front, `1` up and `2` down.""")
 public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice {
+    private static final int MOVE_CODE = 1;
+    private static final int DROP_CODE = 2;
+    private static final int DROP_INTO_CODE = 3;
+    private static final int TAKE_CODE = 4;
+    private static final int TAKE_FROM_CODE = 5;
+
     private static final String DROP_DESCRIPTION = "Tries to drop items from the selected slot in the specified direction. Items are " +
         "dropped into an inventory, or into the world if no inventory is present.";
     private static final String DROP_INTO_DESCRIPTION = "Tries to drop items from the selected slot into the specified slot of an inventory " +
@@ -40,12 +50,6 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         "taken from an inventory, or from the world if no inventory is present.";
     private static final String TAKE_FROM_DESCRIPTION = "Tries to take the specified number of items from the specified slot of an inventory " +
         "in the specified direction. Items are only taken from an inventory, never from the world.";
-    private static final String DROPPED = "the number of items dropped.";
-    private static final String TAKEN = "the number of items taken.";
-    private static final String DROP_COUNT = "the number of items to drop.";
-    private static final String TAKE_COUNT = "the number of items to take.";
-    private static final String DROP_SIDE = "the relative direction to drop the items in. Optional, defaults to `front`. One of `front`, `up` or `down`.";
-    private static final String TAKE_SIDE = "the relative direction to take the items from. Optional, defaults to `front`. One of `front`, `up` or `down`.";
 
     private final Entity entity;
     private final Robot robot;
@@ -69,6 +73,8 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
 
         final ItemHandler inventory = inventory();
+        ItemHandlerProtocol.requireValidSlot(inventory, fromSlot);
+        ItemHandlerProtocol.requireValidSlot(inventory, intoSlot);
 
         // Do simulation run, validating slot indices and getting actual amount possible to move.
         ItemStack extracted = inventory.extractItem(fromSlot, count, true);
@@ -87,14 +93,14 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
     }
 
-    @Callback(description = DROP_DESCRIPTION, returnValueDescription = DROPPED)
-    public int drop(@Parameter(value = "count", description = DROP_COUNT) final int count) {
+    @Callback(description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
+    public int drop(@Parameter(value = "count", description = "the number of items to drop.") final int count) {
         return drop(count, null);
     }
 
-    @Callback(description = DROP_DESCRIPTION, returnValueDescription = DROPPED)
-    public int drop(@Parameter(value = "count", description = DROP_COUNT) final int count,
-                    @Parameter(value = "side", description = DROP_SIDE, optional = true) @Nullable final RobotOperationSide side) {
+    @Callback(description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
+    public int drop(@Parameter(value = "count", description = "the number of items to drop.") final int count,
+                    @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
@@ -133,19 +139,23 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         return dropped;
     }
 
-    @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = DROPPED)
+    @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
     public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert the items into.") final int intoSlot,
-                        @Parameter(value = "count", description = DROP_COUNT) final int count) {
+                        @Parameter(value = "count", description = "the number of items to drop.") final int count) {
         return dropInto(intoSlot, count, null);
     }
 
-    @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = DROPPED)
+    @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
     public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert the items into.") final int intoSlot,
-                        @Parameter(value = "count", description = DROP_COUNT) final int count,
-                        @Parameter(value = "side", description = DROP_SIDE, optional = true) @Nullable final RobotOperationSide side) {
+                        @Parameter(value = "count", description = "the number of items to drop.") final int count,
+                        @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
+
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
+        final Optional<ItemHandler> optional = getItemStackHandlersInDirection(direction).findFirst();
+        optional.ifPresent(handler -> ItemHandlerProtocol.requireValidSlot(handler, intoSlot));
 
         final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
 
@@ -155,8 +165,6 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
 
         final int originalStackSize = stack.getCount();
-        final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        final Optional<ItemHandler> optional = getItemStackHandlersInDirection(direction).findFirst();
         if (optional.isPresent()) {
             stack = optional.get().insertItem(intoSlot, stack, false);
         }
@@ -176,14 +184,14 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         return dropped;
     }
 
-    @Callback(description = TAKE_DESCRIPTION, returnValueDescription = TAKEN)
-    public int take(@Parameter(value = "count", description = TAKE_COUNT) final int count) {
+    @Callback(description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
+    public int take(@Parameter(value = "count", description = "the number of items to take.") final int count) {
         return take(count, null);
     }
 
-    @Callback(description = TAKE_DESCRIPTION, returnValueDescription = TAKEN)
-    public int take(@Parameter(value = "count", description = TAKE_COUNT) final int count,
-                    @Parameter(value = "side", description = TAKE_SIDE, optional = true) @Nullable final RobotOperationSide side) {
+    @Callback(description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
+    public int take(@Parameter(value = "count", description = "the number of items to take.") final int count,
+                    @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
@@ -197,23 +205,64 @@ public final class InventoryOperationsModuleDevice extends AbstractItemRPCDevice
         }
     }
 
-    @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = TAKEN)
+    @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
     public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take the items from.") final int fromSlot,
-                        @Parameter(value = "count", description = TAKE_COUNT) final int count) {
+                        @Parameter(value = "count", description = "the number of items to take.") final int count) {
         return takeFrom(fromSlot, count, null);
     }
 
-    @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = TAKEN)
+    @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
     public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take the items from.") final int fromSlot,
-                        @Parameter(value = "count", description = TAKE_COUNT) final int count,
-                        @Parameter(value = "side", description = TAKE_SIDE, optional = true) @Nullable final RobotOperationSide side) {
+                        @Parameter(value = "count", description = "the number of items to take.") final int count,
+                        @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         if (count <= 0) {
             return 0;
         }
 
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
         return getItemStackHandlersInDirection(direction).findFirst().map(handler ->
-            takeFromInventory(count, handler, fromSlot)).orElse(0);
+            takeFromInventory(count, handler, ItemHandlerProtocol.requireValidSlot(handler, fromSlot))).orElse(0);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @IOCallback(value = MOVE_CODE,
+        description = "Tries to move the specified number of items from one robot inventory slot to another.",
+        argumentsDescription = "three bytes, the slot to extract items from, the slot to insert items into, and the number of items to move.")
+    public void move(final IOInputStream arguments) throws IOException {
+        move(arguments.readU8(), arguments.readU8(), arguments.readU8());
+    }
+
+    @IOCallback(value = DROP_CODE,
+        description = DROP_DESCRIPTION,
+        argumentsDescription = "two bytes: the number of items to drop, and the side to drop them in.",
+        resultsDescription = "one byte, the number of items dropped.")
+    public void drop(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(drop(arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
+    }
+
+    @IOCallback(value = DROP_INTO_CODE,
+        description = DROP_INTO_DESCRIPTION,
+        argumentsDescription = "three bytes: the slot to insert the items into, the number of items to drop, and the side of the inventory.",
+        resultsDescription = "one byte, the number of items dropped.")
+    public void dropInto(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(dropInto(arguments.readU8(), arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
+    }
+
+    @IOCallback(value = TAKE_CODE,
+        description = TAKE_DESCRIPTION,
+        argumentsDescription = "two bytes: the number of items to take, and the side to take them from.",
+        resultsDescription = "one byte, the number of items taken.")
+    public void take(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(take(arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
+    }
+
+    @IOCallback(value = TAKE_FROM_CODE,
+        description = TAKE_FROM_DESCRIPTION,
+        argumentsDescription = "three bytes: the slot to take the items from, the number of items to take, and the side of the inventory.",
+        resultsDescription = "one byte, the number of items taken.")
+    public void takeFrom(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(takeFrom(arguments.readU8(), arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
     }
 
     // --------------------------------------------------------------------- //

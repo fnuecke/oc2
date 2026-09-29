@@ -24,6 +24,8 @@ public enum RobotOperationSide {
     d(DOWN),
     ;
 
+    private static final RobotOperationSide[] BY_INDEX = {FRONT, UP, DOWN};
+
     private final Direction direction;
 
     RobotOperationSide(final Direction direction) {
@@ -52,5 +54,19 @@ public enum RobotOperationSide {
             }
         }
         return direction;
+    }
+
+    /**
+     * Gets a direction by raw index.
+     *
+     * @param index the index of the direction.
+     * @return the direction.
+     * @throws IllegalArgumentException if the index is out of bounds.
+     */
+    public static RobotOperationSide byIndex(final int index) {
+        if (index < 0 || index >= BY_INDEX.length) {
+            throw new IllegalArgumentException("Side index [" + index + "] is outside [0, " + (BY_INDEX.length - 1) + "].");
+        }
+        return BY_INDEX[index];
     }
 }

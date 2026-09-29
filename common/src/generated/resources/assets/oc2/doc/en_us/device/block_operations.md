@@ -33,3 +33,25 @@ Tries to break a block in the specified direction using the tool in the currentl
 Tries to place a block in the specified direction. Blocks will be placed from the currently selected inventory slot. If the slot is empty, no block will be placed.
 - `side`: the relative direction to place the block in. Optional, defaults to `front`. One of `front`, `up` or `down`.
 - Returns whether the operation was successful.
+
+## Mid-level API
+Device name: `BLKOPS`
+
+Sides are numbered: `0` front, `1` up and `2` down.
+
+### Methods
+
+`1 excavate`
+Tries to break a block in the specified direction using the tool in the currently selected inventory slot. Collected blocks will be inserted starting after the currently selected inventory slot. If a slot is full, the next slot will be used. If the inventory has no space for the dropped block, it will drop into the world.
+- Takes one byte, the side to break a block in.
+- Returns one byte, `1` if the operation was successful, `0` otherwise.
+- Energy cost: `1`
+
+`2 place`
+Tries to place a block in the specified direction. Blocks will be placed from the currently selected inventory slot. If the slot is empty, no block will be placed.
+- Takes one byte, the side to place the block in.
+- Returns one byte, `1` if the operation was successful, `0` otherwise.
+
+`3 durability`
+Gets the remaining durability of the tool in the currently selected inventory slot.
+- Returns four bytes, the remaining durability, or zero if the slot is empty or holds something that cannot take damage.

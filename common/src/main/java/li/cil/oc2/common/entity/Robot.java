@@ -1013,8 +1013,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         private static final int ACTION_COMPLETED_EVENT_CODE = 1;
 
-        private static final RobotOperationSide[] IO_SIDES = {
-            RobotOperationSide.FRONT, RobotOperationSide.UP, RobotOperationSide.DOWN};
         private static final MovementDirection[] IO_MOVEMENTS = {
             MovementDirection.FORWARD, MovementDirection.BACKWARD, MovementDirection.UPWARD, MovementDirection.DOWNWARD};
         private static final RotationDirection[] IO_ROTATIONS = {
@@ -1186,7 +1184,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             argumentsDescription = "one byte, the side.",
             resultsDescription = "one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move.")
         public void detect(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-            results.writeU8(switch (detect(fromOrdinal(IO_SIDES, arguments.readU8()))) {
+            results.writeU8(switch (detect(RobotOperationSide.byIndex(arguments.readU8()))) {
                 case DETECT_AIR -> 0;
                 case DETECT_FLUID -> 1;
                 case DETECT_SOLID -> 2;

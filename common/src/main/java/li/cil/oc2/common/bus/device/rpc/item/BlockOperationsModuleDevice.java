@@ -2,9 +2,9 @@
 
 package li.cil.oc2.common.bus.device.rpc.item;
 
-import li.cil.oc2.api.bus.device.object.Callback;
-import li.cil.oc2.api.bus.device.object.Parameter;
-import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
+import li.cil.oc2.api.bus.device.io.IOInputStream;
+import li.cil.oc2.api.bus.device.io.IOOutputStream;
+import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -36,6 +36,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -54,9 +55,15 @@ import java.util.Objects;
     Note that the tool will take damage and eventually break. Check its durability regularly if you'd rather repair it.
 
     Unbreakable blocks, such as bedrock, and blocks that would take longer than fifteen seconds cannot be broken.""")
+@IODeviceDescription(name = "BLKOPS", description = """
+    Sides are numbered: `0` front, `1` up and `2` down.""")
 public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
     private static final String LAST_OPERATION_TAG_NAME = "cooldown";
     private static final String COOLDOWN_TAG_NAME = "cooldown_ticks";
+
+    private static final int EXCAVATE_CODE = 1;
+    private static final int PLACE_CODE = 2;
+    private static final int DURABILITY_CODE = 3;
 
     private static final int MIN_COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(1));
     private static final int MAX_COOLDOWN = TickUtils.toTicks(Duration.ofSeconds(15));
@@ -67,7 +74,6 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         "block, it will drop into the world.";
     private static final String PLACE_DESCRIPTION = "Tries to place a block in the specified direction. Blocks will be placed from " +
         "the currently selected inventory slot. If the slot is empty, no block will be placed.";
-    private static final String SUCCESS = "whether the operation was successful.";
 
     // --------------------------------------------------------------------- //
 
@@ -100,12 +106,14 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         cooldown = Mth.clamp(tag.getInt(COOLDOWN_TAG_NAME), MIN_COOLDOWN, MAX_COOLDOWN);
     }
 
-    @Callback(description = EXCAVATE_DESCRIPTION, energy = 1, returnValueDescription = SUCCESS)
+    // --------------------------------------------------------------------- //
+
+    @Callback(description = EXCAVATE_DESCRIPTION, energy = 1, returnValueDescription = "whether the operation was successful.")
     public boolean excavate() {
         return excavate(null);
     }
 
-    @Callback(description = EXCAVATE_DESCRIPTION, energy = 1, returnValueDescription = SUCCESS)
+    @Callback(description = EXCAVATE_DESCRIPTION, energy = 1, returnValueDescription = "whether the operation was successful.")
     public boolean excavate(@Parameter(value = "side", description = "the relative direction to break a block in. Optional, defaults to `front`. One of `front`, `up` or `down`.", optional = true) @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
@@ -156,12 +164,12 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         return true;
     }
 
-    @Callback(description = PLACE_DESCRIPTION, returnValueDescription = SUCCESS)
+    @Callback(description = PLACE_DESCRIPTION, returnValueDescription = "whether the operation was successful.")
     public boolean place() {
         return place(null);
     }
 
-    @Callback(description = PLACE_DESCRIPTION, returnValueDescription = SUCCESS)
+    @Callback(description = PLACE_DESCRIPTION, returnValueDescription = "whether the operation was successful.")
     public boolean place(@Parameter(value = "side", description = "the relative direction to place the block in. Optional, defaults to `front`. One of `front`, `up` or `down`.", optional = true) @Nullable final RobotOperationSide side) {
         if (isOnCooldown()) {
             return false;
@@ -221,6 +229,31 @@ public final class BlockOperationsModuleDevice extends AbstractItemRPCDevice {
         }
 
         return tool.getMaxDamage() - tool.getDamageValue();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @IOCallback(value = EXCAVATE_CODE, energy = 1,
+        description = EXCAVATE_DESCRIPTION,
+        argumentsDescription = "one byte, the side to break a block in.",
+        resultsDescription = "one byte, `1` if the operation was successful, `0` otherwise.")
+    public void excavate(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(excavate(RobotOperationSide.byIndex(arguments.readU8())) ? 1 : 0);
+    }
+
+    @IOCallback(value = PLACE_CODE,
+        description = PLACE_DESCRIPTION,
+        argumentsDescription = "one byte, the side to place the block in.",
+        resultsDescription = "one byte, `1` if the operation was successful, `0` otherwise.")
+    public void place(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(place(RobotOperationSide.byIndex(arguments.readU8())) ? 1 : 0);
+    }
+
+    @IOCallback(value = DURABILITY_CODE,
+        description = "Gets the remaining durability of the tool in the currently selected inventory slot.",
+        resultsDescription = "four bytes, the remaining durability, or zero if the slot is empty or holds something that cannot take damage.")
+    public void durability(final IOOutputStream results) throws IOException {
+        results.writeU32(durability());
     }
 
     // --------------------------------------------------------------------- //

@@ -3,6 +3,9 @@ Controlling devices using Lua is a core concept when using [computers](block/com
 
 Everything in this entry needs the Linux system that ships for the [RISC-V processor](item/cpu_riscv.md). To access devices from a [Z80 processor](item/cpu_z80.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
 
+
+If multiple devices of the same type are connected, `find` may return any of them. To grab a specific one, assign the bus interface in front of the desired device a name, by using a [wrench](../item/wrench.md), then find it by that name instead.
+
 For the methods available on devices, see the [list of devices](device/index.md).
 
 ## The Devices Library

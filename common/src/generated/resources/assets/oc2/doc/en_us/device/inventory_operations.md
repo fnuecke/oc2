@@ -7,7 +7,7 @@ Provided by the [inventory operations module](../item/inventory_operations_modul
 
 The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.
 
-Allows inspecting and operating on the internal inventory, as well as block and entity containers. If neither external container type is present, space permitting, items are dropped into the world or picked up.
+Allows operating the internal inventory, as well as inspecting and operating block and entity containers. If neither external container type is present, space permitting, items are dropped into the world or picked up.
 
 Sides without a container report no inventory, which allows predicting world interaction, e.g. to ensure things are never dumped into the world.
 

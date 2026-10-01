@@ -7,7 +7,7 @@ Provided by the [tank operations module](../item/tank_operations_module.md) to r
 
 The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.
 
-Allows operating on the robot's tank, as well as inspecting and operating on block and entity tanks. If neither external tank type is present, space permitting, fluids are poured or drained, one bucket at a time.
+Allows operating the robot's tank, as well as inspecting and operating block and entity tanks. If neither external tank type is present, space permitting, fluids are poured or drained, one bucket at a time.
 
 Sides without a container report no tank, which allows predicting world interaction, e.g. to ensure things are never dumped into the world.
 

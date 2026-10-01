@@ -113,6 +113,46 @@ public final class CapabilityAdapterTestsFabric {
         CapabilityAdapterTests.abortedItemInsertLeavesHandlerUnchanged(helper, ITEMS, ABORTED_ITEM_INSERT);
     }
 
+    @GameTest(template = TEMPLATE)
+    public void slotCapabilityWritesToInventory(final GameTestHelper helper) {
+        CapabilityAdapterTests.slotCapabilityWritesToInventory(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void containerItemSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemSimulatedInsertDoesNotMutate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void containerItemInsertAndExtract(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemInsertAndExtract(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void containerItemInsertReturnsRemainder(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemInsertReturnsRemainder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void containerFluidSimulatedFillDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidSimulatedFillDoesNotMutate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void containerFluidFillReplacesItem(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidFillReplacesItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void containerFluidFillSplitsStack(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidFillSplitsStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void containerFluidDrainReplacesItem(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidDrainReplacesItem(helper);
+    }
+
     // --------------------------------------------------------------------- //
 
     private static BlockEntity blockEntity(final GameTestHelper helper) {

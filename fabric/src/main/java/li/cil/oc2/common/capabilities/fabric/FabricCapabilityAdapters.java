@@ -73,6 +73,20 @@ public final class FabricCapabilityAdapters {
         return Transaction.openNested(Transaction.getCurrentUnsafe());
     }
 
+    // Fabric's ContainerComponentStorage reports a capacity of one for empty slots, so it accepts only
+    // one item per call there. Apparently introduced in https://github.com/FabricMC/fabric-api/pull/5220
+    // Not sure if this should be considered a bug, so we'll just work around it.
+    private static long insertForFabricQuirk(final SingleSlotStorage<ItemVariant> view, final ItemVariant resource,
+                                             final long maxAmount, final TransactionContext transaction) {
+        long inserted = 0;
+        long moved;
+        do {
+            moved = view.insert(resource, maxAmount - inserted, transaction);
+            inserted += moved;
+        } while (moved > 0 && inserted < maxAmount);
+        return inserted;
+    }
+
     // --------------------------------------------------------------------- //
 
     private record EnergyHandlerAdapter(team.reborn.energy.api.EnergyStorage inner) implements EnergyHandler {
@@ -225,7 +239,7 @@ public final class FabricCapabilityAdapters {
             }
 
             try (Transaction transaction = open()) {
-                final long inserted = view.insert(ItemVariant.of(stack), stack.getCount(), transaction);
+                final long inserted = insertForFabricQuirk(view, ItemVariant.of(stack), stack.getCount(), transaction);
                 if (!simulate) {
                     transaction.commit();
                 }

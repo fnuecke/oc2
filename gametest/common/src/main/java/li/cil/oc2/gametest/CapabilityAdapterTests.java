@@ -2,12 +2,20 @@
 
 package li.cil.oc2.gametest;
 
+import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.container.ContainerFluidHandler;
+import li.cil.oc2.common.container.ContainerItemHandler;
+import li.cil.oc2.common.container.ItemStackHandler;
 import li.cil.oc2.common.energy.EnergyHandler;
+import li.cil.oc2.common.fluid.FluidHandler;
+import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluids;
 
 import java.util.function.Function;
 
@@ -23,6 +31,10 @@ public final class CapabilityAdapterTests {
     }
 
     private static final long AMOUNT = 100;
+    private static final Item SHULKER_BOX = net.minecraft.world.item.Items.SHULKER_BOX;
+    private static final Item DIRT = net.minecraft.world.item.Items.DIRT;
+    private static final Item BUCKET = net.minecraft.world.item.Items.BUCKET;
+    private static final Item WATER_BUCKET = net.minecraft.world.item.Items.WATER_BUCKET;
 
     // --------------------------------------------------------------------- //
 
@@ -195,6 +207,124 @@ public final class CapabilityAdapterTests {
     }
 
     // --------------------------------------------------------------------- //
+
+    public static void slotCapabilityWritesToInventory(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(SHULKER_BOX));
+        final ItemHandler handler = require(Capabilities.get(inventory, 0, Capabilities.ITEM_HANDLER), "shulker box item handler");
+
+        final ItemStack remainder = handler.insertItem(0, new ItemStack(DIRT, 5), false);
+
+        assertEquals("insert should consume the whole stack", 0, remainder.getCount());
+        final ItemHandler reread = require(Capabilities.get(inventory, 0, Capabilities.ITEM_HANDLER), "shulker box item handler");
+        assertStack("shulker box contents", reread.getStackInSlot(0), DIRT, 5);
+        helper.succeed();
+    }
+
+    public static void containerItemSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(SHULKER_BOX));
+        final ItemHandler handler = require(ContainerItemHandler.of(inventory, 0), "container item handler");
+        final ItemStack before = inventory.getStackInSlot(0).copy();
+
+        final ItemStack remainder = handler.insertItem(0, new ItemStack(DIRT, 5), true);
+
+        assertEquals("simulated insert should consume the whole stack", 0, remainder.getCount());
+        if (!ItemStack.matches(before, inventory.getStackInSlot(0))) {
+            throw new GameTestAssertException("simulated insert must not change the container item, found " + inventory.getStackInSlot(0));
+        }
+        helper.succeed();
+    }
+
+    public static void containerItemInsertAndExtract(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(SHULKER_BOX));
+        final ItemHandler handler = require(ContainerItemHandler.of(inventory, 0), "container item handler");
+
+        final ItemStack remainder = handler.insertItem(0, new ItemStack(DIRT, 5), false);
+        assertEquals("insert should consume the whole stack", 0, remainder.getCount());
+        assertStack("contents after insert", handler.getStackInSlot(0), DIRT, 5);
+
+        final ItemStack extracted = handler.extractItem(0, 3, false);
+        assertStack("extracted stack", extracted, DIRT, 3);
+        assertStack("contents after extract", handler.getStackInSlot(0), DIRT, 2);
+        assertStack("container item", inventory.getStackInSlot(0), SHULKER_BOX, 1);
+        helper.succeed();
+    }
+
+    public static void containerItemInsertReturnsRemainder(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(SHULKER_BOX));
+        final ItemHandler handler = require(ContainerItemHandler.of(inventory, 0), "container item handler");
+
+        final ItemStack remainder = handler.insertItem(0, new ItemStack(DIRT, 70), false);
+
+        assertStack("remainder", remainder, DIRT, 6);
+        assertStack("contents after insert", handler.getStackInSlot(0), DIRT, 64);
+        helper.succeed();
+    }
+
+    public static void containerFluidSimulatedFillDoesNotMutate(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(BUCKET));
+        final FluidHandler handler = require(ContainerFluidHandler.of(inventory, 0), "container fluid handler");
+
+        final int filled = handler.fill(water(), true);
+
+        assertEquals("simulated fill should report a full bucket", FluidHandler.BUCKET, filled);
+        assertStack("container item", inventory.getStackInSlot(0), BUCKET, 1);
+        helper.succeed();
+    }
+
+    public static void containerFluidFillReplacesItem(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(BUCKET));
+        final FluidHandler handler = require(ContainerFluidHandler.of(inventory, 0), "container fluid handler");
+
+        final int filled = handler.fill(water(), false);
+
+        assertEquals("fill should accept a full bucket", FluidHandler.BUCKET, filled);
+        assertStack("container item", inventory.getStackInSlot(0), WATER_BUCKET, 1);
+        helper.succeed();
+    }
+
+    public static void containerFluidFillSplitsStack(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(BUCKET, 3));
+        final FluidHandler handler = require(ContainerFluidHandler.of(inventory, 0), "container fluid handler");
+
+        final int filled = handler.fill(water(), false);
+
+        assertEquals("fill should accept a full bucket", FluidHandler.BUCKET, filled);
+        assertStack("remaining empty buckets", inventory.getStackInSlot(0), BUCKET, 2);
+        assertStack("filled bucket", inventory.getStackInSlot(1), WATER_BUCKET, 1);
+        helper.succeed();
+    }
+
+    public static void containerFluidDrainReplacesItem(final GameTestHelper helper) {
+        final ItemStackHandler inventory = inventory(new ItemStack(WATER_BUCKET));
+        final FluidHandler handler = require(ContainerFluidHandler.of(inventory, 0), "container fluid handler");
+
+        final FluidStack drained = handler.drain(FluidHandler.BUCKET, false);
+
+        assertEquals("drain should yield a full bucket", FluidHandler.BUCKET, drained.amount());
+        if (!drained.isSameFluid(water())) {
+            throw new GameTestAssertException("drained the wrong fluid: " + drained);
+        }
+        assertStack("container item", inventory.getStackInSlot(0), BUCKET, 1);
+        helper.succeed();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static ItemStackHandler inventory(final ItemStack stack) {
+        final ItemStackHandler inventory = new ItemStackHandler(2);
+        inventory.setStackInSlot(0, stack);
+        return inventory;
+    }
+
+    private static FluidStack water() {
+        return new FluidStack(Fluids.WATER, FluidHandler.BUCKET);
+    }
+
+    private static void assertStack(final String what, final ItemStack stack, final Item item, final int count) {
+        if (!stack.is(item) || stack.getCount() != count) {
+            throw new GameTestAssertException(what + ": expected " + count + " " + item + ", got " + stack);
+        }
+    }
 
     private static int acceptingSlot(final ItemHandler handler, final ItemStack stack) {
         for (int slot = 0; slot < handler.getSlots(); slot++) {

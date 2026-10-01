@@ -79,6 +79,46 @@ public final class CapabilityAdapterTestsNeoForge {
         CapabilityAdapterTests.itemRoundTripPreservesIdentity(helper, ITEMS);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void slotCapabilityWritesToInventory(final GameTestHelper helper) {
+        CapabilityAdapterTests.slotCapabilityWritesToInventory(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void containerItemSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemSimulatedInsertDoesNotMutate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void containerItemInsertAndExtract(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemInsertAndExtract(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void containerItemInsertReturnsRemainder(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemInsertReturnsRemainder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void containerFluidSimulatedFillDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidSimulatedFillDoesNotMutate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void containerFluidFillReplacesItem(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidFillReplacesItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void containerFluidFillSplitsStack(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidFillSplitsStack(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void containerFluidDrainReplacesItem(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidDrainReplacesItem(helper);
+    }
+
     // --------------------------------------------------------------------- //
 
     private static BlockEntity blockEntity(final GameTestHelper helper) {

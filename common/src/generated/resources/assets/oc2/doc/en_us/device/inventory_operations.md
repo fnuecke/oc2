@@ -18,6 +18,7 @@ Tries to drop items from the selected slot in the specified direction. Items are
 - `count`: the number of items to drop.
 - `side`: `front`, `up` or `down`. Optional, defaults to `front`.
 - Returns the number of items dropped.
+- Energy cost: `1`
 
 `dropInto(intoSlot:number, count:number, [side:string]):number`
 Tries to drop items from the selected slot into the specified slot of an inventory in the specified direction. Items are only dropped into an inventory, never into the world.
@@ -25,6 +26,7 @@ Tries to drop items from the selected slot into the specified slot of an invento
 - `count`: the number of items to drop.
 - `side`: `front`, `up` or `down`. Optional, defaults to `front`.
 - Returns the number of items dropped.
+- Energy cost: `1`
 
 `getItemSlotCount([side:string]):number`
 Gets how many slots the inventory on the specified side has.
@@ -49,24 +51,28 @@ Tries to move the specified number of items from one robot inventory slot to ano
 - `intoSlot`: the slot to insert items into.
 - `count`: the number of items to move.
 - Returns the number of items moved.
+- Energy cost: `1`
 
 `moveFrom(intoSlot:number, count:number):number`
 Tries to move items out of a container item in the selected slot into the specified robot inventory slot.
 - `intoSlot`: the slot to insert items into.
 - `count`: the number of items to move.
 - Returns the number of items moved.
+- Energy cost: `1`
 
 `moveInto(fromSlot:number, count:number):number`
 Tries to move items from the specified robot inventory slot into a container item, such as a shulker box, in the selected slot.
 - `fromSlot`: the slot to take items from.
 - `count`: the number of items to move.
 - Returns the number of items moved.
+- Energy cost: `1`
 
 `take(count:number, [side:string]):number`
 Tries to take the specified number of items from the specified direction. Items are taken from an inventory, or from the world if no inventory is present.
 - `count`: the number of items to take.
 - `side`: `front`, `up` or `down`. Optional, defaults to `front`.
 - Returns the number of items taken.
+- Energy cost: `1`
 
 `takeFrom(fromSlot:number, count:number, [side:string]):number`
 Tries to take the specified number of items from the specified slot of an inventory in the specified direction. Items are only taken from an inventory, never from the world.
@@ -74,6 +80,7 @@ Tries to take the specified number of items from the specified slot of an invent
 - `count`: the number of items to take.
 - `side`: `front`, `up` or `down`. Optional, defaults to `front`.
 - Returns the number of items taken.
+- Energy cost: `1`
 
 ## Mid-level API
 Device name: `INVOPS`
@@ -86,36 +93,43 @@ Sides are numbered: `0` front, `1` up and `2` down.
 Tries to move the specified number of items from one robot inventory slot to another.
 - Takes three bytes, the slot to extract items from, the slot to insert items into, and the number of items to move.
 - Returns one byte, the number of items moved.
+- Energy cost: `1`
 
 `2 drop`
 Tries to drop items from the selected slot in the specified direction. Items are dropped into an inventory, or into the world if no inventory is present.
 - Takes two bytes: the number of items to drop, and the side to drop them in.
 - Returns one byte, the number of items dropped.
+- Energy cost: `1`
 
 `3 dropInto`
 Tries to drop items from the selected slot into the specified slot of an inventory in the specified direction. Items are only dropped into an inventory, never into the world.
 - Takes three bytes: the slot to insert items into, the number of items to drop, and the side of the inventory.
 - Returns one byte, the number of items dropped.
+- Energy cost: `1`
 
 `4 take`
 Tries to take the specified number of items from the specified direction. Items are taken from an inventory, or from the world if no inventory is present.
 - Takes two bytes: the number of items to take, and the side to take them from.
 - Returns one byte, the number of items taken.
+- Energy cost: `1`
 
 `5 takeFrom`
 Tries to take the specified number of items from the specified slot of an inventory in the specified direction. Items are only taken from an inventory, never from the world.
 - Takes three bytes: the slot to take items from, the number of items to take, and the side of the inventory.
 - Returns one byte, the number of items taken.
+- Energy cost: `1`
 
 `6 moveInto`
 Tries to move items from the specified robot inventory slot into a container item, such as a shulker box, in the selected slot.
 - Takes two bytes: the slot to extract items from, and the number of items to move.
 - Returns one byte, the number of items moved.
+- Energy cost: `1`
 
 `7 moveFrom`
 Tries to move items out of a container item in the selected slot into the specified robot inventory slot.
 - Takes two bytes: the slot to insert items into, and the number of items to move.
 - Returns one byte, the number of items moved.
+- Energy cost: `1`
 
 `8 getItemSlotCount`
 Reads how many slots the inventory on that side has.

@@ -114,7 +114,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         return handler.getSlotLimit(ItemHandlerDeviceUtils.requireValidSlot(handler, slot));
     }
 
-    @Callback(description = "Tries to move the specified number of items from one robot inventory slot to another.",
+    @Callback(energy = 1, description = "Tries to move the specified number of items from one robot inventory slot to another.",
         returnValueDescription = "the number of items moved.")
     public int move(@Parameter(value = "fromSlot", description = "the slot to extract items from.") final int fromSlot,
                     @Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
@@ -130,25 +130,25 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
             (stack, simulate) -> inventory.insertItem(intoSlot, stack, simulate), entity::spawnAtLocation);
     }
 
-    @Callback(description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
+    @Callback(energy = 1, description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
     public int drop(@Parameter(value = "count", description = "the number of items to drop.") final int count) {
         return drop(count, null);
     }
 
-    @Callback(description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
+    @Callback(energy = 1, description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
     public int drop(@Parameter(value = "count", description = "the number of items to drop.") final int count,
                     @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         return ItemHandlerUtils.transferFirst(List.of(inventory()), robot.getSelectedSlot(),
             requireItemHandlersOrWorld(side), ItemHandlerUtils.ANY_SLOT, 0, count, entity::spawnAtLocation);
     }
 
-    @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
+    @Callback(energy = 1, description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
     public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
                         @Parameter(value = "count", description = "the number of items to drop.") final int count) {
         return dropInto(intoSlot, count, null);
     }
 
-    @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
+    @Callback(energy = 1, description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
     public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
                         @Parameter(value = "count", description = "the number of items to drop.") final int count,
                         @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
@@ -156,25 +156,25 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
             ItemHandlerDeviceUtils.requireItemHandlersWithSlot(requireItemHandlers(side), intoSlot), intoSlot, 0, count, entity::spawnAtLocation);
     }
 
-    @Callback(description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
+    @Callback(energy = 1, description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
     public int take(@Parameter(value = "count", description = "the number of items to take.") final int count) {
         return take(count, null);
     }
 
-    @Callback(description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
+    @Callback(energy = 1, description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
     public int take(@Parameter(value = "count", description = "the number of items to take.") final int count,
                     @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         return ItemHandlerUtils.transferFirst(requireItemHandlersOrWorld(side), ItemHandlerUtils.ANY_SLOT,
             List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, entity::spawnAtLocation);
     }
 
-    @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
+    @Callback(energy = 1, description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
     public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take items from.") final int fromSlot,
                         @Parameter(value = "count", description = "the number of items to take.") final int count) {
         return takeFrom(fromSlot, count, null);
     }
 
-    @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
+    @Callback(energy = 1, description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
     public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take items from.") final int fromSlot,
                         @Parameter(value = "count", description = "the number of items to take.") final int count,
                         @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
@@ -182,7 +182,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
             List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, entity::spawnAtLocation);
     }
 
-    @Callback(description = MOVE_INTO_DESCRIPTION, returnValueDescription = "the number of items moved.")
+    @Callback(energy = 1, description = MOVE_INTO_DESCRIPTION, returnValueDescription = "the number of items moved.")
     public int moveInto(@Parameter(value = "fromSlot", description = "the slot to take items from.") final int fromSlot,
                         @Parameter(value = "count", description = "the number of items to move.") final int count) {
         final ItemHandler inventory = inventory();
@@ -196,7 +196,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
             List.of(ItemHandlerDeviceUtils.requireContainerItem(inventory, selectedSlot)), ItemHandlerUtils.ANY_SLOT, 0, count, entity::spawnAtLocation);
     }
 
-    @Callback(description = MOVE_FROM_DESCRIPTION, returnValueDescription = "the number of items moved.")
+    @Callback(energy = 1, description = MOVE_FROM_DESCRIPTION, returnValueDescription = "the number of items moved.")
     public int moveFrom(@Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
                         @Parameter(value = "count", description = "the number of items to move.") final int count) {
         final ItemHandler inventory = inventory();
@@ -236,7 +236,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         ItemHandlerProtocol.writeSlotLimit(requireItemHandlers(RobotOperationSide.byIndex(arguments.readU8())).getFirst(), arguments, results);
     }
 
-    @IOCallback(value = MOVE_CODE,
+    @IOCallback(energy = 1, value = MOVE_CODE,
         description = "Tries to move the specified number of items from one robot inventory slot to another.",
         argumentsDescription = "three bytes, the slot to extract items from, the slot to insert items into, and the number of items to move.",
         resultsDescription = "one byte, the number of items moved.")
@@ -244,7 +244,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         results.writeU8(move(arguments.readU8(), arguments.readU8(), arguments.readU8()));
     }
 
-    @IOCallback(value = DROP_CODE,
+    @IOCallback(energy = 1, value = DROP_CODE,
         description = DROP_DESCRIPTION,
         argumentsDescription = "two bytes: the number of items to drop, and the side to drop them in.",
         resultsDescription = "one byte, the number of items dropped.")
@@ -252,7 +252,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         results.writeU8(drop(arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = DROP_INTO_CODE,
+    @IOCallback(energy = 1, value = DROP_INTO_CODE,
         description = DROP_INTO_DESCRIPTION,
         argumentsDescription = "three bytes: the slot to insert items into, the number of items to drop, and the side of the inventory.",
         resultsDescription = "one byte, the number of items dropped.")
@@ -260,7 +260,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         results.writeU8(dropInto(arguments.readU8(), arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = TAKE_CODE,
+    @IOCallback(energy = 1, value = TAKE_CODE,
         description = TAKE_DESCRIPTION,
         argumentsDescription = "two bytes: the number of items to take, and the side to take them from.",
         resultsDescription = "one byte, the number of items taken.")
@@ -268,7 +268,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         results.writeU8(take(arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = TAKE_FROM_CODE,
+    @IOCallback(energy = 1, value = TAKE_FROM_CODE,
         description = TAKE_FROM_DESCRIPTION,
         argumentsDescription = "three bytes: the slot to take items from, the number of items to take, and the side of the inventory.",
         resultsDescription = "one byte, the number of items taken.")
@@ -276,7 +276,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         results.writeU8(takeFrom(arguments.readU8(), arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = MOVE_INTO_CODE,
+    @IOCallback(energy = 1, value = MOVE_INTO_CODE,
         description = MOVE_INTO_DESCRIPTION,
         argumentsDescription = "two bytes: the slot to extract items from, and the number of items to move.",
         resultsDescription = "one byte, the number of items moved.")
@@ -284,7 +284,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         results.writeU8(moveInto(arguments.readU8(), arguments.readU8()));
     }
 
-    @IOCallback(value = MOVE_FROM_CODE,
+    @IOCallback(energy = 1, value = MOVE_FROM_CODE,
         description = MOVE_FROM_DESCRIPTION,
         argumentsDescription = "two bytes: the slot to insert items into, and the number of items to move.",
         resultsDescription = "one byte, the number of items moved.")

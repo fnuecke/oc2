@@ -18,12 +18,14 @@ Tries to move fluid from a tank in the specified direction into the robot's tank
 - `amount`: the most millibuckets to move.
 - `side`: `front`, `up` or `down`. Optional, defaults to `front`.
 - Returns the amount moved in millibuckets.
+- Energy cost: `1`
 
 `fill(amount:number, [side:string]):number`
 Tries to move fluid from the robot's tank into a tank in the specified direction.
 - `amount`: the most millibuckets to move.
 - `side`: `front`, `up` or `down`. Optional, defaults to `front`.
 - Returns the amount moved in millibuckets.
+- Energy cost: `1`
 
 `getFluidInTank(tank:number, [side:string]):table`
 Gets what is in the specified tank of the container on the specified side.
@@ -46,11 +48,13 @@ Gets how many tanks the fluid container on the specified side has.
 Tries to move fluid from the container item in the selected slot into the robot's tank.
 - `amount`: the most millibuckets to move.
 - Returns the amount moved in millibuckets.
+- Energy cost: `1`
 
 `moveInto(amount:number):number`
 Tries to move fluid from the robot's tank into the container item, such as a bucket, in the selected slot.
 - `amount`: the most millibuckets to move.
 - Returns the amount moved in millibuckets.
+- Energy cost: `1`
 
 ## Mid-level API
 Device name: `TNKOPS`
@@ -63,21 +67,25 @@ Sides are numbered: `0` front, `1` up and `2` down. Fluid numbers are two bytes,
 Tries to move fluid from the robot's tank into a tank in the specified direction.
 - Takes five bytes: four bytes for the most millibuckets to move, and the side.
 - Returns four bytes, the amount moved.
+- Energy cost: `1`
 
 `2 drain`
 Tries to move fluid from a tank in the specified direction into the robot's tank.
 - Takes five bytes: four bytes for the most millibuckets to move, and the side.
 - Returns four bytes, the amount moved.
+- Energy cost: `1`
 
 `3 moveInto`
 Tries to move fluid from the robot's tank into the container item, such as a bucket, in the selected slot.
 - Takes four bytes, the most millibuckets to move.
 - Returns four bytes, the amount moved.
+- Energy cost: `1`
 
 `4 moveFrom`
 Tries to move fluid from the container item in the selected slot into the robot's tank.
 - Takes four bytes, the most millibuckets to move.
 - Returns four bytes, the amount moved.
+- Energy cost: `1`
 
 `5 getFluidTankCount`
 Reads how many tanks the container on that side has.

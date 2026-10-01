@@ -105,35 +105,35 @@ public final class TankOperationsModuleDevice extends AbstractItemDevice {
         return handler.getTankCapacity(FluidHandlerDeviceUtils.requireValidTank(handler, tank));
     }
 
-    @Callback(description = FILL_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
+    @Callback(energy = 1, description = FILL_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int fill(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount) {
         return fill(amount, null);
     }
 
-    @Callback(description = FILL_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
+    @Callback(energy = 1, description = FILL_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int fill(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount,
                     @Parameter(value = "side", description = SIDE_DESCRIPTION, optional = true) @Nullable final RobotOperationSide side) {
         return FluidHandlerUtils.transferFirst(List.of(tank()), requireFluidHandlersOrWorld(side), amount);
     }
 
-    @Callback(description = DRAIN_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
+    @Callback(energy = 1, description = DRAIN_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int drain(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount) {
         return drain(amount, null);
     }
 
-    @Callback(description = DRAIN_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
+    @Callback(energy = 1, description = DRAIN_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int drain(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount,
                      @Parameter(value = "side", description = SIDE_DESCRIPTION, optional = true) @Nullable final RobotOperationSide side) {
         return FluidHandlerUtils.transferFirst(requireFluidHandlersOrWorld(side), List.of(tank()), amount);
     }
 
-    @Callback(description = MOVE_INTO_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
+    @Callback(energy = 1, description = MOVE_INTO_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int moveInto(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount) {
         final FluidHandler item = FluidHandlerDeviceUtils.requireContainerItem(inventory(), robot.getSelectedSlot());
         return FluidHandlerUtils.transfer(tank(), amount, (stack, simulate) -> FluidHandlerUtils.insertFluidStack(item, stack, simulate));
     }
 
-    @Callback(description = MOVE_FROM_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
+    @Callback(energy = 1, description = MOVE_FROM_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int moveFrom(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount) {
         final FluidHandler item = FluidHandlerDeviceUtils.requireContainerItem(inventory(), robot.getSelectedSlot());
         return FluidHandlerUtils.transfer(item, amount, (stack, simulate) -> FluidHandlerUtils.insertFluidStack(tank(), stack, simulate));
@@ -165,7 +165,7 @@ public final class TankOperationsModuleDevice extends AbstractItemDevice {
         FluidHandlerProtocol.writeTankCapacity(requireFluidHandlers(RobotOperationSide.byIndex(arguments.readU8())).getFirst(), arguments, results);
     }
 
-    @IOCallback(value = FILL_CODE,
+    @IOCallback(energy = 1, value = FILL_CODE,
         description = FILL_DESCRIPTION,
         argumentsDescription = "five bytes: four bytes for the most millibuckets to move, and the side.",
         resultsDescription = "four bytes, the amount moved.")
@@ -174,7 +174,7 @@ public final class TankOperationsModuleDevice extends AbstractItemDevice {
         results.writeU32(fill(amount, RobotOperationSide.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = DRAIN_CODE,
+    @IOCallback(energy = 1, value = DRAIN_CODE,
         description = DRAIN_DESCRIPTION,
         argumentsDescription = "five bytes: four bytes for the most millibuckets to move, and the side.",
         resultsDescription = "four bytes, the amount moved.")
@@ -183,7 +183,7 @@ public final class TankOperationsModuleDevice extends AbstractItemDevice {
         results.writeU32(drain(amount, RobotOperationSide.byIndex(arguments.readU8())));
     }
 
-    @IOCallback(value = MOVE_INTO_CODE,
+    @IOCallback(energy = 1, value = MOVE_INTO_CODE,
         description = MOVE_INTO_DESCRIPTION,
         argumentsDescription = "four bytes, the most millibuckets to move.",
         resultsDescription = "four bytes, the amount moved.")
@@ -191,7 +191,7 @@ public final class TankOperationsModuleDevice extends AbstractItemDevice {
         results.writeU32(moveInto((int) Math.min(arguments.readU32(), Integer.MAX_VALUE)));
     }
 
-    @IOCallback(value = MOVE_FROM_CODE,
+    @IOCallback(energy = 1, value = MOVE_FROM_CODE,
         description = MOVE_FROM_DESCRIPTION,
         argumentsDescription = "four bytes, the most millibuckets to move.",
         resultsDescription = "four bytes, the amount moved.")

@@ -126,7 +126,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
             return false;
         }
 
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
+        final int selectedSlot = robot.getSelectedSlot();
         final ItemHandler inventory = inventory();
 
         final Direction direction = RobotOperationSide.toGlobal(entity, side);
@@ -182,7 +182,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
             return false;
         }
 
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
+        final int selectedSlot = robot.getSelectedSlot();
         final ItemHandler inventory = inventory();
 
         final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);

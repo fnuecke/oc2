@@ -5,6 +5,7 @@ package li.cil.oc2.common.capabilities.neoforge;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
+import li.cil.oc2.common.capabilities.ItemStackCapability;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.capabilities.Capabilities.FluidHandler;
 import net.neoforged.neoforge.capabilities.Capabilities.ItemHandler;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.ItemCapability;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
@@ -70,6 +72,22 @@ public final class CapabilitiesImpl {
         }
 
         return stack.getCapability(item(type));
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public static <T> ItemStackCapability<T> getModifiable(final ItemStack stack, final CapabilityType<T> type) {
+        if (type == Capabilities.ITEM_HANDLER) {
+            final IItemHandler handler = stack.getCapability(ItemHandler.ITEM);
+            return handler != null ? new ItemStackCapability<>((T) NeoForgeCapabilityAdapters.items(handler), () -> stack) : null;
+        }
+
+        if (type == Capabilities.FLUID_HANDLER) {
+            final IFluidHandlerItem handler = stack.getCapability(FluidHandler.ITEM);
+            return handler != null ? new ItemStackCapability<>((T) NeoForgeCapabilityAdapters.fluids(handler), handler::getContainer) : null;
+        }
+
+        throw new IllegalArgumentException("unsupported capability: " + type);
     }
 
     @Nullable

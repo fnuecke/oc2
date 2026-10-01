@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -36,6 +37,15 @@ public final class LevelUtils {
     }
 
     // --------------------------------------------------------------------- //
+
+    public static void requireWorldAccess(final ServerLevel level, final BlockPos pos, final Player player) {
+        if (!level.isLoaded(pos)) {
+            throw new IllegalStateException("not loaded");
+        }
+        if (!level.mayInteract(player, pos)) {
+            throw new IllegalStateException("not allowed");
+        }
+    }
 
     public static LongSupplier gameTimeSupplier(final Level level) {
         final WeakReference<LevelData> levelData = new WeakReference<>(level.getLevelData());

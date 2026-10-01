@@ -32,6 +32,10 @@ import java.util.List;
  * change with the inverse operation if the transaction is aborted. It is what it is.
  */
 public final class FabricCapabilityAdapters {
+    private static final long DROPLETS_PER_MILLIBUCKET = FluidConstants.BUCKET / FluidHandler.BUCKET;
+
+    // --------------------------------------------------------------------- //
+
     @Nullable
     public static EnergyHandler energy(@Nullable final team.reborn.energy.api.EnergyStorage storage) {
         return storage == null ? null : new EnergyHandlerAdapter(storage);
@@ -53,6 +57,10 @@ public final class FabricCapabilityAdapters {
 
     public static Storage<ItemVariant> toFabric(final ItemHandler handler) {
         return new ReverseItemHandlerAdapter(handler);
+    }
+
+    public static Storage<FluidVariant> toFabric(final FluidHandler handler) {
+        return new ReverseFluidHandlerAdapter(handler);
     }
 
     @SuppressWarnings("deprecation")
@@ -417,8 +425,6 @@ public final class FabricCapabilityAdapters {
     // --------------------------------------------------------------------- //
 
     private record FluidHandlerAdapter(Storage<FluidVariant> inner) implements FluidHandler {
-        private static final long DROPLETS_PER_MILLIBUCKET = FluidConstants.BUCKET / FluidHandler.BUCKET;
-
         @Override
         public int getTanks() {
             return tanks().size();
@@ -522,26 +528,122 @@ public final class FabricCapabilityAdapters {
             return tanks;
         }
 
-        private static FluidStack fromFabric(final FluidVariant variant, final int millibuckets) {
-            return new FluidStack(variant.getFluid(), variant.getComponents(), millibuckets);
-        }
-
-        private static FluidVariant toFabric(final FluidStack stack) {
-            return FluidVariant.of(stack.fluid(), stack.components());
-        }
-
-        private static long droplets(final int millibuckets) {
-            return millibuckets * DROPLETS_PER_MILLIBUCKET;
-        }
-
-        private static int millibuckets(final long droplets) {
-            return (int) Math.min(droplets / DROPLETS_PER_MILLIBUCKET, Integer.MAX_VALUE);
-        }
-
         @FunctionalInterface
         private interface Transfer {
             long apply(long droplets, TransactionContext transaction);
         }
+    }
+
+    private record ReverseFluidHandlerAdapter(FluidHandler inner) implements Storage<FluidVariant> {
+        @Override
+        public long insert(final FluidVariant resource, final long maxAmount, final TransactionContext transaction) {
+            final FluidStack stack = fromFabric(resource, millibuckets(maxAmount));
+            return stack.isEmpty() ? 0 : droplets(new FluidMovement(inner, stack).fill(transaction));
+        }
+
+        @Override
+        public long extract(final FluidVariant resource, final long maxAmount, final TransactionContext transaction) {
+            final FluidStack stack = fromFabric(resource, millibuckets(maxAmount));
+            return stack.isEmpty() ? 0 : droplets(new FluidMovement(inner, stack).drain(transaction));
+        }
+
+        @Override
+        public java.util.Iterator<StorageView<FluidVariant>> iterator() {
+            final List<StorageView<FluidVariant>> tanks = new ArrayList<>();
+            for (int tank = 0; tank < inner.getTanks(); tank++) {
+                tanks.add(new TankView(this, tank));
+            }
+            return tanks.iterator();
+        }
+    }
+
+    private record TankView(ReverseFluidHandlerAdapter storage, int tank) implements StorageView<FluidVariant> {
+        @Override
+        public long extract(final FluidVariant resource, final long maxAmount, final TransactionContext transaction) {
+            return resource.equals(getResource()) ? storage.extract(resource, maxAmount, transaction) : 0;
+        }
+
+        @Override
+        public boolean isResourceBlank() {
+            return getResource().isBlank();
+        }
+
+        @Override
+        public FluidVariant getResource() {
+            final FluidStack stack = storage.inner().getFluidInTank(tank);
+            return stack.isEmpty() ? FluidVariant.blank() : toFabric(stack);
+        }
+
+        @Override
+        public long getAmount() {
+            return droplets(storage.inner().getFluidInTank(tank).amount());
+        }
+
+        @Override
+        public long getCapacity() {
+            return droplets(storage.inner().getTankCapacity(tank));
+        }
+    }
+
+    private static final class FluidMovement extends SnapshotParticipant<Integer> {
+        private final FluidHandler inner;
+        private final FluidStack stack;
+        private int moved;
+
+        private FluidMovement(final FluidHandler inner, final FluidStack stack) {
+            this.inner = inner;
+            this.stack = stack;
+        }
+
+        int fill(final TransactionContext transaction) {
+            final int filled = inner.fill(stack, false);
+            if (filled > 0) {
+                updateSnapshots(transaction);
+                moved += filled;
+            }
+            return filled;
+        }
+
+        int drain(final TransactionContext transaction) {
+            final int drained = inner.drain(stack, false).amount();
+            if (drained > 0) {
+                updateSnapshots(transaction);
+                moved -= drained;
+            }
+            return drained;
+        }
+
+        @Override
+        protected Integer createSnapshot() {
+            return moved;
+        }
+
+        @Override
+        protected void readSnapshot(final Integer snapshot) {
+            final int delta = moved - snapshot;
+            if (delta > 0) {
+                inner.drain(stack.withAmount(delta), false);
+            } else if (delta < 0) {
+                inner.fill(stack.withAmount(-delta), false);
+            }
+            moved = snapshot;
+        }
+    }
+
+    private static FluidStack fromFabric(final FluidVariant variant, final int millibuckets) {
+        return new FluidStack(variant.getFluid(), variant.getComponents(), millibuckets);
+    }
+
+    private static FluidVariant toFabric(final FluidStack stack) {
+        return FluidVariant.of(stack.fluid(), stack.components());
+    }
+
+    private static long droplets(final int millibuckets) {
+        return millibuckets * DROPLETS_PER_MILLIBUCKET;
+    }
+
+    private static int millibuckets(final long droplets) {
+        return (int) Math.min(droplets / DROPLETS_PER_MILLIBUCKET, Integer.MAX_VALUE);
     }
 
     private FabricCapabilityAdapters() {

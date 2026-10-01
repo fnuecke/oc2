@@ -133,6 +133,7 @@ public final class TransposerTests {
         helper.setBlock(TRANSPOSER_POS, li.cil.oc2.common.block.Blocks.TRANSPOSER.get());
         helper.setBlock(SOURCE_POS, Blocks.CHEST);
         helper.setBlock(TARGET_POS, Blocks.CHEST);
+        helper.setBlock(TRANSPOSER_POS.above(), Blocks.STONE);
         return helper.getBlockEntity(TRANSPOSER_POS);
     }
 

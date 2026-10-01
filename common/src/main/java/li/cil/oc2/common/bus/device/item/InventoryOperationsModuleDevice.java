@@ -7,32 +7,30 @@ import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
+import li.cil.oc2.common.bus.device.util.ItemHandlerDeviceUtils;
 import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ItemHandlerUtils;
 import li.cil.oc2.common.inventory.ItemHandler;
-import net.minecraft.core.BlockPos;
+import li.cil.oc2.common.util.FakePlayerUtils;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RPCDeviceDescription(typeNames = {"inventory_operations"}, description = """
     Provided by the [inventory operations module](../item/inventory_operations_module.md) to robots.
 
-    ### Sides
-    The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.""")
+    The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.
+
+    Allows operating the internal inventory, as well as inspecting and operating block and entity containers. If neither external container type is present, space permitting, items are dropped into the world or picked up.
+
+    Sides without a container report no inventory, which allows predicting world interaction, e.g. to ensure things are never dumped into the world.""")
 @IODeviceDescription(name = "INVOPS", description = """
     Sides are numbered: `0` front, `1` up and `2` down.""")
 public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
@@ -41,6 +39,11 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
     private static final int DROP_INTO_CODE = 3;
     private static final int TAKE_CODE = 4;
     private static final int TAKE_FROM_CODE = 5;
+    private static final int MOVE_INTO_CODE = 6;
+    private static final int MOVE_FROM_CODE = 7;
+    private static final int GET_ITEM_SLOT_COUNT_CODE = 8;
+    private static final int GET_ITEM_SLOTS_CODE = 9;
+    private static final int GET_ITEM_SLOT_LIMIT_CODE = 10;
 
     private static final String DROP_DESCRIPTION = "Tries to drop items from the selected slot in the specified direction. Items are " +
         "dropped into an inventory, or into the world if no inventory is present.";
@@ -50,6 +53,12 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         "taken from an inventory, or from the world if no inventory is present.";
     private static final String TAKE_FROM_DESCRIPTION = "Tries to take the specified number of items from the specified slot of an inventory " +
         "in the specified direction. Items are only taken from an inventory, never from the world.";
+    private static final String MOVE_INTO_DESCRIPTION = "Tries to move items from the specified robot inventory slot into a " +
+        "container item, such as a shulker box, in the selected slot.";
+    private static final String MOVE_FROM_DESCRIPTION = "Tries to move items out of a container item in the selected slot " +
+        "into the specified robot inventory slot.";
+
+    // --------------------------------------------------------------------- //
 
     private final Entity entity;
     private final Robot robot;
@@ -64,33 +73,61 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
 
     // --------------------------------------------------------------------- //
 
-    @Callback(description = "Tries to move the specified number of items from one robot inventory slot to another.")
-    public void move(@Parameter(value = "fromSlot", description = "the slot to extract items from.") final int fromSlot,
-                     @Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
-                     @Parameter(value = "count", description = "the number of items to move.") final int count) {
-        if (count <= 0) {
-            return;
-        }
+    @Callback(description = "Gets how many slots the inventory on the specified side has.",
+        returnValueDescription = "the number of slots, or `0` if there is no inventory on that side.")
+    public int getItemSlotCount() {
+        return getItemSlotCount(null);
+    }
 
+    @Callback(description = "Gets how many slots the inventory on the specified side has.",
+        returnValueDescription = "the number of slots, or `0` if there is no inventory on that side.")
+    public int getItemSlotCount(@Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
+        final List<ItemHandler> handlers = getItemHandlers(side);
+        return handlers.isEmpty() ? 0 : handlers.getFirst().getSlots();
+    }
+
+    @Callback(description = "Gets what is in the specified slot of the inventory on the specified side.",
+        returnValueDescription = "a table with the item information. Returns nothing for an empty slot.")
+    public ItemStack getItemStackInSlot(@Parameter(value = "slot", description = "the slot to inspect.") final int slot) {
+        return getItemStackInSlot(slot, null);
+    }
+
+    @Callback(description = "Gets what is in the specified slot of the inventory on the specified side.",
+        returnValueDescription = "a table with the item information. Returns nothing for an empty slot.")
+    public ItemStack getItemStackInSlot(@Parameter(value = "slot", description = "the slot to inspect.") final int slot,
+                                        @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
+        final ItemHandler handler = requireItemHandlers(side).getFirst();
+        return handler.getStackInSlot(ItemHandlerDeviceUtils.requireValidSlot(handler, slot));
+    }
+
+    @Callback(description = "Gets how many items the specified slot of the inventory on the specified side can hold.",
+        returnValueDescription = "the most items the slot takes.")
+    public int getItemSlotLimit(@Parameter(value = "slot", description = "the slot to inspect.") final int slot) {
+        return getItemSlotLimit(slot, null);
+    }
+
+    @Callback(description = "Gets how many items the specified slot of the inventory on the specified side can hold.",
+        returnValueDescription = "the most items the slot takes.")
+    public int getItemSlotLimit(@Parameter(value = "slot", description = "the slot to inspect.") final int slot,
+                                @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
+        final ItemHandler handler = requireItemHandlers(side).getFirst();
+        return handler.getSlotLimit(ItemHandlerDeviceUtils.requireValidSlot(handler, slot));
+    }
+
+    @Callback(description = "Tries to move the specified number of items from one robot inventory slot to another.",
+        returnValueDescription = "the number of items moved.")
+    public int move(@Parameter(value = "fromSlot", description = "the slot to extract items from.") final int fromSlot,
+                    @Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
+                    @Parameter(value = "count", description = "the number of items to move.") final int count) {
         final ItemHandler inventory = inventory();
-        ItemHandlerProtocol.requireValidSlot(inventory, fromSlot);
-        ItemHandlerProtocol.requireValidSlot(inventory, intoSlot);
-
-        // Do simulation run, validating slot indices and getting actual amount possible to move.
-        ItemStack extracted = inventory.extractItem(fromSlot, count, true);
-        ItemStack remaining = inventory.insertItem(intoSlot, extracted, true);
-
-        // Do actual run, move as many as we know we can, based on simulation.
-        extracted = inventory.extractItem(fromSlot, extracted.getCount() - remaining.getCount(), false);
-        remaining = inventory.insertItem(intoSlot, extracted, false);
-
-        // But don't trust simulation; if something is remaining after actual run, try to put it back.
-        remaining = inventory.insertItem(fromSlot, remaining, false);
-
-        // And if putting it back fails, just drop it. Avoid destroying items.
-        if (!remaining.isEmpty()) {
-            entity.spawnAtLocation(remaining);
+        ItemHandlerDeviceUtils.requireValidSlot(inventory, fromSlot);
+        ItemHandlerDeviceUtils.requireValidSlot(inventory, intoSlot);
+        if (fromSlot == intoSlot) {
+            return 0;
         }
+
+        return ItemHandlerUtils.transfer(inventory, fromSlot, count,
+            (stack, simulate) -> inventory.insertItem(intoSlot, stack, simulate), entity::spawnAtLocation);
     }
 
     @Callback(description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
@@ -101,87 +138,22 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
     @Callback(description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
     public int drop(@Parameter(value = "count", description = "the number of items to drop.") final int count,
                     @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
-        if (count <= 0) {
-            return 0;
-        }
-
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-
-        ItemStack stack = inventory().extractItem(selectedSlot, count, false);
-        if (stack.isEmpty()) {
-            return 0;
-        }
-
-        final int originalStackSize = stack.getCount();
-        final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        final List<ItemHandler> itemHandlers = getItemStackHandlersInDirection(direction).toList();
-        for (final ItemHandler handler : itemHandlers) {
-            stack = ItemHandlerUtils.insertItemStack(handler, stack, false);
-
-            if (stack.isEmpty()) {
-                break;
-            }
-        }
-
-        // When we have items left, but there was an inventory, do *not* drop into the world.
-        // Instead, try to put items back where they came from. Only failing that drop them
-        // into the world.
-        int dropped = originalStackSize - stack.getCount();
-        if (!stack.isEmpty() && !itemHandlers.isEmpty()) {
-            stack = inventory().insertItem(selectedSlot, stack, false);
-        }
-
-        if (!stack.isEmpty()) {
-            dropped += stack.getCount();
-            entity.spawnAtLocation(stack);
-        }
-
-        return dropped;
+        return ItemHandlerUtils.transferFirst(List.of(inventory()), robot.getSelectedSlot(),
+            requireItemHandlersOrWorld(side), ItemHandlerUtils.ANY_SLOT, 0, count, entity::spawnAtLocation);
     }
 
     @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
-    public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert the items into.") final int intoSlot,
+    public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
                         @Parameter(value = "count", description = "the number of items to drop.") final int count) {
         return dropInto(intoSlot, count, null);
     }
 
     @Callback(description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
-    public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert the items into.") final int intoSlot,
+    public int dropInto(@Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
                         @Parameter(value = "count", description = "the number of items to drop.") final int count,
                         @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
-        if (count <= 0) {
-            return 0;
-        }
-
-        final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        final Optional<ItemHandler> optional = getItemStackHandlersInDirection(direction).findFirst();
-        optional.ifPresent(handler -> ItemHandlerProtocol.requireValidSlot(handler, intoSlot));
-
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-
-        ItemStack stack = inventory().extractItem(selectedSlot, count, false);
-        if (stack.isEmpty()) {
-            return 0;
-        }
-
-        final int originalStackSize = stack.getCount();
-        if (optional.isPresent()) {
-            stack = optional.get().insertItem(intoSlot, stack, false);
-        }
-
-        // Subtle difference to drop(), we always try to put the remainder back. This method
-        // attempts to never drop anything into the world.
-        int dropped = originalStackSize - stack.getCount();
-        if (!stack.isEmpty()) {
-            stack = inventory().insertItem(selectedSlot, stack, false);
-        }
-
-        if (!stack.isEmpty()) {
-            dropped += stack.getCount();
-            entity.spawnAtLocation(stack);
-        }
-
-        return dropped;
+        return ItemHandlerUtils.transferFirst(List.of(inventory()), robot.getSelectedSlot(),
+            ItemHandlerDeviceUtils.requireItemHandlersWithSlot(requireItemHandlers(side), intoSlot), intoSlot, 0, count, entity::spawnAtLocation);
     }
 
     @Callback(description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
@@ -192,45 +164,84 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
     @Callback(description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
     public int take(@Parameter(value = "count", description = "the number of items to take.") final int count,
                     @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
-        if (count <= 0) {
-            return 0;
-        }
-
-        final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        final List<ItemHandler> handlers = getItemStackHandlersInDirection(direction).collect(Collectors.toList());
-        if (handlers.isEmpty()) {
-            return takeFromWorld(count);
-        } else {
-            return takeFromInventories(count, handlers);
-        }
+        return ItemHandlerUtils.transferFirst(requireItemHandlersOrWorld(side), ItemHandlerUtils.ANY_SLOT,
+            List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, entity::spawnAtLocation);
     }
 
     @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
-    public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take the items from.") final int fromSlot,
+    public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take items from.") final int fromSlot,
                         @Parameter(value = "count", description = "the number of items to take.") final int count) {
         return takeFrom(fromSlot, count, null);
     }
 
     @Callback(description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
-    public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take the items from.") final int fromSlot,
+    public int takeFrom(@Parameter(value = "fromSlot", description = "the slot to take items from.") final int fromSlot,
                         @Parameter(value = "count", description = "the number of items to take.") final int count,
                         @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
-        if (count <= 0) {
+        return ItemHandlerUtils.transferFirst(ItemHandlerDeviceUtils.requireItemHandlersWithSlot(requireItemHandlers(side), fromSlot), fromSlot,
+            List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, entity::spawnAtLocation);
+    }
+
+    @Callback(description = MOVE_INTO_DESCRIPTION, returnValueDescription = "the number of items moved.")
+    public int moveInto(@Parameter(value = "fromSlot", description = "the slot to take items from.") final int fromSlot,
+                        @Parameter(value = "count", description = "the number of items to move.") final int count) {
+        final ItemHandler inventory = inventory();
+        ItemHandlerDeviceUtils.requireValidSlot(inventory, fromSlot);
+        final int selectedSlot = robot.getSelectedSlot();
+        if (fromSlot == selectedSlot) {
             return 0;
         }
 
-        final Direction direction = RobotOperationSide.toGlobal(entity, side);
-        return getItemStackHandlersInDirection(direction).findFirst().map(handler ->
-            takeFromInventory(count, handler, ItemHandlerProtocol.requireValidSlot(handler, fromSlot))).orElse(0);
+        return ItemHandlerUtils.transferFirst(List.of(inventory), fromSlot,
+            List.of(ItemHandlerDeviceUtils.requireContainerItem(inventory, selectedSlot)), ItemHandlerUtils.ANY_SLOT, 0, count, entity::spawnAtLocation);
+    }
+
+    @Callback(description = MOVE_FROM_DESCRIPTION, returnValueDescription = "the number of items moved.")
+    public int moveFrom(@Parameter(value = "intoSlot", description = "the slot to insert items into.") final int intoSlot,
+                        @Parameter(value = "count", description = "the number of items to move.") final int count) {
+        final ItemHandler inventory = inventory();
+        ItemHandlerDeviceUtils.requireValidSlot(inventory, intoSlot);
+        final int selectedSlot = robot.getSelectedSlot();
+        if (intoSlot == selectedSlot) {
+            return 0;
+        }
+
+        return ItemHandlerUtils.transferFirst(List.of(ItemHandlerDeviceUtils.requireContainerItem(inventory, selectedSlot)), ItemHandlerUtils.ANY_SLOT,
+            List.of(inventory), intoSlot, 0, count, entity::spawnAtLocation);
     }
 
     // --------------------------------------------------------------------- //
 
+    @IOCallback(value = GET_ITEM_SLOT_COUNT_CODE,
+        description = "Reads how many slots the inventory on that side has.",
+        argumentsDescription = "one byte, the side.",
+        resultsDescription = "one byte, the slot count, at most 255. A side without an inventory reads as 0.")
+    public void getItemSlotCount(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(Math.min(getItemSlotCount(RobotOperationSide.byIndex(arguments.readU8())), 0xFF));
+    }
+
+    @IOCallback(value = GET_ITEM_SLOTS_CODE,
+        description = "Reads a run of slots of the inventory on that side.",
+        argumentsDescription = "three bytes, the side, the slot to start at and how many slots to read, from 1 to 64.",
+        resultsDescription = "four bytes per slot: the item as two bytes, the number of items up to 255, and damage.")
+    public void getItemSlots(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        ItemHandlerProtocol.writeSlots(requireItemHandlers(RobotOperationSide.byIndex(arguments.readU8())).getFirst(), arguments, results);
+    }
+
+    @IOCallback(value = GET_ITEM_SLOT_LIMIT_CODE,
+        description = "Reads how much a slot of the inventory on that side can hold.",
+        argumentsDescription = "two bytes, the side and the slot.",
+        resultsDescription = "one byte, the limit, at most 255.")
+    public void getItemSlotLimit(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        ItemHandlerProtocol.writeSlotLimit(requireItemHandlers(RobotOperationSide.byIndex(arguments.readU8())).getFirst(), arguments, results);
+    }
+
     @IOCallback(value = MOVE_CODE,
         description = "Tries to move the specified number of items from one robot inventory slot to another.",
-        argumentsDescription = "three bytes, the slot to extract items from, the slot to insert items into, and the number of items to move.")
-    public void move(final IOInputStream arguments) throws IOException {
-        move(arguments.readU8(), arguments.readU8(), arguments.readU8());
+        argumentsDescription = "three bytes, the slot to extract items from, the slot to insert items into, and the number of items to move.",
+        resultsDescription = "one byte, the number of items moved.")
+    public void move(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(move(arguments.readU8(), arguments.readU8(), arguments.readU8()));
     }
 
     @IOCallback(value = DROP_CODE,
@@ -243,7 +254,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
 
     @IOCallback(value = DROP_INTO_CODE,
         description = DROP_INTO_DESCRIPTION,
-        argumentsDescription = "three bytes: the slot to insert the items into, the number of items to drop, and the side of the inventory.",
+        argumentsDescription = "three bytes: the slot to insert items into, the number of items to drop, and the side of the inventory.",
         resultsDescription = "one byte, the number of items dropped.")
     public void dropInto(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(dropInto(arguments.readU8(), arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
@@ -259,147 +270,47 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
 
     @IOCallback(value = TAKE_FROM_CODE,
         description = TAKE_FROM_DESCRIPTION,
-        argumentsDescription = "three bytes: the slot to take the items from, the number of items to take, and the side of the inventory.",
+        argumentsDescription = "three bytes: the slot to take items from, the number of items to take, and the side of the inventory.",
         resultsDescription = "one byte, the number of items taken.")
     public void takeFrom(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         results.writeU8(takeFrom(arguments.readU8(), arguments.readU8(), RobotOperationSide.byIndex(arguments.readU8())));
     }
 
+    @IOCallback(value = MOVE_INTO_CODE,
+        description = MOVE_INTO_DESCRIPTION,
+        argumentsDescription = "two bytes: the slot to extract items from, and the number of items to move.",
+        resultsDescription = "one byte, the number of items moved.")
+    public void moveInto(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(moveInto(arguments.readU8(), arguments.readU8()));
+    }
+
+    @IOCallback(value = MOVE_FROM_CODE,
+        description = MOVE_FROM_DESCRIPTION,
+        argumentsDescription = "two bytes: the slot to insert items into, and the number of items to move.",
+        resultsDescription = "one byte, the number of items moved.")
+    public void moveFrom(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+        results.writeU8(moveFrom(arguments.readU8(), arguments.readU8()));
+    }
+
     // --------------------------------------------------------------------- //
 
-    private ItemStack insertStartingAt(final ItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
-        for (int i = 0; i < handler.getSlots(); i++) {
-            final int slot = (startSlot + i) % handler.getSlots();
-            stack = handler.insertItem(slot, stack, simulate);
-            if (stack.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
-        }
-
-        return stack;
+    private List<ItemHandler> getItemHandlers(@Nullable final RobotOperationSide side) {
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
+        return Capabilities.getAll((ServerLevel) entity.level(), entity.blockPosition().relative(direction),
+            Capabilities.ITEM_HANDLER, direction.getOpposite(), entity);
     }
 
-    private Stream<ItemHandler> getItemStackHandlersInDirection(final Direction direction) {
-        return getItemStackHandlersAt(Vec3.atCenterOf(entity.blockPosition().relative(direction)), direction.getOpposite());
+    private List<ItemHandler> requireItemHandlers(@Nullable final RobotOperationSide side) {
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
+        return ItemHandlerDeviceUtils.requireItemHandlers((ServerLevel) entity.level(), entity.blockPosition().relative(direction),
+            direction.getOpposite(), entity, side != null ? side : RobotOperationSide.FRONT);
     }
 
-    private Stream<ItemHandler> getItemStackHandlersAt(final Vec3 position, final Direction side) {
-        return Stream.concat(getEntityItemHandlersAt(position, side), getBlockItemHandlersAt(position, side));
-    }
-
-    private Stream<ItemHandler> getEntityItemHandlersAt(final Vec3 position, final Direction side) {
-        final AABB bounds = AABB.unitCubeFromLowerCorner(position.subtract(0.5, 0.5, 0.5));
-        return entity.level().getEntities(entity, bounds).stream()
-            .map(e -> Capabilities.get(e, Capabilities.ITEM_HANDLER, side))
-            .filter(Objects::nonNull);
-    }
-
-    private Stream<ItemHandler> getBlockItemHandlersAt(final Vec3 position, final Direction side) {
-        final BlockPos pos = BlockPos.containing(position);
-        final BlockEntity blockEntity = entity.level().getBlockEntity(pos);
-        if (blockEntity == null) {
-            return Stream.empty();
-        }
-
-        final ItemHandler itemHandler = Capabilities.get(blockEntity, Capabilities.ITEM_HANDLER, side);
-        return itemHandler != null ? Stream.of(itemHandler) : Stream.empty();
-    }
-
-    private List<ItemEntity> getItemsInRange() {
-        return entity.level().getEntitiesOfClass(ItemEntity.class, entity.getBoundingBox().inflate(1));
-    }
-
-    private int takeFromWorld(final int count) {
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemHandler inventory = inventory();
-
-        int remaining = count;
-        for (final ItemEntity itemEntity : getItemsInRange()) {
-            // NB: We make a copy of the original so that the setItem at the end sends an update to the client.
-            final ItemStack original = itemEntity.getItem().copy();
-
-            final ItemStack stackToInsert = original.copy();
-            if (stackToInsert.getCount() > remaining) {
-                stackToInsert.setCount(remaining);
-            }
-
-            final ItemStack overflow = insertStartingAt(inventory, stackToInsert, selectedSlot, false);
-            final int taken = stackToInsert.getCount() - overflow.getCount();
-
-            remaining -= taken;
-            original.shrink(taken);
-            itemEntity.setItem(original);
-        }
-
-        return count - remaining;
-    }
-
-    private int takeFromInventories(final int count, final List<ItemHandler> handlers) {
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-        final ItemHandler inventory = inventory();
-
-        int remaining = count;
-        for (final ItemHandler handler : handlers) {
-            for (int fromSlot = 0; fromSlot < handler.getSlots(); fromSlot++) {
-                // Do simulation run, getting actual amount possible to take.
-                ItemStack extracted = handler.extractItem(fromSlot, remaining, true);
-                ItemStack overflow = insertStartingAt(inventory, extracted, selectedSlot, true);
-
-                final int delta = extracted.getCount() - overflow.getCount();
-                if (delta == 0) {
-                    continue;
-                }
-
-                remaining -= delta;
-
-                // Do actual run, take as many as we know we can, based on simulation.
-                extracted = handler.extractItem(fromSlot, delta, false);
-                overflow = insertStartingAt(inventory, extracted, selectedSlot, false);
-
-                // But don't trust simulation; if something is remaining after actual run, try to put it back.
-                remaining += overflow.getCount();
-                overflow = handler.insertItem(fromSlot, overflow, false);
-
-                // And if putting it back fails, just drop it. Avoid destroying items.
-                if (!overflow.isEmpty()) {
-                    remaining -= overflow.getCount();
-                    entity.spawnAtLocation(overflow);
-                }
-            }
-
-            if (remaining <= 0) {
-                break;
-            }
-        }
-
-        return count - remaining;
-    }
-
-    private int takeFromInventory(final int count, final ItemHandler handler, final int slot) {
-        final ItemHandler inventory = inventory();
-        final int selectedSlot = robot.getSelectedSlot(); // Get once to avoid change due to threading.
-
-        // Do simulation run, getting actual amount possible to take.
-        ItemStack extracted = handler.extractItem(slot, count, true);
-        ItemStack overflow = insertStartingAt(inventory, extracted, selectedSlot, true);
-
-        int taken = extracted.getCount() - overflow.getCount();
-
-        // Do actual run, take as many as we know we can, based on simulation.
-        extracted = handler.extractItem(slot, taken, false);
-        overflow = insertStartingAt(inventory, extracted, selectedSlot, false);
-
-        // But don't trust simulation; if something is remaining after actual run, try to put it back.
-        taken -= overflow.getCount();
-        overflow = handler.insertItem(slot, overflow, false);
-
-        // And if putting it back fails, just drop it. Avoid destroying items.
-        if (!overflow.isEmpty()) {
-            // NB: not counting this towards taken count since it did not end up in our inventory.
-            entity.spawnAtLocation(overflow);
-        }
-
-        return taken;
+    private List<ItemHandler> requireItemHandlersOrWorld(@Nullable final RobotOperationSide side) {
+        final Direction direction = RobotOperationSide.toGlobal(entity, side);
+        final ServerLevel level = (ServerLevel) entity.level();
+        return ItemHandlerDeviceUtils.requireItemHandlersOrWorld(level, entity.blockPosition().relative(direction), direction.getOpposite(),
+            entity, FakePlayerUtils.getFakePlayer(level, entity), side != null ? side : RobotOperationSide.FRONT);
     }
 
     private ItemHandler inventory() {

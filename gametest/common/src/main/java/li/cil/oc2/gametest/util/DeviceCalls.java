@@ -130,14 +130,21 @@ public final class DeviceCalls {
     }
 
     private static Optional<RPCMethod> findMethod(final RPCDevice device, final String name, final RPCInvocation invocation) {
+        boolean found = false;
         for (final RPCMethodGroup group : device.getMethodGroups()) {
             if (!name.equals(group.getName())) {
                 continue;
             }
-            return Optional.of(group.findOverload(invocation)
-                .orElseThrow(() -> new GameTestAssertException("no " + name + " overload matched the arguments")));
+            found = true;
+            final Optional<RPCMethod> overload = group.findOverload(invocation);
+            if (overload.isPresent()) {
+                return overload;
+            }
         }
 
+        if (found) {
+            throw new GameTestAssertException("no " + name + " overload matched the arguments");
+        }
         return Optional.empty();
     }
 

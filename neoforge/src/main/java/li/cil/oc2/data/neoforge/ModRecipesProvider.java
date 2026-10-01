@@ -493,6 +493,17 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.TANK_OPERATIONS_MODULE.get())
+            .pattern("TUC")
+            .pattern(" B ")
+            .define('T', Items.TRANSISTOR.get())
+            .define('U', Tags.Items.BUCKETS_EMPTY)
+            .define('C', Tags.Items.INGOTS_COPPER)
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.BLOCK_OPERATIONS_MODULE.get())
             .pattern("TPC")
             .pattern(" B ")

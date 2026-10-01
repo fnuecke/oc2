@@ -4,14 +4,14 @@
 ## Building a Robot
 A robot is configured much like a computer, with two differences.
 
-It cannot connect to [bus cables](block/bus_cable.md), so all its devices must be installed in the robot itself. In place of cards, robots take modules: the [block operations module](item/block_operations_module.md), the [inventory operations module](item/inventory_operations_module.md) and the [network tunnel module](item/network_tunnel_module.md).
+It cannot connect to [bus cables](block/bus_cable.md), so all its devices must be installed in the robot itself. In place of cards, robots take modules such as the [block operations module](item/block_operations_module.md).
 
-It has two inventories. The component inventory holds the processor, memory, storage and modules, and must be filled by hand. The regular inventory is the robot's storage, and the only one a hopper or similar machine can use.
+It has two inventories. One for internal components: the processor, memory, modules. This one must be maintained by hand. Another, regular inventory, which is the robot's main storage. This is what automated interaction works with, such as when using a hopper. It also has a built-in tank, which may be automated like the storage inventory, e.g. using a transposer.
 
 ## Energy
 A robot draws energy from its internal storage for as long as its computer runs. Consumption depends on the installed components; moving and turning cost nothing on top of that. When it runs out, the computer stops with an out-of-energy error, wherever the robot is.
 
-Recharge using a [charger](block/charger.md). A robot can move onto one by itself, so an unattended recharge is easy to script. Breaking a robot and picking it up preserves its energy and its inventory, including the installed components.
+Recharge using a [charger](block/charger.md). A robot can move onto one by itself, so an unattended recharge is easy to script. Breaking a robot and picking it up preserves its energy, its inventory, including the installed components, and its tank.
 
 ## Action Queue
 `move` and `turn` do not move the robot synchronously. They append an action to a queue and return whether there was room for it. The robot then runs the queue one action at a time. Moving one block takes a second, turning ninety degrees takes a second.

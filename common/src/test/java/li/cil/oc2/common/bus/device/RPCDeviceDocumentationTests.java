@@ -10,6 +10,7 @@ import li.cil.oc2.api.bus.device.rpc.RPCParameter;
 import li.cil.oc2.common.bus.device.item.AbstractItemDevice;
 import li.cil.oc2.common.bus.device.item.BlockOperationsModuleDevice;
 import li.cil.oc2.common.bus.device.item.InventoryOperationsModuleDevice;
+import li.cil.oc2.common.bus.device.item.TankOperationsModuleDevice;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,8 @@ public class RPCDeviceDocumentationTests {
     private static List<AbstractItemDevice> documentedRobotModules() {
         return List.of(
             new BlockOperationsModuleDevice(ItemStack.EMPTY, null, null),
-            new InventoryOperationsModuleDevice(ItemStack.EMPTY, null, null));
+            new InventoryOperationsModuleDevice(ItemStack.EMPTY, null, null),
+            new TankOperationsModuleDevice(ItemStack.EMPTY, null, null));
     }
 
     private static Set<RPCMethod> overloadsOf(final List<RPCMethodGroup> groups, final String name) {

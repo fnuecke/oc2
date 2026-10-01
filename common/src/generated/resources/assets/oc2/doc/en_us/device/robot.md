@@ -35,6 +35,10 @@ Gets the maximum amount of energy that can be stored in the robot's internal ene
 Gets the current amount of energy stored in the robot's internal energy storage.
 - Returns the stored amount of energy.
 
+`getFluid():table`
+Gets what is in the robot's tank.
+- Returns a description of the fluid in the tank.
+
 `getLastActionId():number`
 Gets the opaque id of the last enqueued action. Call this after a successful `move()` or `turn()` call to obtain the id associated with the enqueued action.
 - Returns the id of the last enqueued action.
@@ -88,7 +92,7 @@ Tries to enqueue a turn action towards the specified direction.
 ## Mid-level API
 Device name: `ROBOT`
 
-Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.
+Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
 
 ### Events
 `1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.
@@ -125,7 +129,7 @@ Reads what is in an inventory slot.
 `7 getItemName`
 Reads the name of an item.
 - Takes two bytes, the item id.
-- Returns the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to get all of it.
+- Returns the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to read fully.
 
 `8 getItemId`
 Looks an item up by name.
@@ -170,3 +174,17 @@ Reads how far the status light is filled.
 `17 setStatusValue`
 Sets how far the status light is filled.
 - Takes one byte, the fill value, where `0` is empty and `255` is full.
+
+`18 getFluid`
+Reads what is in the robot's tank.
+- Returns six bytes: the fluid as two bytes and the amount as four bytes. An empty tank reads as fluid 0.
+
+`19 getFluidName`
+Reads the name of a fluid.
+- Takes two bytes, the fluid id.
+- Returns the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.
+
+`20 getFluidId`
+Looks a fluid up by name.
+- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
+- Returns two bytes, the fluid id.

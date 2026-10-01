@@ -20,20 +20,12 @@ public final class ItemHandlerProtocol {
 
     // --------------------------------------------------------------------- //
 
-    public static int requireValidSlot(final ItemHandler handler, final int slot) {
-        if (slot < 0 || slot >= handler.getSlots()) {
-            throw new IllegalArgumentException("slot out of range: " + slot
-                + " (expected 0 to " + (handler.getSlots() - 1) + ")");
-        }
-        return slot;
-    }
-
     public static void writeSlotCount(final ItemHandler handler, final IOOutputStream results) throws IOException {
         results.writeU8(Math.min(handler.getSlots(), 0xFF));
     }
 
     public static void writeSlots(final ItemHandler handler, final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final int first = requireValidSlot(handler, arguments.readU8());
+        final int first = ItemHandlerDeviceUtils.requireValidSlot(handler, arguments.readU8());
         final int requested = arguments.readU8();
         if (requested == 0 || requested > MAX_SLOT_RECORDS) {
             throw new IllegalArgumentException("slot count out of range: " + requested
@@ -47,11 +39,11 @@ public final class ItemHandlerProtocol {
     }
 
     public static void writeSlot(final ItemHandler handler, final int slot, final IOOutputStream results) throws IOException {
-        writeSlotAt(handler, requireValidSlot(handler, slot), results);
+        writeSlotAt(handler, ItemHandlerDeviceUtils.requireValidSlot(handler, slot), results);
     }
 
     public static void writeSlotLimit(final ItemHandler handler, final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        results.writeU8(Math.min(handler.getSlotLimit(requireValidSlot(handler, arguments.readU8())), 0xFF));
+        results.writeU8(Math.min(handler.getSlotLimit(ItemHandlerDeviceUtils.requireValidSlot(handler, arguments.readU8())), 0xFF));
     }
 
     public static void writeItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {

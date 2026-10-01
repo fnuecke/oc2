@@ -67,7 +67,8 @@ public final class ModItemTagsProvider extends ItemTagsProvider {
         tag(DEVICES_ROBOT_MODULE).add(
             Items.INVENTORY_OPERATIONS_MODULE.get(),
             Items.BLOCK_OPERATIONS_MODULE.get(),
-            Items.NETWORK_TUNNEL_MODULE.get()
+            Items.NETWORK_TUNNEL_MODULE.get(),
+            Items.TANK_OPERATIONS_MODULE.get()
         );
         tag(DEVICES_NETWORK_TUNNEL).add(
             Items.NETWORK_TUNNEL_CARD.get(),

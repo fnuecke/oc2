@@ -112,6 +112,8 @@ public final class Config {
     public static int blockOperationsModuleEnergyPerTick = 2;
     @Path("energy.items")
     public static int inventoryOperationsModuleEnergyPerTick = 1;
+    @Path("energy.items")
+    public static int tankOperationsModuleEnergyPerTick = 1;
 
     @Path("admin")
     public static UUID fakePlayerUUID = UUID.fromString("e39dd9a7-514f-4a2d-aa5e-b6030621416d");

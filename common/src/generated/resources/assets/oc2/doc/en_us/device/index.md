@@ -25,4 +25,5 @@ These pages are generated from the devices themselves, so they always match the 
 - [Serial](serial.md)
 - [Sign](sign.md)
 - [Spawner](spawner.md)
+- [Tank Operations](tank_operations.md)
 - [Transposer](transposer.md)

@@ -5,6 +5,7 @@ package li.cil.oc2.common.bus.device;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
+import li.cil.oc2.common.bus.device.util.FluidHandlerDeviceUtils;
 import li.cil.oc2.common.bus.device.util.FluidHandlerProtocol;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.fluid.FluidHandler;
@@ -48,13 +49,13 @@ public final class FluidHandlerDevice extends IdentityProxy<FluidHandler> {
     @Callback(description = "Gets what is in the specified tank.",
         returnValueDescription = "a table with the fluid `id`, such as `minecraft:water`, and the `amount` in millibuckets. Returns nothing for an empty tank.")
     public FluidStack getFluidInTank(@Parameter(value = "tank", description = TANK) final int tank) {
-        return identity.getFluidInTank(FluidHandlerProtocol.requireValidTank(identity, tank));
+        return identity.getFluidInTank(FluidHandlerDeviceUtils.requireValidTank(identity, tank));
     }
 
     @Callback(description = "Gets how much the specified tank can hold.",
         returnValueDescription = "the capacity in millibuckets.")
     public int getFluidTankCapacity(@Parameter(value = "tank", description = TANK) final int tank) {
-        return identity.getTankCapacity(FluidHandlerProtocol.requireValidTank(identity, tank));
+        return identity.getTankCapacity(FluidHandlerDeviceUtils.requireValidTank(identity, tank));
     }
 
     // --------------------------------------------------------------------- //
@@ -87,7 +88,7 @@ public final class FluidHandlerDevice extends IdentityProxy<FluidHandler> {
     @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false,
         description = "Reads the name of a fluid.",
         argumentsDescription = "two bytes, the fluid id.",
-        resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to get all of it.")
+        resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.")
     public void getFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeFluidName(arguments, results);
     }

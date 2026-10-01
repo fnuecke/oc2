@@ -3,9 +3,9 @@
 
 Robots are essentially mobile [computers](../block/computer.md). Due to their non-stationary nature, there is some behavior that differs from regular computers. They cannot connect to [bus interfaces](../block/bus_interface.md). Instead of card devices, they support module devices. These are specialized devices taking into account the robots' mobility. In place of a second [hard drive](hard_drive.md) bay they have a [floppy](floppy.md) slot, since they cannot use [disk drives](../block/disk_drive.md).
 
-Robots have a fixed-size inventory and sport a state-of-the-art energy storage. Only the regular inventory of robots can be automatically filled and emptied, for example by devices such as a hopper. The component inventory of the robot must be manually configured.
+Robots have a fixed-size inventory, a fluid tank, and sport a state-of-the-art energy storage. Only the regular inventory and the tank of robots can be automatically filled and emptied, for example by a hopper or a pump. The component inventory of the robot must be manually configured.
 
-In their default configuration, robots cannot interact with their own inventory. Use an [inventory operations module](inventory_operations_module.md) to enable robots to move items in their own inventory, as well as to insert and extract items to and from other inventories.
+In their default configuration, robots cannot interact with their own inventory. Use an [inventory operations module](inventory_operations_module.md) to enable robots to move items in their own inventory, as well as to insert and extract items to and from other inventories. Use a [tank operations module](tank_operations_module.md) to do the same with fluids and the robot's tank.
 
 To recharge a robot, it is recommended to make use the [charger](../block/charger.md). It is possible for robots to recharge themselves by simply moving on top of a charger. Alternatively, they may be placed into an inventory on top of the charger.
 

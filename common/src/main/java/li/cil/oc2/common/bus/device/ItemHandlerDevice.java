@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
+import li.cil.oc2.common.bus.device.util.ItemHandlerDeviceUtils;
 import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
@@ -48,13 +49,13 @@ public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> {
     @Callback(description = "Gets what is in the specified slot.",
         returnValueDescription = "a table with the item information. Returns nothing for an empty slot.")
     public ItemStack getItemStackInSlot(@Parameter(value = "slot", description = SLOT) final int slot) {
-        return identity.getStackInSlot(ItemHandlerProtocol.requireValidSlot(identity, slot));
+        return identity.getStackInSlot(ItemHandlerDeviceUtils.requireValidSlot(identity, slot));
     }
 
     @Callback(description = "Gets how many items the specified slot can hold.",
         returnValueDescription = "the most items the slot takes.")
     public int getItemSlotLimit(@Parameter(value = "slot", description = SLOT) final int slot) {
-        return identity.getSlotLimit(ItemHandlerProtocol.requireValidSlot(identity, slot));
+        return identity.getSlotLimit(ItemHandlerDeviceUtils.requireValidSlot(identity, slot));
     }
 
     // --------------------------------------------------------------------- //
@@ -87,7 +88,7 @@ public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> {
     @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
         description = "Reads the name of an item.",
         argumentsDescription = "two bytes, the item id.",
-        resultsDescription = "the name, such as `minecraft:redstone`. Read while `OCDAV` is set to get all of it.")
+        resultsDescription = "the name, such as `minecraft:redstone`. Read while `OCDAV` is set to read fully.")
     public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeItemName(arguments, results);
     }

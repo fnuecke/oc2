@@ -8,13 +8,16 @@ import li.cil.oc2.api.fabric.ItemStorage;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
+import li.cil.oc2.common.capabilities.ItemStackCapability;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.item.ItemApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
@@ -25,6 +28,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public final class CapabilitiesImpl {
     @Nullable
@@ -73,6 +77,39 @@ public final class CapabilitiesImpl {
         }
 
         return item(type).find(stack, null);
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public static <T> ItemStackCapability<T> getModifiable(final ItemStack stack, final CapabilityType<T> type) {
+        final SingleVariantStorage<ItemVariant> slot = new SingleVariantStorage<>() {
+            @Override
+            protected ItemVariant getBlankVariant() {
+                return ItemVariant.blank();
+            }
+
+            @Override
+            protected long getCapacity(final ItemVariant variant) {
+                return variant.toStack().getMaxStackSize();
+            }
+        };
+        slot.variant = ItemVariant.of(stack);
+        slot.amount = stack.getCount();
+
+        final ContainerItemContext context = ContainerItemContext.ofSingleSlot(slot);
+        final Supplier<ItemStack> container = () -> slot.variant.toStack((int) slot.amount);
+
+        if (type == Capabilities.ITEM_HANDLER) {
+            final Storage<ItemVariant> storage = ItemStorage.ITEM.find(stack, context);
+            return storage != null ? new ItemStackCapability<>((T) FabricCapabilityAdapters.items(storage), container) : null;
+        }
+
+        if (type == Capabilities.FLUID_HANDLER) {
+            final Storage<FluidVariant> storage = FluidStorage.ITEM.find(stack, context);
+            return storage != null ? new ItemStackCapability<>((T) FabricCapabilityAdapters.fluids(storage), container) : null;
+        }
+
+        throw new IllegalArgumentException("unsupported capability: " + type);
     }
 
     @Nullable

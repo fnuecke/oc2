@@ -20,6 +20,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.bus.device.util.Devices;
+import li.cil.oc2.common.bus.device.util.FluidHandlerProtocol;
 import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
@@ -30,6 +31,9 @@ import li.cil.oc2.common.container.RobotInventoryContainer;
 import li.cil.oc2.common.container.RobotTerminalContainer;
 import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.entity.robot.*;
+import li.cil.oc2.common.fluid.FluidHandler;
+import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.fluid.FluidTank;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
@@ -100,6 +104,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final String DEVICES_TAG_NAME = "devices";
     private static final String COMMAND_PROCESSOR_TAG_NAME = "commands";
     private static final String INVENTORY_TAG_NAME = "inventory";
+    private static final String TANK_TAG_NAME = "tank";
     private static final String SELECTED_SLOT_TAG_NAME = "selected_slot";
     private static final String STATUS_COLOR_TAG_NAME = "status_color";
     private static final String STATUS_VALUE_TAG_NAME = "status_value";
@@ -114,6 +119,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final int FLASH_MEMORY_SLOTS = 1;
     private static final int MODULE_SLOTS = 4;
     private static final int INVENTORY_SIZE = 12;
+    private static final int TANK_CAPACITY = 12 * FluidHandler.BUCKET;
 
     private static final int CONTAINING_BLOCK_CHECK_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(1));
 
@@ -135,6 +141,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.robotEnergyStorage);
     private final RobotVirtualMachine virtualMachine = new RobotVirtualMachine(new CommonDeviceBusController(busElement, this::cpuEnergyPerTick, deviceItems::getArchitectureType));
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
+    private final FluidTank tank = new FluidTank(TANK_CAPACITY);
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Copy for threaded send.
@@ -182,6 +189,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         return inventory;
     }
 
+    public FluidTank getTank() {
+        return tank;
+    }
+
     @Override
     public int getSelectedSlot() {
         return getEntityData().get(SELECTED_SLOT);
@@ -213,6 +224,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
         if (capability == Capabilities.ITEM_HANDLER) {
             return (T) inventory;
+        }
+        if (capability == Capabilities.FLUID_HANDLER) {
+            return (T) tank;
         }
         if (capability == Capabilities.ENERGY_STORAGE && Config.robotsUseEnergy()) {
             return (T) energy;
@@ -402,6 +416,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             deviceItems.saveItems(registries, itemsTag); // One tag per device type, as TooltipUtils expects.
             itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT(registries)); // Won't show up in tooltip.
 
+            modTag.put(TANK_TAG_NAME, tank.serializeNBT(registries));
             modTag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         });
     }
@@ -414,6 +429,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         deviceItems.loadItems(registries, itemsTag);
         inventory.deserializeNBT(registries, itemsTag.getCompound(INVENTORY_TAG_NAME));
 
+        tank.deserializeNBT(registries, NBTUtils.getChildTag(modTag, TANK_TAG_NAME));
         energy.deserializeNBT(NBTUtils.getChildTag(modTag, ENERGY_TAG_NAME));
     }
 
@@ -444,6 +460,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
         tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
         tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT(registries));
+        tag.put(TANK_TAG_NAME, tank.serializeNBT(registries));
         tag.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
         tag.putInt(STATUS_COLOR_TAG_NAME, getStatusColor());
         tag.putFloat(STATUS_VALUE_TAG_NAME, getStatusValue());
@@ -460,6 +477,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG_NAME));
+        tank.deserializeNBT(registries, tag.getCompound(TANK_TAG_NAME));
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
         setStatusColor(tag.contains(STATUS_COLOR_TAG_NAME) ? tag.getInt(STATUS_COLOR_TAG_NAME) : DEFAULT_STATUS_COLOR);
         setStatusValue(tag.contains(STATUS_VALUE_TAG_NAME) ? tag.getFloat(STATUS_VALUE_TAG_NAME) : DEFAULT_STATUS_VALUE);
@@ -984,7 +1002,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         Note that the `robot` Lua library described in the [robot](../item/robot.md) entry offers useful wrappers for all of these methods. It is recommended to use the library instead of interacting with the device directly.""")
     @IODeviceDescription(name = "ROBOT", description = """
-        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device.
+        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
 
         ### Events
         `1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.""")
@@ -1010,6 +1028,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final int SET_STATUS_COLOR_CODE = 15;
         private static final int GET_STATUS_VALUE_CODE = 16;
         private static final int SET_STATUS_VALUE_CODE = 17;
+        private static final int GET_FLUID_CODE = 18;
+        private static final int GET_FLUID_NAME_CODE = 19;
+        private static final int GET_FLUID_ID_CODE = 20;
 
         private static final int ACTION_COMPLETED_EVENT_CODE = 1;
 
@@ -1103,6 +1124,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             returnValueDescription = "a description of the item in the slot.")
         public ItemStack getStackInSlot(@Parameter(value = "slot", description = "the index of the slot to get the item description for.") final int slot) {
             return inventory.getStackInSlot(slot);
+        }
+
+        @Callback(description = "Gets what is in the robot's tank.",
+            returnValueDescription = "a description of the fluid in the tank.")
+        public FluidStack getFluid() {
+            return tank.getFluid();
         }
 
         @Callback(synchronize = false,
@@ -1232,7 +1259,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
             description = "Reads the name of an item.",
             argumentsDescription = "two bytes, the item id.",
-            resultsDescription = "the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to get all of it.")
+            resultsDescription = "the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to read fully.")
         public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeItemName(arguments, results);
         }
@@ -1243,6 +1270,29 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             resultsDescription = "two bytes, the item id.")
         public void getItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             ItemHandlerProtocol.writeItemId(arguments, results);
+        }
+
+        @IOCallback(value = GET_FLUID_CODE,
+            description = "Reads what is in the robot's tank.",
+            resultsDescription = "six bytes: the fluid as two bytes and the amount as four bytes. An empty tank reads as fluid 0.")
+        public void getFluid(final IOOutputStream results) throws IOException {
+            FluidHandlerProtocol.writeTankAt(tank, 0, results);
+        }
+
+        @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false,
+            description = "Reads the name of a fluid.",
+            argumentsDescription = "two bytes, the fluid id.",
+            resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.")
+        public void getFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            FluidHandlerProtocol.writeFluidName(arguments, results);
+        }
+
+        @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false,
+            description = "Looks a fluid up by name.",
+            argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
+            resultsDescription = "two bytes, the fluid id.")
+        public void getFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            FluidHandlerProtocol.writeFluidId(arguments, results);
         }
 
         @IOCallback(value = MOVE_CODE, synchronize = false,

@@ -3,6 +3,7 @@
 package li.cil.oc2.common.capabilities.fabric;
 
 import li.cil.oc2.api.fabric.EnergyStorage;
+import li.cil.oc2.api.fabric.FluidStorage;
 import li.cil.oc2.api.fabric.ItemStorage;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.ModBlockEntity;
@@ -90,6 +91,11 @@ public final class CapabilityRegistrationFabric {
         ItemStorage.ENTITY.registerForType((final Robot robot, final Direction side) -> {
             final var items = robot.getCapability(Capabilities.ITEM_HANDLER, side);
             return items != null ? FabricCapabilityAdapters.toFabric(items) : null;
+        }, Entities.ROBOT.get());
+
+        FluidStorage.ENTITY.registerForType((final Robot robot, final Direction side) -> {
+            final var fluids = robot.getCapability(Capabilities.FLUID_HANDLER, side);
+            return fluids != null ? FabricCapabilityAdapters.toFabric(fluids) : null;
         }, Entities.ROBOT.get());
     }
 

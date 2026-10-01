@@ -19,4 +19,5 @@ This index lists all documented items. If you're looking for a block, see the [b
 - [Scrench](wrench.md)
 - [Serial Interface Card](serial_interface_card.md)
 - [Sound Card](sound_card.md)
+- [Tank Operations Module](tank_operations_module.md)
 - [Z80 Processor](cpu_z80.md)

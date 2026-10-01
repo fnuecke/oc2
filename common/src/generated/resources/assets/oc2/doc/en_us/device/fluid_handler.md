@@ -34,17 +34,17 @@ A tank the container does not have, or a name no fluid goes by, fails with `OCEA
 
 ### Methods
 
-`1 getTankCount`
+`1 getFluidTankCount`
 Reads how many tanks the container has.
 - Returns one byte, the tank count, at most 255.
 
-`2 getTanks`
+`2 getFluidTanks`
 Reads a run of tanks in one call.
 Ask for 1 to 42 tanks; more than that fails with `OCEARG`, since the reply would not fit. Reading stops at the end of the container, so asking for 42 tanks starting at 0 gives you as many as there are.
 - Takes two bytes, the tank to start at and how many tanks to read.
 - Returns six bytes per tank: the fluid as two bytes and the amount as four bytes.
 
-`3 getTankCapacity`
+`3 getFluidTankCapacity`
 Reads how much the tank can hold.
 - Takes one byte, the tank.
 - Returns four bytes, the capacity.
@@ -52,7 +52,7 @@ Reads how much the tank can hold.
 `4 getFluidName`
 Reads the name of a fluid.
 - Takes two bytes, the fluid id.
-- Returns the name, such as `minecraft:water`. Read while `OCDAV` is set to get all of it.
+- Returns the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.
 
 `5 getFluidId`
 Looks a fluid up by name.

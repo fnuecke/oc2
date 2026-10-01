@@ -19,20 +19,12 @@ public final class FluidHandlerProtocol {
 
     // --------------------------------------------------------------------- //
 
-    public static int requireValidTank(final FluidHandler handler, final int tank) {
-        if (tank < 0 || tank >= handler.getTanks()) {
-            throw new IllegalArgumentException("tank out of range: " + tank
-                + " (expected 0 to " + (handler.getTanks() - 1) + ")");
-        }
-        return tank;
-    }
-
     public static void writeTankCount(final FluidHandler handler, final IOOutputStream results) throws IOException {
         results.writeU8(Math.min(handler.getTanks(), 0xFF));
     }
 
     public static void writeTanks(final FluidHandler handler, final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final int first = requireValidTank(handler, arguments.readU8());
+        final int first = FluidHandlerDeviceUtils.requireValidTank(handler, arguments.readU8());
         final int requested = arguments.readU8();
         if (requested == 0 || requested > MAX_TANK_RECORDS) {
             throw new IllegalArgumentException("tank count out of range: " + requested
@@ -46,7 +38,13 @@ public final class FluidHandlerProtocol {
     }
 
     public static void writeTankCapacity(final FluidHandler handler, final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        results.writeU32(handler.getTankCapacity(requireValidTank(handler, arguments.readU8())));
+        results.writeU32(handler.getTankCapacity(FluidHandlerDeviceUtils.requireValidTank(handler, arguments.readU8())));
+    }
+
+    public static void writeTankAt(final FluidHandler handler, final int tank, final IOOutputStream results) throws IOException {
+        final FluidStack stack = handler.getFluidInTank(tank);
+        results.writeU16(toFluidId(stack.fluid()));
+        results.writeU32(stack.amount());
     }
 
     public static void writeFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
@@ -69,12 +67,6 @@ public final class FluidHandlerProtocol {
     }
 
     // --------------------------------------------------------------------- //
-
-    private static void writeTankAt(final FluidHandler handler, final int tank, final IOOutputStream results) throws IOException {
-        final FluidStack stack = handler.getFluidInTank(tank);
-        results.writeU16(toFluidId(stack.fluid()));
-        results.writeU32(stack.amount());
-    }
 
     private static int toFluidId(final Fluid fluid) throws IOException {
         final int id = BuiltInRegistries.FLUID.getId(fluid);

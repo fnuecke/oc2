@@ -70,6 +70,12 @@ public final class CapabilityRegistrationNeoForge {
                 final var items = robot.getCapability(Capabilities.ITEM_HANDLER, null);
                 return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
             });
+
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ENTITY, Entities.ROBOT.get(),
+            (robot, side) -> {
+                final var fluids = robot.getCapability(Capabilities.FLUID_HANDLER, side);
+                return fluids != null ? NeoForgeCapabilityAdapters.toNeoForge(fluids) : null;
+            });
     }
 
     private static <B extends net.minecraft.world.level.block.entity.BlockEntity> void registerInteropBlockEntity(

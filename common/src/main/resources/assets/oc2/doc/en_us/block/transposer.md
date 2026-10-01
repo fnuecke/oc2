@@ -1,7 +1,7 @@
 # Transposer
 ![Less posing, more rights](block:oc2:transposer)
 
-The transposer moves items and fluids between containers next to it. This includes chests, cauldrons and machines supporting automation. It can also drop items into the world and pick them up again, and place and take fluid blocks, as a bucket would.
+The transposer moves items and fluids between containers next to it. This includes chests, cauldrons and machines supporting automation. Moving to or from an unblocked side drops items into the world and picks them up again, or fills with and drains fluids.
 
 It can be controlled using both the [high-level API](../hlapi.md) and the [mid-level API](../mlapi.md). For example:  
 `local d = require("devices")`  

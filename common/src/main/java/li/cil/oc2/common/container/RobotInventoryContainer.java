@@ -8,8 +8,11 @@ import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.entity.Robot;
+import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.fluid.FluidTank;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.vm.VMItemStackHandlers;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +22,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 public final class RobotInventoryContainer extends AbstractRobotContainer {
+    private static final int FLUID_ID_INDEX = 0;
+    private static final int FLUID_AMOUNT_INDEX = 1;
+    private static final int FLUID_INFO_SIZE = 2;
+
+    // --------------------------------------------------------------------- //
+
+    private final IntPrecisionContainerData fluidInfo;
+
+    // --------------------------------------------------------------------- //
+
     public static void createServer(final Robot robot, final FixedEnergyHandler energy, final CommonDeviceBusController busController, final ServerPlayer player) {
         MenuRegistry.openExtendedMenu(player, new ExtendedMenuProvider() {
             @Override
@@ -28,7 +41,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
 
             @Override
             public AbstractContainerMenu createMenu(final int id, final Inventory inventory, final Player player) {
-                return new RobotInventoryContainer(id, robot, player, createEnergyInfo(energy, busController));
+                return new RobotInventoryContainer(id, robot, player, createEnergyInfo(energy, busController), createFluidInfo(robot.getTank()));
             }
 
             @Override
@@ -42,7 +55,7 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
         final int entityId = data.readVarInt();
         final Entity entity = inventory.player.level().getEntity(entityId);
         if (entity instanceof final Robot robot) {
-            return new RobotInventoryContainer(id, robot, inventory.player, createClientEnergyInfo());
+            return new RobotInventoryContainer(id, robot, inventory.player, createClientEnergyInfo(), new IntPrecisionContainerData.Client(FLUID_INFO_SIZE));
         }
 
         throw new IllegalArgumentException();
@@ -50,8 +63,12 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
 
     // --------------------------------------------------------------------- //
 
-    private RobotInventoryContainer(final int id, final Robot robot, final Player player, final IntPrecisionContainerData energyInfo) {
+    private RobotInventoryContainer(final int id, final Robot robot, final Player player, final IntPrecisionContainerData energyInfo, final IntPrecisionContainerData fluidInfo) {
         super(Containers.ROBOT.get(), id, player, robot, energyInfo);
+        this.fluidInfo = fluidInfo;
+
+        checkContainerDataCount(fluidInfo, FLUID_INFO_SIZE);
+        addDataSlots(fluidInfo);
 
         final VMItemStackHandlers handlers = robot.getItemStackHandlers();
 
@@ -94,10 +111,40 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
         final ItemHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             final int x = 116 + slot % 3 * SLOT_SIZE;
-            final int y = 24 + slot / 3 * SLOT_SIZE;
+            final int y = 20 + slot / 3 * SLOT_SIZE;
             addSlot(new RobotSlot(inventory, slot, x, y));
         }
 
         createPlayerInventoryAndHotbarSlots(player.getInventory(), 8, 115);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    public FluidStack getFluid() {
+        return new FluidStack(BuiltInRegistries.FLUID.byId(fluidInfo.getInt(FLUID_ID_INDEX)), fluidInfo.getInt(FLUID_AMOUNT_INDEX));
+    }
+
+    public int getFluidCapacity() {
+        return getRobot().getTank().getTankCapacity(0);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static IntPrecisionContainerData createFluidInfo(final FluidTank tank) {
+        return new IntPrecisionContainerData.Server() {
+            @Override
+            public int getInt(final int index) {
+                return switch (index) {
+                    case FLUID_ID_INDEX -> BuiltInRegistries.FLUID.getId(tank.getFluid().fluid());
+                    case FLUID_AMOUNT_INDEX -> tank.getFluid().amount();
+                    default -> 0;
+                };
+            }
+
+            @Override
+            public int getIntCount() {
+                return FLUID_INFO_SIZE;
+            }
+        };
     }
 }

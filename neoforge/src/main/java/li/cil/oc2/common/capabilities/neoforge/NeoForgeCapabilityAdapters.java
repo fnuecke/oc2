@@ -38,6 +38,10 @@ public final class NeoForgeCapabilityAdapters {
         return new ReverseEnergyStorageAdapter(storage);
     }
 
+    public static IFluidHandler toNeoForge(final FluidHandler handler) {
+        return new ReverseFluidHandlerAdapter(handler);
+    }
+
     // --------------------------------------------------------------------- //
 
     private record EnergyHandlerAdapter(IEnergyStorage inner) implements EnergyHandler {
@@ -201,23 +205,60 @@ public final class NeoForgeCapabilityAdapters {
         private static IFluidHandler.FluidAction action(final boolean simulate) {
             return simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
         }
+    }
 
-        private static FluidStack fromNeoForge(final net.neoforged.neoforge.fluids.FluidStack stack) {
-            if (stack.isEmpty()) {
-                return FluidStack.EMPTY;
-            }
-
-            return new FluidStack(stack.getFluid(), stack.getComponentsPatch(), stack.getAmount());
+    private record ReverseFluidHandlerAdapter(FluidHandler inner) implements IFluidHandler {
+        @Override
+        public int getTanks() {
+            return inner.getTanks();
         }
 
-        private static net.neoforged.neoforge.fluids.FluidStack toNeoForge(final FluidStack stack) {
-            if (stack.isEmpty()) {
-                return net.neoforged.neoforge.fluids.FluidStack.EMPTY;
-            }
-
-            return new net.neoforged.neoforge.fluids.FluidStack(
-                BuiltInRegistries.FLUID.wrapAsHolder(stack.fluid()), stack.amount(), stack.components());
+        @Override
+        public net.neoforged.neoforge.fluids.FluidStack getFluidInTank(final int tank) {
+            return toNeoForge(inner.getFluidInTank(tank));
         }
+
+        @Override
+        public int getTankCapacity(final int tank) {
+            return inner.getTankCapacity(tank);
+        }
+
+        @Override
+        public boolean isFluidValid(final int tank, final net.neoforged.neoforge.fluids.FluidStack stack) {
+            return true;
+        }
+
+        @Override
+        public int fill(final net.neoforged.neoforge.fluids.FluidStack stack, final FluidAction action) {
+            return inner.fill(fromNeoForge(stack), action.simulate());
+        }
+
+        @Override
+        public net.neoforged.neoforge.fluids.FluidStack drain(final net.neoforged.neoforge.fluids.FluidStack stack, final FluidAction action) {
+            return toNeoForge(inner.drain(fromNeoForge(stack), action.simulate()));
+        }
+
+        @Override
+        public net.neoforged.neoforge.fluids.FluidStack drain(final int amount, final FluidAction action) {
+            return toNeoForge(inner.drain(amount, action.simulate()));
+        }
+    }
+
+    private static FluidStack fromNeoForge(final net.neoforged.neoforge.fluids.FluidStack stack) {
+        if (stack.isEmpty()) {
+            return FluidStack.EMPTY;
+        }
+
+        return new FluidStack(stack.getFluid(), stack.getComponentsPatch(), stack.getAmount());
+    }
+
+    private static net.neoforged.neoforge.fluids.FluidStack toNeoForge(final FluidStack stack) {
+        if (stack.isEmpty()) {
+            return net.neoforged.neoforge.fluids.FluidStack.EMPTY;
+        }
+
+        return new net.neoforged.neoforge.fluids.FluidStack(
+            BuiltInRegistries.FLUID.wrapAsHolder(stack.fluid()), stack.amount(), stack.components());
     }
 
     private static int clamp(final long value) {

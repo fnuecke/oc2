@@ -17,13 +17,17 @@ import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Capabilities {
     // Interop capabilities
@@ -61,6 +65,12 @@ public final class Capabilities {
 
     @ExpectPlatform
     @Nullable
+    public static <T> ItemStackCapability<T> getModifiable(final ItemStack stack, final CapabilityType<T> type) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    @Nullable
     public static <T> T get(final Entity entity, final CapabilityType<T> type, @Nullable final Direction side) {
         throw new AssertionError();
     }
@@ -74,6 +84,28 @@ public final class Capabilities {
     @ExpectPlatform
     public static void invalidate(final BlockEntity blockEntity) {
         throw new AssertionError();
+    }
+
+    public static <T> List<T> getAll(final ServerLevel level, final BlockPos pos, final CapabilityType<T> type,
+                                     final Direction side, @Nullable final Entity except) {
+        final List<T> values = new ArrayList<>();
+        if (!level.isLoaded(pos)) {
+            return values;
+        }
+
+        for (final Entity entity : level.getEntities(except, new AABB(pos))) {
+            final T value = get(entity, type, side);
+            if (value != null) {
+                values.add(value);
+            }
+        }
+
+        final T value = get(level, pos, type, side);
+        if (value != null) {
+            values.add(value);
+        }
+
+        return values;
     }
 
     // --------------------------------------------------------------------- //

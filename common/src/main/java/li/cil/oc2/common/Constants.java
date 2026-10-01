@@ -44,6 +44,8 @@ public final class Constants {
     public static final String TOOLTIP_CAN_BE_CONFIGURED = key("tooltip.{mod}.can_be_configured");
     public static final String TOOLTIP_ENERGY = key("tooltip.{mod}.energy");
     public static final String TOOLTIP_ENERGY_CONSUMPTION = key("tooltip.{mod}.energyConsumption");
+    public static final String TOOLTIP_FLUID = key("tooltip.{mod}.fluid");
+    public static final String TOOLTIP_FLUID_EMPTY = key("tooltip.{mod}.fluid_empty");
     public static final String TOOLTIP_DATA_CORRUPTED = key("tooltip.{mod}.data_corrupted");
     public static final String TOOLTIP_DATA_CORRUPTED_HINT = key("tooltip.{mod}.data_corrupted.hint");
     public static final String TOOLTIP_DATA_INCONSISTENT = key("tooltip.{mod}.data_inconsistent");

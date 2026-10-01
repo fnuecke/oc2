@@ -4,13 +4,11 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
-import li.cil.oc2.common.capabilities.ItemStackCapability;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
 import java.util.function.Function;
 
 final class ContainerItemAccess<T> {
@@ -31,23 +29,24 @@ final class ContainerItemAccess<T> {
     // --------------------------------------------------------------------- //
 
     boolean isPresent() {
-        return getCapability() != null;
+        return Capabilities.get(getSingleCopy(), 0, type) != null;
     }
 
     <R> R read(final Function<T, R> operation, final R fallback) {
-        final ItemStackCapability<T> capability = getCapability();
-        return capability != null ? operation.apply(capability.value()) : fallback;
+        final T capability = Capabilities.get(getSingleCopy(), 0, type);
+        return capability != null ? operation.apply(capability) : fallback;
     }
 
     <R> R modify(final Function<T, R> operation, final R fallback) {
         final ItemStack stack = inventory.getStackInSlot(slot);
-        final ItemStackCapability<T> capability = getCapability();
+        final ItemStackHandler copy = getSingleCopy();
+        final T capability = Capabilities.get(copy, 0, type);
         if (capability == null) {
             return fallback;
         }
 
-        final R result = operation.apply(capability.value());
-        final ItemStack modified = capability.container().get();
+        final R result = operation.apply(capability);
+        final ItemStack modified = copy.getStackInSlot(0);
         if (ItemStack.matches(modified, stack.copyWithCount(1))) {
             return result;
         }
@@ -86,9 +85,9 @@ final class ContainerItemAccess<T> {
         return stack;
     }
 
-    @Nullable
-    private ItemStackCapability<T> getCapability() {
-        final ItemStack stack = inventory.getStackInSlot(slot);
-        return stack.isEmpty() ? null : Capabilities.getModifiable(stack.copyWithCount(1), type);
+    private ItemStackHandler getSingleCopy() {
+        final ItemStackHandler copy = new ItemStackHandler(1);
+        copy.setStackInSlot(0, inventory.getStackInSlot(slot).copyWithCount(1));
+        return copy;
     }
 }

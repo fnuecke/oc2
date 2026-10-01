@@ -22,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Bridges our loader-agnostic capability interfaces and Fabric's transaction-based ones.
@@ -61,6 +62,10 @@ public final class FabricCapabilityAdapters {
 
     public static Storage<FluidVariant> toFabric(final FluidHandler handler) {
         return new ReverseFluidHandlerAdapter(handler);
+    }
+
+    public static SingleSlotStorage<ItemVariant> slot(final ItemHandler handler, final int slot) {
+        return handler instanceof final ItemHandlerAdapter adapter ? Objects.requireNonNull(adapter.slot(slot)) : new SlotView(handler, slot);
     }
 
     @SuppressWarnings("deprecation")

@@ -65,7 +65,7 @@ public final class Capabilities {
 
     @ExpectPlatform
     @Nullable
-    public static <T> ItemStackCapability<T> getModifiable(final ItemStack stack, final CapabilityType<T> type) {
+    public static <T> T get(final ItemHandler handler, final int slot, final CapabilityType<T> type) {
         throw new AssertionError();
     }
 

@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
@@ -28,6 +29,11 @@ public final class NeoForgeCapabilityAdapters {
     @Nullable
     public static FluidHandler fluids(@Nullable final IFluidHandler handler) {
         return handler == null ? null : new FluidHandlerAdapter(handler);
+    }
+
+    @Nullable
+    public static FluidHandler fluids(@Nullable final IFluidHandlerItem handler, final ItemHandler inventory, final int slot) {
+        return handler == null ? null : new ItemFluidHandlerAdapter(handler, inventory, slot);
     }
 
     public static IItemHandler toNeoForge(final ItemHandler handler) {
@@ -204,6 +210,55 @@ public final class NeoForgeCapabilityAdapters {
 
         private static IFluidHandler.FluidAction action(final boolean simulate) {
             return simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
+        }
+    }
+
+    private record ItemFluidHandlerAdapter(IFluidHandlerItem inner, ItemHandler inventory, int slot) implements FluidHandler {
+        @Override
+        public int getTanks() {
+            return inner.getTanks();
+        }
+
+        @Override
+        public FluidStack getFluidInTank(final int tank) {
+            return fromNeoForge(inner.getFluidInTank(tank));
+        }
+
+        @Override
+        public int getTankCapacity(final int tank) {
+            return inner.getTankCapacity(tank);
+        }
+
+        @Override
+        public int fill(final FluidStack stack, final boolean simulate) {
+            final ItemStack container = inner.getContainer();
+            final int filled = inner.fill(toNeoForge(stack), FluidHandlerAdapter.action(simulate));
+            updateContainer(container);
+            return filled;
+        }
+
+        @Override
+        public FluidStack drain(final FluidStack stack, final boolean simulate) {
+            final ItemStack container = inner.getContainer();
+            final FluidStack drained = fromNeoForge(inner.drain(toNeoForge(stack), FluidHandlerAdapter.action(simulate)));
+            updateContainer(container);
+            return drained;
+        }
+
+        @Override
+        public FluidStack drain(final int amount, final boolean simulate) {
+            final ItemStack container = inner.getContainer();
+            final FluidStack drained = fromNeoForge(inner.drain(amount, FluidHandlerAdapter.action(simulate)));
+            updateContainer(container);
+            return drained;
+        }
+
+        private void updateContainer(final ItemStack previous) {
+            final ItemStack container = inner.getContainer();
+            if (container != previous) {
+                inventory.extractItem(slot, previous.getCount(), false);
+                inventory.insertItem(slot, container, false);
+            }
         }
     }
 

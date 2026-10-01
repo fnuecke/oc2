@@ -22,7 +22,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -185,12 +184,9 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
 
     private void chargeItems(final ItemHandler itemHandler) {
         for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-            final ItemStack stack = itemHandler.getStackInSlot(slot);
-            if (!stack.isEmpty()) {
-                final EnergyHandler stackEnergy = Capabilities.get(stack, Capabilities.ENERGY_STORAGE);
-                if (stackEnergy != null) {
-                    chargeStorage(stackEnergy);
-                }
+            final EnergyHandler stackEnergy = Capabilities.get(itemHandler, slot, Capabilities.ENERGY_STORAGE);
+            if (stackEnergy != null) {
+                chargeStorage(stackEnergy);
             }
         }
     }

@@ -45,12 +45,10 @@ import li.cil.oc2.common.vm.arch.AbstractArchitecture;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Cursor3D;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -108,6 +106,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final String SELECTED_SLOT_TAG_NAME = "selected_slot";
     private static final String STATUS_COLOR_TAG_NAME = "status_color";
     private static final String STATUS_VALUE_TAG_NAME = "status_value";
+    private static final String ORIGIN_TAG_NAME = "origin";
 
     private static final int MAX_QUEUED_ACTIONS = 16;
     private static final int MAX_QUEUED_RESULTS = 16;
@@ -146,6 +145,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Copy for threaded send.
     private long lastPistonMovement;
+    @Nullable
+    private GlobalPos origin;
 
     // --------------------------------------------------------------------- //
 
@@ -312,6 +313,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                 requestInitialState();
             } else {
                 registerListeners();
+
+                if (origin == null || !origin.dimension().equals(level().dimension())) {
+                    calibratePosition();
+                }
             }
         }
 
@@ -464,6 +469,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         tag.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
         tag.putInt(STATUS_COLOR_TAG_NAME, getStatusColor());
         tag.putFloat(STATUS_VALUE_TAG_NAME, getStatusValue());
+        if (origin != null) {
+            GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, origin).result().ifPresent(value -> tag.put(ORIGIN_TAG_NAME, value));
+        }
     }
 
     @Override
@@ -481,6 +489,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
         setStatusColor(tag.contains(STATUS_COLOR_TAG_NAME) ? tag.getInt(STATUS_COLOR_TAG_NAME) : DEFAULT_STATUS_COLOR);
         setStatusValue(tag.contains(STATUS_VALUE_TAG_NAME) ? tag.getFloat(STATUS_VALUE_TAG_NAME) : DEFAULT_STATUS_VALUE);
+        origin = tag.contains(ORIGIN_TAG_NAME) ? GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get(ORIGIN_TAG_NAME)).result().orElse(null) : null;
 
         RobotActions.initializeData(this);
         final AbstractRobotAction currentAction = actionProcessor.action;
@@ -521,6 +530,14 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     private void unregisterListeners() {
         ServerScheduler.cancelOnUnload(level(), unloadListener);
+    }
+
+    private BlockPos getBodyPosition() {
+        return BlockPos.containing(getBoundingBox().getCenter());
+    }
+
+    private void calibratePosition() {
+        origin = GlobalPos.of(level().dimension(), getBodyPosition());
     }
 
     private void handleUnload() {
@@ -1000,13 +1017,19 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         ### Sides
         The side parameter of `detect()` represents a face of the robot rather than a movement direction. Valid values are: `front`, `up` and `down`.
 
+        ### Position
+        `getFacing()` reports a compass direction: `north`, `east`, `south` or `west`. `getPosition()` reports where the robot is relative to its origin, in blocks. `x` grows towards east, `y` upward and `z` towards south. The origin is where the robot was placed, until `calibratePosition()` moves it to where the robot is now. The position stays correct however the robot gets moved, pistons included. Breaking the robot clears the origin, changing dimension resets it to the new position.
+
         Note that the `robot` Lua library described in the [robot](../item/robot.md) entry offers useful wrappers for all of these methods. It is recommended to use the library instead of interacting with the device directly.""")
     @IODeviceDescription(name = "ROBOT", description = """
-        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
+        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Facings are `0` north, `1` east, `2` south and `3` west. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
 
         ### Events
         `1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.""")
     public final class RobotDevice implements LifecycleAwareDevice {
+        public record Position(int x, int y, int z) {
+        }
+
         private static final String DETECT_AIR = "air";
         private static final String DETECT_FLUID = "fluid";
         private static final String DETECT_SOLID = "solid";
@@ -1031,11 +1054,16 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final int GET_FLUID_CODE = 18;
         private static final int GET_FLUID_NAME_CODE = 19;
         private static final int GET_FLUID_ID_CODE = 20;
+        private static final int GET_FACING_CODE = 21;
+        private static final int GET_POSITION_CODE = 22;
+        private static final int CALIBRATE_POSITION_CODE = 23;
 
         private static final int ACTION_COMPLETED_EVENT_CODE = 1;
 
         private static final MovementDirection[] IO_MOVEMENTS = {
             MovementDirection.FORWARD, MovementDirection.BACKWARD, MovementDirection.UPWARD, MovementDirection.DOWNWARD};
+        private static final Direction[] IO_FACINGS = {
+            Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
         private static final RotationDirection[] IO_ROTATIONS = {
             RotationDirection.LEFT, RotationDirection.RIGHT};
 
@@ -1065,32 +1093,24 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         // ----------------------------------------------------------------- //
 
-        @Callback(description = "Reports what occupies the space on the specified side of the robot. " +
-            "This only tells you whether the space is free, not what is in it.",
-            returnValueDescription = "`solid` if something there blocks movement, `fluid` if the space holds a " +
-                "fluid the robot can move through, or `air` if the space is free. Blocks the robot can pass " +
-                "through, such as grass, count as `air`.")
-        public String detect(@Parameter(value = "side", description = "the side to look at: `front`, `up` or `down`.") @Nullable final RobotOperationSide side) {
-            if (side == null) throw new IllegalArgumentException();
+        @Callback(description = "Gets the compass direction the robot is facing.",
+            returnValueDescription = "`north`, `east`, `south` or `west`.")
+        public String getFacing() {
+            return getDirection().getSerializedName();
+        }
 
-            final Level level = level();
-            final BlockPos pos = blockPosition().relative(RobotOperationSide.toGlobal(Robot.this, side));
+        @Callback(description = "Gets the robot's position relative to its origin.",
+            returnValueDescription = "the offset from the origin in `x`, `y` and `z`, in blocks.")
+        public Position getPosition() {
+            final BlockPos offset = getBodyPosition().subtract(origin.pos());
+            return new Position(offset.getX(), offset.getY(), offset.getZ());
+        }
 
-            final ChunkPos chunkPos = new ChunkPos(pos);
-            if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
-                return DETECT_SOLID;
-            }
-
-            final BlockState state = level.getBlockState(pos);
-            if (!state.getCollisionShape(level, pos).isEmpty()) {
-                return DETECT_SOLID;
-            }
-
-            if (!state.getFluidState().isEmpty()) {
-                return DETECT_FLUID;
-            }
-
-            return DETECT_AIR;
+        @Callback(description = "Makes the robot's current position its reference origin.")
+        @IOCallback(value = CALIBRATE_POSITION_CODE,
+            description = "Makes the robot's current position its reference origin.")
+        public void calibratePosition() {
+            Robot.this.calibratePosition();
         }
 
         @Callback(synchronize = false,
@@ -1130,6 +1150,34 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             returnValueDescription = "a description of the fluid in the tank.")
         public FluidStack getFluid() {
             return tank.getFluid();
+        }
+
+        @Callback(description = "Reports what occupies the space on the specified side of the robot. " +
+            "This only tells you whether the space is free, not what is in it.",
+            returnValueDescription = "`solid` if something there blocks movement, `fluid` if the space holds a " +
+                "fluid the robot can move through, or `air` if the space is free. Blocks the robot can pass " +
+                "through, such as grass, count as `air`.")
+        public String detect(@Parameter(value = "side", description = "the side to look at: `front`, `up` or `down`.") @Nullable final RobotOperationSide side) {
+            if (side == null) throw new IllegalArgumentException();
+
+            final Level level = level();
+            final BlockPos pos = blockPosition().relative(RobotOperationSide.toGlobal(Robot.this, side));
+
+            final ChunkPos chunkPos = new ChunkPos(pos);
+            if (!level.hasChunk(chunkPos.x, chunkPos.z)) {
+                return DETECT_SOLID;
+            }
+
+            final BlockState state = level.getBlockState(pos);
+            if (!state.getCollisionShape(level, pos).isEmpty()) {
+                return DETECT_SOLID;
+            }
+
+            if (!state.getFluidState().isEmpty()) {
+                return DETECT_FLUID;
+            }
+
+            return DETECT_AIR;
         }
 
         @Callback(synchronize = false,
@@ -1206,17 +1254,21 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         // ----------------------------------------------------------------- //
 
-        @IOCallback(value = DETECT_CODE,
-            description = "Reports what occupies the space on that side.",
-            argumentsDescription = "one byte, the side.",
-            resultsDescription = "one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move.")
-        public void detect(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-            results.writeU8(switch (detect(RobotOperationSide.byIndex(arguments.readU8()))) {
-                case DETECT_AIR -> 0;
-                case DETECT_FLUID -> 1;
-                case DETECT_SOLID -> 2;
-                default -> throw new AssertionError("unmapped detect result");
-            });
+        @IOCallback(value = GET_FACING_CODE,
+            description = "Gets the compass direction the robot is facing.",
+            resultsDescription = "one byte, the facing.")
+        public void getFacing(final IOOutputStream results) throws IOException {
+            results.writeU8(Arrays.asList(IO_FACINGS).indexOf(getDirection()));
+        }
+
+        @IOCallback(value = GET_POSITION_CODE,
+            description = "Gets the robot's position relative to its origin.",
+            resultsDescription = "six bytes, the signed two byte offsets `x`, `y` and `z`, each low byte first.")
+        public void getPosition(final IOOutputStream results) throws IOException {
+            final Position position = getPosition();
+            results.writeU16(position.x());
+            results.writeU16(position.y());
+            results.writeU16(position.z());
         }
 
         @IOCallback(value = GET_ENERGY_STORED_CODE, synchronize = false,
@@ -1293,6 +1345,19 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             resultsDescription = "two bytes, the fluid id.")
         public void getFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
             FluidHandlerProtocol.writeFluidId(arguments, results);
+        }
+
+        @IOCallback(value = DETECT_CODE,
+            description = "Reports what occupies the space on that side.",
+            argumentsDescription = "one byte, the side.",
+            resultsDescription = "one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move.")
+        public void detect(final IOInputStream arguments, final IOOutputStream results) throws IOException {
+            results.writeU8(switch (detect(RobotOperationSide.byIndex(arguments.readU8()))) {
+                case DETECT_AIR -> 0;
+                case DETECT_FLUID -> 1;
+                case DETECT_SOLID -> 2;
+                default -> throw new AssertionError("unmapped detect result");
+            });
         }
 
         @IOCallback(value = MOVE_CODE, synchronize = false,
@@ -1376,9 +1441,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         // ----------------------------------------------------------------- //
 
-        private RobotDevice() {
-        }
-
         @Nullable
         private RobotActionResult findActionResult(final IntPredicate matches) {
             final AbstractRobotAction currentAction = actionProcessor.action;
@@ -1409,6 +1471,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
                     + " (expected 0 to " + (values.length - 1) + ")");
             }
             return values[code];
+        }
+
+        // ----------------------------------------------------------------- //
+
+        private RobotDevice() {
         }
     }
 }

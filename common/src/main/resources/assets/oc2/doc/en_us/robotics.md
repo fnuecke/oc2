@@ -27,6 +27,11 @@ Movement takes `forward`, `backward`, `upward` and `downward`; rotation takes `l
 
 Both accept short forms. `up`, `down`, `back` and `ahead` work for movement, and the single letters `f`, `b`, `u`, `d`, `l` and `r` work wherever the corresponding long form does.
 
+## Position
+Robots have a built-in compass and keep track of where they are. `getFacing()` reports `north`, `east`, `south` or `west`. `getPosition()` reports the offset from the robot's origin in blocks: `x` grows towards east, `y` upward and `z` towards south.
+
+The origin is initialized when the robot is placed. `calibratePosition()` resets it to where the robot is at that moment. The position stays correct even when the robot is moved by external measures.
+
 ## The robot Library
 Driving the action queue by hand is tedious, so the default Linux distribution ships a `robot` library that waits for completion:
 

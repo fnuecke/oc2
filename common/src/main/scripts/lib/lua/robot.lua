@@ -61,9 +61,16 @@ M.side = {
   down = "down"
 }
 
-M.detect = function(side)
-  side = assert(side, "no side specified")
-  return robot:detect(side)
+M.facing = function()
+  return robot:getFacing()
+end
+
+M.position = function()
+  return robot:getPosition()
+end
+
+M.calibrate = function()
+  robot:calibratePosition()
 end
 
 M.energy = function()
@@ -97,6 +104,11 @@ M.statusValue = function(value)
     return robot:setStatusValue(value)
   end
   return robot:getStatusValue()
+end
+
+M.detect = function(side)
+  side = assert(side, "no side specified")
+  return robot:detect(side)
 end
 
 M.move = function(direction, timeout)

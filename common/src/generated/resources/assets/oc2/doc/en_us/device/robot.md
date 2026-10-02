@@ -13,9 +13,15 @@ Short form aliases of these values can be used for convenience: `back`, `up`, `d
 ### Sides
 The side parameter of `detect()` represents a face of the robot rather than a movement direction. Valid values are: `front`, `up` and `down`.
 
+### Position
+`getFacing()` reports a compass direction: `north`, `east`, `south` or `west`. `getPosition()` reports where the robot is relative to its origin, in blocks. `x` grows towards east, `y` upward and `z` towards south. The origin is where the robot was placed, until `calibratePosition()` moves it to where the robot is now. The position stays correct however the robot gets moved, pistons included. Breaking the robot clears the origin, changing dimension resets it to the new position.
+
 Note that the `robot` Lua library described in the [robot](../item/robot.md) entry offers useful wrappers for all of these methods. It is recommended to use the library instead of interacting with the device directly.
 
 ### Methods
+
+`calibratePosition()`
+Makes the robot's current position its reference origin.
 
 `detect(side:string):string`
 Reports what occupies the space on the specified side of the robot. This only tells you whether the space is free, not what is in it.
@@ -35,6 +41,10 @@ Gets the maximum amount of energy that can be stored in the robot's internal ene
 Gets the current amount of energy stored in the robot's internal energy storage.
 - Returns the stored amount of energy.
 
+`getFacing():string`
+Gets the compass direction the robot is facing.
+- Returns `north`, `east`, `south` or `west`.
+
 `getFluid():table`
 Gets what is in the robot's tank.
 - Returns a description of the fluid in the tank.
@@ -42,6 +52,10 @@ Gets what is in the robot's tank.
 `getLastActionId():number`
 Gets the opaque id of the last enqueued action. Call this after a successful `move()` or `turn()` call to obtain the id associated with the enqueued action.
 - Returns the id of the last enqueued action.
+
+`getPosition():table`
+Gets the robot's position relative to its origin.
+- Returns the offset from the origin in `x`, `y` and `z`, in blocks.
 
 `getQueuedActionCount():number`
 Gets the number of actions currently waiting in the action queue to be processed. Use this to wait for actions to finish when enqueueing fails.
@@ -92,7 +106,7 @@ Tries to enqueue a turn action towards the specified direction.
 ## Mid-level API
 Device name: `ROBOT`
 
-Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
+Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Facings are `0` north, `1` east, `2` south and `3` west. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
 
 ### Events
 `1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.
@@ -188,3 +202,14 @@ Reads the name of a fluid.
 Looks a fluid up by name.
 - Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
 - Returns two bytes, the fluid id.
+
+`21 getFacing`
+Gets the compass direction the robot is facing.
+- Returns one byte, the facing.
+
+`22 getPosition`
+Gets the robot's position relative to its origin.
+- Returns six bytes, the signed two byte offsets `x`, `y` and `z`, each low byte first.
+
+`23 calibratePosition`
+Makes the robot's current position its reference origin.

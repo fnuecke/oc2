@@ -15,6 +15,7 @@ local state = {
   statusValue = 1,
   statusGets = 0,
   statusSets = 0,
+  calibrations = 0,
 }
 
 package.preload["oc2.clock"] = function()
@@ -53,6 +54,11 @@ local device = {
   detect = function(_, side)
     state.lastDetectSide = side
     return "solid"
+  end,
+  getFacing = function() return "west" end,
+  getPosition = function() return { x = -1, y = 2, z = 3 } end,
+  calibratePosition = function()
+    state.calibrations = state.calibrations + 1
   end,
   getStatusColor = function()
     state.statusGets = state.statusGets + 1
@@ -108,6 +114,7 @@ local function reset()
   state.statusValue = 1
   state.statusGets = 0
   state.statusSets = 0
+  state.calibrations = 0
   package.loaded["robot"] = nil
   return require("robot")
 end
@@ -196,6 +203,17 @@ expect("and sends the side it was given", state.lastDetectSide, "front")
 expect("detect is a query, not a queued action", state.queueCalls, 0)
 expect("calling detect without a side is an error",
        select(1, pcall(robot.detect)), false)
+
+-- Localization
+robot = reset()
+expect("facing passes the device result through", robot.facing(), "west")
+local position = robot.position()
+expect("position reads x", position.x, -1)
+expect("position reads y", position.y, 2)
+expect("position reads z", position.z, 3)
+robot.calibrate()
+expect("calibrate calls the device once", state.calibrations, 1)
+expect("localization is not a queued action", state.queueCalls, 0)
 
 -- Status light
 robot = reset()

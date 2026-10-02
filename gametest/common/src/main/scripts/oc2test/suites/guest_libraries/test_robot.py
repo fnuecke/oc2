@@ -17,6 +17,7 @@ state = {
     "status_value": 1,
     "status_gets": 0,
     "status_sets": 0,
+    "calibrations": 0,
 }
 
 
@@ -56,6 +57,15 @@ class FakeDevice:
     def detect(self, side):
         state["last_detect_side"] = side
         return "solid"
+
+    def getFacing(self):
+        return "west"
+
+    def getPosition(self):
+        return {"x": -1, "y": 2, "z": 3}
+
+    def calibratePosition(self):
+        state["calibrations"] += 1
 
     def getStatusColor(self):
         state["status_gets"] += 1
@@ -119,6 +129,7 @@ def reset():
     state["status_value"] = 1
     state["status_gets"] = 0
     state["status_sets"] = 0
+    state["calibrations"] = 0
     fake_devices.bus = FakeBus()
     if "robot" in sys.modules:
         del sys.modules["robot"]
@@ -214,6 +225,14 @@ try:
     expect("calling detect without a side is an error", True, False)
 except Exception:
     expect("calling detect without a side is an error", True, True)
+
+# Localization
+robot = reset()
+expect("facing passes the device result through", robot.facing(), "west")
+expect("position passes the device result through", robot.position(), {"x": -1, "y": 2, "z": 3})
+robot.calibrate()
+expect("calibrate calls the device once", state["calibrations"], 1)
+expect("localization is not a queued action", state["queue_calls"], 0)
 
 # Status light
 robot = reset()

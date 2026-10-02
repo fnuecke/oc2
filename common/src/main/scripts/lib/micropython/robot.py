@@ -61,10 +61,16 @@ def _queue_action(action, direction, timeout):
     return True
 
 
-def detect(side):
-    if not side:
-        raise Exception("no side specified")
-    return _robot.detect(side)
+def facing():
+    return _robot.getFacing()
+
+
+def position():
+    return _robot.getPosition()
+
+
+def calibrate():
+    _robot.calibratePosition()
 
 
 def energy():
@@ -97,6 +103,12 @@ def status_value(value=None):
     if value is not None:
         return _robot.setStatusValue(value)
     return _robot.getStatusValue()
+
+
+def detect(side):
+    if not side:
+        raise Exception("no side specified")
+    return _robot.detect(side)
 
 
 def move(direction, timeout=None):

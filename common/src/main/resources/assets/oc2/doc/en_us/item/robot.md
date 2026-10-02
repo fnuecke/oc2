@@ -24,6 +24,14 @@ This is a Lua library. It can be used in the default Linux distribution. For exa
 `r.move("forward")`  
 `r.turn("left")`
 
+`facing():string` returns the compass direction the robot is facing.
+- Returns `north`, `east`, `south` or `west`.
+
+`position():table` returns the robot's position relative to its origin.
+- Returns a table with `x`, `y` and `z`, in blocks. See the "Position" section of the [robot device](../device/robot.md).
+
+`calibrate()` makes the robot's current position its origin.
+
 `energy():number` returns the current amount of energy stored in the robot's internal energy storage.
 - Returns the stored amount of energy.
 

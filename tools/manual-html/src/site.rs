@@ -132,6 +132,21 @@ impl<'a> SiteBuilder<'a> {
             &format!("{}/index.html", self.language),
         )?;
 
+        let mut broken = Vec::new();
+        for (key, lines) in &parsed {
+            for line in lines {
+                collect_broken(&line.nodes, key, &links, &mut broken);
+            }
+        }
+        for (key, target) in &redirects {
+            if !links.page_href(key, target).2 {
+                broken.push(format!("{key}: {target}"));
+            }
+        }
+        if !broken.is_empty() {
+            bail!("broken manual links:\n  {}", broken.join("\n  "));
+        }
+
         println!(
             "rendered {} pages into {}",
             sources.len(),
@@ -372,6 +387,29 @@ fn collect_images(nodes: &[Node], out: &mut BTreeSet<String>) {
             | Node::Strikethrough(children)
             | Node::Header { children, .. }
             | Node::Link { children, .. } => collect_images(children, out),
+            Node::Text(_) | Node::Code(_) => {}
+        }
+    }
+}
+
+fn collect_broken(nodes: &[Node], key: &str, links: &Links, out: &mut Vec<String>) {
+    for node in nodes {
+        match node {
+            Node::Link { url, children } => {
+                if !links.page_href(key, url).2 {
+                    out.push(format!("{key}: {url}"));
+                }
+                collect_broken(children, key, links, out);
+            }
+            Node::Image { url, .. } => {
+                if links.image_href(key, url).is_none() {
+                    out.push(format!("{key}: {url}"));
+                }
+            }
+            Node::Bold(children)
+            | Node::Italic(children)
+            | Node::Strikethrough(children)
+            | Node::Header { children, .. } => collect_broken(children, key, links, out),
             Node::Text(_) | Node::Code(_) => {}
         }
     }

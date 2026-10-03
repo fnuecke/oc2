@@ -22,6 +22,7 @@ These pages are generated from the devices themselves, so they always match the 
 - [Note Block](note_block.md)
 - [Redstone](redstone.md)
 - [Robot](robot.md)
+- [Scanner](scanner.md)
 - [Serial](serial.md)
 - [Sign](sign.md)
 - [Spawner](spawner.md)

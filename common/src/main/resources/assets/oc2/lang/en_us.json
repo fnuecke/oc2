@@ -72,6 +72,8 @@
   "item.oc2.tank_operations_module.desc": "Moves fluids into and out of the Robot's tank.",
   "item.oc2.block_operations_module": "Block Operations Module",
   "item.oc2.block_operations_module.desc": "Breaks and places blocks.",
+  "item.oc2.scanner_module": "Scanner Module",
+  "item.oc2.scanner_module.desc": "Identifies adjacent blocks and measures the hardness of nearby ones.",
   "item.oc2.sound_card": "Sound Card",
   "item.oc2.sound_card.desc": "Lets a computer do the beeps and boops.",
   "item.oc2.network_tunnel_module": "Network Tunnel Module",

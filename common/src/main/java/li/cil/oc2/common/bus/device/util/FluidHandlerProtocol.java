@@ -66,15 +66,15 @@ public final class FluidHandlerProtocol {
         results.writeU16(toFluidId(fluid));
     }
 
-    // --------------------------------------------------------------------- //
-
-    private static int toFluidId(final Fluid fluid) throws IOException {
+    public static int toFluidId(final Fluid fluid) throws IOException {
         final int id = BuiltInRegistries.FLUID.getId(fluid);
         if (id > 0xFFFF) {
             throw new IOException("fluid id does not fit the guest protocol: " + id);
         }
         return id;
     }
+
+    // --------------------------------------------------------------------- //
 
     private FluidHandlerProtocol() {
     }

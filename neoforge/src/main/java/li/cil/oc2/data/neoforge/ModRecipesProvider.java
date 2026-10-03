@@ -515,6 +515,17 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ShapedRecipeBuilder
+            .shaped(RecipeCategory.MISC, Items.SCANNER_MODULE.get())
+            .pattern("TSC")
+            .pattern(" B ")
+            .define('T', Items.TRANSISTOR.get())
+            .define('S', net.minecraft.world.item.Items.SPYGLASS)
+            .define('C', Tags.Items.INGOTS_COPPER)
+            .define('B', Items.CIRCUIT_BOARD.get())
+            .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
+            .save(consumer);
+
+        ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.NETWORK_TUNNEL_MODULE.get())
             .pattern("TEC")
             .pattern(" B ")

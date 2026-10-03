@@ -75,20 +75,21 @@ public final class Items {
     public static final RegistrySupplier<FloppyItem> FLOPPY = register("floppy", () ->
         new FloppyItem(() -> Config.floppySize));
 
-    public static final RegistrySupplier<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
-    public static final RegistrySupplier<Item> SERIAL_INTERFACE_CARD = register("serial_interface_card", SerialInterfaceCardItem::new);
+    public static final RegistrySupplier<Item> FILE_IMPORT_EXPORT_CARD = register("file_import_export_card");
     public static final RegistrySupplier<Item> NETWORK_INTERFACE_CARD = register("network_interface_card", NetworkInterfaceCardItem::new);
     public static final RegistrySupplier<Item> NETWORK_TUNNEL_CARD = register("network_tunnel_card", NetworkTunnelItem::new);
-    public static final RegistrySupplier<Item> FILE_IMPORT_EXPORT_CARD = register("file_import_export_card");
+    public static final RegistrySupplier<Item> REDSTONE_INTERFACE_CARD = register("redstone_interface_card");
+    public static final RegistrySupplier<Item> SERIAL_INTERFACE_CARD = register("serial_interface_card", SerialInterfaceCardItem::new);
     public static final RegistrySupplier<Item> SOUND_CARD = register("sound_card");
 
-    public static final RegistrySupplier<Item> INVENTORY_OPERATIONS_MODULE = register("inventory_operations_module");
     public static final RegistrySupplier<Item> BLOCK_OPERATIONS_MODULE = register("block_operations_module", BlockOperationsModule::new);
+    public static final RegistrySupplier<Item> INVENTORY_OPERATIONS_MODULE = register("inventory_operations_module");
     public static final RegistrySupplier<Item> NETWORK_TUNNEL_MODULE = register("network_tunnel_module", NetworkTunnelItem::new);
+    public static final RegistrySupplier<Item> SCANNER_MODULE = register("scanner_module");
     public static final RegistrySupplier<Item> TANK_OPERATIONS_MODULE = register("tank_operations_module");
 
-    public static final RegistrySupplier<Item> TRANSISTOR = register("transistor", ModItem::new);
     public static final RegistrySupplier<Item> CIRCUIT_BOARD = register("circuit_board", ModItem::new);
+    public static final RegistrySupplier<Item> TRANSISTOR = register("transistor", ModItem::new);
 
     // --------------------------------------------------------------------- //
 

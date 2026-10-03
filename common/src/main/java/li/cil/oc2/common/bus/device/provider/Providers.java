@@ -95,6 +95,7 @@ public final class Providers {
         registry.accept("block_operations_module", BlockOperationsModuleDeviceProvider::new);
         registry.accept("inventory_operations_module", InventoryOperationsModuleDeviceProvider::new);
         registry.accept("network_tunnel_module", NetworkTunnelModuleItemDeviceProvider::new);
+        registry.accept("scanner_module", ScannerModuleDeviceProvider::new);
         registry.accept("tank_operations_module", TankOperationsModuleDeviceProvider::new);
     }
 }

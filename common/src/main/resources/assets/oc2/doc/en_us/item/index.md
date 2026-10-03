@@ -16,6 +16,7 @@ This index lists all documented items. If you're looking for a block, see the [b
 - [Redstone Interface Card](redstone_interface_card.md)
 - [RISC-V Processor](cpu_riscv.md)
 - [Robot](robot.md)
+- [Scanner Module](scanner_module.md)
 - [Scrench](wrench.md)
 - [Serial Interface Card](serial_interface_card.md)
 - [Sound Card](sound_card.md)

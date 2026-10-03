@@ -5,11 +5,10 @@ package li.cil.oc2.common.bus.device.util;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.common.bus.device.SystemDevice;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
@@ -46,38 +45,11 @@ public final class ItemHandlerProtocol {
         results.writeU8(Math.min(handler.getSlotLimit(ItemHandlerDeviceUtils.requireValidSlot(handler, arguments.readU8())), 0xFF));
     }
 
-    public static void writeItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final int id = arguments.readU16();
-        final ResourceLocation key = BuiltInRegistries.ITEM.getHolder(id)
-            .orElseThrow(() -> new IllegalArgumentException("no item with id: " + id))
-            .key().location();
-        results.writeString(key.toString());
-    }
-
-    public static void writeItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final String name = arguments.readString();
-        final ResourceLocation key = ResourceLocation.tryParse(name);
-        final Item item = key != null ? BuiltInRegistries.ITEM.getOptional(key).orElse(null) : null;
-        if (item == null) {
-            throw new IllegalArgumentException("no such item: " + name);
-        }
-
-        results.writeU16(toItemId(item));
-    }
-
-    public static int toItemId(final Item item) throws IOException {
-        final int id = BuiltInRegistries.ITEM.getId(item);
-        if (id > 0xFFFF) {
-            throw new IOException("item id does not fit the guest protocol: " + id);
-        }
-        return id;
-    }
-
     // --------------------------------------------------------------------- //
 
     private static void writeSlotAt(final ItemHandler handler, final int slot, final IOOutputStream results) throws IOException {
         final ItemStack stack = handler.getStackInSlot(slot);
-        results.writeU16(toItemId(stack.getItem()));
+        results.writeU16(SystemDevice.toId(BuiltInRegistries.ITEM, stack.getItem()));
         results.writeU8(Math.min(stack.getCount(), 0xFF));
         results.writeU8(toDamage(stack));
     }

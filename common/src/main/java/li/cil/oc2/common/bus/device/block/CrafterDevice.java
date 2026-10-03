@@ -5,8 +5,9 @@ package li.cil.oc2.common.bus.device.block;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
-import li.cil.oc2.common.bus.device.util.ItemHandlerProtocol;
+import li.cil.oc2.common.bus.device.SystemDevice;
 import li.cil.oc2.common.util.BlockLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -18,7 +19,7 @@ import java.io.IOException;
 @RPCDeviceDescription(typeNames = {"crafter"}, description = """
     Provided by crafters connected to a [bus interface](../block/bus_interface.md). The grid slots are available through the [item handler](item_handler.md) device.""")
 @IODeviceDescription(name = "CRAFTR", description = """
-    Items are identified by the same ids as on `ITEMS`, which also turns them into names.""")
+    Item ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup.""")
 public final class CrafterDevice extends AbstractBlockDevice {
     private static final int IS_SLOT_ENABLED_CODE = 1;
     private static final int SET_SLOT_ENABLED_CODE = 2;
@@ -86,7 +87,7 @@ public final class CrafterDevice extends AbstractBlockDevice {
         resultsDescription = "three bytes: the item as two bytes, `0` if the grid matches no recipe, else the number of items.")
     public void getResult(final IOOutputStream results) throws IOException {
         final ItemStack result = getResult();
-        results.writeU16(ItemHandlerProtocol.toItemId(result.getItem()));
+        results.writeU16(SystemDevice.toId(BuiltInRegistries.ITEM, result.getItem()));
         results.writeU8(Math.min(result.getCount(), 0xFF));
     }
 

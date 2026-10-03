@@ -18,6 +18,8 @@ Every MLAPI device answers on the same port and is told apart by a MLAPI-device 
 
 Write `E` to the `OCSEL` register to pick the device, then work from the port in `A`. Selecting stays valid until you select something else. Read the index again after devices change on the bus, since it can shift.
 
+Every computer and robot has a [`SYSTEM`](device/system.md) device. Other devices identify items, fluids and blocks by ids to save bus bandwidth. Corresponding names can be looked up using this `SYSTEM` device and vice versa. It is always MLAPI-device index 0, so it can be used without prior `OCFIND`.
+
 ## Making a Call
 The port `OCFIND` returned has four registers, named in `OCAPI.INC`:
 - `OCSEL` selects the MLAPI-device

@@ -38,9 +38,9 @@ public final class RobotLocalizationTests {
     private static final int SETTLE_TICKS = 20;
     private static final BlockPos SECOND_ROBOT_POS = ROBOT_POS.offset(4, 0, 0);
 
-    private static final int GET_FACING_CODE = 21;
-    private static final int GET_POSITION_CODE = 22;
-    private static final int CALIBRATE_POSITION_CODE = 23;
+    private static final int GET_FACING_CODE = 17;
+    private static final int GET_POSITION_CODE = 18;
+    private static final int CALIBRATE_POSITION_CODE = 19;
 
     @GameTest(template = TEMPLATE)
     public static void placedRobotStartsAtItsOrigin(final GameTestHelper helper) {

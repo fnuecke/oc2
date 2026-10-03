@@ -34,7 +34,7 @@ import java.util.Objects;
 
     Sides without a container report no tank, which allows predicting world interaction, e.g. to ensure things are never dumped into the world.""")
 @IODeviceDescription(name = "TNKOPS", description = """
-    Sides are numbered: `0` front, `1` up and `2` down. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device. Amounts are millibuckets, four bytes, low byte first.""")
+    Sides are numbered: `0` front, `1` up and `2` down. Fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. Amounts are millibuckets, four bytes, low byte first.""")
 public final class TankOperationsModuleDevice extends AbstractItemDevice {
     private static final int FILL_CODE = 1;
     private static final int DRAIN_CODE = 2;

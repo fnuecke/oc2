@@ -28,9 +28,7 @@ Device name: `FLUIDS`
 
 Each container is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
 
-Fluids are identified by ids to save bus bandwidth. An id is stable within a world, but not across changes to the installed mods. An empty tank reads as fluid 0. Fluid numbers are two bytes, low byte first. Amounts are four bytes, low byte first.
-
-A tank the container does not have, or a name no fluid goes by, fails with `OCEARG`.
+Fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. An empty tank reads as fluid 0. Amounts are four bytes, low byte first.
 
 ### Methods
 
@@ -48,13 +46,3 @@ Ask for 1 to 42 tanks; more than that fails with `OCEARG`, since the reply would
 Reads how much the tank can hold.
 - Takes one byte, the tank.
 - Returns four bytes, the capacity.
-
-`4 getFluidName`
-Reads the name of a fluid.
-- Takes two bytes, the fluid id.
-- Returns the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.
-
-`5 getFluidId`
-Looks a fluid up by name.
-- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
-- Returns two bytes, the fluid id.

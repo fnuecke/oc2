@@ -20,15 +20,11 @@ import java.io.IOException;
 @IODeviceDescription(name = "FLUIDS", description = """
     Each container is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
 
-    Fluids are identified by ids to save bus bandwidth. An id is stable within a world, but not across changes to the installed mods. An empty tank reads as fluid 0. Fluid numbers are two bytes, low byte first. Amounts are four bytes, low byte first.
-
-    A tank the container does not have, or a name no fluid goes by, fails with `OCEARG`.""")
+    Fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. An empty tank reads as fluid 0. Amounts are four bytes, low byte first.""")
 public final class FluidHandlerDevice extends IdentityProxy<FluidHandler> {
     private static final int GET_TANK_COUNT_CODE = 1;
     private static final int GET_TANKS_CODE = 2;
     private static final int GET_TANK_CAPACITY_CODE = 3;
-    private static final int GET_FLUID_NAME_CODE = 4;
-    private static final int GET_FLUID_ID_CODE = 5;
 
     private static final String TANK = "the number of the tank to look at.";
 
@@ -83,21 +79,5 @@ public final class FluidHandlerDevice extends IdentityProxy<FluidHandler> {
         resultsDescription = "four bytes, the capacity.")
     public void getFluidTankCapacity(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTankCapacity(identity, arguments, results);
-    }
-
-    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false,
-        description = "Reads the name of a fluid.",
-        argumentsDescription = "two bytes, the fluid id.",
-        resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.")
-    public void getFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        FluidHandlerProtocol.writeFluidName(arguments, results);
-    }
-
-    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false,
-        description = "Looks a fluid up by name.",
-        argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
-        resultsDescription = "two bytes, the fluid id.")
-    public void getFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        FluidHandlerProtocol.writeFluidId(arguments, results);
     }
 }

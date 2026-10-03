@@ -39,7 +39,7 @@ import static java.util.Objects.requireNonNull;
 
     Sides without a container report no inventory or tank, which allows predicting world interaction, e.g. to ensure things are never dumped into the world.""")
 @IODeviceDescription(name = "TRANSP", description = """
-    Sides are numbered as in the "Sides" section above. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluids follow the same pattern; amounts are millibuckets, four bytes, low byte first, as on the `FLUIDS` device.
+    Sides are numbered as in the "Sides" section above. Item and fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. Amounts are millibuckets, four bytes, low byte first.
 
     A side with neither a container nor available space, or a protected side, fails with `OCEARG`.""")
 public final class TransposerBlockEntity extends ModBlockEntity {
@@ -56,16 +56,12 @@ public final class TransposerBlockEntity extends ModBlockEntity {
     private static final int GET_ITEM_SLOT_COUNT_CODE = 1;
     private static final int GET_ITEM_SLOTS_CODE = 2;
     private static final int GET_ITEM_SLOT_LIMIT_CODE = 3;
-    private static final int GET_ITEM_NAME_CODE = 4;
-    private static final int GET_ITEM_ID_CODE = 5;
-    private static final int MOVE_ITEMS_CODE = 6;
-    private static final int GET_FLUID_TANK_COUNT_CODE = 7;
-    private static final int GET_FLUID_TANKS_CODE = 8;
-    private static final int GET_FLUID_TANK_CAPACITY_CODE = 9;
-    private static final int GET_FLUID_NAME_CODE = 10;
-    private static final int GET_FLUID_ID_CODE = 11;
-    private static final int MOVE_FLUID_CODE = 12;
-    private static final int MOVE_ITEMS_ANY_CODE = 13;
+    private static final int MOVE_ITEMS_CODE = 4;
+    private static final int MOVE_ITEMS_ANY_CODE = 5;
+    private static final int GET_FLUID_TANK_COUNT_CODE = 6;
+    private static final int GET_FLUID_TANKS_CODE = 7;
+    private static final int GET_FLUID_TANK_CAPACITY_CODE = 8;
+    private static final int MOVE_FLUID_CODE = 9;
 
     // --------------------------------------------------------------------- //
 
@@ -186,22 +182,6 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         ItemHandlerProtocol.writeSlotLimit(requireItemHandlers(Side.byIndex(arguments.readU8())).getFirst(), arguments, results);
     }
 
-    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
-        description = "Reads the name of an item.",
-        argumentsDescription = "two bytes, the item id.",
-        resultsDescription = "the name, such as `minecraft:redstone`. Read while `OCDAV` is set to read fully.")
-    public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        ItemHandlerProtocol.writeItemName(arguments, results);
-    }
-
-    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false,
-        description = "Looks an item up by name.",
-        argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
-        resultsDescription = "two bytes, the item id.")
-    public void getItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        ItemHandlerProtocol.writeItemId(arguments, results);
-    }
-
     @IOCallback(value = MOVE_ITEMS_CODE, energy = 1,
         description = "Moves up to `count` items between two slots.",
         argumentsDescription = "five bytes, the side and slot to take from, the side and slot to put into, and how many items to move at most.",
@@ -248,22 +228,6 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         resultsDescription = "four bytes, the capacity.")
     public void getFluidTankCapacity(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         FluidHandlerProtocol.writeTankCapacity(requireFluidHandlers(Side.byIndex(arguments.readU8())).getFirst(), arguments, results);
-    }
-
-    @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false,
-        description = "Reads the name of a fluid.",
-        argumentsDescription = "two bytes, the fluid id.",
-        resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.")
-    public void getFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        FluidHandlerProtocol.writeFluidName(arguments, results);
-    }
-
-    @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false,
-        description = "Looks up a fluid by name.",
-        argumentsDescription = "the name.",
-        resultsDescription = "two bytes, the fluid id.")
-    public void getFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        FluidHandlerProtocol.writeFluidId(arguments, results);
     }
 
     @IOCallback(value = MOVE_FLUID_CODE, energy = 1,

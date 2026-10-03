@@ -6,18 +6,16 @@ import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.util.RobotOperationSide;
-import li.cil.oc2.common.bus.device.util.FluidHandlerProtocol;
+import li.cil.oc2.common.bus.device.SystemDevice;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -52,7 +50,7 @@ import java.util.Comparator;
     ### Entities
     Entities are reported by identifier, such as `minecraft:sheep`, closest first. At most twenty are listed.""")
 @IODeviceDescription(name = "SCANNR", description = """
-    Sides are numbered: `0` front, `1` up and `2` down. Block numbers are two bytes, low byte first, where `0` is air. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device, where `0` is no fluid.
+    Sides are numbered: `0` front, `1` up and `2` down. Block and fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. Block `0` is air, fluid `0` is no fluid.
 
     A scan is read one layer at a time. Layers are horizontal and numbered `0` to `6` from bottom to top, each holds 49 bytes ordered from north to south, then from west to east. Byte values are as described for the high-level API.""")
 public final class ScannerModuleDevice extends AbstractItemDevice {
@@ -70,9 +68,7 @@ public final class ScannerModuleDevice extends AbstractItemDevice {
     private static final int INSPECT_CODE = 1;
     private static final int SCAN_CODE = 2;
     private static final int GET_SCAN_LAYER_CODE = 3;
-    private static final int GET_BLOCK_NAME_CODE = 4;
-    private static final int GET_BLOCK_ID_CODE = 5;
-    private static final int CAN_SEE_SKY_CODE = 6;
+    private static final int CAN_SEE_SKY_CODE = 4;
 
     private static final int SCAN_RADIUS = 3;
     private static final int SCAN_LENGTH = SCAN_RADIUS * 2 + 1;
@@ -178,8 +174,8 @@ public final class ScannerModuleDevice extends AbstractItemDevice {
     public void inspect(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final BlockPos pos = getAdjacent(RobotOperationSide.byIndex(arguments.readU8()));
         final BlockState state = getBlockState(pos);
-        results.writeU16(state.isAir() ? 0 : toBlockId(state.getBlock()));
-        results.writeU16(FluidHandlerProtocol.toFluidId(getSourceFluid(state.getFluidState())));
+        results.writeU16(state.isAir() ? 0 : SystemDevice.toId(BuiltInRegistries.BLOCK, state.getBlock()));
+        results.writeU16(SystemDevice.toId(BuiltInRegistries.FLUID, getSourceFluid(state.getFluidState())));
         results.writeU8(getEntities(new AABB(pos)).length);
     }
 
@@ -210,32 +206,6 @@ public final class ScannerModuleDevice extends AbstractItemDevice {
         resultsDescription = "one byte, `1` if the sky is visible, `0` otherwise.")
     public void canSeeSky(final IOOutputStream results) throws IOException {
         results.writeU8(canSeeSky() ? 1 : 0);
-    }
-
-    @IOCallback(value = GET_BLOCK_NAME_CODE, synchronize = false,
-        description = "Reads the name of a block.",
-        argumentsDescription = "two bytes, the block id.",
-        resultsDescription = "the name, such as `minecraft:stone`. Read while `OCDAV` is set to read fully.")
-    public void getBlockName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final int id = arguments.readU16();
-        final ResourceLocation key = BuiltInRegistries.BLOCK.getHolder(id)
-            .orElseThrow(() -> new IllegalArgumentException("no block with id: " + id))
-            .key().location();
-        results.writeString(key.toString());
-    }
-
-    @IOCallback(value = GET_BLOCK_ID_CODE, synchronize = false,
-        description = "Looks a block up by name.",
-        argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
-        resultsDescription = "two bytes, the block id.")
-    public void getBlockId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final String name = arguments.readString();
-        final ResourceLocation key = ResourceLocation.tryParse(name);
-        final Block block = key != null ? BuiltInRegistries.BLOCK.getOptional(key).orElse(null) : null;
-        if (block == null) {
-            throw new IllegalArgumentException("no such block: " + name);
-        }
-        results.writeU16(toBlockId(block));
     }
 
     // --------------------------------------------------------------------- //
@@ -289,13 +259,5 @@ public final class ScannerModuleDevice extends AbstractItemDevice {
 
     private static boolean isLoaded(final Level level, final BlockPos pos) {
         return level.hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
-    }
-
-    private static int toBlockId(final Block block) throws IOException {
-        final int id = BuiltInRegistries.BLOCK.getId(block);
-        if (id > 0xFFFF) {
-            throw new IOException("block id does not fit the guest protocol: " + id);
-        }
-        return id;
     }
 }

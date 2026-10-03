@@ -31,7 +31,7 @@ public final class Z80Tests {
     private static final String SERIAL_BATCH = "oc2_z80_serial";
 
     private static final int GET_SLOTS_CODE = 2;
-    private static final int GET_ITEM_NAME_CODE = 4;
+    private static final int SYSTEM_GET_ITEM_NAME_CODE = 1;
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
     public static void z80EnumeratesSerialCard(final GameTestHelper helper) {
@@ -177,7 +177,7 @@ public final class Z80Tests {
                 continue;
             }
 
-            final String name = new String(invokeIo(io, GET_ITEM_NAME_CODE, id & 0xFF, id >>> 8), US_ASCII);
+            final String name = new String(invokeIo(z80.computer().ioDevice("SYSTEM"), SYSTEM_GET_ITEM_NAME_CODE, id & 0xFF, id >>> 8), US_ASCII);
             if (!"minecraft:redstone".equals(name)) {
                 throw new GameTestAssertException("slot 0 of the chest resolved to [" + name + "]");
             }

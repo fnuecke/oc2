@@ -43,7 +43,7 @@ Measures the hardness of the blocks around the robot and lists nearby entities.
 ## Mid-level API
 Device name: `SCANNR`
 
-Sides are numbered: `0` front, `1` up and `2` down. Block numbers are two bytes, low byte first, where `0` is air. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device, where `0` is no fluid.
+Sides are numbered: `0` front, `1` up and `2` down. Block and fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. Block `0` is air, fluid `0` is no fluid.
 
 A scan is read one layer at a time. Layers are horizontal and numbered `0` to `6` from bottom to top, each holds 49 bytes ordered from north to south, then from west to east. Byte values are as described for the high-level API.
 
@@ -65,16 +65,6 @@ Reads one layer of the last scan. Fails if there was no scan yet.
 - Takes one byte, the layer.
 - Returns 49 bytes, the hardness of each block in the layer.
 
-`4 getBlockName`
-Reads the name of a block.
-- Takes two bytes, the block id.
-- Returns the name, such as `minecraft:stone`. Read while `OCDAV` is set to read fully.
-
-`5 getBlockId`
-Looks a block up by name.
-- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
-- Returns two bytes, the block id.
-
-`6 canSeeSky`
+`4 canSeeSky`
 Checks whether the robot's space gets full sky light.
 - Returns one byte, `1` if the sky is visible, `0` otherwise.

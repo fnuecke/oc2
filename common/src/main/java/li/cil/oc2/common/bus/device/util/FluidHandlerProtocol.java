@@ -5,11 +5,10 @@ package li.cil.oc2.common.bus.device.util;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.IOCallback;
+import li.cil.oc2.common.bus.device.SystemDevice;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.material.Fluid;
 
 import java.io.IOException;
 
@@ -43,35 +42,8 @@ public final class FluidHandlerProtocol {
 
     public static void writeTankAt(final FluidHandler handler, final int tank, final IOOutputStream results) throws IOException {
         final FluidStack stack = handler.getFluidInTank(tank);
-        results.writeU16(toFluidId(stack.fluid()));
+        results.writeU16(SystemDevice.toId(BuiltInRegistries.FLUID, stack.fluid()));
         results.writeU32(stack.amount());
-    }
-
-    public static void writeFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final int id = arguments.readU16();
-        final ResourceLocation key = BuiltInRegistries.FLUID.getHolder(id)
-            .orElseThrow(() -> new IllegalArgumentException("no fluid with id: " + id))
-            .key().location();
-        results.writeString(key.toString());
-    }
-
-    public static void writeFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        final String name = arguments.readString();
-        final ResourceLocation key = ResourceLocation.tryParse(name);
-        final Fluid fluid = key != null ? BuiltInRegistries.FLUID.getOptional(key).orElse(null) : null;
-        if (fluid == null) {
-            throw new IllegalArgumentException("no such fluid: " + name);
-        }
-
-        results.writeU16(toFluidId(fluid));
-    }
-
-    public static int toFluidId(final Fluid fluid) throws IOException {
-        final int id = BuiltInRegistries.FLUID.getId(fluid);
-        if (id > 0xFFFF) {
-            throw new IOException("fluid id does not fit the guest protocol: " + id);
-        }
-        return id;
     }
 
     // --------------------------------------------------------------------- //

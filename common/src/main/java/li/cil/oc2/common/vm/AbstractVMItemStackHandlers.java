@@ -6,12 +6,14 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
+import li.cil.oc2.common.bus.device.SystemDevice;
 import li.cil.oc2.common.container.AbstractDeviceItemStackHandler;
 import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
 import li.cil.oc2.common.container.CombinedItemHandler;
@@ -26,8 +28,10 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singleton;
 import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
 
 public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers {
@@ -205,11 +209,29 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     }
 
     private final class VMBusElement extends AbstractDeviceBusElement {
+        // Sorts first in IODeviceRegistry, pinning SYSTEM to mid-level API device index 0.
+        private static final UUID SYSTEM_DEVICE_ID = new UUID(Long.MIN_VALUE, Long.MIN_VALUE);
+
+        private final Device systemDevice = new ObjectDevice(new SystemDevice());
+
         @Override
         public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
                 .map(handler -> Invalidatable.of((DeviceBusElement) handler.getBusElement()))
                 .collect(Collectors.toList()));
+        }
+
+        @Override
+        public Collection<Device> getLocalDevices() {
+            return singleton(systemDevice);
+        }
+
+        @Override
+        public Optional<UUID> getDeviceIdentifier(final Device device) {
+            if (device == systemDevice) {
+                return Optional.of(SYSTEM_DEVICE_ID);
+            }
+            return super.getDeviceIdentifier(device);
         }
     }
 }

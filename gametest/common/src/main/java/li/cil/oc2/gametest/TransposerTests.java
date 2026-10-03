@@ -37,7 +37,7 @@ public final class TransposerTests {
 
     private static final int GET_SLOT_COUNT_CODE = 1;
     private static final int GET_SLOTS_CODE = 2;
-    private static final int MOVE_ITEMS_CODE = 6;
+    private static final int MOVE_ITEMS_CODE = 4;
 
     public static void transposerJoinsTheBus(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);

@@ -20,15 +20,11 @@ import java.io.IOException;
 @IODeviceDescription(name = "ITEMS", description = """
     Each inventory is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
 
-    Items are identified by ids to save bus bandwidth. An id is stable within a world, but not across changes to the installed mods. An empty slot reads as item 0. Item numbers are two bytes, low byte first.
-
-    A slot the inventory does not have, or a name no item goes by, fails with `OCEARG`.""")
+    Item ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. An empty slot reads as item 0.""")
 public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> {
     private static final int GET_SLOT_COUNT_CODE = 1;
     private static final int GET_SLOTS_CODE = 2;
     private static final int GET_SLOT_LIMIT_CODE = 3;
-    private static final int GET_ITEM_NAME_CODE = 4;
-    private static final int GET_ITEM_ID_CODE = 5;
 
     private static final String SLOT = "the number of the slot to look at.";
 
@@ -83,21 +79,5 @@ public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> {
         resultsDescription = "one byte, the limit, at most 255.")
     public void getItemSlotLimit(final IOInputStream arguments, final IOOutputStream results) throws IOException {
         ItemHandlerProtocol.writeSlotLimit(identity, arguments, results);
-    }
-
-    @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
-        description = "Reads the name of an item.",
-        argumentsDescription = "two bytes, the item id.",
-        resultsDescription = "the name, such as `minecraft:redstone`. Read while `OCDAV` is set to read fully.")
-    public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        ItemHandlerProtocol.writeItemName(arguments, results);
-    }
-
-    @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false,
-        description = "Looks an item up by name.",
-        argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
-        resultsDescription = "two bytes, the item id.")
-    public void getItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-        ItemHandlerProtocol.writeItemId(arguments, results);
     }
 }

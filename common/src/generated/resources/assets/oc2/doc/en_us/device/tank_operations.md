@@ -59,7 +59,7 @@ Tries to move fluid from the robot's tank into the container item, such as a buc
 ## Mid-level API
 Device name: `TNKOPS`
 
-Sides are numbered: `0` front, `1` up and `2` down. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device. Amounts are millibuckets, four bytes, low byte first.
+Sides are numbered: `0` front, `1` up and `2` down. Fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. Amounts are millibuckets, four bytes, low byte first.
 
 ### Methods
 

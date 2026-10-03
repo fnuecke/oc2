@@ -45,9 +45,8 @@ public final class ScannerModuleTests {
     private static final int INSPECT_CODE = 1;
     private static final int SCAN_CODE = 2;
     private static final int GET_SCAN_LAYER_CODE = 3;
-    private static final int GET_BLOCK_NAME_CODE = 4;
-    private static final int GET_BLOCK_ID_CODE = 5;
-    private static final int CAN_SEE_SKY_CODE = 6;
+    private static final int CAN_SEE_SKY_CODE = 4;
+    private static final int SYSTEM_GET_BLOCK_NAME_CODE = 5;
 
     private static final int FRONT = 0;
 
@@ -212,10 +211,8 @@ public final class ScannerModuleTests {
                 }
                 assertThrows(helper, "a layer past the cube", () -> invokeIo(scanner, GET_SCAN_LAYER_CODE, 7));
 
-                final byte[] stoneId = invokeIo(scanner, GET_BLOCK_ID_CODE, ascii("stone"));
-                assertEquals(helper, "stone looks up by name", BuiltInRegistries.BLOCK.getId(Blocks.STONE), readU16(stoneId, 0));
-                assertTrue(helper, "and its id names it", "minecraft:stone".equals(
-                    new String(invokeIo(scanner, GET_BLOCK_NAME_CODE, stoneId[0] & 0xFF, stoneId[1] & 0xFF), US_ASCII)));
+                assertTrue(helper, "SYSTEM names the inspected block", "minecraft:chain".equals(new String(
+                    invokeIo(robot.ioDevice("SYSTEM"), SYSTEM_GET_BLOCK_NAME_CODE, inspection[0] & 0xFF, inspection[1] & 0xFF), US_ASCII)));
 
                 assertEquals(helper, "the sky reads as one byte", scanner.canSeeSky() ? 1 : 0, invokeIo(scanner, CAN_SEE_SKY_CODE)[0]);
 
@@ -291,15 +288,6 @@ public final class ScannerModuleTests {
 
     private static int readU16(final byte[] bytes, final int offset) {
         return (bytes[offset] & 0xFF) | ((bytes[offset + 1] & 0xFF) << 8);
-    }
-
-    private static int[] ascii(final String text) {
-        final byte[] bytes = text.getBytes(US_ASCII);
-        final int[] values = new int[bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            values[i] = bytes[i] & 0xFF;
-        }
-        return values;
     }
 
     private ScannerModuleTests() {

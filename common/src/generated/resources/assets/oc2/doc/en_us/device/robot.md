@@ -106,7 +106,7 @@ Tries to enqueue a turn action towards the specified direction.
 ## Mid-level API
 Device name: `ROBOT`
 
-Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Facings are `0` north, `1` east, `2` south and `3` west. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
+Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Facings are `0` north, `1` east, `2` south and `3` west. Item and fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup.
 
 ### Events
 `1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.
@@ -140,76 +140,56 @@ Reads what is in an inventory slot.
 - Takes one byte, the slot. A slot the robot does not have fails with `OCEARG`.
 - Returns four bytes, one slot record in the form the `ITEMS` device uses: the item as two bytes, the number of items, and damage.
 
-`7 getItemName`
-Reads the name of an item.
-- Takes two bytes, the item id.
-- Returns the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to read fully.
-
-`8 getItemId`
-Looks an item up by name.
-- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
-- Returns two bytes, the item id.
-
-`9 move`
+`7 move`
 Tries to enqueue a movement action in the specified direction.
 - Takes one byte, the direction.
 - Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
 
-`10 turn`
+`8 turn`
 Tries to enqueue a turn action towards the specified direction.
 - Takes one byte, the direction.
 - Returns one byte, `1` when the action was enqueued, `0` when the queue was full or the robot was not ready.
 
-`11 getLastActionId`
+`9 getLastActionId`
 Gets the opaque id of the last enqueued action. Call this after a successful `move` or `turn` call to obtain the id associated with the enqueued action.
 - Returns two bytes, the id, low byte first.
 
-`12 getQueuedActionCount`
+`10 getQueuedActionCount`
 Gets the number of actions currently waiting in the action queue to be processed. Use this to wait for actions to finish when enqueueing fails.
 - Returns one byte, the count.
 
-`13 getActionResult`
+`11 getActionResult`
 Gets the result of the action with the specified id. Returns `1` until the action finishes. May be awaited using the `actionCompleted` event.
 - Takes two bytes, the id.
 - Returns one byte: `0` unknown, `1` incomplete, `2` success, `3` failure.
 
-`14 getStatusColor`
+`12 getStatusColor`
 Reads the color of the status light.
 - Returns three bytes, the red, green and blue components.
 
-`15 setStatusColor`
+`13 setStatusColor`
 Sets the color of the status light.
 - Takes three bytes, the red, green and blue components.
 
-`16 getStatusValue`
+`14 getStatusValue`
 Reads how far the status light is filled.
 - Returns one byte, the fill value, where `0` is empty and `255` is full.
 
-`17 setStatusValue`
+`15 setStatusValue`
 Sets how far the status light is filled.
 - Takes one byte, the fill value, where `0` is empty and `255` is full.
 
-`18 getFluid`
+`16 getFluid`
 Reads what is in the robot's tank.
 - Returns six bytes: the fluid as two bytes and the amount as four bytes. An empty tank reads as fluid 0.
 
-`19 getFluidName`
-Reads the name of a fluid.
-- Takes two bytes, the fluid id.
-- Returns the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.
-
-`20 getFluidId`
-Looks a fluid up by name.
-- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
-- Returns two bytes, the fluid id.
-
-`21 getFacing`
+`17 getFacing`
 Gets the compass direction the robot is facing.
 - Returns one byte, the facing.
 
-`22 getPosition`
+`18 getPosition`
 Gets the robot's position relative to its origin.
 - Returns six bytes, the signed two byte offsets `x`, `y` and `z`, each low byte first.
 
-`23 calibratePosition`
+`19 calibratePosition`
 Makes the robot's current position its reference origin.

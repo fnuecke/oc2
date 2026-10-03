@@ -74,7 +74,7 @@ Moves items from one inventory slot to another. It moves as many items as the so
 ## Mid-level API
 Device name: `TRANSP`
 
-Sides are numbered as in the "Sides" section above. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluids follow the same pattern; amounts are millibuckets, four bytes, low byte first, as on the `FLUIDS` device.
+Sides are numbered as in the "Sides" section above. Item and fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. Amounts are millibuckets, four bytes, low byte first.
 
 A side with neither a container nor available space, or a protected side, fails with `OCEARG`.
 
@@ -95,55 +95,35 @@ Reads how much a slot of the inventory on that side can hold.
 - Takes two bytes, the side and the slot.
 - Returns one byte, the limit, at most 255.
 
-`4 getItemName`
-Reads the name of an item.
-- Takes two bytes, the item id.
-- Returns the name, such as `minecraft:redstone`. Read while `OCDAV` is set to read fully.
-
-`5 getItemId`
-Looks an item up by name.
-- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
-- Returns two bytes, the item id.
-
-`6 moveItems`
+`4 moveItems`
 Moves up to `count` items between two slots.
 - Takes five bytes, the side and slot to take from, the side and slot to put into, and how many items to move at most.
 - Returns one byte, how many items were moved.
 - Energy cost: `1`
 
-`7 getFluidTankCount`
+`5 moveItemsAny`
+Moves up to `count` items from any slot into any slot.
+- Takes three bytes, the side to take from, the side to put into, and how many items to move at most.
+- Returns one byte, how many items were moved.
+- Energy cost: `1`
+
+`6 getFluidTankCount`
 Reads how many tanks the container on that side has.
 - Takes one byte, the side.
 - Returns one byte, the tank count, at most 255. A side without a fluid container reads as 0.
 
-`8 getFluidTanks`
+`7 getFluidTanks`
 Reads a run of tanks of the container on that side.
 - Takes three bytes, the side, the tank to start at and how many tanks to read, from 1 to 42.
 - Returns six bytes per tank: the fluid as two bytes and the amount as four bytes.
 
-`9 getFluidTankCapacity`
+`8 getFluidTankCapacity`
 Reads how much a tank of the container on that side can hold.
 - Takes two bytes, the side and the tank.
 - Returns four bytes, the capacity.
 
-`10 getFluidName`
-Reads the name of a fluid.
-- Takes two bytes, the fluid id.
-- Returns the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.
-
-`11 getFluidId`
-Looks up a fluid by name.
-- Takes the name.
-- Returns two bytes, the fluid id.
-
-`12 moveFluid`
+`9 moveFluid`
 Moves up to `amount` millibuckets between two containers.
 - Takes six bytes, the side to drain, the side to fill, and four bytes for how much to move at most.
 - Returns four bytes, how much was moved.
-- Energy cost: `1`
-
-`13 moveItemsAny`
-Moves up to `count` items from any slot into any slot.
-- Takes three bytes, the side to take from, the side to put into, and how many items to move at most.
-- Returns one byte, how many items were moved.
 - Energy cost: `1`

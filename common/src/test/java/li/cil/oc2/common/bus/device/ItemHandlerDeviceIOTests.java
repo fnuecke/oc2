@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.EOFException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -33,8 +32,6 @@ public final class ItemHandlerDeviceIOTests {
     private static final int GET_SLOT_COUNT = 1;
     private static final int GET_SLOTS = 2;
     private static final int GET_SLOT_LIMIT = 3;
-    private static final int GET_ITEM_NAME = 4;
-    private static final int GET_ITEM_ID = 5;
 
     private static final int REG_SELECT = 0;
     private static final int REG_FUNCTION = 1;
@@ -154,12 +151,10 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     @Test
-    public void onlyRegistryLookupsRunOffTheServerThread() {
+    public void slotReadsRunOnTheServerThread() {
         assertTrue(isSynchronized(GET_SLOT_COUNT), "reading the slot count touches the inventory");
         assertTrue(isSynchronized(GET_SLOTS), "reading slots touches the inventory");
         assertTrue(isSynchronized(GET_SLOT_LIMIT), "reading a slot limit touches the inventory");
-        assertFalse(isSynchronized(GET_ITEM_NAME), "a name lookup should not cost a tick");
-        assertFalse(isSynchronized(GET_ITEM_ID), "an id lookup should not cost a tick");
     }
 
     @Test
@@ -199,46 +194,6 @@ public final class ItemHandlerDeviceIOTests {
     @Test
     public void slotLimitRejectsSlotPastTheEnd() {
         assertThrows(IllegalArgumentException.class, () -> invoke(new ArrayItemHandler(2), GET_SLOT_LIMIT, 2));
-    }
-
-    @Test
-    public void itemNameRejectsIdPastTheRegistry() {
-        final int id = BuiltInRegistries.ITEM.size();
-        assertTrue(id <= 0xFFFF);
-
-        assertThrows(IllegalArgumentException.class,
-            () -> invoke(new ArrayItemHandler(1), GET_ITEM_NAME, id & 0xFF, id >>> 8));
-    }
-
-    @Test
-    public void itemIdResolvesFromName() throws Throwable {
-        final byte[] results = invoke(new ArrayItemHandler(1), GET_ITEM_ID, "minecraft:redstone");
-
-        assertEquals(BuiltInRegistries.ITEM.getId(Items.REDSTONE), (results[0] & 0xFF) | ((results[1] & 0xFF) << 8));
-    }
-
-    @Test
-    public void itemIdAcceptsBareNameAsMinecraft() throws Throwable {
-        assertArrayEquals(invoke(new ArrayItemHandler(1), GET_ITEM_ID, "minecraft:redstone"),
-            invoke(new ArrayItemHandler(1), GET_ITEM_ID, "redstone"));
-    }
-
-    @Test
-    public void itemIdAcceptsATerminatedName() throws Throwable {
-        assertArrayEquals(invoke(new ArrayItemHandler(1), GET_ITEM_ID, "minecraft:redstone"),
-            invoke(new ArrayItemHandler(1), GET_ITEM_ID, "minecraft:redstone\0"));
-    }
-
-    @Test
-    public void itemIdRejectsUnknownName() {
-        assertThrows(IllegalArgumentException.class,
-            () -> invoke(new ArrayItemHandler(1), GET_ITEM_ID, "minecraft:definitely_not_an_item"));
-    }
-
-    @Test
-    public void itemIdRejectsMalformedName() {
-        assertThrows(IllegalArgumentException.class,
-            () -> invoke(new ArrayItemHandler(1), GET_ITEM_ID, "NOT A RESOURCE LOCATION"));
     }
 
     @Test
@@ -287,25 +242,6 @@ public final class ItemHandlerDeviceIOTests {
         assertEquals(0x05, (int) adapter.load(REG_DATA, Sizes.SIZE_8_LOG2));
     }
 
-    @Test
-    public void itemNameReachesGuestThroughRegisters() {
-        final int id = BuiltInRegistries.ITEM.getId(Items.REDSTONE);
-
-        final IODeviceBusAdapter adapter = adapterFor(new ArrayItemHandler(1));
-        adapter.store(REG_SELECT, 0, Sizes.SIZE_8_LOG2);
-        adapter.store(REG_FUNCTION, GET_ITEM_NAME, Sizes.SIZE_8_LOG2);
-        adapter.store(REG_DATA, id & 0xFF, Sizes.SIZE_8_LOG2);
-        adapter.store(REG_DATA, id >>> 8, Sizes.SIZE_8_LOG2);
-        adapter.store(REG_STATUS, CONTROL_EXECUTE, Sizes.SIZE_8_LOG2);
-
-        final StringBuilder name = new StringBuilder();
-        while ((adapter.load(REG_STATUS, Sizes.SIZE_8_LOG2) & STATUS_DATA_AVAILABLE) != 0) {
-            name.append((char) adapter.load(REG_DATA, Sizes.SIZE_8_LOG2));
-        }
-
-        assertEquals("minecraft:redstone", name.toString());
-    }
-
     // --------------------------------------------------------------------- //
 
     private static boolean isSynchronized(final int code) {
@@ -333,10 +269,6 @@ public final class ItemHandlerDeviceIOTests {
             bytes[i] = (byte) arguments[i];
         }
         return invoke(handler, code, bytes);
-    }
-
-    private static byte[] invoke(final ItemHandler handler, final int code, final String arguments) throws Throwable {
-        return invoke(handler, code, arguments.getBytes(StandardCharsets.US_ASCII));
     }
 
     private static byte[] invoke(final ItemHandler handler, final int code, final byte[] arguments) throws Throwable {

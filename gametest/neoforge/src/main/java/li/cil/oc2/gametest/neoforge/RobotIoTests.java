@@ -34,19 +34,20 @@ public final class RobotIoTests {
     private static final String CPM_BATCH = "oc2_robot_io_cpm";
     private static final int CPM_BOOT_TIMEOUT_TICKS = 20000;
 
+    private static final int SYSTEM_GET_ITEM_NAME_CODE = 1;
+    private static final int SYSTEM_GET_ITEM_ID_CODE = 2;
+
     private static final int DETECT_CODE = 1;
     private static final int GET_ENERGY_STORED_CODE = 2;
     private static final int GET_ENERGY_CAPACITY_CODE = 3;
     private static final int GET_SELECTED_SLOT_CODE = 4;
     private static final int SET_SELECTED_SLOT_CODE = 5;
     private static final int GET_STACK_IN_SLOT_CODE = 6;
-    private static final int GET_ITEM_NAME_CODE = 7;
-    private static final int GET_ITEM_ID_CODE = 8;
-    private static final int MOVE_CODE = 9;
-    private static final int TURN_CODE = 10;
-    private static final int GET_LAST_ACTION_ID_CODE = 11;
-    private static final int GET_QUEUED_ACTION_COUNT_CODE = 12;
-    private static final int GET_ACTION_RESULT_CODE = 13;
+    private static final int MOVE_CODE = 7;
+    private static final int TURN_CODE = 8;
+    private static final int GET_LAST_ACTION_ID_CODE = 9;
+    private static final int GET_QUEUED_ACTION_COUNT_CODE = 10;
+    private static final int GET_ACTION_RESULT_CODE = 11;
 
     private static final int FORWARD = 0;
     private static final int FRONT = 0;
@@ -127,11 +128,12 @@ public final class RobotIoTests {
                 final int itemId = readU16(record);
                 assertEquals(helper, "the item is the registry id, low byte first",
                     BuiltInRegistries.ITEM.getId(net.minecraft.world.item.Items.REDSTONE), itemId);
+                final IODevice system = robot.ioDevice("SYSTEM");
                 assertEquals(helper, "getItemId finds the same id by name",
-                    itemId, readU16(invokeIo(device, GET_ITEM_ID_CODE, ascii("redstone"))));
+                    itemId, readU16(invokeIo(system, SYSTEM_GET_ITEM_ID_CODE, ascii("redstone"))));
 
                 final String name = new String(
-                    invokeIo(device, GET_ITEM_NAME_CODE, itemId & 0xFF, itemId >>> 8), US_ASCII);
+                    invokeIo(system, SYSTEM_GET_ITEM_NAME_CODE, itemId & 0xFF, itemId >>> 8), US_ASCII);
                 if (!"minecraft:redstone".equals(name)) {
                     throw new GameTestAssertException("getItemName reported [" + name + "]");
                 }

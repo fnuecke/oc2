@@ -24,7 +24,7 @@ Sets whether a grid slot is enabled. Slot must be empty to be disabled.
 ## Mid-level API
 Device name: `CRAFTR`
 
-Items are identified by the same ids as on `ITEMS`, which also turns them into names.
+Item ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup.
 
 ### Methods
 

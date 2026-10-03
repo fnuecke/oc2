@@ -4,6 +4,7 @@ package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
@@ -15,6 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -51,6 +53,17 @@ public interface MachineFixture {
 
     default Set<Device> devices() {
         return ((AbstractVirtualMachine) virtualMachine()).getBusController().getDevices();
+    }
+
+    default IODevice ioDevice(final String name) {
+        final List<IODevice> matches = devices().stream()
+            .filter(device -> device instanceof final IODevice io && name.equals(io.getIOName()))
+            .map(IODevice.class::cast)
+            .toList();
+        if (matches.size() != 1) {
+            throw new GameTestAssertException("expected one device providing the " + name + " mid-level API, found " + matches.size());
+        }
+        return matches.getFirst();
     }
 
     default long guestInstructions() {

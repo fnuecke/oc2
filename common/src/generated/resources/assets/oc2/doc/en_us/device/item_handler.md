@@ -28,9 +28,7 @@ Device name: `ITEMS`
 
 Each inventory is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
 
-Items are identified by ids to save bus bandwidth. An id is stable within a world, but not across changes to the installed mods. An empty slot reads as item 0. Item numbers are two bytes, low byte first.
-
-A slot the inventory does not have, or a name no item goes by, fails with `OCEARG`.
+Item ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. An empty slot reads as item 0.
 
 ### Methods
 
@@ -48,13 +46,3 @@ Ask for 1 to 64 slots; more than that fails with `OCEARG`, since the reply would
 Reads how much the slot can hold.
 - Takes one byte, the slot.
 - Returns one byte, the limit, at most 255.
-
-`4 getItemName`
-Reads the name of an item.
-- Takes two bytes, the item id.
-- Returns the name, such as `minecraft:redstone`. Read while `OCDAV` is set to read fully.
-
-`5 getItemId`
-Looks an item up by name.
-- Takes the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.
-- Returns two bytes, the item id.

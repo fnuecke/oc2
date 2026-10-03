@@ -1022,7 +1022,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         Note that the `robot` Lua library described in the [robot](../item/robot.md) entry offers useful wrappers for all of these methods. It is recommended to use the library instead of interacting with the device directly.""")
     @IODeviceDescription(name = "ROBOT", description = """
-        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Facings are `0` north, `1` east, `2` south and `3` west. Item numbers are two bytes, low byte first, as on the `ITEMS` device. Fluid numbers are two bytes, low byte first, as on the `FLUIDS` device.
+        Directions and sides are numbered. Movement directions are `0` forward, `1` backward, `2` upward and `3` downward. Rotation directions are `0` left and `1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything outside those ranges fails with `OCEARG`. Facings are `0` north, `1` east, `2` south and `3` west. Item and fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup.
 
         ### Events
         `1 actionCompleted` is sent when an action finishes. The value is its id; `getActionResult` tells how it turned out.""")
@@ -1040,23 +1040,19 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final int GET_SELECTED_SLOT_CODE = 4;
         private static final int SET_SELECTED_SLOT_CODE = 5;
         private static final int GET_STACK_IN_SLOT_CODE = 6;
-        private static final int GET_ITEM_NAME_CODE = 7;
-        private static final int GET_ITEM_ID_CODE = 8;
-        private static final int MOVE_CODE = 9;
-        private static final int TURN_CODE = 10;
-        private static final int GET_LAST_ACTION_ID_CODE = 11;
-        private static final int GET_QUEUED_ACTION_COUNT_CODE = 12;
-        private static final int GET_ACTION_RESULT_CODE = 13;
-        private static final int GET_STATUS_COLOR_CODE = 14;
-        private static final int SET_STATUS_COLOR_CODE = 15;
-        private static final int GET_STATUS_VALUE_CODE = 16;
-        private static final int SET_STATUS_VALUE_CODE = 17;
-        private static final int GET_FLUID_CODE = 18;
-        private static final int GET_FLUID_NAME_CODE = 19;
-        private static final int GET_FLUID_ID_CODE = 20;
-        private static final int GET_FACING_CODE = 21;
-        private static final int GET_POSITION_CODE = 22;
-        private static final int CALIBRATE_POSITION_CODE = 23;
+        private static final int MOVE_CODE = 7;
+        private static final int TURN_CODE = 8;
+        private static final int GET_LAST_ACTION_ID_CODE = 9;
+        private static final int GET_QUEUED_ACTION_COUNT_CODE = 10;
+        private static final int GET_ACTION_RESULT_CODE = 11;
+        private static final int GET_STATUS_COLOR_CODE = 12;
+        private static final int SET_STATUS_COLOR_CODE = 13;
+        private static final int GET_STATUS_VALUE_CODE = 14;
+        private static final int SET_STATUS_VALUE_CODE = 15;
+        private static final int GET_FLUID_CODE = 16;
+        private static final int GET_FACING_CODE = 17;
+        private static final int GET_POSITION_CODE = 18;
+        private static final int CALIBRATE_POSITION_CODE = 19;
 
         private static final int ACTION_COMPLETED_EVENT_CODE = 1;
 
@@ -1308,43 +1304,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             ItemHandlerProtocol.writeSlot(inventory, arguments.readU8(), results);
         }
 
-        @IOCallback(value = GET_ITEM_NAME_CODE, synchronize = false,
-            description = "Reads the name of an item.",
-            argumentsDescription = "two bytes, the item id.",
-            resultsDescription = "the name, such as `minecraft:cobblestone`. Read while `OCDAV` is set to read fully.")
-        public void getItemName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-            ItemHandlerProtocol.writeItemName(arguments, results);
-        }
-
-        @IOCallback(value = GET_ITEM_ID_CODE, synchronize = false,
-            description = "Looks an item up by name.",
-            argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
-            resultsDescription = "two bytes, the item id.")
-        public void getItemId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-            ItemHandlerProtocol.writeItemId(arguments, results);
-        }
-
         @IOCallback(value = GET_FLUID_CODE,
             description = "Reads what is in the robot's tank.",
             resultsDescription = "six bytes: the fluid as two bytes and the amount as four bytes. An empty tank reads as fluid 0.")
         public void getFluid(final IOOutputStream results) throws IOException {
             FluidHandlerProtocol.writeTankAt(tank, 0, results);
-        }
-
-        @IOCallback(value = GET_FLUID_NAME_CODE, synchronize = false,
-            description = "Reads the name of a fluid.",
-            argumentsDescription = "two bytes, the fluid id.",
-            resultsDescription = "the name, such as `minecraft:water`. Read while `OCDAV` is set to read fully.")
-        public void getFluidName(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-            FluidHandlerProtocol.writeFluidName(arguments, results);
-        }
-
-        @IOCallback(value = GET_FLUID_ID_CODE, synchronize = false,
-            description = "Looks a fluid up by name.",
-            argumentsDescription = "the name, with or without a zero byte at the end. Leave off the `minecraft:` and it is assumed.",
-            resultsDescription = "two bytes, the fluid id.")
-        public void getFluidId(final IOInputStream arguments, final IOOutputStream results) throws IOException {
-            FluidHandlerProtocol.writeFluidId(arguments, results);
         }
 
         @IOCallback(value = DETECT_CODE,

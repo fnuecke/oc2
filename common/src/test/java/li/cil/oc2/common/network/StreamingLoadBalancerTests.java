@@ -183,28 +183,7 @@ public final class StreamingLoadBalancerTests {
         assertEquals(30, oneCount + twoCount, "a turn was taken every tick");
         assertEquals(2 * twoCount, oneCount,
             "the second watcher costs a round, so that source gets half the turns: " + sent);
-    }
-
-    @Test
-    public void everyWatcherIsChargedForWhatItReceives() {
-        final TestBalancer balancer = new TestBalancer(450, 1);
-        balancer.update("a", newPlayer());
-        balancer.update("a", newPlayer());
-        balancer.entry("a").payloadSize = 100;
-
-        balancer.tick();
-        balancer.tick();
-        balancer.tick();
-        assertEquals(2, sent.size(), "the budget covers two sends before it goes negative");
-        assertEquals(2, balancer.entry("a").recipients.get(0).size(), "both watchers were sent to");
-
-        for (int tick = 4; tick <= 9; tick++) {
-            balancer.tick();
-        }
-        assertEquals(2, sent.size(), "two watchers overdrew it by 131, and a skipped round follows");
-
-        balancer.tick();
-        assertEquals(3, sent.size(), "and then sending resumes");
+        assertEquals(2, balancer.entry("two").recipients.get(0).size(), "both watchers were sent to");
     }
 
     @Test

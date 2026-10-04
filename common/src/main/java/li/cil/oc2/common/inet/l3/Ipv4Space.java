@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.inet.l3;
 
+import com.google.common.annotations.VisibleForTesting;
 import li.cil.oc2.common.inet.util.InternetUtils;
 
 import java.util.*;
@@ -88,7 +89,8 @@ public final class Ipv4Space {
         return total;
     }
 
-    public int rangeCount() {
+    @VisibleForTesting
+    int rangeCount() {
         return ranges.size();
     }
 

@@ -4,6 +4,8 @@ package li.cil.oc2.common.inet.l4;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -372,22 +374,20 @@ public class StreamSessionTests {
 
     // --------------------------------------------------------------------- //
 
-    @Test
-    public void acknowledgmentBeforeTheSynAckIsIgnored() {
-        for (int attempt = 0; attempt < 64; ++attempt) {
-            setUp();
-            fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 0x7FFFFFFF, 0x80000000, 0xFFFFFFFF})
+    public void acknowledgmentBeforeTheSynAckIsIgnored(final int acknowledgmentNumber) {
+        fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
 
-            fromGuest(TcpHeader.FLAG_ACK, guestSequence + 1, attempt * 0x04000000, 8192, new byte[0]);
+        fromGuest(TcpHeader.FLAG_ACK, guestSequence + 1, acknowledgmentNumber, 8192, new byte[0]);
 
-            assertEquals(SessionState.NEW, session.getState(),
-                "an unsolicited acknowledgment must not establish the connection");
-            expectNothingToSend();
+        assertEquals(SessionState.NEW, session.getState(),
+            "an unsolicited acknowledgment must not establish the connection");
+        expectNothingToSend();
 
-            session.connect();
-            final Segment synAck = expectSegment();
-            assertTrue(synAck.header().syn);
-        }
+        session.connect();
+        final Segment synAck = expectSegment();
+        assertTrue(synAck.header().syn);
     }
 
     @Test

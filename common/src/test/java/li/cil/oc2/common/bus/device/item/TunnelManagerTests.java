@@ -3,89 +3,102 @@
 package li.cil.oc2.common.bus.device.item;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.util.Map;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TunnelManagerTests {
-    @BeforeEach
-    public void setupEach() {
-        tunnels().clear();
+    private final List<NetworkInterface> endpoints = new ArrayList<>();
+
+    @AfterEach
+    public void teardownEach() {
+        endpoints.forEach(NetworkTunnelDevice.TunnelManager::unregisterEndpoint);
     }
 
     @Test
-    public void endpointsOnTheSameTunnelShareIt() {
+    public void framesArriveAtTheOtherEndpointsOfTheSameTunnel() {
         final UUID id = UUID.randomUUID();
+        final TestNetworkInterface sender = new TestNetworkInterface();
+        final TestNetworkInterface receiver = new TestNetworkInterface();
+        final TestNetworkInterface stranger = new TestNetworkInterface();
 
-        NetworkTunnelDevice.TunnelManager.registerEndpoint(id, new NullNetworkInterface());
-        NetworkTunnelDevice.TunnelManager.registerEndpoint(id, new NullNetworkInterface());
+        register(id, sender);
+        register(id, receiver);
+        register(UUID.randomUUID(), stranger);
 
-        assertEquals(1, tunnels().size());
-        assertEquals(2, tunnels().get(id).size());
+        final byte[] frame = {1, 2, 3};
+        sender.outgoing.add(frame);
+        tick();
+
+        assertEquals(1, receiver.received.size());
+        assertArrayEquals(frame, receiver.received.get(0));
+        assertTrue(sender.received.isEmpty(), "frames must not echo back to their sender");
+        assertTrue(stranger.received.isEmpty(), "frames must not leak into other tunnels");
     }
 
     @Test
     public void secondTunnelCanBeOpenedWhileTheFirstOneSitsEmpty() {
-        final NetworkInterface endpoint = new NullNetworkInterface();
-        NetworkTunnelDevice.TunnelManager.registerEndpoint(UUID.randomUUID(), endpoint);
+        final NetworkInterface endpoint = new TestNetworkInterface();
+        register(UUID.randomUUID(), endpoint);
         NetworkTunnelDevice.TunnelManager.unregisterEndpoint(endpoint);
 
         assertDoesNotThrow(() ->
-            NetworkTunnelDevice.TunnelManager.registerEndpoint(UUID.randomUUID(), new NullNetworkInterface()));
+            register(UUID.randomUUID(), new TestNetworkInterface()));
     }
 
     @Test
-    public void unregisteringTheLastEndpointDropsTheTunnel() {
+    public void unregisteredEndpointsGetNothing() {
         final UUID id = UUID.randomUUID();
-        final NetworkInterface endpoint = new NullNetworkInterface();
+        final TestNetworkInterface sender = new TestNetworkInterface();
+        final TestNetworkInterface stays = new TestNetworkInterface();
+        final TestNetworkInterface leaves = new TestNetworkInterface();
 
-        NetworkTunnelDevice.TunnelManager.registerEndpoint(id, endpoint);
-        NetworkTunnelDevice.TunnelManager.unregisterEndpoint(endpoint);
+        register(id, sender);
+        register(id, stays);
+        register(id, leaves);
+        NetworkTunnelDevice.TunnelManager.unregisterEndpoint(leaves);
 
-        assertTrue(tunnels().isEmpty(), "an emptied tunnel should not linger until the next tick");
-    }
+        sender.outgoing.add(new byte[]{1, 2, 3});
+        tick();
 
-    @Test
-    public void unregisteringOneOfTwoEndpointsKeepsTheTunnel() {
-        final UUID id = UUID.randomUUID();
-        final NetworkInterface stays = new NullNetworkInterface();
-
-        NetworkTunnelDevice.TunnelManager.registerEndpoint(id, stays);
-        NetworkTunnelDevice.TunnelManager.registerEndpoint(id, new NullNetworkInterface());
-        NetworkTunnelDevice.TunnelManager.unregisterEndpoint(stays);
-
-        assertEquals(1, tunnels().size());
-        assertEquals(1, tunnels().get(id).size());
+        assertEquals(1, stays.received.size(), "the remaining endpoints should keep the tunnel");
+        assertTrue(leaves.received.isEmpty());
     }
 
     // --------------------------------------------------------------------- //
 
-    @SuppressWarnings("unchecked")
-    private static Map<UUID, ? extends java.util.Collection<NetworkInterface>> tunnels() {
-        try {
-            final Field field = NetworkTunnelDevice.TunnelManager.class.getDeclaredField("TUNNELS");
-            field.setAccessible(true);
-            return (Map<UUID, ? extends java.util.Collection<NetworkInterface>>) field.get(null);
-        } catch (final ReflectiveOperationException e) {
-            throw new AssertionError("could not read the tunnel map", e);
-        }
+    private void register(final UUID id, final NetworkInterface endpoint) {
+        endpoints.add(endpoint);
+        NetworkTunnelDevice.TunnelManager.registerEndpoint(id, endpoint);
     }
 
-    private static final class NullNetworkInterface implements NetworkInterface {
+    private static void tick() {
+        NetworkTunnelDevice.TunnelManager.pumpMessages();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static final class TestNetworkInterface implements NetworkInterface {
+        private final Queue<byte[]> outgoing = new ArrayDeque<>();
+        private final List<byte[]> received = new ArrayList<>();
+
         @Nullable
         @Override
         public byte[] readEthernetFrame() {
-            return null;
+            return outgoing.poll();
         }
 
         @Override
         public void writeEthernetFrame(final NetworkInterface source, final byte[] frame, final int timeToLive) {
+            received.add(frame);
         }
     }
 }

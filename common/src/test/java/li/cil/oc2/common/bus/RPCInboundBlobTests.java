@@ -11,6 +11,8 @@ import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -186,18 +188,16 @@ public final class RPCInboundBlobTests {
             "the payload is gone by the time a synchronized call runs, so say so");
     }
 
-    @Test
-    public void malformedPayloadReferenceIsRefused() {
-        for (final String blob : new String[]{"{\"checksum\":0}", "{\"length\":\"x\",\"checksum\":0}", "5"}) {
-            setupEach();
-            serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":" + blob
-                + ",\"data\":{\"deviceId\":\"" + deviceId
-                + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
-            assertDoesNotThrow(() -> adapter.step(0), "blob reference " + blob + " escaped as an exception");
-            assertNull(sink.received, "blob reference " + blob + " was accepted");
-            assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString(),
-                "blob reference " + blob + " got no reply, so a guest would wait forever");
-        }
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"checksum\":0}", "{\"length\":\"x\",\"checksum\":0}", "5"})
+    public void malformedPayloadReferenceIsRefused(final String blob) {
+        serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":" + blob
+            + ",\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
+        assertDoesNotThrow(() -> adapter.step(0), "blob reference escaped as an exception");
+        assertNull(sink.received, "blob reference was accepted");
+        assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString(),
+            "blob reference got no reply, so a guest would wait forever");
     }
 
     @Test

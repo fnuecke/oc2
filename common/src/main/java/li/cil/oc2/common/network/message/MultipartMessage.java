@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.network.message;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import dev.architectury.networking.NetworkManager;
@@ -73,6 +74,7 @@ public final class MultipartMessage extends AbstractMessage {
         ENTRY_BY_ID.put(id, entry);
     }
 
+    @VisibleForTesting
     static int messageIdOf(final Class<? extends AbstractMessage> type) {
         final Entry entry = ENTRY_BY_TYPE.get(type);
         if (entry == null) {

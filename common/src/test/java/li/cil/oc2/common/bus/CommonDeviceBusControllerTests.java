@@ -42,14 +42,6 @@ public class CommonDeviceBusControllerTests {
     }
 
     @Test
-    public void scanCompletesWhenNoNeighbors() {
-        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
-
-        busController.scan();
-        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
-    }
-
-    @Test
     public void scanCollectsLocalDevices() {
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
 

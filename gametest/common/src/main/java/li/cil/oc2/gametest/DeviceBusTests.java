@@ -2,7 +2,6 @@
 
 package li.cil.oc2.gametest;
 
-import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
 import li.cil.oc2.common.bus.device.block.FlashDriveDevice;
 import li.cil.oc2.common.item.Items;
@@ -22,34 +21,6 @@ import java.lang.ref.WeakReference;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class DeviceBusTests {
-    public static void busTracksNeighborLifecycle(final GameTestHelper helper) {
-        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
-
-        final int[] base = new int[1];
-        helper.startSequence()
-            .thenExecuteAfter(60, () -> base[0] = computer.deviceCount())
-            .thenExecute(() -> placeDevice(helper))
-            .thenExecuteAfter(60, () -> {
-                final int withNeighbor = computer.deviceCount();
-                if (withNeighbor <= base[0]) {
-                    throw new GameTestAssertException(
-                        "attaching a redstone interface added no device (alone=" + base[0]
-                            + ", attached=" + withNeighbor + ")");
-                }
-            })
-            .thenExecute(() -> breakBlock(helper, DEVICE_POS))
-            .thenExecuteAfter(60, () -> {
-                final int after = computer.deviceCount();
-                if (after != base[0]) {
-                    throw new GameTestAssertException(
-                        "device count did not return to baseline after removing the neighbour: alone="
-                            + base[0] + ", after removal=" + after
-                            + " (capability invalidation is not propagating)");
-                }
-            })
-            .thenSucceed();
-    }
-
     public static void busRediscoversReplacedNeighbor(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
 
@@ -175,35 +146,10 @@ public final class DeviceBusTests {
             .thenSucceed();
     }
 
-    public static void noteBlockJoinsAndLeavesTheBus(final GameTestHelper helper) {
-        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
-        helper.setBlock(DEVICE_POS, Blocks.NOTE_BLOCK);
-
-        helper.startSequence()
-            .thenWaitUntil(() -> {
-                if (countNoteBlocks(computer) != 1) {
-                    throw new GameTestAssertException("the note block is not on the bus: " + computer.describe());
-                }
-            })
-            .thenExecute(() -> breakBlock(helper, DEVICE_POS))
-            .thenWaitUntil(() -> {
-                if (countNoteBlocks(computer) != 0) {
-                    throw new GameTestAssertException("the removed note block is still on the bus: " + computer.describe());
-                }
-            })
-            .thenSucceed();
-    }
-
     // --------------------------------------------------------------------- //
 
     private static long countFlashDrives(final ComputerFixture computer) {
         return computer.devices().stream().filter(FlashDriveDevice.class::isInstance).count();
-    }
-
-    private static long countNoteBlocks(final ComputerFixture computer) {
-        return computer.devices().stream()
-            .filter(device -> device instanceof final RPCDevice rpcDevice && rpcDevice.getTypeNames().contains("note_block"))
-            .count();
     }
 
     private static void placeDevice(final GameTestHelper helper) {

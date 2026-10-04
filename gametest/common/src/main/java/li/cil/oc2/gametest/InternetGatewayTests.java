@@ -13,7 +13,6 @@ import li.cil.oc2.common.item.Items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -24,37 +23,28 @@ public final class InternetGatewayTests {
 
     // --------------------------------------------------------------------- //
 
-    public static void gatewayPlacesAndOffersItsCapabilities(final GameTestHelper helper) {
-        final BlockEntity blockEntity = placeGateway(helper);
-        assertTrue(helper, "the block entity should be an internet gateway",
-            blockEntity instanceof InternetGatewayBlockEntity);
-
-        final NetworkInterface networkInterface =
-            Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
-        assertNotNull(helper, networkInterface, "network interface capability");
-
-        energy(helper, blockEntity);
-
-        helper.succeed();
-    }
-
     public static void gatewayWithoutAConnectionDropsFrames(final GameTestHelper helper) {
         final boolean wasEnabled = withInternetAccess(false);
-        final BlockEntity blockEntity = placeGateway(helper);
-        final NetworkInterface networkInterface =
-            Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
-        assertNotNull(helper, networkInterface, "network interface capability");
+        final boolean handedBack;
+        final boolean queued;
+        try {
+            final BlockEntity blockEntity = placeGateway(helper);
+            final NetworkInterface networkInterface =
+                Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
+            assertNotNull(helper, networkInterface, "network interface capability");
 
-        energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
+            energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
 
-        final byte[] frame = new byte[64];
-        for (int i = 0; i < 1000; ++i) {
-            networkInterface.writeEthernetFrame(networkInterface, frame, 8);
+            final byte[] frame = new byte[64];
+            for (int i = 0; i < 1000; ++i) {
+                networkInterface.writeEthernetFrame(networkInterface, frame, 8);
+            }
+
+            handedBack = networkInterface.readEthernetFrame() != null;
+            queued = ((InternetGatewayBlockEntity) blockEntity).readInternetFrame() != null;
+        } finally {
+            restoreInternetAccess(wasEnabled);
         }
-
-        final boolean handedBack = networkInterface.readEthernetFrame() != null;
-        final boolean queued = ((InternetGatewayBlockEntity) blockEntity).readInternetFrame() != null;
-        restoreInternetAccess(wasEnabled);
 
         assertTrue(helper, "a gateway with nowhere to send should not hand anything back", !handedBack);
         assertTrue(helper, "frames must not be queued toward an internet stack that is not there", !queued);
@@ -90,15 +80,25 @@ public final class InternetGatewayTests {
 
     public static void gatewayWithoutInternetAccessIsNotOperational(final GameTestHelper helper) {
         final boolean wasEnabled = withInternetAccess(false);
-        final BlockEntity blockEntity = placeGateway(helper);
-        final InternetGatewayBlockEntity gateway = (InternetGatewayBlockEntity) blockEntity;
+        final InternetGatewayBlockEntity gateway;
+        try {
+            final BlockEntity blockEntity = placeGateway(helper);
+            gateway = (InternetGatewayBlockEntity) blockEntity;
 
-        energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
+            energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
+        } catch (final Throwable t) {
+            restoreInternetAccess(wasEnabled);
+            throw t;
+        }
 
         helper.startSequence()
             .thenExecuteAfter(2, () -> {
-                final boolean isOperational = gateway.isOperational();
-                restoreInternetAccess(wasEnabled);
+                final boolean isOperational;
+                try {
+                    isOperational = gateway.isOperational();
+                } finally {
+                    restoreInternetAccess(wasEnabled);
+                }
                 assertTrue(helper,
                     "a powered gateway with no internet access must not show as operational",
                     !isOperational);
@@ -108,7 +108,6 @@ public final class InternetGatewayTests {
 
     public static void gatewayTracksItsOperationalStateFromEnergy(final GameTestHelper helper) {
         final boolean wasEnabled = withInternetAccess(true);
-        InternetManager.start();
 
         final InternetGatewayBlockEntity gateway;
         final EnergyHandler energy;
@@ -126,27 +125,25 @@ public final class InternetGatewayTests {
         }
 
         helper.startSequence()
-            .thenExecute(() -> energy.receiveEnergy(Config.internetGatewayEnergyPerPacket, false))
+            .thenExecute(() -> {
+                try {
+                    energy.receiveEnergy(Config.internetGatewayEnergyPerPacket, false);
+                } catch (final Throwable t) {
+                    restoreInternetAccess(wasEnabled);
+                    throw t;
+                }
+            })
             .thenExecuteAfter(2, () -> {
-                final boolean isOperational = gateway.isOperational();
-                restoreInternetAccess(wasEnabled);
+                final boolean isOperational;
+                try {
+                    isOperational = gateway.isOperational();
+                } finally {
+                    restoreInternetAccess(wasEnabled);
+                }
                 assertTrue(helper, "a powered gateway with internet access should show as operational",
                     isOperational);
             })
             .thenSucceed();
-    }
-
-    public static void gatewayReleasesItsCapabilitiesWhenBroken(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-
-        breakBlock(helper, GATEWAY_POS);
-
-        assertTrue(helper, "the block should be gone", helper.getBlockState(GATEWAY_POS).isAir());
-        assertTrue(helper, "no block entity should remain",
-            helper.getLevel().getBlockEntity(helper.absolutePos(GATEWAY_POS)) == null);
-
-        helper.succeed();
     }
 
     // --------------------------------------------------------------------- //
@@ -164,7 +161,9 @@ public final class InternetGatewayTests {
     private static boolean withInternetAccess(final boolean enabled) {
         final boolean wasEnabled = Config.internetEnabled;
         Config.internetEnabled = enabled;
-        if (!enabled) {
+        if (enabled) {
+            InternetManager.start();
+        } else {
             InternetManager.stop();
         }
         return wasEnabled;

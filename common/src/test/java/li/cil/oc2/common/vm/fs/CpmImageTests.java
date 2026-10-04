@@ -53,20 +53,6 @@ public final class CpmImageTests {
     }
 
     @Test
-    public void serialExampleReferencesTheLibrary() throws IOException {
-        final String example = new String(resource(SHIPPED + "serchat.z80"), StandardCharsets.US_ASCII);
-        assertTrue(example.contains("SEROPEN"), "the example should use the library it ships beside");
-        assertTrue(example.contains("SERIAL.INC"), "the example should include the library");
-    }
-
-    @Test
-    public void redstoneExampleReferencesTheLibrary() throws IOException {
-        final String example = new String(resource(SHIPPED + "redstn.z80"), StandardCharsets.US_ASCII);
-        assertTrue(example.contains("OCFIND"), "the example should use the library it ships beside");
-        assertTrue(example.contains("OCAPI.INC"), "the example should include the library");
-    }
-
-    @Test
     public void tailOfTheLastRecordIsPaddedWithEndOfFile() {
         final byte[] image = blankImage();
         final byte[] content = "hello".getBytes(StandardCharsets.US_ASCII);

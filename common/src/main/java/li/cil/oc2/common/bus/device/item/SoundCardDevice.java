@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.item;
 
+import com.google.common.annotations.VisibleForTesting;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -129,6 +130,7 @@ public final class SoundCardDevice extends IdentityProxy<ItemStack> implements V
 
     // --------------------------------------------------------------------- //
 
+    @VisibleForTesting
     public Stream getStream() {
         return stream;
     }

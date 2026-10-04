@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.inet.l4;
 
+import com.google.common.annotations.VisibleForTesting;
+
 public final class SessionLimits {
     private final int perGateway;
     private final int total;
@@ -24,7 +26,8 @@ public final class SessionLimits {
         return true;
     }
 
-    public int shareFor(final int gatewayCount) {
+    @VisibleForTesting
+    int shareFor(final int gatewayCount) {
         if (gatewayCount <= 1) {
             return perGateway;
         }
@@ -37,6 +40,7 @@ public final class SessionLimits {
         }
     }
 
+    @VisibleForTesting
     public int getUsed() {
         return used;
     }

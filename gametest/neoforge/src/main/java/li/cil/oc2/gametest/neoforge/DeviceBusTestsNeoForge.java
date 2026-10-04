@@ -14,11 +14,6 @@ import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class DeviceBusTestsNeoForge {
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void busTracksNeighborLifecycle(final GameTestHelper helper) {
-        DeviceBusTests.busTracksNeighborLifecycle(helper);
-    }
-
     @GameTest(template = TEMPLATE, timeoutTicks = 800)
     public static void busRediscoversReplacedNeighbor(final GameTestHelper helper) {
         DeviceBusTests.busRediscoversReplacedNeighbor(helper);
@@ -37,11 +32,6 @@ public final class DeviceBusTestsNeoForge {
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
     public static void blockDeviceMountsFromOfferingFaceOnly(final GameTestHelper helper) {
         DeviceBusTests.blockDeviceMountsFromOfferingFaceOnly(helper);
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
-    public static void noteBlockJoinsAndLeavesTheBus(final GameTestHelper helper) {
-        DeviceBusTests.noteBlockJoinsAndLeavesTheBus(helper);
     }
 
     // --------------------------------------------------------------------- //

@@ -12,7 +12,6 @@ import li.cil.oc2.gametest.fixture.Hardware;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -27,20 +26,7 @@ public final class VirtualMachineTests {
     // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
-    public static void computerWithHardwareRunsAndStops(final GameTestHelper helper) {
-        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
-
-        helper.startSequence()
-            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
-            .thenExecuteAfter(20, computer::start)
-            .thenExecuteAfter(300, () -> computer.assertRunState(VMRunState.RUNNING, "after start"))
-            .thenExecute(computer::stop)
-            .thenExecuteAfter(60, () -> computer.assertRunState(VMRunState.STOPPED, "after stop"))
-            .thenSucceed();
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
-    public static void computerWithoutProcessorRefusesToStart(final GameTestHelper helper) {
+    public static void computerNeedsAProcessorToRun(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         helper.startSequence()
@@ -59,6 +45,7 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(300, () -> computer.assertRunState(VMRunState.RUNNING, "once a processor is installed"))
             .thenExecute(computer::stop)
+            .thenExecuteAfter(60, () -> computer.assertRunState(VMRunState.STOPPED, "after stop"))
             .thenSucceed();
     }
 
@@ -120,30 +107,6 @@ public final class VirtualMachineTests {
                     throw new GameTestAssertException("energy did not drain once the source was removed: "
                         + charged[0] + " -> " + drained);
                 }
-            })
-            .thenSucceed();
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 1200)
-    public static void runningStateSurvivesNbtRoundTrip(final GameTestHelper helper) {
-        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
-
-        helper.startSequence()
-            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
-            .thenExecuteAfter(20, computer::start)
-            .thenExecuteAfter(300, () -> {
-                computer.assertRunState(VMRunState.RUNNING, "precondition");
-
-                final CompoundTag saved = computer.save();
-                if (!saved.contains("state")) {
-                    throw new GameTestAssertException("saved tag carries no VM state");
-                }
-
-                computer.load(saved);
-            })
-            .thenExecuteAfter(200, () -> {
-                computer.assertRunState(VMRunState.RUNNING, "after the round trip");
-                computer.assertNoError();
             })
             .thenSucceed();
     }

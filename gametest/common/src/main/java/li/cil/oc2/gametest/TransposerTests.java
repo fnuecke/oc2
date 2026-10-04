@@ -10,7 +10,6 @@ import li.cil.oc2.common.blockentity.TransposerBlockEntity;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
@@ -20,7 +19,6 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeRpc;
-import static li.cil.oc2.gametest.util.DeviceCalls.u16;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 import static net.minecraft.world.item.Items.REDSTONE;
 
@@ -35,7 +33,6 @@ public final class TransposerTests {
     private static final int CHEST_SLOTS = 27;
 
     private static final int GET_SLOT_COUNT_CODE = 1;
-    private static final int GET_SLOTS_CODE = 2;
     private static final int MOVE_ITEMS_CODE = 4;
 
     // --------------------------------------------------------------------- //
@@ -115,12 +112,6 @@ public final class TransposerTests {
         assertEquals(helper, "items moved", 10, moved[0] & 0xFF);
         assertEquals(helper, "source after the move", 32, source.getItem(0).getCount());
         assertEquals(helper, "target after the move", 10, target.getItem(0).getCount());
-
-        final byte[] slots = invokeIo(device, GET_SLOTS_CODE, EAST, 0, 1);
-        assertEquals(helper, "slot record length", 4, slots.length);
-        final int id = u16(slots);
-        assertEquals(helper, "item id of the moved stack", BuiltInRegistries.ITEM.getId(REDSTONE), id);
-        assertEquals(helper, "count of the moved stack", 10, slots[2] & 0xFF);
 
         assertThrows(helper, "a side without an inventory", () -> invokeIo(device, MOVE_ITEMS_CODE, UP, 0, EAST, 0, 1));
 

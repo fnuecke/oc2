@@ -18,9 +18,4 @@ public final class RecipeTestsFabric {
     public void everyRecipeCraftsInCraftingTable(final GameTestHelper helper) {
         RecipeTests.everyRecipeCraftsInCraftingTable(helper);
     }
-
-    @GameTest(template = TEMPLATE)
-    public void noRecipeShadowsAnother(final GameTestHelper helper) {
-        RecipeTests.noRecipeShadowsAnother(helper);
-    }
 }

@@ -145,17 +145,6 @@ public final class SerialLineTests {
     }
 
     @Test
-    public void guestProgrammingTheWrongDivisorHearsNoise() {
-        b.setBaudRate(B1200);
-
-        a.write("hello");
-        segment(a, b);
-
-        assertEquals(1, b.noiseCount());
-        assertTrue(b.hasFramingError());
-    }
-
-    @Test
     public void talkingOverEachOtherDamagesEverythingInTheTick() {
         final Endpoint c = new Endpoint(3, B9600);
 

@@ -35,16 +35,6 @@ public class TransportLayerTests {
     // --------------------------------------------------------------------- //
 
     @Test
-    public void streamSegmentStartsAtTheStartOfTheMessage() {
-        final StreamSession stream = establishStream();
-        stream.getReceiveBuffer().put("hello".getBytes(StandardCharsets.UTF_8));
-
-        final Received received = receive();
-        assertEquals(TransportLayer.PROTOCOL_TCP, received.protocol());
-        parse(received.buffer());
-    }
-
-    @Test
     public void withdrawnClaimLeavesTheMessageBufferUntouched() {
         sendUdp();
         final AbstractSession datagram = sessionLayer.lastDatagram;

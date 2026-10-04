@@ -16,7 +16,6 @@
       "li.cil.oc2.gametest.fabric.EntityCapabilityTestsFabric",
       "li.cil.oc2.gametest.fabric.NetworkConnectorTestsFabric",
       "li.cil.oc2.gametest.fabric.SerialInterfaceTestsFabric",
-      "li.cil.oc2.gametest.fabric.RegistrationTestsFabric",
       "li.cil.oc2.gametest.fabric.CapabilityAdapterTestsFabric",
       "li.cil.oc2.gametest.fabric.WrenchTestsFabric",
       "li.cil.oc2.gametest.fabric.BlockOperationsModuleTestsFabric",

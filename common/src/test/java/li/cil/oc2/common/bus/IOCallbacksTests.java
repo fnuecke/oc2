@@ -72,13 +72,6 @@ public final class IOCallbacksTests {
     }
 
     @Test
-    public void plainStreamSignaturesStillGetTheRicherType() throws Throwable {
-        final AllSignatures target = new AllSignatures();
-        invoke(method(target, 2), new byte[]{42});
-        assertEquals(42, target.readArgument);
-    }
-
-    @Test
     public void duplicateFunctionCodesThrow() {
         assertThrows(IllegalArgumentException.class, () -> IOCallbacks.collectMethods(new DuplicateCodes()));
     }

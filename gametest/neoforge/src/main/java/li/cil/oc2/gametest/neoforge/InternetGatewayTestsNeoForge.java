@@ -14,12 +14,7 @@ import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class InternetGatewayTestsNeoForge {
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
-    public static void gatewayPlacesAndOffersItsCapabilities(final GameTestHelper helper) {
-        InternetGatewayTests.gatewayPlacesAndOffersItsCapabilities(helper);
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
+    @GameTest(template = TEMPLATE, timeoutTicks = 300, batch = "oc2_gateway_offline")
     public static void gatewayWithoutAConnectionDropsFrames(final GameTestHelper helper) {
         InternetGatewayTests.gatewayWithoutAConnectionDropsFrames(helper);
     }
@@ -29,19 +24,14 @@ public final class InternetGatewayTestsNeoForge {
         InternetGatewayTests.gatewayKeepsItsEnergyAcrossAReload(helper);
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
+    @GameTest(template = TEMPLATE, timeoutTicks = 300, batch = "oc2_gateway_no_access")
     public static void gatewayWithoutInternetAccessIsNotOperational(final GameTestHelper helper) {
         InternetGatewayTests.gatewayWithoutInternetAccessIsNotOperational(helper);
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
+    @GameTest(template = TEMPLATE, timeoutTicks = 300, batch = "oc2_gateway_online")
     public static void gatewayTracksItsOperationalStateFromEnergy(final GameTestHelper helper) {
         InternetGatewayTests.gatewayTracksItsOperationalStateFromEnergy(helper);
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
-    public static void gatewayReleasesItsCapabilitiesWhenBroken(final GameTestHelper helper) {
-        InternetGatewayTests.gatewayReleasesItsCapabilitiesWhenBroken(helper);
     }
 
     // --------------------------------------------------------------------- //

@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.inet.l4;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.nio.ByteBuffer;
 
 public final class TcpHeader {
@@ -101,10 +103,6 @@ public final class TcpHeader {
         }
     }
 
-    public int headerSize() {
-        return MIN_HEADER_SIZE + (maxSegmentSize == -1 ? 0 : 4);
-    }
-
     public void clear() {
         sequenceNumber = 0;
         acknowledgmentNumber = 0;
@@ -130,6 +128,11 @@ public final class TcpHeader {
             builder.append(" mss=").append(maxSegmentSize);
         }
         return builder.append(']').toString();
+    }
+
+    @VisibleForTesting
+    int headerSize() {
+        return MIN_HEADER_SIZE + (maxSegmentSize == -1 ? 0 : 4);
     }
 
     // --------------------------------------------------------------------- //

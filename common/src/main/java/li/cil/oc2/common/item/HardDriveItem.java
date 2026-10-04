@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.item;
 
+import com.google.common.annotations.VisibleForTesting;
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
@@ -67,6 +68,7 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
         return withData(new ItemStack(this), key);
     }
 
+    @VisibleForTesting
     public boolean isSmallestDriveFor(final long size) {
         HardDriveItem best = null;
         for (final var supplier : Items.HARD_DRIVES) {

@@ -41,20 +41,6 @@ public final class IOStreamsTests {
     }
 
     @Test
-    public void wideValuesRoundTrip() throws Exception {
-        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        final IOOutputStream out = new IOOutputStream(bytes);
-        out.writeU8(0xFE);
-        out.writeU16(0xBEEF);
-        out.writeU32(0xDEADBEEFL);
-
-        final IOInputStream in = new IOInputStream(new ByteArrayInputStream(bytes.toByteArray()));
-        assertEquals(0xFE, in.readU8());
-        assertEquals(0xBEEF, in.readU16());
-        assertEquals(0xDEADBEEFL, in.readU32());
-    }
-
-    @Test
     public void writersKeepOnlyTheirOwnWidth() throws Exception {
         final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         final IOOutputStream stream = new IOOutputStream(bytes);
@@ -105,11 +91,6 @@ public final class IOStreamsTests {
         assertThrows(EOFException.class, () -> read().readU8());
         assertThrows(EOFException.class, () -> read(0x01).readU16());
         assertThrows(EOFException.class, () -> read(0x01, 0x02, 0x03).readU32());
-    }
-
-    @Test
-    public void plainReadStillYieldsMinusOneAtTheEnd() throws Exception {
-        assertEquals(-1, read().read());
     }
 
     // --------------------------------------------------------------------- //

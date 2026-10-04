@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.item;
 
+import com.google.common.annotations.VisibleForTesting;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
@@ -72,7 +73,8 @@ public final class NetworkTunnelDevice extends AbstractNetworkInterfaceDevice {
             LifecycleEvent.SERVER_STOPPED.register(server -> TUNNELS.clear());
         }
 
-        private static void pumpMessages() {
+        @VisibleForTesting
+        static void pumpMessages() {
             for (final Set<NetworkInterface> tunnel : TUNNELS.values()) {
                 pumpMessages(tunnel);
             }

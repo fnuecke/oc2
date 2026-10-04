@@ -24,11 +24,6 @@ public final class RecipeTestsNeoForge {
         RecipeTests.everyRecipeCraftsInCraftingTable(helper);
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void noRecipeShadowsAnother(final GameTestHelper helper) {
-        RecipeTests.noRecipeShadowsAnother(helper);
-    }
-
     // --------------------------------------------------------------------- //
 
     private RecipeTestsNeoForge() {

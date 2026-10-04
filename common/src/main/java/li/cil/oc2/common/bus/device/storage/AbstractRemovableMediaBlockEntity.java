@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.storage;
 
+import com.google.common.annotations.VisibleForTesting;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -72,6 +73,7 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
         return itemHandler.isItemValid(0, stack);
     }
 
+    @VisibleForTesting
     public ItemStack insert(final ItemStack stack, @Nullable final Player player) {
         if (!canInsert(stack)) {
             return stack;

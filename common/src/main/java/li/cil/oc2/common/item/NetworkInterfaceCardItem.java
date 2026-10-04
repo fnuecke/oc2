@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.item;
 
+import com.google.common.annotations.VisibleForTesting;
 import li.cil.oc2.client.gui.NetworkInterfaceCardScreen;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.ItemStackUtils;
@@ -83,6 +84,7 @@ public final class NetworkInterfaceCardItem extends ModItem {
         return true;
     }
 
+    @VisibleForTesting
     public static boolean hasConfiguration(final ItemStack stack) {
         return ItemStackUtils.getModDataTag(stack).contains(SIDE_CONFIGURATION_TAG_NAME);
     }

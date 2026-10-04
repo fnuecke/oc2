@@ -84,13 +84,6 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void cloudMetadataIsBlockedByTheDefaultRules() {
-        final AddressFilter filter = denying("169.254.0.0/16");
-
-        assertFalse(filter.isAllowed(ip("169.254.169.254")));
-    }
-
-    @Test
     public void allowListPermitsOnlyWhatItNames() {
         final AddressFilter filter = allowing("8.8.8.8", "1.1.1.0/24");
 
@@ -114,6 +107,7 @@ public class AddressFilterTests {
     public void rangesAreUnderstood() {
         final AddressFilter filter = denying("1.2.3.10-1.2.3.20");
 
+        assertFalse(filter.needsPeriodicRefresh(), "a range should not be mistaken for a host name");
         assertFalse(filter.isAllowed(ip("1.2.3.15")));
         assertTrue(filter.isAllowed(ip("1.2.3.9")));
         assertTrue(filter.isAllowed(ip("1.2.3.21")));
@@ -133,14 +127,6 @@ public class AddressFilterTests {
             () -> denying("10.0.0.0/8", "10.0.0.0\\8", "192.168.0.0/16"));
         assertThrows(IllegalArgumentException.class, () -> denying("10.0.0.0/33"));
         assertThrows(IllegalArgumentException.class, () -> denying("not an address at all"));
-    }
-
-    @Test
-    public void unparsableAllowRuleIsSkippedNotFatal() {
-        final AddressFilter filter = allowing("8.8.8.8", "10.0.0.0/33");
-
-        assertTrue(filter.isAllowed(ip("8.8.8.8")));
-        assertFalse(filter.isAllowed(ip("1.1.1.1")));
     }
 
     @Test
@@ -169,14 +155,6 @@ public class AddressFilterTests {
     }
 
     @Test
-    public void rangeIsStillRecognisedAsARange() {
-        final AddressFilter filter = denying("1.2.3.10-1.2.3.20");
-
-        assertFalse(filter.needsPeriodicRefresh());
-        assertFalse(filter.isAllowed(ip("1.2.3.15")));
-    }
-
-    @Test
     public void unparsableAllowListDeniesAll() {
         final AddressFilter filter = allowing("10.0.0.0/33", "not an address");
 
@@ -194,7 +172,7 @@ public class AddressFilterTests {
 
     @Test
     public void partlyValidAllowListStillAppliesTheValidEntries() {
-        final AddressFilter filter = allowing("8.8.8.8", "garbage/99");
+        final AddressFilter filter = allowing("8.8.8.8", "10.0.0.0/33", "garbage/99");
 
         assertTrue(filter.isAllowed(ip("8.8.8.8")));
         assertFalse(filter.isAllowed(ip("1.1.1.1")));

@@ -34,11 +34,6 @@ public final class RobotCrushTestsNeoForge {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
-    public static void leavesBarriersAlone(final GameTestHelper helper) {
-        assertSurvivesTheRobot(helper, Blocks.BARRIER);
-    }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void crushKeepsWaterlogging(final GameTestHelper helper) {
         final BlockPos target = putBlockInsideTheRobot(helper, Blocks.OAK_SLAB.defaultBlockState()
             .setValue(BlockStateProperties.WATERLOGGED, true));

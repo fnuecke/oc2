@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.vm.fs;
 
+import com.google.common.annotations.VisibleForTesting;
 import dev.architectury.registry.ReloadListenerRegistry;
 import li.cil.oc2.api.API;
 import li.cil.sedna.cpm.Cpm;
@@ -49,12 +50,16 @@ public final class CpmSystemDisk {
             ResourceLocation.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
     }
 
-    public static byte[] compose(final Map<String, byte[]> files) {
+    // --------------------------------------------------------------------- //
+
+    @VisibleForTesting
+    static byte[] compose(final Map<String, byte[]> files) {
         final byte[] composed = readBaseImage();
         files.forEach((name, content) -> CpmImage.addFile(composed, name, toCpmText(content)));
         return composed;
     }
 
+    @VisibleForTesting
     static byte[] toCpmText(final byte[] content) {
         for (final byte b : content) {
             final int value = b & 0xFF;
@@ -77,8 +82,6 @@ public final class CpmSystemDisk {
         text.write(END_OF_FILE);
         return text.toByteArray();
     }
-
-    // --------------------------------------------------------------------- //
 
     private static void reload(final ResourceManager resourceManager) {
         final Map<ResourceLocation, Resource> resources = resourceManager.listResources(

@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import com.google.common.annotations.VisibleForTesting;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.util.ServerScheduler;
@@ -70,7 +71,8 @@ public abstract class ModBlockEntity extends BlockEntity {
         isUnloaded = true;
     }
 
-    public void onWorldUnloaded() {
+    @VisibleForTesting
+    void onWorldUnloaded() {
         Capabilities.invalidate(this);
         onUnload(false);
         isUnloaded = true;

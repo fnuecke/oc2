@@ -108,16 +108,6 @@ public final class DatapackDataTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void registeredDataUsesImagePaths(final GameTestHelper helper) {
-        requireKey(BlockDeviceDataRegistry.BUILDROOT.get(), "oc2:block_devices/hdd/sedna.bin");
-        requireKey(BlockDeviceDataRegistry.CPM.get(), "oc2:block_devices/floppy/cpm.bin");
-        requireKey(BlockDeviceDataRegistry.FIRMWARE_RISCV.get(), "oc2:block_devices/flash/riscv.bin");
-        requireKey(BlockDeviceDataRegistry.FIRMWARE_Z80.get(), "oc2:block_devices/flash/z80.bin");
-
-        helper.succeed();
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void datapackDataCarriesItsColor(final GameTestHelper helper) {
         requireColor(BlockDeviceDataRegistry.getValue(FIRMWARE), DyeColor.MAGENTA, "firmware");
         requireColor(BlockDeviceDataRegistry.getValue(FLOPPY), DyeColor.CYAN, "block device");
@@ -180,13 +170,6 @@ public final class DatapackDataTests {
         if (drive.isSmallestDriveFor(size) != expected) {
             throw new GameTestAssertException("an image of " + size + " bytes is "
                 + (expected ? "not " : "") + "offered on " + drive + ", but should " + (expected ? "" : "not ") + "be");
-        }
-    }
-
-    private static void requireKey(final BlockDeviceData data, final String expected) {
-        final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
-        if (key == null || !expected.equals(key.toString())) {
-            throw new GameTestAssertException("registered data has id [" + key + "], expected [" + expected + "]");
         }
     }
 

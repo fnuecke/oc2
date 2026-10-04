@@ -2,6 +2,7 @@
 
 package li.cil.oc2.client.renderer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import li.cil.oc2.api.API;
@@ -329,6 +330,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         return terminal.isCursorVisible() && (System.currentTimeMillis() + terminal.hashCode()) % 1000 > 500;
     }
 
+    @VisibleForTesting
     static boolean isPrintableCharacter(final char ch) {
         return ch > 0 && ch != ' ' && (ch < 0x7F || ch > 0xA0);
     }

@@ -22,48 +22,33 @@ import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 @PrefixGameTestTemplate(false)
 public final class RobotDetectTests {
     @GameTest(template = TEMPLATE)
-    public static void solidBlocksReadAsSolid(final GameTestHelper helper) {
-        requireDetects(helper, Blocks.STONE.defaultBlockState(), "solid");
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void emptySpaceReadsAsAir(final GameTestHelper helper) {
-        requireDetects(helper, Blocks.AIR.defaultBlockState(), "air");
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void fluidsReadAsFluid(final GameTestHelper helper) {
-        requireDetects(helper, Blocks.WATER.defaultBlockState(), "fluid");
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void blocksTheRobotCanMoveThroughReadAsAir(final GameTestHelper helper) {
-        requireDetects(helper, Blocks.SHORT_GRASS.defaultBlockState(), "air");
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void obstructionsWinOverFluid(final GameTestHelper helper) {
-        requireDetects(helper, Blocks.CHAIN.defaultBlockState()
-            .setValue(BlockStateProperties.WATERLOGGED, true), "solid");
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private static void requireDetects(final GameTestHelper helper, final BlockState state, final String expected) {
+    public static void detectClassifiesTheBlockInFront(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
         helper.startSequence()
             .thenExecuteAfter(60, () -> {
-                final BlockPos target = robot.frontPos();
-                helper.getLevel().setBlockAndUpdate(target, state);
-
-                final String actual = String.valueOf(invokeRpc(robot.devices(), "detect", "front"));
-                if (!expected.equals(actual)) {
-                    throw new GameTestAssertException("detect() reported \"" + actual + "\" for "
-                        + helper.getLevel().getBlockState(target) + ", expected \"" + expected + "\"");
-                }
+                requireDetects(helper, robot, Blocks.STONE.defaultBlockState(), "solid");
+                requireDetects(helper, robot, Blocks.AIR.defaultBlockState(), "air");
+                requireDetects(helper, robot, Blocks.WATER.defaultBlockState(), "fluid");
+                requireDetects(helper, robot, Blocks.SHORT_GRASS.defaultBlockState(), "air");
+                requireDetects(helper, robot, Blocks.CHAIN.defaultBlockState()
+                    .setValue(BlockStateProperties.WATERLOGGED, true), "solid");
             })
             .thenSucceed();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static void requireDetects(final GameTestHelper helper, final RobotFixture robot,
+                                       final BlockState state, final String expected) {
+        final BlockPos target = robot.frontPos();
+        helper.getLevel().setBlockAndUpdate(target, state);
+
+        final String actual = String.valueOf(invokeRpc(robot.devices(), "detect", "front"));
+        if (!expected.equals(actual)) {
+            throw new GameTestAssertException("detect() reported \"" + actual + "\" for "
+                + helper.getLevel().getBlockState(target) + ", expected \"" + expected + "\"");
+        }
     }
 
     // --------------------------------------------------------------------- //

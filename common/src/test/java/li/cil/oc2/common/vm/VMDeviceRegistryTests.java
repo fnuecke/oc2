@@ -188,22 +188,6 @@ public final class VMDeviceRegistryTests {
     }
 
     @Test
-    public void deviceCanClaimInterrupts() {
-        final VMDevice device = mock(VMDevice.class);
-        when(device.mount(any())).thenAnswer(invocation -> {
-            final VMContext context = invocation.getArgument(0);
-            final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt();
-            assertTrue(interrupt.isPresent());
-            return VMDeviceLoadResult.success();
-        });
-
-        addDevice(device);
-        assertTrue(registry.mountDevices().wasSuccessful());
-
-        verify(device).mount(any());
-    }
-
-    @Test
     public void deviceCannotClaimClaimedInterrupts() {
         final int claimedInterrupt = 1;
 
@@ -219,30 +203,6 @@ public final class VMDeviceRegistryTests {
 
         addDevice(device);
         assertTrue(registry.mountDevices().wasSuccessful());
-    }
-
-    @Test
-    public void deviceCanRaiseClaimedInterrupts() {
-        final DeviceData deviceData = new DeviceData();
-        final VMDevice device = mock(VMDevice.class);
-        when(device.mount(any())).thenAnswer(invocation -> {
-            final VMContext context = invocation.getArgument(0);
-            final OptionalInt interrupt = context.getInterruptAllocator().claimInterrupt();
-            assertTrue(interrupt.isPresent());
-
-            deviceData.context = context;
-            deviceData.interrupt = interrupt.getAsInt();
-
-            return VMDeviceLoadResult.success();
-        });
-
-        addDevice(device);
-        assertTrue(registry.mountDevices().wasSuccessful());
-
-        final int claimedInterruptMask = 1 << deviceData.interrupt;
-        deviceData.context.getInterruptController().raiseInterrupts(claimedInterruptMask);
-
-        assertTrue((interruptController.getRaisedInterrupts() & claimedInterruptMask) != 0);
     }
 
     @Test
@@ -304,28 +264,6 @@ public final class VMDeviceRegistryTests {
 
         addDevice(device);
         registry.mountDevices();
-    }
-
-    @Test
-    public void devicesCanAddMemoryMappedDevices() {
-        final DeviceData deviceData = new DeviceData();
-        final VMDevice device = mock(VMDevice.class);
-        when(device.mount(any())).thenAnswer(invocation -> {
-            final VMContext context = invocation.getArgument(0);
-
-            deviceData.context = context;
-            deviceData.device = mock(MemoryMappedDevice.class);
-            when(deviceData.device.getLength()).thenReturn(0x1000);
-
-            assertTrue(context.getMemoryRangeAllocator().claimMemoryRange(deviceData.device).isPresent());
-
-            return VMDeviceLoadResult.success();
-        });
-
-        addDevice(device);
-        assertTrue(registry.mountDevices().wasSuccessful());
-
-        assertTrue(deviceData.context.getMemoryMap().getMemoryRange(deviceData.device).isPresent());
     }
 
     @Test

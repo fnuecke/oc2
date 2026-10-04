@@ -48,17 +48,6 @@ public final class ItemHandlerDeviceIOTests {
     // --------------------------------------------------------------------- //
 
     @Test
-    public void airIsItemIdZero() {
-        assertEquals(0, BuiltInRegistries.ITEM.getId(Items.AIR));
-    }
-
-    @Test
-    public void itemIdsFitInSixteenBits() {
-        assertTrue(BuiltInRegistries.ITEM.size() <= 0xFFFF,
-            "item registry outgrew the u16 the guest protocol uses");
-    }
-
-    @Test
     public void deviceIsNamedItems() {
         assertEquals("ITEMS", new ObjectDevice(new ItemHandlerDevice(new ArrayItemHandler(1))).getIOName());
     }

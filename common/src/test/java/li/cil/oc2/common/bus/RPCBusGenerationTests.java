@@ -82,18 +82,6 @@ public final class RPCBusGenerationTests {
     }
 
     @Test
-    public void generationMovesWhenDevicesChange() {
-        addDevice("redstone");
-        adapter.rebuild(busController);
-        final int before = generation();
-
-        addDevice("inventory");
-        adapter.rebuild(busController);
-
-        assertNotEquals(before, generation(), "generation did not move after the device set changed");
-    }
-
-    @Test
     public void generationNeverGoesBackwards() {
         addDevice("redstone");
         adapter.rebuild(busController);

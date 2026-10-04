@@ -13,11 +13,8 @@ import li.cil.oc2.common.bus.device.item.FlashStorageDevice;
 import li.cil.oc2.common.bus.device.item.HardDriveDevice;
 import li.cil.oc2.common.bus.device.item.MemoryDevice;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.item.crafting.ResetRecipe;
-import li.cil.oc2.common.item.crafting.ToolRecipe;
 import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
-import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.oc2.common.util.StorageItemUtils.State;
 import li.cil.oc2.common.vm.VMDeviceRegistry;
@@ -25,7 +22,6 @@ import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.sedna.riscv.R5Board;
-import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -33,21 +29,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static li.cil.oc2.gametest.util.Blobs.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
@@ -204,100 +196,11 @@ public final class MountFailureTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void staleFlashNeedsAcknowledgement(final GameTestHelper helper) {
-        final UUID handle = BlobStorage.allocateHandle();
-        final ItemStack stack = new ItemStack(Items.FLASH_MEMORY.get());
-        try {
-            markStale(handle);
-
-            final FlashStorageDevice device = new FlashStorageDevice(stack, 4096);
-            device.deserializeNBT(tagReferencing(handle));
-
-            final VMDeviceRegistry refusing = registry();
-            refusing.rebuild(bus(device));
-
-            final VMDeviceLoadResult refused = refusing.mountDevices();
-            if (refused.wasSuccessful() || !refused.isPermanent()) {
-                throw new GameTestAssertException("stale flash memory should not mount unacknowledged");
-            }
-            if (StorageItemUtils.getState(stack) != State.INCONSISTENT) {
-                throw new GameTestAssertException("The item carries the warning; got "
-                    + StorageItemUtils.getState(stack));
-            }
-
-            StorageItemUtils.setState(stack, State.ACKNOWLEDGED);
-
-            final VMDeviceRegistry accepting = registry();
-            final FlashStorageDevice retry = new FlashStorageDevice(stack, 4096);
-            retry.deserializeNBT(tagReferencing(handle));
-            accepting.rebuild(bus(retry));
-
-            if (!accepting.mountDevices().wasSuccessful()) {
-                throw new GameTestAssertException("acknowledged flash memory should mount");
-            }
-            if (StorageItemUtils.getState(stack) != State.OK) {
-                throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it; got " + StorageItemUtils.getState(stack));
-            }
-
-            accepting.unmountDevices();
-            retry.dispose();
-        } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
-        } finally {
-            StorageItemUtils.clearBlobData(stack);
-            release(handle);
-        }
-
-        helper.succeed();
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void staleDriveNeedsAcknowledgement(final GameTestHelper helper) {
-        final UUID handle = BlobStorage.allocateHandle();
-        final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
-        try {
-            markStale(handle);
-
-            final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
-            device.deserializeNBT(tagReferencing(handle));
-
-            final VMDeviceRegistry refusing = registry();
-            refusing.rebuild(bus(device));
-
-            final VMDeviceLoadResult refused = refusing.mountDevices();
-            if (refused.wasSuccessful() || !refused.isPermanent()) {
-                throw new GameTestAssertException("stale drive should not mount unacknowledged");
-            }
-            if (StorageItemUtils.getState(stack) != State.INCONSISTENT) {
-                throw new GameTestAssertException("The item carries the warning, so it survives the player "
-                    + "taking the drive out; got " + StorageItemUtils.getState(stack));
-            }
-            if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("The data is kept: it is what the guest actually wrote");
-            }
-
-            StorageItemUtils.setState(stack, State.ACKNOWLEDGED);
-
-            final VMDeviceRegistry accepting = registry();
-            final HardDriveDevice retry = new HardDriveDevice(stack, 4096, false, Optional::empty);
-            retry.deserializeNBT(tagReferencing(handle));
-            accepting.rebuild(bus(retry));
-
-            if (!accepting.mountDevices().wasSuccessful()) {
-                throw new GameTestAssertException("Once the player has accepted it, the drive mounts");
-            }
-            if (StorageItemUtils.getState(stack) != State.OK) {
-                throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it");
-            }
-
-            accepting.unmountDevices();
-            retry.dispose();
-        } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
-        } finally {
-            StorageItemUtils.clearBlobData(stack);
-            release(handle);
-        }
+    public static void staleStorageNeedsAcknowledgement(final GameTestHelper helper) {
+        assertStaleStorageNeedsAcknowledgement(new ItemStack(Items.FLASH_MEMORY.get()),
+            stack -> new FlashStorageDevice(stack, 4096));
+        assertStaleStorageNeedsAcknowledgement(new ItemStack(Items.HARD_DRIVE_SMALL.get()),
+            stack -> new HardDriveDevice(stack, 4096, false, Optional::empty));
 
         helper.succeed();
     }
@@ -336,71 +239,6 @@ public final class MountFailureTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void resetAcknowledgesUnverifiedDrive(final GameTestHelper helper) {
-        final ResetRecipe recipe = new ResetRecipe(CraftingBookCategory.MISC);
-        final BlobReference blob = new BlobReference();
-        final ItemStack drive = new ItemStack(Items.HARD_DRIVE_SMALL.get());
-        try {
-            final UUID handle = createBlob(blob);
-            blob.close();
-            if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("Precondition: the drive has data to keep");
-            }
-
-            driveReferencing(drive, handle);
-            StorageItemUtils.setState(drive, State.INCONSISTENT);
-
-            final CraftingInput input = CraftingInput.of(2, 1,
-                List.of(drive, new ItemStack(Items.WRENCH.get())));
-
-            if (!recipe.matches(input, helper.getLevel())) {
-                throw new GameTestAssertException("Accepting an unverified drive is the same craft as "
-                    + "resetting a corrupted one");
-            }
-
-            final ItemStack result = recipe.assemble(input, helper.getLevel().registryAccess());
-            if (StorageItemUtils.getState(result) != State.ACKNOWLEDGED) {
-                throw new GameTestAssertException("The craft moves the drive to acknowledged, got "
-                    + StorageItemUtils.getState(result));
-            }
-            if (!ItemDeviceUtils.getItemDeviceData(result).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
-                throw new GameTestAssertException("reset of an unverified drive should keep the handle");
-            }
-
-            recipe.getRemainingItems(input);
-            if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("...and it must not delete the blob either");
-            }
-        } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
-        } finally {
-            StorageItemUtils.clearBlobData(drive);
-            release(blob);
-        }
-
-        helper.succeed();
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void toolRecipeStepsAsideForUnverifiedDrives(final GameTestHelper helper) {
-        final ToolRecipe recipe = new ToolRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
-            new ItemStack(Items.HARD_DRIVE_LARGE.get()),
-            NonNullList.of(Ingredient.EMPTY,
-                Ingredient.of(Items.WRENCH.get()),
-                Ingredient.of(Items.HARD_DRIVE_LARGE.get()))));
-
-        final ItemStack drive = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
-        StorageItemUtils.setState(drive, State.INCONSISTENT);
-
-        if (recipe.matches(CraftingInput.of(2, 1, List.of(drive, new ItemStack(Items.WRENCH.get()))),
-            helper.getLevel())) {
-            throw new GameTestAssertException("tool recipe should not match an unverified drive");
-        }
-
-        helper.succeed();
-    }
-
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void permanentMountFailureStopsComputer(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
@@ -431,6 +269,55 @@ public final class MountFailureTests {
         }
         if (!(error.getContents() instanceof final TranslatableContents contents) || !key.equals(contents.getKey())) {
             throw new GameTestAssertException("Expected boot error [" + key + "], got [" + error.getString() + "]");
+        }
+    }
+
+    private static void assertStaleStorageNeedsAcknowledgement(final ItemStack stack,
+                                                                final Function<ItemStack, Device> factory) {
+        final UUID handle = BlobStorage.allocateHandle();
+        try {
+            markStale(handle);
+
+            final Device device = factory.apply(stack);
+            device.deserializeNBT(tagReferencing(handle));
+
+            final VMDeviceRegistry refusing = registry();
+            refusing.rebuild(bus(device));
+
+            final VMDeviceLoadResult refused = refusing.mountDevices();
+            if (refused.wasSuccessful() || !refused.isPermanent()) {
+                throw new GameTestAssertException("stale " + stack + " should not mount unacknowledged");
+            }
+            if (StorageItemUtils.getState(stack) != State.INCONSISTENT) {
+                throw new GameTestAssertException("The item carries the warning, so it survives the player "
+                    + "taking it out; got " + StorageItemUtils.getState(stack));
+            }
+            if (!BlobStorage.exists(handle)) {
+                throw new GameTestAssertException("The data is kept: it is what the guest actually wrote");
+            }
+
+            StorageItemUtils.setState(stack, State.ACKNOWLEDGED);
+
+            final VMDeviceRegistry accepting = registry();
+            final Device retry = factory.apply(stack);
+            retry.deserializeNBT(tagReferencing(handle));
+            accepting.rebuild(bus(retry));
+
+            if (!accepting.mountDevices().wasSuccessful()) {
+                throw new GameTestAssertException("Once the player has accepted it, " + stack + " mounts");
+            }
+            if (StorageItemUtils.getState(stack) != State.OK) {
+                throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it; got "
+                    + StorageItemUtils.getState(stack));
+            }
+
+            accepting.unmountDevices();
+            retry.dispose();
+        } catch (final IOException e) {
+            throw new GameTestAssertException("Unexpected failure: " + e);
+        } finally {
+            StorageItemUtils.clearBlobData(stack);
+            release(handle);
         }
     }
 

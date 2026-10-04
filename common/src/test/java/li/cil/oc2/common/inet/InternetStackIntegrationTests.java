@@ -139,12 +139,6 @@ public class InternetStackIntegrationTests {
 
     @Test
     @Timeout(30)
-    public void gatewayAnswersArpForWhateverAddressTheGuestPicks() throws InterruptedException {
-        resolveGateway();
-    }
-
-    @Test
-    @Timeout(30)
     public void guestTcpConnectionReachesARealSocketAndBack() throws Exception {
         resolveGateway();
 
@@ -313,6 +307,7 @@ public class InternetStackIntegrationTests {
     public void halfClosedConnectionStillExpires() throws Exception {
         final SessionLimits limits = new SessionLimits(4, 4);
         final AddressFilter filter = new AddressFilter(List.of("127.0.0.0/8"), List.of(), false);
+        stack.onStop();
         stack = buildStack(filter, TimeUnit.MILLISECONDS.toNanos(300), limits);
 
         resolveGateway();
@@ -380,6 +375,7 @@ public class InternetStackIntegrationTests {
     public void blockedPortIsRefusedWithoutOpeningASocket() throws Exception {
         final short port = (short) server.getLocalPort();
         final AddressFilter filter = new AddressFilter(List.of("127.0.0.0/8"), List.of(), false);
+        stack.onStop();
         stack = buildStack(filter, new PortFilter(List.of(Integer.toString(Short.toUnsignedInt(port)))),
             TimeUnit.SECONDS.toNanos(60), new SessionLimits(8, 32));
 
@@ -398,34 +394,22 @@ public class InternetStackIntegrationTests {
     @Test
     @Timeout(30)
     public void blockedAddressIsRefusedWithoutOpeningASocket() throws Exception {
-        resolveGateway();
-
+        final short port = (short) server.getLocalPort();
         final AddressFilter denyAll = new AddressFilter(List.of(), List.of("0.0.0.0/0"), false);
-        final LinkLocalLayer blocked =
-            buildStack(denyAll, TimeUnit.SECONDS.toNanos(60), new SessionLimits(8, 32));
+        stack.onStop();
+        stack = buildStack(denyAll, TimeUnit.SECONDS.toNanos(60), new SessionLimits(8, 32));
 
-        blocked.sendEthernetFrame(ByteBuffer.wrap(arpRequest(GUEST_IP, GATEWAY_IP)));
-        final ByteBuffer buffer = ByteBuffer.allocate(LinkLocalLayer.FRAME_SIZE);
-        assertTrue(blocked.receiveEthernetFrame(buffer), "the ARP reply should still come back");
-        buffer.get(6, gatewayMac);
+        resolveGateway();
+        send(tcpFrame(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, port, new byte[0]));
 
-        final int portBefore = server.getLocalPort();
-        blocked.sendEthernetFrame(ByteBuffer.wrap(
-            tcpFrame(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, (short) portBefore, new byte[0])));
+        final ByteBuffer reply = ByteBuffer.wrap(pumpUntilFrame());
+        final int icmpStart = icmpStartOf(reply);
+        assertEquals(3, reply.get(icmpStart), "expected destination unreachable");
+        assertEquals(13, reply.get(icmpStart + 1), "expected administratively prohibited");
 
-        buffer.clear();
-        assertTrue(blocked.receiveEthernetFrame(buffer), "a blocked packet should be answered");
-        final byte[] reply = new byte[buffer.remaining()];
-        buffer.get(reply);
-
-        final ByteBuffer parsed = ByteBuffer.wrap(reply);
-        parsed.position(LinkLocalLayer.FRAME_HEADER_SIZE + 9);
-        assertEquals(1, parsed.get(), "expected an ICMP packet");
-        parsed.position(LinkLocalLayer.FRAME_HEADER_SIZE + 20);
-        assertEquals(3, parsed.get(), "expected destination unreachable");
-        assertEquals(13, parsed.get(), "expected administratively prohibited");
-
-        blocked.onStop();
+        server.setSoTimeout(300);
+        assertThrows(SocketTimeoutException.class, server::accept,
+            "no connection should have been opened to the blocked address");
     }
 
     @Test
@@ -439,10 +423,7 @@ public class InternetStackIntegrationTests {
         final byte[] reply = pumpUntilEtherType(ETHERTYPE_IPv4);
 
         final ByteBuffer buffer = ByteBuffer.wrap(reply);
-        final int ipStart = LinkLocalLayer.FRAME_HEADER_SIZE;
-        assertEquals(PROTOCOL_ICMP, buffer.get(ipStart + 9), "expected an ICMP packet");
-
-        final int icmpStart = ipStart + (Byte.toUnsignedInt(buffer.get(ipStart)) & 0xF) * 4;
+        final int icmpStart = icmpStartOf(buffer);
         assertEquals(0, buffer.get(icmpStart), "expected an echo reply");
         assertEquals(0, buffer.get(icmpStart + 1), "an echo reply carries code zero");
         assertEquals((short) 0x1234, buffer.getShort(icmpStart + 4), "the identifier should come back");
@@ -507,18 +488,14 @@ public class InternetStackIntegrationTests {
     }
 
     private List<byte[]> pump() {
-        return pump(stack);
-    }
-
-    private List<byte[]> pump(final LinkLocalLayer target) {
         socketManager.poll();
-        target.onTick();
+        stack.onTick();
 
         final List<byte[]> frames = new ArrayList<>();
         final ByteBuffer buffer = ByteBuffer.allocate(LinkLocalLayer.FRAME_SIZE);
         for (int i = 0; i < 16; ++i) {
             buffer.clear();
-            if (!target.receiveEthernetFrame(buffer)) {
+            if (!stack.receiveEthernetFrame(buffer)) {
                 break;
             }
             final byte[] frame = new byte[buffer.remaining()];
@@ -755,6 +732,12 @@ public class InternetStackIntegrationTests {
         final byte[] payload = new byte[buffer.remaining()];
         buffer.get(payload);
         return new Tcp(header, payload);
+    }
+
+    private static int icmpStartOf(final ByteBuffer packet) {
+        final int ipStart = LinkLocalLayer.FRAME_HEADER_SIZE;
+        assertEquals(PROTOCOL_ICMP, packet.get(ipStart + 9), "expected an ICMP packet");
+        return ipStart + (Byte.toUnsignedInt(packet.get(ipStart)) & 0xF) * 4;
     }
 
     private static byte[] destinationMacOf(final byte[] frame) {

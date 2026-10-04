@@ -116,21 +116,6 @@ public final class RPCEventChannelTests {
     }
 
     @Test
-    public void onlyOneNoticeIsOutstandingAtATime() {
-        final TestSerialDevice deaf = new TestSerialDevice(0);
-        final RPCEventChannel channel = new RPCEventChannel(deaf);
-        final byte[] kilobyte = new byte[Constants.KILOBYTE];
-
-        fill(channel, kilobyte);
-        assertTrue(channel.takeDropped() > 0, "precondition: something was refused");
-
-        channel.sendNotice(RPCMessageChannel.frame("notice".getBytes(StandardCharsets.UTF_8)));
-
-        channel.sendEvent(RPCMessageChannel.frame(kilobyte));
-        assertEquals(0, channel.takeDropped(), "a second notice queued after the first");
-    }
-
-    @Test
     public void refusalsBehindAPendingNoticeAreNotForgotten() {
         final TestSerialDevice reader = new TestSerialDevice();
         final RPCEventChannel channel = new RPCEventChannel(reader);

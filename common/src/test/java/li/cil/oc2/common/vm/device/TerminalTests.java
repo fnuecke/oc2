@@ -84,16 +84,6 @@ public class TerminalTests {
     }
 
     @Test
-    public void bulkWriteStopsAtTheCap() {
-        final Terminal terminal = new Terminal();
-        final int cap = maxInputSize();
-
-        terminal.putInput(ByteBuffer.wrap(new byte[cap * 2]));
-
-        assertEquals(cap, readResponse(terminal).length());
-    }
-
-    @Test
     public void inputCanBeQueuedAgainAfterDraining() {
         final Terminal terminal = new Terminal();
         final int cap = maxInputSize();
@@ -166,16 +156,6 @@ public class TerminalTests {
     }
 
     @Test
-    public void horizontalMovementDoesNotChangeTheRow() {
-        final Terminal terminal = new Terminal();
-        write(terminal, "\033[5;20r");
-
-        write(terminal, "\033[C");
-
-        assertEquals(0, terminal.getCursorY(), "moving right must not drag the cursor into the scroll region");
-    }
-
-    @Test
     public void saturatedCursorForwardStopsAtTheLastColumn() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[1;2H");
@@ -218,21 +198,12 @@ public class TerminalTests {
     @Test
     public void eraseToStartOfLineAtTheRightMarginClearsTheWholeLine() {
         final Terminal terminal = new Terminal();
-        write(terminal, fill(Terminal.WIDTH));
-
-        write(terminal, "\033[1K");
-
-        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
-    }
-
-    @Test
-    public void eraseLineStartAtMarginSparesNextLine() {
-        final Terminal terminal = new Terminal();
         write(terminal, "\033[2;1HZ\033[1;1H");
         write(terminal, fill(Terminal.WIDTH));
 
         write(terminal, "\033[1K");
 
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
         assertEquals('Z', readLine(terminal, 1).charAt(0), "erase must not run past the end of the line");
     }
 
@@ -272,9 +243,15 @@ public class TerminalTests {
     public void erasingKeepsTheCurrentBackground() {
         final Terminal terminal = new Terminal();
 
-        write(terminal, "\033[44m\033[2K");
+        write(terminal, "\033[104m\033[2K");
 
         assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
+        assertTrue(Terminal.isBackgroundBright(terminal.getCell(0)));
+
+        write(terminal, "\033[2J");
+
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(Terminal.WIDTH)));
+        assertTrue(Terminal.isBackgroundBright(terminal.getCell(Terminal.WIDTH)));
     }
 
     @Test
@@ -404,11 +381,7 @@ public class TerminalTests {
         assertEquals(" ".repeat(5), read(terminal, 9 * Terminal.WIDTH + 9, 5));
         assertEquals(0, terminal.getCursorX());
         assertEquals(0, terminal.getCursorY());
-    }
 
-    @Test
-    public void switchingBackToEightyColumnsAlsoClearsTheScreen() {
-        final Terminal terminal = new Terminal();
         write(terminal, "hello");
 
         write(terminal, "\033[?3l");
@@ -502,20 +475,12 @@ public class TerminalTests {
     }
 
     @Test
-    public void windowTitlesAreNotPrintedToTheScreen() {
+    public void windowTitlesAreSwallowed() {
         final Terminal terminal = new Terminal();
 
         write(terminal, "\033]0;some title\007X");
 
         assertEquals("X", read(terminal, 1));
-    }
-
-    @Test
-    public void windowTitlesDoNotRingTheBell() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033]0;some title\007");
-
         assertFalse(terminal.consumePendingBell());
     }
 
@@ -548,15 +513,6 @@ public class TerminalTests {
     }
 
     @Test
-    public void cursorStyleIsNotPrintedToTheScreen() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[2 qX");
-
-        assertEquals("X", read(terminal, 1));
-    }
-
-    @Test
     public void softResetIsNotPrintedToTheScreen() {
         final Terminal terminal = new Terminal();
 
@@ -566,20 +522,12 @@ public class TerminalTests {
     }
 
     @Test
-    public void privateControlSequencesAreNotPrintedToTheScreen() {
+    public void privateControlSequencesAreSwallowed() {
         final Terminal terminal = new Terminal();
 
-        write(terminal, "\033[>4;2mX");
+        write(terminal, "\033[>4;2m\033[>31mX");
 
         assertEquals("X", read(terminal, 1));
-    }
-
-    @Test
-    public void privateControlSequencesDoNotRunTheirPublicCounterpart() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[>31mX");
-
         assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(0)));
     }
 
@@ -688,16 +636,6 @@ public class TerminalTests {
 
         write(terminal, "\033[?1l");
         assertFalse(terminal.isCursorKeyApplicationMode());
-    }
-
-    @Test
-    public void escapeAbandonsAnUnfinishedControlSequence() {
-        final Terminal terminal = new Terminal();
-        write(terminal, "ABC\033[1;");
-
-        write(terminal, "\033[2JX");
-
-        assertEquals("   X" + " ".repeat(Terminal.WIDTH - 4), readLine(terminal, 0));
     }
 
     @Test
@@ -822,16 +760,6 @@ public class TerminalTests {
 
         write(terminal, "abc\n");
         assertEquals(0, terminal.getCursorX());
-    }
-
-    @Test
-    public void decPrivateModesStillApply() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[?7l");
-
-        write(terminal, fill(Terminal.WIDTH + 5));
-        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1), "ESC[?7l must still turn wrapping off");
     }
 
     @Test
@@ -1135,15 +1063,9 @@ public class TerminalTests {
     }
 
     @Test
-    public void cursorIsVisibleByDefault() {
-        final Terminal terminal = new Terminal();
-
-        assertTrue(terminal.isCursorVisible());
-    }
-
-    @Test
     public void cursorCanBeHiddenAndShown() {
         final Terminal terminal = new Terminal();
+        assertTrue(terminal.isCursorVisible());
 
         write(terminal, "\033[?25l");
         assertFalse(terminal.isCursorVisible());
@@ -1173,15 +1095,9 @@ public class TerminalTests {
     }
 
     @Test
-    public void bracketedPasteIsOffByDefault() {
-        final Terminal terminal = new Terminal();
-
-        assertFalse(terminal.isBracketedPasteMode());
-    }
-
-    @Test
     public void bracketedPasteCanBeToggled() {
         final Terminal terminal = new Terminal();
+        assertFalse(terminal.isBracketedPasteMode());
 
         write(terminal, "\033[?2004h");
         assertTrue(terminal.isBracketedPasteMode());
@@ -1305,16 +1221,6 @@ public class TerminalTests {
     }
 
     @Test
-    public void brightBackgroundIsKeptWhenErasing() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[104m\033[2J");
-
-        assertTrue(Terminal.isBackgroundBright(terminal.getCell(0)));
-        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
-    }
-
-    @Test
     public void brightPaletteColorsAreFlagged() {
         final Terminal terminal = new Terminal();
 
@@ -1336,15 +1242,9 @@ public class TerminalTests {
     }
 
     @Test
-    public void altBufferIsInactiveByDefault() {
-        final Terminal terminal = new Terminal();
-
-        assertFalse(terminal.isAltBufferActive());
-    }
-
-    @Test
     public void enteringTheAltBufferClearsTheScreen() {
         final Terminal terminal = new Terminal();
+        assertFalse(terminal.isAltBufferActive());
         write(terminal, "shell");
 
         write(terminal, "\033[?1049h");
@@ -1440,18 +1340,6 @@ public class TerminalTests {
     }
 
     @Test
-    public void altBufferSurvivesSaveAndLoad() {
-        final Terminal saved = new Terminal();
-        write(saved, "shell\033[?1049heditor");
-
-        final Terminal loaded = reload(saved);
-
-        assertTrue(loaded.isAltBufferActive());
-        write(loaded, "\033[?1049l");
-        assertEquals("shell", read(loaded, 0, 5));
-    }
-
-    @Test
     public void saveCursorModeRestoresTheCursorWithoutSwitchingScreens() {
         final Terminal terminal = new Terminal();
         write(terminal, "abc");
@@ -1518,21 +1406,16 @@ public class TerminalTests {
 
         final Terminal loaded = reload(saved);
 
+        assertTrue(loaded.isAltBufferActive());
         assertEquals("editor", read(loaded, 0, 6), "the alt screen itself must survive too");
         write(loaded, "\033[?1049l");
         assertEquals("shell", read(loaded, 0, 5));
     }
 
     @Test
-    public void mouseReportingIsOffByDefault() {
-        final Terminal terminal = new Terminal();
-
-        assertFalse(terminal.isMouseReportingEnabled());
-    }
-
-    @Test
     public void mouseReportingCanBeToggled() {
         final Terminal terminal = new Terminal();
+        assertFalse(terminal.isMouseReportingEnabled());
 
         write(terminal, "\033[?1000h");
         assertTrue(terminal.isMouseReportingEnabled());

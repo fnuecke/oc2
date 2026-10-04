@@ -2,11 +2,16 @@
 
 package li.cil.oc2.common.inet.l4;
 
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.ByteBuffer;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Named.named;
 
 public class TcpHeaderTests {
     private static final byte[] NO_BYTES = {};
@@ -57,38 +62,11 @@ public class TcpHeaderTests {
         assertEquals(1, data.remaining());
     }
 
-    @Test
-    public void optionWithZeroLengthIsRejectedRatherThanLoopingForever() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("malformedOptions")
+    public void malformedOptionIsRejected(final byte[] options) {
         final TcpHeader header = new TcpHeader();
-        final byte[] options = {8, 0, 0, 0};
-        final ByteBuffer data = segment(1, 0, 6, TcpHeader.FLAG_ACK, options, NO_BYTES);
-
-        assertFalse(header.read(data));
-    }
-
-    @Test
-    public void optionWithLengthOneIsRejected() {
-        final TcpHeader header = new TcpHeader();
-        final byte[] options = {8, 1, 0, 0};
-        final ByteBuffer data = segment(1, 0, 6, TcpHeader.FLAG_ACK, options, NO_BYTES);
-
-        assertFalse(header.read(data));
-    }
-
-    @Test
-    public void optionRunningPastTheHeaderIsRejected() {
-        final TcpHeader header = new TcpHeader();
-        final byte[] options = {8, (byte) 40, 0, 0};
-        final ByteBuffer data = segment(1, 0, 6, TcpHeader.FLAG_ACK, options, NO_BYTES);
-
-        assertFalse(header.read(data));
-    }
-
-    @Test
-    public void maximumSegmentSizeWithWrongLengthIsRejected() {
-        final TcpHeader header = new TcpHeader();
-        final byte[] options = {2, 6, 0, 0, 0, 0, 0, 0};
-        final ByteBuffer data = segment(1, 0, 7, TcpHeader.FLAG_SYN, options, NO_BYTES);
+        final ByteBuffer data = segment(1, 0, 5 + options.length / 4, TcpHeader.FLAG_SYN, options, NO_BYTES);
 
         assertFalse(header.read(data));
     }
@@ -167,26 +145,16 @@ public class TcpHeaderTests {
         assertEquals(header.headerSize() - 4, buffer.position());
     }
 
-    @Test
-    public void clearResetsEveryFlag() {
-        final TcpHeader header = new TcpHeader();
-        header.urg = header.ack = header.psh = header.rst = header.syn = header.fin = true;
-        header.window = 1;
-        header.maxSegmentSize = 1;
-
-        header.clear();
-
-        assertFalse(header.urg);
-        assertFalse(header.ack);
-        assertFalse(header.psh);
-        assertFalse(header.rst);
-        assertFalse(header.syn);
-        assertFalse(header.fin);
-        assertEquals(0, header.window);
-        assertEquals(-1, header.maxSegmentSize);
-    }
-
     // --------------------------------------------------------------------- //
+
+    private static Stream<Named<byte[]>> malformedOptions() {
+        return Stream.of(
+            named("zero length, would loop forever", new byte[]{8, 0, 0, 0}),
+            named("length one", new byte[]{8, 1, 0, 0}),
+            named("running past the header", new byte[]{8, (byte) 40, 0, 0}),
+            named("maximum segment size with wrong length", new byte[]{2, 6, 0, 0, 0, 0, 0, 0})
+        );
+    }
 
     private static ByteBuffer segment(
         final int sequenceNumber,

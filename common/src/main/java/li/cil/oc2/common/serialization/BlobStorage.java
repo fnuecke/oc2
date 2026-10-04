@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.serialization;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import dev.architectury.event.events.common.LifecycleEvent;
@@ -288,35 +289,6 @@ public final class BlobStorage {
         }
     }
 
-    /**
-     * The number of blobs currently held in storage.
-     *
-     * @return the current blob count.
-     */
-    public static synchronized int getBlobCount() {
-        return blobCount;
-    }
-
-    /**
-     * The directory blobs are stored in, if a server is currently running.
-     *
-     * @return the blob directory.
-     */
-    @Nullable
-    public static synchronized Path getDataDirectory() {
-        return dataDirectory;
-    }
-
-    /**
-     * The directory evicted blobs are moved to, if a server is currently running.
-     *
-     * @return the trash directory.
-     */
-    @Nullable
-    public static synchronized Path getTrashDirectory() {
-        return trashDirectory;
-    }
-
     // --------------------------------------------------------------------- //
 
     public static void initialize() {
@@ -338,7 +310,24 @@ public final class BlobStorage {
 
     // --------------------------------------------------------------------- //
 
-    // Technically internal, public for tests.
+    @VisibleForTesting
+    public static synchronized int getBlobCount() {
+        return blobCount;
+    }
+
+    @Nullable
+    @VisibleForTesting
+    public static synchronized Path getDataDirectory() {
+        return dataDirectory;
+    }
+
+    @Nullable
+    @VisibleForTesting
+    public static synchronized Path getTrashDirectory() {
+        return trashDirectory;
+    }
+
+    @VisibleForTesting
     public static synchronized boolean isMarkedHandle(final UUID handle) {
         return dataDirectory != null && Files.exists(markerPathOf(handle));
     }

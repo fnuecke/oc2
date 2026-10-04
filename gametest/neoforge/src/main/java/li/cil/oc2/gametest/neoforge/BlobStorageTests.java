@@ -549,7 +549,7 @@ public final class BlobStorageTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void resetRecipeOnlyAppliesToCorruptedDrives(final GameTestHelper helper) {
+    public static void resetRecipeOnlyAppliesToCorruptedOrUnverifiedDrives(final GameTestHelper helper) {
         final ResetRecipe recipe = new ResetRecipe(CraftingBookCategory.MISC);
 
         final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_LARGE.get());
@@ -561,6 +561,45 @@ public final class BlobStorageTests {
         StorageItemUtils.setState(corrupted, State.CORRUPTED);
         if (!recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("Resetting must apply to a drive that lost its data");
+        }
+
+        final BlobReference blob = new BlobReference();
+        final ItemStack unverified = new ItemStack(Items.HARD_DRIVE_SMALL.get());
+        try {
+            final UUID handle = createBlob(blob);
+            blob.close();
+            if (!BlobStorage.exists(handle)) {
+                throw new GameTestAssertException("Precondition: the drive has data to keep");
+            }
+
+            driveReferencing(unverified, handle);
+            StorageItemUtils.setState(unverified, State.INCONSISTENT);
+
+            final CraftingInput input = gridOf(unverified, new ItemStack(Items.WRENCH.get()));
+
+            if (!recipe.matches(input, helper.getLevel())) {
+                throw new GameTestAssertException("Accepting an unverified drive is the same craft as "
+                    + "resetting a corrupted one");
+            }
+
+            final ItemStack result = recipe.assemble(input, helper.getLevel().registryAccess());
+            if (StorageItemUtils.getState(result) != State.ACKNOWLEDGED) {
+                throw new GameTestAssertException("The craft moves the drive to acknowledged, got "
+                    + StorageItemUtils.getState(result));
+            }
+            if (!ItemDeviceUtils.getItemDeviceData(result).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
+                throw new GameTestAssertException("reset of an unverified drive should keep the handle");
+            }
+
+            recipe.getRemainingItems(input);
+            if (!BlobStorage.exists(handle)) {
+                throw new GameTestAssertException("...and it must not delete the blob either");
+            }
+        } catch (final IOException e) {
+            throw new GameTestAssertException("Unexpected failure: " + e);
+        } finally {
+            StorageItemUtils.clearBlobData(unverified);
+            release(blob);
         }
 
         helper.succeed();
@@ -592,7 +631,7 @@ public final class BlobStorageTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void toolRecipeStepsAsideForCorruptedDrives(final GameTestHelper helper) {
+    public static void toolRecipeStepsAsideForCorruptedOrUnverifiedDrives(final GameTestHelper helper) {
         final ToolRecipe recipe = new ToolRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
             new ItemStack(Items.HARD_DRIVE_LARGE.get()),
             NonNullList.of(Ingredient.EMPTY,
@@ -608,6 +647,12 @@ public final class BlobStorageTests {
         StorageItemUtils.setState(corrupted, State.CORRUPTED);
         if (recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException("tool recipe should not match a corrupted drive");
+        }
+
+        final ItemStack unverified = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
+        StorageItemUtils.setState(unverified, State.INCONSISTENT);
+        if (recipe.matches(gridOf(unverified, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
+            throw new GameTestAssertException("tool recipe should not match an unverified drive");
         }
 
         helper.succeed();

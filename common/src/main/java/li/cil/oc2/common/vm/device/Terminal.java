@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.vm.device;
 
+import com.google.common.annotations.VisibleForTesting;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.ceres.api.Serialized;
 import net.fabricmc.api.EnvType;
@@ -203,16 +204,8 @@ public final class Terminal {
         return getPrivateMode(Mode.DECTCEM);
     }
 
-    public boolean isBracketedPasteMode() {
-        return getPrivateMode(Mode.BRACKETED_PASTE);
-    }
-
     public boolean isMouseReportingEnabled() {
         return getPrivateMode(Mode.MOUSE_TRACKING);
-    }
-
-    boolean isAltBufferActive() {
-        return savedScreen != null;
     }
 
     public int getCursorX() {
@@ -892,6 +885,16 @@ public final class Terminal {
         }
         final int bit = highPrivateModeBitIndex(mode);
         return bit >= 0 && (highPrivateModes & (1 << bit)) != 0;
+    }
+
+    @VisibleForTesting
+    boolean isBracketedPasteMode() {
+        return getPrivateMode(Mode.BRACKETED_PASTE);
+    }
+
+    @VisibleForTesting
+    boolean isAltBufferActive() {
+        return savedScreen != null;
     }
 
     private void putResponse(final String value) {

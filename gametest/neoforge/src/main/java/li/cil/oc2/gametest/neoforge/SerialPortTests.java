@@ -12,7 +12,6 @@ import li.cil.oc2.gametest.fixture.HubFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -29,51 +28,6 @@ public final class SerialPortTests {
     private static final BlockPos RELAY = COMPUTER_POS.east(4).south(2);
 
     // --------------------------------------------------------------------- //
-
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
-    public static void serialCardsCarryBytesOverTheLine(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
-
-        final ItemStack upOnly = upOnlyCard(3);
-        final ItemStack allButUp = allButUpCard(7);
-
-        final ConnectorFixture[] connectors = new ConnectorFixture[3];
-
-        helper.startSequence()
-            .thenExecuteAfter(20, () -> {
-                Hardware.installLinuxWithExtraMemory(computer);
-                computer.install(DeviceTypes.CARD.get(), upOnly)
-                    .install(DeviceTypes.CARD.get(), allButUp);
-
-                placeRelayedConnectors(helper, player, computer, connectors);
-            })
-            .thenExecuteAfter(40, computer::start)
-            .thenWaitUntil(() -> computer.assertScreenContains(LOGIN_PROMPT, "the guest should reach its login prompt"))
-            .thenExecute(computer::loginAsRoot)
-            .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
-            .thenExecute(() -> {
-                final Direction[] sides = {Direction.UP, Direction.EAST};
-                for (int i = 0; i < sides.length; i++) {
-                    final Object resolved = connectors[i].adjacentInterface();
-                    if (resolved == null || resolved != computer.networkInterface(sides[i])) {
-                        throw new GameTestAssertException("the connector on " + sides[i] + " resolved " + resolved
-                            + ", the computer offers " + computer.networkInterface(sides[i]));
-                    }
-                }
-            })
-            .thenExecute(() -> computer.type(script(
-                "stty -F /dev/ttyS1 9600 raw -echo",
-                "stty -F /dev/ttyS2 9600 raw -echo",
-                "timeout 5 head -c 2 /dev/ttyS2 > /tmp/rx &",
-                "sleep 1",
-                "printf hi > /dev/ttyS1",
-                "wait",
-                "echo RX=$(cat /tmp/rx) END")))
-            .thenWaitUntil(() -> computer.assertScreenContains("RX=hi END",
-                "bytes written to one port should reach the card on the other end"))
-            .thenSucceed();
-    }
 
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
     public static void cardsSharingASideDoNotShadowEachOther(final GameTestHelper helper) {

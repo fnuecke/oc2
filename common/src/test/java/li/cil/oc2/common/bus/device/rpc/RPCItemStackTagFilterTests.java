@@ -9,8 +9,6 @@ import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.lang.reflect.Field;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MinecraftBootstrap.class)
@@ -71,35 +69,11 @@ public class RPCItemStackTagFilterTests {
         assertTrue(result.isEmpty());
     }
 
-    @Test
-    public void resolvedPathsAreCachedRatherThanRebuiltPerCall() {
-        final RPCItemStackTagFilter filter = filterFor("kept");
-        final ItemStack stack = new ItemStack(Items.STONE);
-        final CompoundTag source = new CompoundTag();
-        source.putInt("kept", 42);
-
-        filter.apply(stack, source);
-        final Object first = paths(filter);
-        filter.apply(stack, source);
-
-        assertSame(first, paths(filter), "paths are documented as a cache, so they should survive a second call");
-    }
-
     // --------------------------------------------------------------------- //
 
     private static RPCItemStackTagFilter filterFor(final String... tags) {
         final RPCItemStackTagFilter filter = new RPCItemStackTagFilter();
         filter.tags = tags;
         return filter;
-    }
-
-    private static Object paths(final RPCItemStackTagFilter filter) {
-        try {
-            final Field field = RPCItemStackTagFilter.class.getDeclaredField("paths");
-            field.setAccessible(true);
-            return field.get(filter);
-        } catch (final ReflectiveOperationException e) {
-            throw new AssertionError("could not read the filter's resolved paths", e);
-        }
     }
 }

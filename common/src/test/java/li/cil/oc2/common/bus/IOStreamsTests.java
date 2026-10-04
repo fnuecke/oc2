@@ -115,10 +115,6 @@ public final class IOStreamsTests {
     // --------------------------------------------------------------------- //
 
     private static IOInputStream read(final int... values) {
-        final byte[] bytes = new byte[values.length];
-        for (int i = 0; i < values.length; i++) {
-            bytes[i] = (byte) values[i];
-        }
-        return new IOInputStream(new ByteArrayInputStream(bytes));
+        return new IOInputStream(new ByteArrayInputStream(TestIOInvocation.bytes(values)));
     }
 }

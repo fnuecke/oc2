@@ -2,8 +2,6 @@
 
 package li.cil.oc2.common.bus;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
@@ -66,7 +64,7 @@ public final class RPCInboundBlobTests {
 
         assertArrayEquals(PAYLOAD, sink.received, "the callback did not get the payload");
         assertEquals(1, sink.calls);
-        assertEquals("result", reply().get("type").getAsString());
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString());
     }
 
     @Test
@@ -79,7 +77,7 @@ public final class RPCInboundBlobTests {
         adapter.step(0);
 
         assertNull(sink.received, "a corrupted payload must not reach the callback");
-        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_CORRUPT, reply().get("data").getAsString());
+        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_CORRUPT, serialDevice.readJsonAsVM().get("data").getAsString());
 
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM(invocation(PAYLOAD.length, CHECKSUM));
@@ -92,7 +90,7 @@ public final class RPCInboundBlobTests {
         serialDevice.putAsVM(invocation(Integer.MAX_VALUE, 0));
         adapter.step(0);
 
-        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, reply().get("data").getAsString());
+        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, serialDevice.readJsonAsVM().get("data").getAsString());
         assertNull(sink.received);
     }
 
@@ -110,7 +108,7 @@ public final class RPCInboundBlobTests {
         adapter.step(0);
 
         assertArrayEquals(PAYLOAD, sink.received);
-        assertEquals("result", reply().get("type").getAsString());
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString());
     }
 
     @Test
@@ -120,11 +118,11 @@ public final class RPCInboundBlobTests {
         adapter.step(0);
 
         assertNull(sink.received);
-        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, reply().get("data").getAsString());
+        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, serialDevice.readJsonAsVM().get("data").getAsString());
 
         serialDevice.putAsVM("{\"type\":\"list\"}");
         adapter.step(0);
-        assertEquals("list", reply().get("type").getAsString(), "the bus stopped answering");
+        assertEquals("list", serialDevice.readJsonAsVM().get("type").getAsString(), "the bus stopped answering");
     }
 
     @Test
@@ -136,7 +134,7 @@ public final class RPCInboundBlobTests {
         adapter.step(0);
 
         assertNull(sink.received);
-        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, reply().get("data").getAsString());
+        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, serialDevice.readJsonAsVM().get("data").getAsString());
 
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM(invocation(PAYLOAD.length, CHECKSUM));
@@ -151,7 +149,7 @@ public final class RPCInboundBlobTests {
             + ",\"checksum\":" + CHECKSUM + "}}");
         adapter.step(0);
 
-        assertEquals(RPCDeviceBusAdapter.ERROR_MALFORMED_MESSAGE, reply().get("data").getAsString());
+        assertEquals(RPCDeviceBusAdapter.ERROR_MALFORMED_MESSAGE, serialDevice.readJsonAsVM().get("data").getAsString());
     }
 
     @Test
@@ -171,7 +169,7 @@ public final class RPCInboundBlobTests {
             + "\",\"name\":\"writeTwo\",\"parameters\":[{\"$blob\":true},{\"$blob\":true}]}}");
         adapter.step(0);
 
-        assertEquals("error", reply().get("type").getAsString());
+        assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString());
         assertNull(sink.received, "one payload must not be handed to two parameters");
     }
 
@@ -184,7 +182,7 @@ public final class RPCInboundBlobTests {
         adapter.step(0);
 
         assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED,
-            reply().get("data").getAsString(),
+            serialDevice.readJsonAsVM().get("data").getAsString(),
             "the payload is gone by the time a synchronized call runs, so say so");
     }
 
@@ -197,7 +195,7 @@ public final class RPCInboundBlobTests {
                 + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
             assertDoesNotThrow(() -> adapter.step(0), "blob reference " + blob + " escaped as an exception");
             assertNull(sink.received, "blob reference " + blob + " was accepted");
-            assertEquals("error", reply().get("type").getAsString(),
+            assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString(),
                 "blob reference " + blob + " got no reply, so a guest would wait forever");
         }
     }
@@ -209,7 +207,7 @@ public final class RPCInboundBlobTests {
         adapter.step(0);
 
         assertNull(sink.received);
-        assertEquals("error", reply().get("type").getAsString());
+        assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString());
     }
 
     @Test
@@ -219,7 +217,7 @@ public final class RPCInboundBlobTests {
         adapter.step(0);
 
         assertNull(sink.received, "a marker without a payload must not reach the callback");
-        assertEquals("error", reply().get("type").getAsString());
+        assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString());
     }
 
     @Test
@@ -266,7 +264,7 @@ public final class RPCInboundBlobTests {
 
         serialDevice.putAsVM("{\"type\":\"list\"}");
         adapter.step(0);
-        assertEquals("list", reply().get("type").getAsString());
+        assertEquals("list", serialDevice.readJsonAsVM().get("type").getAsString());
 
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM(invocation(PAYLOAD.length, CHECKSUM));
@@ -285,7 +283,7 @@ public final class RPCInboundBlobTests {
         serialDevice.putAsVM(invocation(0, 0));
         adapter.step(0);
         assertNull(sink.received, "an overflowed transfer must not pass as an empty one");
-        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, reply().get("data").getAsString());
+        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH, serialDevice.readJsonAsVM().get("data").getAsString());
 
         blobDevice.putRawAsVM(PAYLOAD);
         serialDevice.putAsVM(invocation(PAYLOAD.length, CHECKSUM));
@@ -313,12 +311,6 @@ public final class RPCInboundBlobTests {
         return "{\"type\":\"invoke\",\"blob\":{\"length\":" + length + ",\"checksum\":" + checksum + "},"
             + "\"data\":{\"deviceId\":\"" + deviceId
             + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}";
-    }
-
-    private JsonObject reply() {
-        final String message = serialDevice.readMessageAsVM();
-        assertNotNull(message, "no reply");
-        return JsonParser.parseString(message).getAsJsonObject();
     }
 
     public static final class BlobSink {

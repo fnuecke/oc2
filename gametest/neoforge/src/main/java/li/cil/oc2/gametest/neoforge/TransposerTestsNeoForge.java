@@ -28,4 +28,9 @@ public final class TransposerTestsNeoForge {
     public static void transposerMovesItemsViaMidLevelApi(final GameTestHelper helper) {
         TransposerTests.transposerMovesItemsViaMidLevelApi(helper);
     }
+
+    // --------------------------------------------------------------------- //
+
+    private TransposerTestsNeoForge() {
+    }
 }

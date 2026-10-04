@@ -23,13 +23,11 @@ public final class StreamingLoadBalancerTests {
 
     private final AtomicLong now = new AtomicLong();
     private final List<String> sent = new ArrayList<>();
-    private final List<ServerPlayer> players = new ArrayList<>();
 
     @BeforeEach
     public void setUp() {
         now.set(0);
         sent.clear();
-        players.clear();
     }
 
     // --------------------------------------------------------------------- //
@@ -37,7 +35,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void watchedSourceSendsToPlayers() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
 
         balancer.tick();
@@ -49,7 +47,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void sourceWithNothingToSendSendsNothing() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        balancer.update("a", playerAtOrigin());
+        balancer.update("a", newPlayer());
         balancer.entry("a").ready = false;
 
         balancer.tick();
@@ -60,7 +58,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void sourceIsForgottenOnceItsCachesExpire() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        balancer.update("a", playerAtOrigin());
+        balancer.update("a", newPlayer());
 
         now.set(CACHE_EXPIRY_MILLIS + 1);
         balancer.tick();
@@ -72,7 +70,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void renewingKeepsASourceAlive() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
 
         now.set(CACHE_EXPIRY_MILLIS - 500);
@@ -86,8 +84,8 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void onlyNewPlayersAreAnnounced() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer first = playerAtOrigin();
-        final ServerPlayer second = playerAtOrigin();
+        final ServerPlayer first = newPlayer();
+        final ServerPlayer second = newPlayer();
 
         balancer.update("a", first);
         balancer.update("a", first);
@@ -100,7 +98,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void oneSourceSendsPerTickWhenLimitedToOne() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
         balancer.update("b", player);
         balancer.update("c", player);
@@ -113,7 +111,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void everySourceGetsItsTurn() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
         balancer.update("b", player);
         balancer.update("c", player);
@@ -130,7 +128,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void severalSourcesSendInOneTickWhenAllowed() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 3);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
         balancer.update("b", player);
         balancer.update("c", player);
@@ -145,7 +143,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void newSourceIsServedNext() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
         balancer.update("b", player);
         balancer.update("c", player);
@@ -160,7 +158,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void singleWatcherCostsASourceNothing() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        balancer.update("a", playerAtOrigin());
+        balancer.update("a", newPlayer());
 
         for (int i = 0; i < 20; i++) {
             balancer.tick();
@@ -172,9 +170,9 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void eachWatcherPastTheFirstCostsARound() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        balancer.update("one", playerAtOrigin());
-        balancer.update("two", playerAtOrigin());
-        balancer.update("two", playerAtOrigin());
+        balancer.update("one", newPlayer());
+        balancer.update("two", newPlayer());
+        balancer.update("two", newPlayer());
 
         for (int i = 0; i < 30; i++) {
             balancer.tick();
@@ -190,8 +188,8 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void everyWatcherIsChargedForWhatItReceives() {
         final TestBalancer balancer = new TestBalancer(450, 1);
-        balancer.update("a", playerAtOrigin());
-        balancer.update("a", playerAtOrigin());
+        balancer.update("a", newPlayer());
+        balancer.update("a", newPlayer());
         balancer.entry("a").payloadSize = 100;
 
         balancer.tick();
@@ -212,7 +210,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void pausingForBudgetKeepsEverySourceInTheRotation() {
         final TestBalancer balancer = new TestBalancer(450, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         for (final String key : List.of("a", "b", "c")) {
             balancer.update(key, player);
             balancer.entry(key).payloadSize = 150;
@@ -233,7 +231,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void chargeLandingAfterTheSendStillPausesIt() {
         final TestBalancer balancer = new TestBalancer(450, 1);
-        balancer.update("a", playerAtOrigin());
+        balancer.update("a", newPlayer());
         balancer.entry("a").payloadSize = 0;
 
         balancer.tick();
@@ -247,7 +245,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void spendingTheBudgetPausesSending() {
         final TestBalancer balancer = new TestBalancer(400, 1);
-        balancer.update("a", playerAtOrigin());
+        balancer.update("a", newPlayer());
         balancer.entry("a").payloadSize = 1000;
 
         balancer.tick();
@@ -267,7 +265,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void removingASourceStopsItImmediately() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        balancer.update("a", playerAtOrigin());
+        balancer.update("a", newPlayer());
 
         balancer.remove("a");
         balancer.tick();
@@ -279,7 +277,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void removingOneSourceKeepsTheOthersInRotation() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
         balancer.update("b", player);
         balancer.update("c", player);
@@ -296,7 +294,7 @@ public final class StreamingLoadBalancerTests {
     @Test
     public void clearingForgetsEverySource() {
         final TestBalancer balancer = new TestBalancer(PLENTY_OF_BUDGET, 1);
-        final ServerPlayer player = playerAtOrigin();
+        final ServerPlayer player = newPlayer();
         balancer.update("a", player);
 
         balancer.clear();
@@ -310,10 +308,8 @@ public final class StreamingLoadBalancerTests {
 
     // --------------------------------------------------------------------- //
 
-    private ServerPlayer playerAtOrigin() {
-        final ServerPlayer player = mock(ServerPlayer.class);
-        players.add(player);
-        return player;
+    private ServerPlayer newPlayer() {
+        return mock(ServerPlayer.class);
     }
 
     // --------------------------------------------------------------------- //

@@ -11,11 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 public final class Drops {
-    public static List<ItemStack> all(final GameTestHelper helper) {
-        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, helper.getBounds().inflate(2))
-            .stream().map(ItemEntity::getItem).toList();
-    }
-
     public static ItemStack single(final GameTestHelper helper) {
         final List<ItemStack> stacks = all(helper);
         if (stacks.size() != 1) {
@@ -29,6 +24,13 @@ public final class Drops {
         if (stacks.stream().noneMatch(stack -> stack.is(item))) {
             throw new GameTestAssertException(what + " did not drop, got " + stacks);
         }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static List<ItemStack> all(final GameTestHelper helper) {
+        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, helper.getBounds().inflate(2))
+            .stream().map(ItemEntity::getItem).toList();
     }
 
     // --------------------------------------------------------------------- //

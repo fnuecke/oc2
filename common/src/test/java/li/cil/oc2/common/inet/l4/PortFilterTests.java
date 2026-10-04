@@ -10,10 +10,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PortFilterTests {
-    private static PortFilter denying(final String... rules) {
-        return new PortFilter(List.of(rules));
-    }
-
     @Test
     public void withNoRulesEveryPortIsAllowed() {
         final PortFilter filter = denying();
@@ -78,5 +74,11 @@ public class PortFilterTests {
         for (final int port : new int[]{80, 443, 53, 22, 8080, 6667}) {
             assertTrue(filter.isAllowed((short) port), "port " + port + " should be reachable by default");
         }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static PortFilter denying(final String... rules) {
+        return new PortFilter(List.of(rules));
     }
 }

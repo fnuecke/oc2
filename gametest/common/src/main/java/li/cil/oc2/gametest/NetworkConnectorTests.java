@@ -115,8 +115,7 @@ public final class NetworkConnectorTests {
 
     public static void connectorResolvesNetworkCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         player.setXRot(90);
         final ConnectorFixture connector = ConnectorFixture.place(helper, player, computer.pos().above());
@@ -149,8 +148,7 @@ public final class NetworkConnectorTests {
 
     public static void connectorDropsRemovedCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         player.setXRot(90);
         final ConnectorFixture connector = ConnectorFixture.place(helper, player, computer.pos().above());
@@ -188,6 +186,8 @@ public final class NetworkConnectorTests {
                 + "] should " + (expected ? "" : "not ") + "survive");
         }
     }
+
+    // --------------------------------------------------------------------- //
 
     private NetworkConnectorTests() {
     }

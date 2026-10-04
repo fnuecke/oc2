@@ -10,16 +10,44 @@ import li.cil.oc2.api.bus.device.io.IOInvocation;
 import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
+import li.cil.oc2.common.bus.device.util.Devices;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
+import net.minecraft.gametest.framework.GameTestHelper;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public final class DeviceCalls {
+    public static final int SYSTEM_GET_ITEM_NAME_CODE = 1;
+    public static final int SIDE_FRONT = 0;
+
+    // --------------------------------------------------------------------- //
+
+    public static List<Device> devicesAt(final GameTestHelper helper, final BlockPos pos) {
+        return Devices.getDevices(Devices.makeQuery(null, helper.getLevel(), helper.absolutePos(pos), null))
+            .orElseThrow(() -> new GameTestAssertException("chunk not loaded"))
+            .stream()
+            .map(info -> info.get().device)
+            .toList();
+    }
+
+    public static IODevice ioDevice(final Collection<? extends Device> devices, final String name) {
+        return devices.stream()
+            .filter(device -> device instanceof final IODevice io && name.equals(io.getIOName()))
+            .map(IODevice.class::cast)
+            .findFirst()
+            .orElseThrow(() -> new GameTestAssertException("no " + name + " device"));
+    }
+
     @Nullable
     public static Object invokeRpc(final RPCDevice device, final String name, final Object... arguments) {
         final RPCInvocation invocation = invocation(arguments);
@@ -64,6 +92,43 @@ public final class DeviceCalls {
         }
 
         throw new GameTestAssertException("device has no function with code " + code);
+    }
+
+    public static int[] ascii(final String text) {
+        final byte[] bytes = text.getBytes(StandardCharsets.US_ASCII);
+        final int[] values = new int[bytes.length];
+        for (int i = 0; i < bytes.length; i++) {
+            values[i] = bytes[i] & 0xFF;
+        }
+        return values;
+    }
+
+    public static int[] concat(final int[] head, final String text) {
+        final int[] result = Arrays.copyOf(head, head.length + text.length());
+        for (int i = 0; i < text.length(); i++) {
+            result[head.length + i] = text.charAt(i);
+        }
+        return result;
+    }
+
+    public static int u16(final byte[] bytes) {
+        return u16(bytes, 0);
+    }
+
+    public static int u16(final byte[] bytes, final int offset) {
+        return (bytes[offset] & 0xFF) | ((bytes[offset + 1] & 0xFF) << 8);
+    }
+
+    public static int i16(final byte[] bytes, final int offset) {
+        return (short) u16(bytes, offset);
+    }
+
+    public static long u32(final byte[] bytes) {
+        long value = 0;
+        for (int i = bytes.length - 1; i >= 0; i--) {
+            value = (value << 8) | (bytes[i] & 0xFF);
+        }
+        return value;
     }
 
     // --------------------------------------------------------------------- //
@@ -156,6 +221,8 @@ public final class DeviceCalls {
             throw new GameTestAssertException(name + " threw: " + e);
         }
     }
+
+    // --------------------------------------------------------------------- //
 
     private DeviceCalls() {
     }

@@ -7,15 +7,15 @@ import li.cil.sedna.Sedna;
 import li.cil.sedna.device.virtio.VirtIOConsoleDevice;
 import li.cil.sedna.memory.SimpleMemoryMap;
 import net.minecraft.nbt.CompoundTag;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public final class VirtIODeviceNBTSerializationTests {
-    @BeforeEach
-    public void setUp() {
+    @BeforeAll
+    public static void setUpAll() {
         Sedna.initialize();
     }
 

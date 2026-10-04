@@ -131,12 +131,6 @@ public class TransportLayerTests {
             TimeUnit.SECONDS.toNanos(60));
     }
 
-    private ByteBuffer newMessageBuffer() {
-        final ByteBuffer buffer = ByteBuffer.allocate(LinkLocalLayer.FRAME_SIZE);
-        buffer.position(MESSAGE_START);
-        return buffer;
-    }
-
     private void sendTcp(final int flags, final int sequenceNumber, final int acknowledgmentNumber) {
         sendTcp(GUEST_PORT, flags, sequenceNumber, acknowledgmentNumber);
     }
@@ -197,6 +191,12 @@ public class TransportLayerTests {
         message.initializeBuffer(buffer);
         final byte protocol = transport.receiveTransportMessage(message);
         return new Received(protocol, buffer);
+    }
+
+    private ByteBuffer newMessageBuffer() {
+        final ByteBuffer buffer = ByteBuffer.allocate(LinkLocalLayer.FRAME_SIZE);
+        buffer.position(MESSAGE_START);
+        return buffer;
     }
 
     private TcpHeader parse(final ByteBuffer buffer) {

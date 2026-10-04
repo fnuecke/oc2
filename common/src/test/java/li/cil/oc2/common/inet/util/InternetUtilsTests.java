@@ -11,15 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class InternetUtilsTests {
-    private static ByteBuffer bytes(final int... values) {
-        final ByteBuffer buffer = ByteBuffer.allocate(values.length);
-        for (final int value : values) {
-            buffer.put((byte) value);
-        }
-        buffer.flip();
-        return buffer;
-    }
-
     @Test
     public void headerChecksumMatchesTheWorkedExampleFromRfc1071() {
         final ByteBuffer header = bytes(
@@ -92,5 +83,16 @@ public class InternetUtilsTests {
             assertThrows(AddressParseException.class, () -> InternetUtils.parseIpv4Address(address),
                 "should have rejected \"" + address + "\"");
         }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static ByteBuffer bytes(final int... values) {
+        final ByteBuffer buffer = ByteBuffer.allocate(values.length);
+        for (final int value : values) {
+            buffer.put((byte) value);
+        }
+        buffer.flip();
+        return buffer;
     }
 }

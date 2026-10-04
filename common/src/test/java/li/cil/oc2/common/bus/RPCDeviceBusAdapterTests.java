@@ -7,7 +7,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
@@ -39,6 +38,8 @@ public final class RPCDeviceBusAdapterTests {
         when(controller.getDeviceIdentifiers(any())).then(invocation -> deviceIdentifiers.get((Device) invocation.getArgument(0)));
     }
 
+    // --------------------------------------------------------------------- //
+
     @Test
     public void unattributableReplyEchoesNoRequestId() {
         final TestSerialDevice serial = new TestSerialDevice();
@@ -49,13 +50,12 @@ public final class RPCDeviceBusAdapterTests {
 
         serial.putAsVM("{\"type\":\"list\",\"id\":11}");
         busAdapter.step(0);
-        assertEquals(11, JsonParser.parseString(serial.readMessageAsVM())
-            .getAsJsonObject().get("id").getAsInt());
+        assertEquals(11, serial.readJsonAsVM().get("id").getAsInt());
 
         serial.putAsVM("not json at all");
         busAdapter.step(0);
 
-        final JsonObject refusal = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
+        final JsonObject refusal = serial.readJsonAsVM();
         assertEquals("error", refusal.get("type").getAsString());
         assertEquals(0, refusal.get("id").getAsInt(), "a stale id leaked onto an unattributable reply");
     }
@@ -71,7 +71,7 @@ public final class RPCDeviceBusAdapterTests {
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
 
-        final JsonObject reply = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
+        final JsonObject reply = serial.readJsonAsVM();
         assertEquals("list", reply.get("type").getAsString());
         assertEquals(0, reply.get("id").getAsInt());
     }
@@ -87,7 +87,7 @@ public final class RPCDeviceBusAdapterTests {
         serial.putAsVM("{\"type\":\"list\",\"id\":\"not a number\"}");
         busAdapter.step(0);
 
-        final JsonObject refusal = JsonParser.parseString(serial.readMessageAsVM()).getAsJsonObject();
+        final JsonObject refusal = serial.readJsonAsVM();
         assertEquals("error", refusal.get("type").getAsString());
         assertEquals(0, refusal.get("id").getAsInt(), "an unparseable request names no id");
     }
@@ -134,8 +134,7 @@ public final class RPCDeviceBusAdapterTests {
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
 
-        final JsonArray listed = JsonParser.parseString(serial.readMessageAsVM())
-            .getAsJsonObject().getAsJsonArray("data");
+        final JsonArray listed = serial.readJsonAsVM().getAsJsonArray("data");
         assertEquals(1, listed.size(), "the same device was exposed twice");
 
         final UUID chosen = first.compareTo(second) <= 0 ? first : second;
@@ -144,8 +143,7 @@ public final class RPCDeviceBusAdapterTests {
         busAdapter.rebuild(controller);
         serial.putAsVM("{\"type\":\"list\"}");
         busAdapter.step(0);
-        assertEquals(chosen.toString(), JsonParser.parseString(serial.readMessageAsVM())
-                .getAsJsonObject().getAsJsonArray("data")
+        assertEquals(chosen.toString(), serial.readJsonAsVM().getAsJsonArray("data")
                 .get(0).getAsJsonObject().get("deviceId").getAsString(),
             "the exposed identifier changed across a rebuild");
     }
@@ -258,6 +256,8 @@ public final class RPCDeviceBusAdapterTests {
         verify(device2, atMostOnce()).mount(any());
     }
 
+    // --------------------------------------------------------------------- //
+
     private RPCDevice addEmptyDevice() {
         final RPCDevice device = mock(RPCDevice.class);
         addDevice(device);
@@ -283,12 +283,5 @@ public final class RPCDeviceBusAdapterTests {
     private void removeDevice(final Device device) {
         busDevices.remove(device);
         deviceIdentifiers.remove(device);
-    }
-
-    public static final class Pingable {
-        @Callback(synchronize = false)
-        public int ping() {
-            return 1;
-        }
     }
 }

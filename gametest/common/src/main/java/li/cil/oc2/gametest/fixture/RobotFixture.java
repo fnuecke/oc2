@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.DeviceType;
+import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyHandler;
@@ -11,6 +12,7 @@ import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.device.Terminal;
+import li.cil.oc2.gametest.util.DeviceCalls;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -38,8 +40,11 @@ public final class RobotFixture implements MachineFixture {
 
     public static RobotFixture place(final GameTestHelper helper, final Player player, final BlockPos pos) {
         useOn(helper, player, new ItemStack(Items.ROBOT.get()), pos, Direction.UP);
+        return find(helper, pos, 2);
+    }
 
-        final AABB bounds = new AABB(helper.absolutePos(pos)).inflate(2);
+    public static RobotFixture find(final GameTestHelper helper, final BlockPos pos, final int radius) {
+        final AABB bounds = new AABB(helper.absolutePos(pos)).inflate(radius);
         final List<Robot> robots = helper.getLevel().getEntitiesOfClass(Robot.class, bounds);
         if (robots.size() != 1) {
             throw new GameTestAssertException("expected exactly one robot near " + pos + ", found " + robots.size());
@@ -47,8 +52,6 @@ public final class RobotFixture implements MachineFixture {
 
         return new RobotFixture(helper, robots.getFirst());
     }
-
-    // --------------------------------------------------------------------- //
 
     public static RobotFixture of(final GameTestHelper helper, final Robot robot) {
         return new RobotFixture(helper, robot);
@@ -78,6 +81,14 @@ public final class RobotFixture implements MachineFixture {
             + ", bootError=" + virtualMachine().getBootError()
             + ", error=" + virtualMachine().getError();
     }
+
+    @Override
+    public RobotFixture install(final DeviceType type, final ItemStack stack) {
+        installInto(type, stack);
+        return this;
+    }
+
+    // --------------------------------------------------------------------- //
 
     public Robot entity() {
         return robot;
@@ -112,12 +123,6 @@ public final class RobotFixture implements MachineFixture {
         return this;
     }
 
-    @Override
-    public RobotFixture install(final DeviceType type, final ItemStack stack) {
-        installInto(type, stack);
-        return this;
-    }
-
     public boolean has(final Item item) {
         final ItemHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
@@ -141,6 +146,15 @@ public final class RobotFixture implements MachineFixture {
             storage.receiveEnergy(storage.getMaxEnergyStored(), false);
         }
         return this;
+    }
+
+    public void keepAlive() {
+        charge();
+        assertNoGuestPanic();
+    }
+
+    public IODevice robotDevice() {
+        return DeviceCalls.ioDevice(devices(), "ROBOT");
     }
 
     // --------------------------------------------------------------------- //

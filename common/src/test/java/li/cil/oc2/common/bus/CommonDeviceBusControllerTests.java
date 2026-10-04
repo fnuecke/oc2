@@ -64,6 +64,23 @@ public class CommonDeviceBusControllerTests {
     }
 
     @Test
+    public void scanSuccessfulWithMultipleElements() {
+        final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
+        final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
+
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
+        when(busElement1.getNeighbors()).thenReturn(Optional.of(
+            Set.of(Invalidatable.of(busControllerBusElement), Invalidatable.of(busElement2))));
+        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
+
+        busController.scan();
+        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
+
+        verify(busElement1).addController(busController);
+        verify(busElement2).addController(busController);
+    }
+
+    @Test
     public void deviceScanWithoutChangesNotifiesNobody() {
         when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.emptyList()));
 
@@ -127,22 +144,5 @@ public class CommonDeviceBusControllerTests {
 
         assertEquals(CommonDeviceBusController.BusState.READY, busController.getState(),
             "a disposed controller must not be called by an element it owned");
-    }
-
-    @Test
-    public void scanSuccessfulWithMultipleElements() {
-        final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
-        final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
-
-        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
-        when(busElement1.getNeighbors()).thenReturn(Optional.of(
-            Set.of(Invalidatable.of(busControllerBusElement), Invalidatable.of(busElement2))));
-        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
-
-        busController.scan();
-        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
-
-        verify(busElement1).addController(busController);
-        verify(busElement2).addController(busController);
     }
 }

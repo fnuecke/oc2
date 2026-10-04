@@ -43,7 +43,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 public class BlockDeviceBusControllerTests {
-    public static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "test");
+    private static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "test");
 
     private MockedStatic<Capabilities> capabilitiesMock;
     private MockedStatic<Providers> providersMock;

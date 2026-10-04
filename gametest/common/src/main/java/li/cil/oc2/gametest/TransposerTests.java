@@ -9,9 +9,7 @@ import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.blockentity.TransposerBlockEntity;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
-import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -22,6 +20,7 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeRpc;
+import static li.cil.oc2.gametest.util.DeviceCalls.u16;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 import static net.minecraft.world.item.Items.REDSTONE;
 
@@ -39,10 +38,11 @@ public final class TransposerTests {
     private static final int GET_SLOTS_CODE = 2;
     private static final int MOVE_ITEMS_CODE = 4;
 
+    // --------------------------------------------------------------------- //
+
     public static void transposerJoinsTheBus(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, player);
         place(helper, player, new ItemStack(Items.TRANSPOSER.get()), DEVICE_POS);
 
         helper.startSequence()
@@ -118,7 +118,7 @@ public final class TransposerTests {
 
         final byte[] slots = invokeIo(device, GET_SLOTS_CODE, EAST, 0, 1);
         assertEquals(helper, "slot record length", 4, slots.length);
-        final int id = (slots[0] & 0xFF) | ((slots[1] & 0xFF) << 8);
+        final int id = u16(slots);
         assertEquals(helper, "item id of the moved stack", BuiltInRegistries.ITEM.getId(REDSTONE), id);
         assertEquals(helper, "count of the moved stack", 10, slots[2] & 0xFF);
 
@@ -136,6 +136,8 @@ public final class TransposerTests {
         helper.setBlock(TRANSPOSER_POS.above(), Blocks.STONE);
         return helper.getBlockEntity(TRANSPOSER_POS);
     }
+
+    // --------------------------------------------------------------------- //
 
     private TransposerTests() {
     }

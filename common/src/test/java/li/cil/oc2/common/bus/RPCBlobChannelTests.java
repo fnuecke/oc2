@@ -3,7 +3,6 @@
 package li.cil.oc2.common.bus;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
@@ -33,26 +32,6 @@ public final class RPCBlobChannelTests {
     @BeforeEach
     public void setupEach() {
         setUpWith(new TestSerialDevice(), new TestSerialDevice());
-    }
-
-    private void setUpWith(final TestSerialDevice rpc, final TestSerialDevice blob) {
-        serialDevice = rpc;
-        blobDevice = blob;
-        eventDevice = new TestSerialDevice();
-        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
-
-        final RPCDevice device = new ObjectDevice(new BlobSource(), "blobs");
-        deviceId = UUID.randomUUID();
-        final Set<Device> devices = new HashSet<>();
-        devices.add(device);
-        final Map<Device, Set<UUID>> identifiers = new HashMap<>();
-        identifiers.put(device, Set.of(deviceId));
-
-        final DeviceBusController busController = mock(DeviceBusController.class);
-        when(busController.getDevices()).thenReturn(devices);
-        when(busController.getDeviceIdentifiers(any()))
-            .then(invocation -> identifiers.get(invocation.getArgument(0)));
-        adapter.rebuild(busController);
     }
 
     // --------------------------------------------------------------------- //
@@ -193,6 +172,26 @@ public final class RPCBlobChannelTests {
 
     // --------------------------------------------------------------------- //
 
+    private void setUpWith(final TestSerialDevice rpc, final TestSerialDevice blob) {
+        serialDevice = rpc;
+        blobDevice = blob;
+        eventDevice = new TestSerialDevice();
+        adapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
+
+        final RPCDevice device = new ObjectDevice(new BlobSource(), "blobs");
+        deviceId = UUID.randomUUID();
+        final Set<Device> devices = new HashSet<>();
+        devices.add(device);
+        final Map<Device, Set<UUID>> identifiers = new HashMap<>();
+        identifiers.put(device, Set.of(deviceId));
+
+        final DeviceBusController busController = mock(DeviceBusController.class);
+        when(busController.getDevices()).thenReturn(devices);
+        when(busController.getDeviceIdentifiers(any()))
+            .then(invocation -> identifiers.get(invocation.getArgument(0)));
+        adapter.rebuild(busController);
+    }
+
     private String request(final String method) {
         return "{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
             + "\",\"name\":\"" + method + "\",\"parameters\":[]}}";
@@ -202,9 +201,7 @@ public final class RPCBlobChannelTests {
         serialDevice.putAsVM(request(method));
         adapter.step(0);
 
-        final String message = serialDevice.readMessageAsVM();
-        assertNotNull(message, "no reply");
-        return JsonParser.parseString(message).getAsJsonObject();
+        return serialDevice.readJsonAsVM();
     }
 
     public static final class BlobSource {

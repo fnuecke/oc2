@@ -18,22 +18,22 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
-import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
+import static li.cil.oc2.gametest.util.DeviceCalls.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class Z80Tests {
-    private static final int BOOT_TIMEOUT_TICKS = 20000;
     private static final String DEVS_BATCH = "oc2_z80_devs";
     private static final String EVENTS_BATCH = "oc2_z80_events";
     private static final String ITEMS_BATCH = "oc2_z80_items";
     private static final String SERIAL_BATCH = "oc2_z80_serial";
 
     private static final int GET_SLOTS_CODE = 2;
-    private static final int SYSTEM_GET_ITEM_NAME_CODE = 1;
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
+    // --------------------------------------------------------------------- //
+
+    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
     public static void z80EnumeratesSerialCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -59,7 +59,7 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
     public static void serchatUsesCardAddress(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -87,7 +87,7 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = DEVS_BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = DEVS_BATCH)
     public static void devsListsTheMidLevelApiDevice(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -103,7 +103,7 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = EVENTS_BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = EVENTS_BATCH)
     public static void redwaitWakesOnRedstoneChange(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -130,7 +130,7 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
     public static void devsListsItemsDevice(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -146,7 +146,7 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
     public static void itemsDeviceReadsChest(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -170,7 +170,7 @@ public final class Z80Tests {
             }
 
             final byte[] slots = invokeIo(io, GET_SLOTS_CODE, 0, 1);
-            final int id = (slots[0] & 0xFF) | ((slots[1] & 0xFF) << 8);
+            final int id = u16(slots);
             final int count = slots[2] & 0xFF;
             seen.append(" id=").append(id).append(" count=").append(count);
             if (count != 42) {
@@ -193,6 +193,8 @@ public final class Z80Tests {
             throw new GameTestAssertException("CP/M should be back at its prompt");
         }
     }
+
+    // --------------------------------------------------------------------- //
 
     private Z80Tests() {
     }

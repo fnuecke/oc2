@@ -6,9 +6,8 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.util.Side;
-import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.serialization.gson.SideJsonDeserializer;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -31,6 +30,15 @@ public class GuestInputBoundsTests {
     @Test
     public void negativeSideIndexIsRejected() {
         assertThrows(JsonParseException.class, () -> deserializeSide(-1));
+    }
+
+    @Test
+    public void sideByIndexFollowsMinecraftNumbering() {
+        for (int i = 0; i < 6; i++) {
+            assertEquals(Direction.from3DDataValue(i), Side.byIndex(i).getDirection());
+        }
+        assertThrows(IllegalArgumentException.class, () -> Side.byIndex(-1));
+        assertThrows(IllegalArgumentException.class, () -> Side.byIndex(6));
     }
 
     @Test
@@ -68,27 +76,5 @@ public class GuestInputBoundsTests {
 
     private static Side deserializeSide(final int ordinal) {
         return new SideJsonDeserializer().deserialize(new JsonPrimitive(ordinal), Side.class, null);
-    }
-
-    private record EmptyItemHandler(int slots) implements ItemHandler {
-        @Override
-        public int getSlots() {
-            return slots;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(final int slot) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
-            return stack;
-        }
-
-        @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-            return ItemStack.EMPTY;
-        }
     }
 }

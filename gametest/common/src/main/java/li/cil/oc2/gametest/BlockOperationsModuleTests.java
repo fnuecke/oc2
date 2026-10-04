@@ -12,13 +12,9 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
-import static li.cil.oc2.gametest.util.TestSupport.WORK_Y;
+import static li.cil.oc2.gametest.util.TestSupport.ROBOT_POS;
 
 public final class BlockOperationsModuleTests {
-    public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
-
-    // --------------------------------------------------------------------- //
-
     public static void excavatesWithACorrectTool(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final BlockOperationsModuleDevice module = moduleFor(robot);

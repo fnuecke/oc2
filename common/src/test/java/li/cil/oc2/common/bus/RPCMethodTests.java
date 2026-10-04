@@ -40,6 +40,8 @@ public final class RPCMethodTests {
         rpcAdapter = new RPCDeviceBusAdapter(serialDevice, blobDevice, eventDevice, amount -> true);
     }
 
+    // --------------------------------------------------------------------- //
+
     @Test
     public void deviceListDescribesTheDevice() {
         final VoidIntMethod method = new VoidIntMethod();
@@ -51,10 +53,7 @@ public final class RPCMethodTests {
         serialDevice.putAsVM(request.toString());
         rpcAdapter.step(0);
 
-        final String message = serialDevice.readMessageAsVM();
-        assertNotNull(message);
-
-        final JsonObject json = JsonParser.parseString(message).getAsJsonObject();
+        final JsonObject json = serialDevice.readJsonAsVM();
 
         final JsonArray devicesJson = json.getAsJsonArray("data");
         assertEquals(1, devicesJson.size());
@@ -117,6 +116,8 @@ public final class RPCMethodTests {
         assertEquals(42, invokeMethod(DEVICE_UUID, "test", 123, "valid").getAsInt());
     }
 
+    // --------------------------------------------------------------------- //
+
     private void setDevice(final RPCDevice device, final UUID deviceId) {
         when(busController.getDevices()).thenReturn(singleton(device));
         when(busController.getDeviceIdentifiers(device)).thenReturn(singleton(deviceId));
@@ -140,15 +141,33 @@ public final class RPCMethodTests {
 
         rpcAdapter.step(0);
 
-        final String result = serialDevice.readMessageAsVM();
-        assertNotNull(result);
-        return JsonParser.parseString(result).getAsJsonObject();
+        return serialDevice.readJsonAsVM();
     }
 
     private JsonElement invokeMethod(final UUID deviceId, final String name, final Object... parameters) {
         final JsonObject resultJson = invokeMethodRaw(deviceId, name, parameters);
         assertEquals("result", resultJson.get("type").getAsString());
         return resultJson.get("data");
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static final class TestRPCDevice implements RPCDevice {
+        private final RPCMethod method;
+
+        public TestRPCDevice(final RPCMethod method) {
+            this.method = method;
+        }
+
+        @Override
+        public List<String> getTypeNames() {
+            return singletonList(getClass().getSimpleName());
+        }
+
+        @Override
+        public List<RPCMethodGroup> getMethodGroups() {
+            return singletonList(method);
+        }
     }
 
     private static final class VoidIntMethod extends AbstractTestMethod {
@@ -166,16 +185,13 @@ public final class RPCMethodTests {
     }
 
     private static final class IntLongMethod extends AbstractTestMethod {
-        public long passedValue;
-
         IntLongMethod() {
             super(int.class, long.class);
         }
 
         @Override
         public Object invoke(final Object... parameters) {
-            passedValue = (long) parameters[0];
-            return (int) passedValue;
+            return (int) (long) parameters[0];
         }
     }
 
@@ -209,30 +225,6 @@ public final class RPCMethodTests {
         public int add(@Parameter("a") final int a,
                        @Parameter("b") final int b) {
             return a + b;
-        }
-
-        @Callback(synchronize = false)
-        public int div(@Parameter("a") final long a,
-                       @Parameter("b") final long b) {
-            return (int) (a / b);
-        }
-    }
-
-    private static final class TestRPCDevice implements RPCDevice {
-        private final RPCMethod method;
-
-        public TestRPCDevice(final RPCMethod method) {
-            this.method = method;
-        }
-
-        @Override
-        public List<String> getTypeNames() {
-            return singletonList(getClass().getSimpleName());
-        }
-
-        @Override
-        public List<RPCMethodGroup> getMethodGroups() {
-            return singletonList(method);
         }
     }
 }

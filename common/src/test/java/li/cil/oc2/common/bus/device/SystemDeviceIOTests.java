@@ -187,13 +187,6 @@ public final class SystemDeviceIOTests {
     }
 
     private static byte[] invoke(final int code, final byte[] arguments) throws Throwable {
-        final IOMethod method = IOCallbacks.collectMethods(new SystemDevice()).stream()
-            .filter(m -> m.getCode() == code)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no function with code " + code));
-
-        final TestIOInvocation invocation = new TestIOInvocation(arguments);
-        method.invoke(invocation);
-        return invocation.results.toByteArray();
+        return TestIOInvocation.invoke(TestIOInvocation.method(new SystemDevice(), code), arguments);
     }
 }

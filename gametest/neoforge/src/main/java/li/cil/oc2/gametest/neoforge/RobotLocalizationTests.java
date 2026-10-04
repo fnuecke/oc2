@@ -3,7 +3,6 @@
 package li.cil.oc2.gametest.neoforge;
 
 import com.google.gson.JsonObject;
-import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.entity.Entities;
@@ -13,21 +12,19 @@ import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import java.util.List;
 import java.util.function.Consumer;
 
+import static li.cil.oc2.gametest.util.DeviceCalls.i16;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeRpc;
 import static li.cil.oc2.gametest.util.TestSupport.*;
@@ -41,6 +38,8 @@ public final class RobotLocalizationTests {
     private static final int GET_FACING_CODE = 17;
     private static final int GET_POSITION_CODE = 18;
     private static final int CALIBRATE_POSITION_CODE = 19;
+
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public static void placedRobotStartsAtItsOrigin(final GameTestHelper helper) {
@@ -94,7 +93,7 @@ public final class RobotLocalizationTests {
                 reload(helper, robot, saved ->
                     saved.getCompound("origin").putString("dimension", Level.NETHER.location().toString()));
             })
-            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, findRobot(helper, ROBOT_POS), 0, 0, 0))
+            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, RobotFixture.find(helper, ROBOT_POS, 3), 0, 0, 0))
             .thenSucceed();
     }
 
@@ -107,7 +106,7 @@ public final class RobotLocalizationTests {
                 moveBy(robot, 1, 1, 1);
                 reload(helper, robot, saved -> saved.getCompound("origin").putString("pos", "not a position"));
             })
-            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, findRobot(helper, ROBOT_POS), 0, 0, 0))
+            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, RobotFixture.find(helper, ROBOT_POS, 3), 0, 0, 0))
             .thenSucceed();
     }
 
@@ -163,7 +162,7 @@ public final class RobotLocalizationTests {
                 reload(helper, robot, saved -> {
                 });
             })
-            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, findRobot(helper, ROBOT_POS), 1, 1, 1))
+            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, RobotFixture.find(helper, ROBOT_POS, 3), 1, 1, 1))
             .thenSucceed();
     }
 
@@ -180,7 +179,7 @@ public final class RobotLocalizationTests {
                 robot.entity().discard();
                 useOn(helper, fakePlayer(helper), stack, SECOND_ROBOT_POS, Direction.UP);
             })
-            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, findRobot(helper, SECOND_ROBOT_POS), 0, 0, 0))
+            .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, RobotFixture.find(helper, SECOND_ROBOT_POS, 3), 0, 0, 0))
             .thenSucceed();
     }
 
@@ -190,14 +189,14 @@ public final class RobotLocalizationTests {
 
         helper.startSequence()
             .thenExecuteAfter(SETTLE_TICKS, () -> {
-                final IODevice device = robotDevice(robot);
+                final IODevice device = robot.robotDevice();
 
                 moveBy(robot, -3, 2, -1);
                 final byte[] position = invokeIo(device, GET_POSITION_CODE);
                 assertEquals(helper, "the position is six bytes", 6, position.length);
-                assertEquals(helper, "x is signed, low byte first", -3, readI16(position, 0));
-                assertEquals(helper, "y", 2, readI16(position, 2));
-                assertEquals(helper, "z", -1, readI16(position, 4));
+                assertEquals(helper, "x is signed, low byte first", -3, i16(position, 0));
+                assertEquals(helper, "y", 2, i16(position, 2));
+                assertEquals(helper, "z", -1, i16(position, 4));
 
                 invokeIo(device, CALIBRATE_POSITION_CODE);
                 assertPosition(helper, robot, 0, 0, 0);
@@ -228,7 +227,7 @@ public final class RobotLocalizationTests {
         if (!name.equals(facing)) {
             throw failure(helper, "getFacing() reported " + facing + " facing " + name);
         }
-        assertEquals(helper, "the facing byte for " + name, code, invokeIo(robotDevice(robot), GET_FACING_CODE)[0] & 0xFF);
+        assertEquals(helper, "the facing byte for " + name, code, invokeIo(robot.robotDevice(), GET_FACING_CODE)[0] & 0xFF);
     }
 
     private static void assertPosition(final GameTestHelper helper, final RobotFixture robot, final int x, final int y, final int z) {
@@ -242,26 +241,7 @@ public final class RobotLocalizationTests {
         }
     }
 
-    private static RobotFixture findRobot(final GameTestHelper helper, final BlockPos pos) {
-        final List<Robot> robots = helper.getLevel().getEntitiesOfClass(Robot.class, new AABB(helper.absolutePos(pos)).inflate(3));
-        if (robots.size() != 1) {
-            throw new GameTestAssertException("expected exactly one robot near " + pos + ", found " + robots.size());
-        }
-        return RobotFixture.of(helper, robots.getFirst());
-    }
-
-    private static int readI16(final byte[] bytes, final int offset) {
-        return (short) ((bytes[offset] & 0xFF) | ((bytes[offset + 1] & 0xFF) << 8));
-    }
-
-    private static IODevice robotDevice(final RobotFixture robot) {
-        for (final Device device : robot.devices()) {
-            if (device instanceof final IODevice io && "ROBOT".equals(io.getIOName())) {
-                return io;
-            }
-        }
-        throw new GameTestAssertException("no device on the robot's bus provides the ROBOT mid-level API");
-    }
+    // --------------------------------------------------------------------- //
 
     private RobotLocalizationTests() {
     }

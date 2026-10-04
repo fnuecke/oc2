@@ -11,12 +11,8 @@ import net.minecraft.world.level.block.Blocks;
 
 public final class Chunks {
     public static ChunkPos hold(final GameTestHelper helper, final BlockPos relativePos) {
-        final ServerLevel level = helper.getLevel();
         final ChunkPos chunkPos = new ChunkPos(helper.absolutePos(relativePos));
-
-        level.setChunkForced(chunkPos.x, chunkPos.z, true);
-        level.getChunk(chunkPos.x, chunkPos.z);
-
+        hold(helper, chunkPos);
         return chunkPos;
     }
 

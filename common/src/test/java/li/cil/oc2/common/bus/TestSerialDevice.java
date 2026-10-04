@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.bus;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import it.unimi.dsi.fastutil.bytes.ByteArrayFIFOQueue;
 import li.cil.sedna.api.device.serial.SerialDevice;
 
@@ -9,6 +11,8 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 final class TestSerialDevice implements SerialDevice {
     private final ByteArrayFIFOQueue transmit = new ByteArrayFIFOQueue();
@@ -37,18 +41,18 @@ final class TestSerialDevice implements SerialDevice {
         transmit.enqueue((byte) 0);
     }
 
+    public void putRawAsVM(final byte[] data) {
+        for (final byte value : data) {
+            transmit.enqueue(value);
+        }
+    }
+
     public int offerRawAsVM(final byte[] data, final int offset) {
         int i = offset;
         while (i < data.length && transmit.size() < transmitCapacity) {
             transmit.enqueue(data[i++]);
         }
         return i;
-    }
-
-    public void putRawAsVM(final byte[] data) {
-        for (final byte value : data) {
-            transmit.enqueue(value);
-        }
     }
 
     @Nullable
@@ -85,6 +89,12 @@ final class TestSerialDevice implements SerialDevice {
         }
 
         return null;
+    }
+
+    public JsonObject readJsonAsVM() {
+        final String message = readMessageAsVM();
+        assertNotNull(message, "no message");
+        return JsonParser.parseString(message).getAsJsonObject();
     }
 
     public byte[] drainAsVM() {

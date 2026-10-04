@@ -3,7 +3,6 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.gametest.RobotCrushTests;
-import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -17,7 +16,6 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import static li.cil.oc2.gametest.RobotCrushTests.ROBOT_CHECK_GRACE_PERIOD;
-import static li.cil.oc2.gametest.RobotCrushTests.ROBOT_POS;
 import static li.cil.oc2.gametest.RobotCrushTests.putBlockInsideTheRobot;
 import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
 import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
@@ -29,8 +27,6 @@ public final class RobotCrushTestsNeoForge {
     public static void crushesAnOrdinaryBlock(final GameTestHelper helper) {
         RobotCrushTests.crushesAnOrdinaryBlock(helper);
     }
-
-    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void leavesUnbreakableBlocksAlone(final GameTestHelper helper) {
@@ -44,8 +40,7 @@ public final class RobotCrushTestsNeoForge {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void crushKeepsWaterlogging(final GameTestHelper helper) {
-        final BlockPos target = RobotFixture.place(helper, ROBOT_POS).blockPos();
-        helper.getLevel().setBlockAndUpdate(target, Blocks.OAK_SLAB.defaultBlockState()
+        final BlockPos target = putBlockInsideTheRobot(helper, Blocks.OAK_SLAB.defaultBlockState()
             .setValue(BlockStateProperties.WATERLOGGED, true));
 
         helper.startSequence()

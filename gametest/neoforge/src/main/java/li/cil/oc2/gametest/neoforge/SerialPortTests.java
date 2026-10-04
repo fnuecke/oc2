@@ -3,11 +3,11 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.ConnectorFixture;
+import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.fixture.HubFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import static li.cil.oc2.gametest.fixture.MachineFixture.LOGIN_PROMPT;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
@@ -32,45 +33,24 @@ public final class SerialPortTests {
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
     public static void serialCardsCarryBytesOverTheLine(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
-        final ItemStack upOnly = new ItemStack(Items.SERIAL_INTERFACE_CARD.get());
-        final ItemStack allButUp = new ItemStack(Items.SERIAL_INTERFACE_CARD.get());
-        for (final Direction side : Direction.values()) {
-            SerialInterfaceCardItem.setSideConfiguration(upOnly, side, side == Direction.UP);
-        }
-        SerialInterfaceCardItem.setSideConfiguration(allButUp, Direction.UP, false);
-        SerialInterfaceCardItem.setAddress(upOnly, 3);
-        SerialInterfaceCardItem.setAddress(allButUp, 7);
+        final ItemStack upOnly = upOnlyCard(3);
+        final ItemStack allButUp = allButUpCard(7);
 
         final ConnectorFixture[] connectors = new ConnectorFixture[3];
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
-                computer
-                    .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                    .install(DeviceTypes.CARD.get(), upOnly)
+                Hardware.installLinuxWithExtraMemory(computer);
+                computer.install(DeviceTypes.CARD.get(), upOnly)
                     .install(DeviceTypes.CARD.get(), allButUp);
 
-                HubFixture.place(helper, player, RELAY);
-
-                player.setXRot(90);
-                connectors[0] = ConnectorFixture.place(helper, player, computer.pos().above());
-                connectors[2] = ConnectorFixture.place(helper, player, RELAY.above());
-                player.setXRot(0);
-                player.setYRot(90);
-                connectors[1] = ConnectorFixture.place(helper, player, computer.pos().east());
-                connectors[0].linkTo(connectors[2]);
-                connectors[1].linkTo(connectors[2]);
+                placeRelayedConnectors(helper, player, computer, connectors);
             })
             .thenExecuteAfter(40, computer::start)
-            .thenWaitUntil(() -> computer.assertScreenContains("login:", "the guest should reach its login prompt"))
-            .thenExecute(() -> computer.type("root\n"))
+            .thenWaitUntil(() -> computer.assertScreenContains(LOGIN_PROMPT, "the guest should reach its login prompt"))
+            .thenExecute(computer::loginAsRoot)
             .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
             .thenExecute(() -> {
                 final Direction[] sides = {Direction.UP, Direction.EAST};
@@ -98,8 +78,7 @@ public final class SerialPortTests {
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
     public static void cardsSharingASideDoNotShadowEachOther(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         final ItemStack[] cards = {
             upOnlyCard(3),
@@ -111,31 +90,17 @@ public final class SerialPortTests {
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
-                computer
-                    .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                    .install(DeviceTypes.CARD.get(), new ItemStack(Items.NETWORK_INTERFACE_CARD.get()))
+                Hardware.installLinuxWithExtraMemory(computer);
+                computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.NETWORK_INTERFACE_CARD.get()))
                     .install(DeviceTypes.CARD.get(), cards[0])
                     .install(DeviceTypes.CARD.get(), cards[1])
                     .install(DeviceTypes.CARD.get(), cards[2]);
 
-                HubFixture.place(helper, player, RELAY);
-
-                player.setXRot(90);
-                connectors[0] = ConnectorFixture.place(helper, player, computer.pos().above());
-                connectors[2] = ConnectorFixture.place(helper, player, RELAY.above());
-                player.setXRot(0);
-                player.setYRot(90);
-                connectors[1] = ConnectorFixture.place(helper, player, computer.pos().east());
-                connectors[0].linkTo(connectors[2]);
-                connectors[1].linkTo(connectors[2]);
+                placeRelayedConnectors(helper, player, computer, connectors);
             })
             .thenExecuteAfter(40, computer::start)
-            .thenWaitUntil(() -> computer.assertScreenContains("login:", "the guest should reach its login prompt"))
-            .thenExecute(() -> computer.type("root\n"))
+            .thenWaitUntil(() -> computer.assertScreenContains(LOGIN_PROMPT, "the guest should reach its login prompt"))
+            .thenExecute(computer::loginAsRoot)
             .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
             .thenExecute(() -> computer.type(script(
                 "for p in 1 2 3; do stty -F /dev/ttyS$p 9600 raw -echo; done",
@@ -169,6 +134,20 @@ public final class SerialPortTests {
     }
 
     // --------------------------------------------------------------------- //
+
+    private static void placeRelayedConnectors(final GameTestHelper helper, final Player player,
+                                               final ComputerFixture computer, final ConnectorFixture[] connectors) {
+        HubFixture.place(helper, player, RELAY);
+
+        player.setXRot(90);
+        connectors[0] = ConnectorFixture.place(helper, player, computer.pos().above());
+        connectors[2] = ConnectorFixture.place(helper, player, RELAY.above());
+        player.setXRot(0);
+        player.setYRot(90);
+        connectors[1] = ConnectorFixture.place(helper, player, computer.pos().east());
+        connectors[0].linkTo(connectors[2]);
+        connectors[1].linkTo(connectors[2]);
+    }
 
     private static ItemStack upOnlyCard(final int address) {
         final ItemStack stack = new ItemStack(Items.SERIAL_INTERFACE_CARD.get());

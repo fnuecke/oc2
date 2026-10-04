@@ -5,20 +5,18 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.TerminalBlockEntity;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
-import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.vm.device.Terminal;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.ConnectorFixture;
+import li.cil.oc2.gametest.fixture.Hardware;
+import li.cil.oc2.gametest.fixture.MachineFixture;
 import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -27,6 +25,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import static li.cil.oc2.gametest.fixture.MachineFixture.LOGIN_PROMPT;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
@@ -42,8 +41,7 @@ public final class TerminalTests {
     @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
     public static void terminalRelaysGuestIo(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         final ItemStack card = new ItemStack(Items.SERIAL_INTERFACE_CARD.get());
         SerialInterfaceCardItem.setSideConfiguration(card, Direction.UP, false);
@@ -53,13 +51,8 @@ public final class TerminalTests {
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
-                computer
-                    .install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                    .install(DeviceTypes.CARD.get(), card);
+                Hardware.installLinuxWithExtraMemory(computer);
+                computer.install(DeviceTypes.CARD.get(), card);
 
                 placeTerminal(helper, player, terminalPos, Direction.EAST);
 
@@ -79,8 +72,8 @@ public final class TerminalTests {
                 }
                 computer.start();
             })
-            .thenWaitUntil(() -> computer.assertScreenContains("login:", "the guest should reach its login prompt"))
-            .thenExecute(() -> computer.type("root\n"))
+            .thenWaitUntil(() -> computer.assertScreenContains(LOGIN_PROMPT, "the guest should reach its login prompt"))
+            .thenExecute(computer::loginAsRoot)
             .thenWaitUntil(() -> computer.assertScreenContains("#", "root should get a shell"))
 
             .thenExecute(() -> computer.type("stty -F /dev/ttyS1 9600 raw -echo; exec 3<> /dev/ttyS1\n"))
@@ -222,38 +215,17 @@ public final class TerminalTests {
     }
 
     private static void assertTerminalContains(final GameTestHelper helper, final BlockPos pos, final String expected, final String what) {
-        final String text = screenOf(helper, pos);
+        final String text = MachineFixture.screen(terminal(helper, pos).getTerminal());
         if (!text.contains(expected)) {
             throw new GameTestAssertException(what + ": terminal does not hold [" + expected + "]\n" + text);
         }
     }
 
     private static void assertTerminalLacks(final GameTestHelper helper, final BlockPos pos, final String unexpected, final String what) {
-        final String text = screenOf(helper, pos);
+        final String text = MachineFixture.screen(terminal(helper, pos).getTerminal());
         if (text.contains(unexpected)) {
             throw new GameTestAssertException(what + ": terminal holds [" + unexpected + "]\n" + text);
         }
-    }
-
-    private static String screenOf(final GameTestHelper helper, final BlockPos pos) {
-        final Terminal value = terminal(helper, pos).getTerminal();
-        final CompoundTag tag;
-        synchronized (value) {
-            tag = NBTSerialization.serialize(value);
-        }
-
-        final byte[] buffer = tag.getByteArray("buffer");
-        final StringBuilder text = new StringBuilder();
-        for (int row = 0; row < Terminal.HEIGHT; row++) {
-            for (int column = 0; column < Terminal.WIDTH; column++) {
-                final int index = row * Terminal.WIDTH + column;
-                final byte character = index < buffer.length ? buffer[index] : 0;
-                text.append(character == 0 ? ' ' : (char) (character & 0xFF));
-            }
-            text.append('\n');
-        }
-
-        return text.toString();
     }
 
     // --------------------------------------------------------------------- //

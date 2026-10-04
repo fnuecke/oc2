@@ -3,8 +3,6 @@
 package li.cil.oc2.common.serial;
 
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.sedna.api.Sizes;
-import li.cil.sedna.device.serial.UART16550A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,25 +14,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public final class SerialLineTests {
-    private static final int UART_RBR_OFFSET = 0;
-    private static final int UART_THR_OFFSET = 0;
-    private static final int UART_FCR_OFFSET = 2;
-    private static final int UART_LSR_OFFSET = 5;
-
-    private static final int UART_LCR_OFFSET = 3;
-    private static final int UART_DLL_OFFSET = 0;
-    private static final int UART_DLM_OFFSET = 1;
-
-    private static final int UART_FCR_FE = 1 << 0;
-    private static final int UART_LCR_DLAB = 1 << 7;
-
     private static final int B300 = 300;
     private static final int B1200 = 1200;
     private static final int B9600 = 9600;
     private static final int B19200 = 19200;
     private static final int B115200 = 115200;
-    private static final int UART_LSR_DR = 1 << 0;
-    private static final int UART_LSR_FE = 1 << 3;
 
     // --------------------------------------------------------------------- //
 
@@ -80,7 +64,7 @@ public final class SerialLineTests {
         collect(frames, a);
         frames.forEach(b::receive);
 
-        assertEquals("", drain(b.port), "a later burst in the same tick may still damage it");
+        assertEquals("", Uart.drain(b.port), "a later burst in the same tick may still damage it");
 
         tick++;
         assertEquals("hi", b.read());
@@ -401,7 +385,7 @@ public final class SerialLineTests {
         tick++;
         restored.currentTick();
 
-        assertEquals("hi", drain(port), "the burst is delivered once the tick is over");
+        assertEquals("hi", Uart.drain(port), "the burst is delivered once the tick is over");
     }
 
     @Test
@@ -419,6 +403,27 @@ public final class SerialLineTests {
     }
 
     // --------------------------------------------------------------------- //
+
+    private void segment(final Endpoint... endpoints) {
+        final List<byte[]> frames = new ArrayList<>();
+        for (final Endpoint endpoint : endpoints) {
+            collect(frames, endpoint);
+        }
+        for (final byte[] frame : frames) {
+            for (final Endpoint endpoint : endpoints) {
+                endpoint.receive(frame);
+            }
+        }
+        tick++;
+    }
+
+    private static void collect(final List<byte[]> frames, final Endpoint endpoint) {
+        endpoint.port.step(0);
+        final byte[] frame = endpoint.line.frameForTick();
+        if (frame != null) {
+            frames.add(frame);
+        }
+    }
 
     private void assertTheLineLimitIsShared(final int baudRate, final int limit) {
         final Endpoint sender = new Endpoint(1, baudRate);
@@ -447,43 +452,8 @@ public final class SerialLineTests {
     }
 
     private SerialLine roundTrip(final SerialLine line, final BufferedSerialDevice port) {
-        final SerialLine restored = new SerialLine(port, () -> tick, new byte[]{0x02, 0x6F, 0x63, 0, 0, 9});
+        final SerialLine restored = new SerialLine(port, () -> tick, SerialFrame.macOf(9));
         return NBTSerialization.deserialize(NBTSerialization.serialize(line), restored);
-    }
-
-    private void segment(final Endpoint... endpoints) {
-        final List<byte[]> frames = new ArrayList<>();
-        for (final Endpoint endpoint : endpoints) {
-            collect(frames, endpoint);
-        }
-        for (final byte[] frame : frames) {
-            for (final Endpoint endpoint : endpoints) {
-                endpoint.receive(frame);
-            }
-        }
-        tick++;
-    }
-
-    private static void collect(final List<byte[]> frames, final Endpoint endpoint) {
-        endpoint.port.step(0);
-        final byte[] frame = endpoint.line.frameForTick();
-        if (frame != null) {
-            frames.add(frame);
-        }
-    }
-
-    private static String drain(final BufferedSerialDevice port) {
-        final StringBuilder result = new StringBuilder();
-        port.step(0);
-        while ((lineStatus(port) & UART_LSR_DR) != 0) {
-            result.append((char) (port.load(UART_RBR_OFFSET, Sizes.SIZE_8_LOG2) & 0xFF));
-            port.step(0);
-        }
-        return result.toString();
-    }
-
-    private static int lineStatus(final BufferedSerialDevice port) {
-        return (int) port.load(UART_LSR_OFFSET, Sizes.SIZE_8_LOG2) & 0xFF;
     }
 
     // --------------------------------------------------------------------- //
@@ -494,24 +464,19 @@ public final class SerialLineTests {
         private boolean framingErrorSeen;
 
         private Endpoint(final int id, final int baudRate) {
-            port.store(UART_FCR_OFFSET, UART_FCR_FE, Sizes.SIZE_8_LOG2);
+            Uart.enableFifo(port);
             setBaudRate(baudRate);
 
-            final byte[] mac = {0x02, 0x6F, 0x63, 0, 0, (byte) id};
-            line = new SerialLine(port, () -> tick, mac);
+            line = new SerialLine(port, () -> tick, SerialFrame.macOf(id));
         }
 
         private void setBaudRate(final int baudRate) {
-            final int divisor = UART16550A.CLOCK_FREQUENCY / (16 * baudRate);
-            port.store(UART_LCR_OFFSET, UART_LCR_DLAB, Sizes.SIZE_8_LOG2);
-            port.store(UART_DLL_OFFSET, divisor & 0xFF, Sizes.SIZE_8_LOG2);
-            port.store(UART_DLM_OFFSET, divisor >>> 8, Sizes.SIZE_8_LOG2);
-            port.store(UART_LCR_OFFSET, 0, Sizes.SIZE_8_LOG2);
+            Uart.setBaudRate(port, baudRate);
         }
 
         private void write(final String value) {
             for (final byte b : value.getBytes(StandardCharsets.UTF_8)) {
-                port.store(UART_THR_OFFSET, b, Sizes.SIZE_8_LOG2);
+                Uart.write(port, b);
                 port.step(0);
             }
         }
@@ -520,21 +485,21 @@ public final class SerialLineTests {
             line.currentTick();
             final StringBuilder result = new StringBuilder();
             port.step(0);
-            int status = lineStatus(port);
-            while ((status & UART_LSR_DR) != 0) {
-                framingErrorSeen |= (status & UART_LSR_FE) != 0;
-                result.append((char) (port.load(UART_RBR_OFFSET, Sizes.SIZE_8_LOG2) & 0xFF));
+            int status = Uart.lineStatus(port);
+            while ((status & Uart.LSR_DR) != 0) {
+                framingErrorSeen |= (status & Uart.LSR_FE) != 0;
+                result.append(Uart.read(port));
                 port.step(0);
-                status = lineStatus(port);
+                status = Uart.lineStatus(port);
             }
-            framingErrorSeen |= (status & UART_LSR_FE) != 0;
+            framingErrorSeen |= (status & Uart.LSR_FE) != 0;
             return result.toString();
         }
 
         private boolean hasFramingError() {
             line.currentTick();
             port.step(0);
-            framingErrorSeen |= (lineStatus(port) & UART_LSR_FE) != 0;
+            framingErrorSeen |= (Uart.lineStatus(port) & Uart.LSR_FE) != 0;
             return framingErrorSeen;
         }
 

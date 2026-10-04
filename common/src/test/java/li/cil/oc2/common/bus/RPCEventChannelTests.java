@@ -43,17 +43,6 @@ public final class RPCEventChannelTests {
         adapter = newAdapter(eventDevice);
     }
 
-    private RPCDeviceBusAdapter newAdapter(final TestSerialDevice events) {
-        eventDevice = events;
-        devices = new HashSet<>();
-        identifiers = new HashMap<>();
-        busController = mock(DeviceBusController.class);
-        when(busController.getDevices()).thenReturn(devices);
-        when(busController.getDeviceIdentifiers(any()))
-            .then(invocation -> identifiers.get(invocation.getArgument(0)));
-        return new RPCDeviceBusAdapter(serialDevice, blobDevice, events, amount -> true);
-    }
-
     // --------------------------------------------------------------------- //
 
     @Test
@@ -62,7 +51,7 @@ public final class RPCEventChannelTests {
         adapter.rebuild(busController);
         adapter.step(0);
 
-        final JsonObject event = event();
+        final JsonObject event = eventDevice.readJsonAsVM();
         assertEquals("devicesChanged", event.get("type").getAsString());
         assertEquals(request("list").get("gen").getAsInt(), event.get("gen").getAsInt(),
             "the event must report the generation the next reply will report");
@@ -80,7 +69,7 @@ public final class RPCEventChannelTests {
 
         int previous = 0;
         for (int i = 0; i < 3; i++) {
-            final JsonObject event = event();
+            final JsonObject event = eventDevice.readJsonAsVM();
             assertEquals("devicesChanged", event.get("type").getAsString());
             final int gen = event.get("gen").getAsInt();
             assertTrue(gen > previous, "generations must arrive in order, got " + gen + " after " + previous);
@@ -292,7 +281,7 @@ public final class RPCEventChannelTests {
         adapter.step(0);
 
         assertEquals(-1, eventDevice.read(), "the guest's bytes were left sitting in the queue");
-        assertEquals("devicesChanged", event().get("type").getAsString(),
+        assertEquals("devicesChanged", eventDevice.readJsonAsVM().get("type").getAsString(),
             "the channel must still work after a guest wrote to it");
     }
 
@@ -302,7 +291,7 @@ public final class RPCEventChannelTests {
             new RobotActionCompletedEvent(7, RobotActionResult.FAILURE)));
         adapter.step(0);
 
-        final JsonObject event = event();
+        final JsonObject event = eventDevice.readJsonAsVM();
         assertEquals(RobotActionCompletedEvent.TYPE, event.get("type").getAsString());
 
         final JsonObject data = event.getAsJsonObject("data");
@@ -356,12 +345,12 @@ public final class RPCEventChannelTests {
         adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
-        assertEquals("devicesChanged", event().get("type").getAsString());
+        assertEquals("devicesChanged", eventDevice.readJsonAsVM().get("type").getAsString());
 
         assertTrue(capture.mounted.sendEvent("ping", 7));
         adapter.step(0);
 
-        final JsonObject event = event();
+        final JsonObject event = eventDevice.readJsonAsVM();
         assertEquals("ping", event.get("type").getAsString());
         assertEquals(id.toString(), event.get("deviceId").getAsString());
         assertEquals(7, event.get("data").getAsInt());
@@ -376,7 +365,7 @@ public final class RPCEventChannelTests {
         adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
-        event();
+        eventDevice.readJsonAsVM();
 
         final RPCBusContext context = capture.mounted;
         adapter.unmountDevices();
@@ -416,21 +405,21 @@ public final class RPCEventChannelTests {
         adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
-        event();
+        eventDevice.readJsonAsVM();
 
         capture.mounted.sendEvent("ping", null);
         adapter.step(0);
-        assertEquals(chosen.toString(), event().get("deviceId").getAsString());
+        assertEquals(chosen.toString(), eventDevice.readJsonAsVM().get("deviceId").getAsString());
 
         ids.remove(chosen);
         adapter.rebuild(busController);
         adapter.step(0);
-        assertEquals("devicesChanged", event().get("type").getAsString());
+        assertEquals("devicesChanged", eventDevice.readJsonAsVM().get("type").getAsString());
         assertNull(capture.unmounted, "losing one of two identifiers is not a removal");
 
         capture.mounted.sendEvent("ping", null);
         adapter.step(0);
-        assertEquals(other.toString(), event().get("deviceId").getAsString(),
+        assertEquals(other.toString(), eventDevice.readJsonAsVM().get("deviceId").getAsString(),
             "the event named an identifier the guest no longer sees");
     }
 
@@ -441,7 +430,7 @@ public final class RPCEventChannelTests {
         adapter.rebuild(busController);
         adapter.mountDevices();
         adapter.step(0);
-        event();
+        eventDevice.readJsonAsVM();
 
         assertFalse(capture.mounted.sendEvent("blob", new byte[]{1, 2, 3}));
         assertFalse(capture.mounted.sendEvent("blob", Map.of("bytes", new byte[]{1, 2, 3})));
@@ -452,10 +441,15 @@ public final class RPCEventChannelTests {
 
     // --------------------------------------------------------------------- //
 
-    private JsonObject event() {
-        final String message = eventDevice.readMessageAsVM();
-        assertNotNull(message, "no event was pushed");
-        return JsonParser.parseString(message).getAsJsonObject();
+    private RPCDeviceBusAdapter newAdapter(final TestSerialDevice events) {
+        eventDevice = events;
+        devices = new HashSet<>();
+        identifiers = new HashMap<>();
+        busController = mock(DeviceBusController.class);
+        when(busController.getDevices()).thenReturn(devices);
+        when(busController.getDeviceIdentifiers(any()))
+            .then(invocation -> identifiers.get(invocation.getArgument(0)));
+        return new RPCDeviceBusAdapter(serialDevice, blobDevice, events, amount -> true);
     }
 
     private JsonObject request(final String type) {
@@ -477,12 +471,15 @@ public final class RPCEventChannelTests {
         return idSet;
     }
 
-    public static final class Pingable {
-        @Callback(synchronize = false)
-        public int ping() {
-            return 1;
+    private static int fill(final RPCEventChannel channel, final byte[] payload) {
+        int accepted = 0;
+        while (channel.sendEvent(RPCMessageChannel.frame(payload))) {
+            accepted++;
         }
+        return accepted;
     }
+
+    // --------------------------------------------------------------------- //
 
     public static final class ContextCapture implements LifecycleAwareDevice {
         RPCBusContext mounted;
@@ -503,13 +500,4 @@ public final class RPCEventChannelTests {
             return 1;
         }
     }
-
-    private static int fill(final RPCEventChannel channel, final byte[] payload) {
-        int accepted = 0;
-        while (channel.sendEvent(RPCMessageChannel.frame(payload))) {
-            accepted++;
-        }
-        return accepted;
-    }
-
 }

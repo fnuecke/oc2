@@ -29,10 +29,6 @@ public final class DiskDriveFixture {
         return new DiskDriveFixture(helper, pos);
     }
 
-    public static DiskDriveFixture at(final GameTestHelper helper, final BlockPos pos) {
-        return new DiskDriveFixture(helper, pos);
-    }
-
     // --------------------------------------------------------------------- //
 
     public BlockPos pos() {

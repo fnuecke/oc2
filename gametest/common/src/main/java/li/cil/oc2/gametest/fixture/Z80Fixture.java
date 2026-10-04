@@ -28,8 +28,7 @@ public final class Z80Fixture {
     // --------------------------------------------------------------------- //
 
     public static Z80Fixture place(final GameTestHelper helper, final Player player) {
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, player);
         player.setYRot(90);
         return new Z80Fixture(helper, player, computer, DiskDriveFixture.place(helper, player, DEVICE_POS));
     }
@@ -67,10 +66,6 @@ public final class Z80Fixture {
     public Z80Fixture withRedstoneCard() {
         computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.REDSTONE_INTERFACE_CARD.get()));
         return this;
-    }
-
-    public DiskDriveFixture drive() {
-        return drive;
     }
 
     public void start() {

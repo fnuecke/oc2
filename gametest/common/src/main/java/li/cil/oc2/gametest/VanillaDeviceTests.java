@@ -5,11 +5,8 @@ package li.cil.oc2.gametest;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
-import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -17,7 +14,6 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.Filterable;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.WritableBookContent;
@@ -25,23 +21,20 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.*;
 import net.minecraft.world.level.block.state.properties.ComparatorMode;
 
-import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
-import static li.cil.oc2.gametest.util.DeviceCalls.invokeRpc;
+import static li.cil.oc2.gametest.util.DeviceCalls.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class VanillaDeviceTests {
     private static final BlockPos POS = new BlockPos(20, WORK_Y, 2);
 
+    // --------------------------------------------------------------------- //
+
     public static void signJoinsTheBus(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
         helper.setBlock(DEVICE_POS, Blocks.OAK_SIGN);
 
         helper.startSequence()
@@ -58,9 +51,7 @@ public final class VanillaDeviceTests {
     }
 
     public static void noteBlockKeepsItsDeviceWhenWritten(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
         helper.setBlock(DEVICE_POS, Blocks.NOTE_BLOCK);
         final Device[] device = new Device[1];
 
@@ -324,22 +315,6 @@ public final class VanillaDeviceTests {
 
     // --------------------------------------------------------------------- //
 
-    private static List<Device> devicesAt(final GameTestHelper helper, final BlockPos pos) {
-        return Devices.getDevices(Devices.makeQuery(null, helper.getLevel(), helper.absolutePos(pos), null))
-            .orElseThrow(() -> new GameTestAssertException("chunk not loaded"))
-            .stream()
-            .map(info -> info.get().device)
-            .toList();
-    }
-
-    private static IODevice ioDevice(final List<Device> devices, final String name) {
-        return devices.stream()
-            .filter(device -> device instanceof final IODevice io && name.equals(io.getIOName()))
-            .map(IODevice.class::cast)
-            .findFirst()
-            .orElseThrow(() -> new GameTestAssertException("no " + name + " device"));
-    }
-
     private static void assertFails(final GameTestHelper helper, final String what, final Runnable action) {
         assertFails(helper, what, "", action);
     }
@@ -370,27 +345,8 @@ public final class VanillaDeviceTests {
         throw failure(helper, what + " should have been rejected");
     }
 
-    private static void assertValue(final GameTestHelper helper, final String what, @Nullable final Object expected, @Nullable final Object actual) {
-        if (!Objects.equals(expected, actual)) {
-            throw failure(helper, what + ": expected " + expected + ", got " + actual);
-        }
-    }
+    // --------------------------------------------------------------------- //
 
-    private static void assertArrayEquals(final GameTestHelper helper, final String what, final Object[] expected, final Object[] actual) {
-        if (!Arrays.equals(expected, actual)) {
-            throw failure(helper, what + ": expected " + Arrays.toString(expected) + ", got " + Arrays.toString(actual));
-        }
-    }
-
-    private static int[] concat(final int[] head, final String text) {
-        final int[] result = Arrays.copyOf(head, head.length + text.length());
-        for (int i = 0; i < text.length(); i++) {
-            result[head.length + i] = text.charAt(i);
-        }
-        return result;
-    }
-
-    private static int u16(final byte[] bytes) {
-        return (bytes[0] & 0xFF) | ((bytes[1] & 0xFF) << 8);
+    private VanillaDeviceTests() {
     }
 }

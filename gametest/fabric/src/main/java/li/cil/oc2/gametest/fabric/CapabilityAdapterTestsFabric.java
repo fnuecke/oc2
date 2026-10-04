@@ -2,10 +2,6 @@
 
 package li.cil.oc2.gametest.fabric;
 
-import li.cil.oc2.common.block.Blocks;
-import li.cil.oc2.common.capabilities.Capabilities;
-import li.cil.oc2.common.energy.EnergyHandler;
-import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.CapabilityAdapterTests;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -15,22 +11,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.util.function.Function;
-
+import static li.cil.oc2.gametest.CapabilityAdapterTests.ENERGY;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.ITEMS;
 import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 
 public final class CapabilityAdapterTestsFabric {
-    private static final Function<GameTestHelper, EnergyHandler> ENERGY = helper -> {
-        helper.setBlock(DEVICE_POS, Blocks.CHARGER.get());
-        return Capabilities.get(blockEntity(helper), Capabilities.ENERGY_STORAGE, null);
-    };
-    private static final Function<GameTestHelper, ItemHandler> ITEMS = helper -> {
-        helper.setBlock(DEVICE_POS, Blocks.COMPUTER.get());
-        return Capabilities.get(blockEntity(helper), Capabilities.ITEM_HANDLER, null);
-    };
     private static final CapabilityAdapterTests.EnergyOperation ABORTED_INSERT = (helper, storage, amount) -> {
         final team.reborn.energy.api.EnergyStorage platform = platformEnergy(helper);
         try (Transaction transaction = Transaction.openOuter()) {
@@ -154,14 +141,6 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     // --------------------------------------------------------------------- //
-
-    private static BlockEntity blockEntity(final GameTestHelper helper) {
-        final BlockEntity blockEntity = helper.getBlockEntity(DEVICE_POS);
-        if (blockEntity == null) {
-            throw new GameTestAssertException("no block entity at " + DEVICE_POS);
-        }
-        return blockEntity;
-    }
 
     private static team.reborn.energy.api.EnergyStorage platformEnergy(final GameTestHelper helper) {
         final BlockPos pos = helper.absolutePos(DEVICE_POS);

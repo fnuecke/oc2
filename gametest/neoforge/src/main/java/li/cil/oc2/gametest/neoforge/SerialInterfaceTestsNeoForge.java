@@ -33,4 +33,9 @@ public final class SerialInterfaceTestsNeoForge {
     public static void twoSerialCardsFitOneComputer(final GameTestHelper helper) {
         SerialInterfaceTests.twoSerialCardsFitOneComputer(helper);
     }
+
+    // --------------------------------------------------------------------- //
+
+    private SerialInterfaceTestsNeoForge() {
+    }
 }

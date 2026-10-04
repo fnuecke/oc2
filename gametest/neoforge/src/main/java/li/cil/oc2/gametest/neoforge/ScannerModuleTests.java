@@ -6,11 +6,11 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.util.RobotOperationSide;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.bus.device.item.ScannerModuleDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.device.GuestTestDevices;
 import li.cil.oc2.gametest.fixture.GuestTests;
+import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -31,7 +31,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
-import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
+import static li.cil.oc2.gametest.util.DeviceCalls.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
@@ -48,7 +48,7 @@ public final class ScannerModuleTests {
     private static final int CAN_SEE_SKY_CODE = 4;
     private static final int SYSTEM_GET_BLOCK_NAME_CODE = 5;
 
-    private static final int FRONT = 0;
+    // --------------------------------------------------------------------- //
 
     @GameTest(template = TEMPLATE)
     public static void robotWithModuleProvidesTheScanner(final GameTestHelper helper) {
@@ -197,10 +197,10 @@ public final class ScannerModuleTests {
 
                 helper.getLevel().setBlockAndUpdate(robot.frontPos(),
                     Blocks.CHAIN.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, true));
-                final byte[] inspection = invokeIo(scanner, INSPECT_CODE, FRONT);
+                final byte[] inspection = invokeIo(scanner, INSPECT_CODE, SIDE_FRONT);
                 assertEquals(helper, "an inspection is five bytes", 5, inspection.length);
-                assertEquals(helper, "the block id", BuiltInRegistries.BLOCK.getId(Blocks.CHAIN), readU16(inspection, 0));
-                assertEquals(helper, "the fluid id", BuiltInRegistries.FLUID.getId(Fluids.WATER), readU16(inspection, 2));
+                assertEquals(helper, "the block id", BuiltInRegistries.BLOCK.getId(Blocks.CHAIN), u16(inspection, 0));
+                assertEquals(helper, "the fluid id", BuiltInRegistries.FLUID.getId(Fluids.WATER), u16(inspection, 2));
                 assertEquals(helper, "the entity count", 0, inspection[4]);
 
                 final byte[] hardness = scanner.scan().hardness();
@@ -230,33 +230,24 @@ public final class ScannerModuleTests {
         helper.startSequence()
             .thenExecuteAfter(SETTLE_TICKS, () -> {
                 robot.charge();
-                robot.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                    .install(DeviceTypes.ROBOT_MODULE.get(), new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get()))
+                Hardware.installLinuxWithExtraMemory(robot);
+                robot.install(DeviceTypes.ROBOT_MODULE.get(), new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get()))
                     .install(DeviceTypes.ROBOT_MODULE.get(), new ItemStack(Items.SCANNER_MODULE.get()));
             })
             .thenExecuteAfter(SETTLE_TICKS, robot::start)
             .thenWaitUntil(() -> {
-                keepAlive(robot);
+                robot.keepAlive();
                 tests.requireReady();
             })
             .thenExecute(() -> tests.run(GUEST_SUITE))
             .thenWaitUntil(() -> {
-                keepAlive(robot);
+                robot.keepAlive();
                 tests.requireSuccess();
             })
             .thenSucceed();
     }
 
     // --------------------------------------------------------------------- //
-
-    private static void keepAlive(final RobotFixture robot) {
-        robot.charge();
-        robot.assertNoGuestPanic();
-    }
 
     private static ScannerModuleDevice scannerFor(final RobotFixture robot) {
         return new ScannerModuleDevice(new ItemStack(Items.SCANNER_MODULE.get()), robot.entity());
@@ -286,9 +277,7 @@ public final class ScannerModuleTests {
         throw failure(helper, what + " should fail while recharging");
     }
 
-    private static int readU16(final byte[] bytes, final int offset) {
-        return (bytes[offset] & 0xFF) | ((bytes[offset + 1] & 0xFF) << 8);
-    }
+    // --------------------------------------------------------------------- //
 
     private ScannerModuleTests() {
     }

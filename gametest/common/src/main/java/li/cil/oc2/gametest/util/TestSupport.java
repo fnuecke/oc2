@@ -3,7 +3,6 @@
 package li.cil.oc2.gametest.util;
 
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.serialization.BlobReference;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -17,10 +16,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.UUID;
-
-import static java.util.Objects.requireNonNull;
+import java.util.Arrays;
+import java.util.Objects;
 
 public final class TestSupport {
     public static final String MOD_ID = "oc2_gametest";
@@ -35,11 +32,7 @@ public final class TestSupport {
     public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
 
     public static final int BOOT_TIMEOUT_TICKS = 900_000;
-
-    public static UUID createBlob(final BlobReference blob) throws IOException {
-        blob.open();
-        return requireNonNull(blob.getHandle());
-    }
+    public static final int CPM_BOOT_TIMEOUT_TICKS = 20_000;
 
     public static String script(final String... lines) {
         return String.join("\n", lines) + "\n";
@@ -59,6 +52,25 @@ public final class TestSupport {
         if (expected != actual) {
             throw failure(helper, what + ": expected " + expected + ", got " + actual);
         }
+    }
+
+    public static void assertValue(final GameTestHelper helper, final String what, @Nullable final Object expected, @Nullable final Object actual) {
+        if (!Objects.equals(expected, actual)) {
+            throw failure(helper, what + ": expected " + expected + ", got " + actual);
+        }
+    }
+
+    public static void assertArrayEquals(final GameTestHelper helper, final String what, final Object[] expected, final Object[] actual) {
+        if (!Arrays.equals(expected, actual)) {
+            throw failure(helper, what + ": expected " + Arrays.toString(expected) + ", got " + Arrays.toString(actual));
+        }
+    }
+
+    public static <T> T assertNotNull(final GameTestHelper helper, @Nullable final T value, final String what) {
+        if (value == null) {
+            throw new GameTestAssertException(what + " is null");
+        }
+        return value;
     }
 
     public static void assertThrows(final GameTestHelper helper, final String what, final Runnable action) {
@@ -84,13 +96,15 @@ public final class TestSupport {
     }
 
     public static void useOn(final GameTestHelper helper, final Player player, final ItemStack stack, final BlockPos pos, final Direction face) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult(helper, pos, face)));
+    }
+
+    public static BlockHitResult hitResult(final GameTestHelper helper, final BlockPos pos, final Direction face) {
         final BlockPos absolute = helper.absolutePos(pos);
         final Vec3 location = Vec3.atCenterOf(absolute)
             .add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
-
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND,
-            new BlockHitResult(location, face, absolute, false)));
+        return new BlockHitResult(location, face, absolute, false);
     }
 
     public static void placePower(final GameTestHelper helper, final Player player) {
@@ -103,12 +117,6 @@ public final class TestSupport {
 
     public static void breakBlockAndDrop(final GameTestHelper helper, final BlockPos pos) {
         helper.getLevel().destroyBlock(helper.absolutePos(pos), true, null);
-    }
-
-    public static void assertNotNull(final GameTestHelper helper, @Nullable final Object value, final String what) {
-        if (value == null) {
-            throw new GameTestAssertException(what + " is null");
-        }
     }
 
     // --------------------------------------------------------------------- //

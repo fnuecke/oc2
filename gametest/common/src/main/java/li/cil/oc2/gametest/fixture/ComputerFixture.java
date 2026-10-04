@@ -11,6 +11,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.device.Terminal;
+import li.cil.oc2.gametest.util.BusCables;
 import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
+import static li.cil.oc2.gametest.util.TestSupport.CABLE_POS;
 import static li.cil.oc2.gametest.util.TestSupport.COMPUTER_POS;
 import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
 
@@ -46,6 +48,12 @@ public final class ComputerFixture implements MachineFixture {
         return new ComputerFixture(helper, pos);
     }
 
+    public static ComputerFixture placePowered(final GameTestHelper helper, final Player player) {
+        final ComputerFixture computer = place(helper, player);
+        TestSupport.placePower(helper, player);
+        return computer;
+    }
+
     public static ComputerFixture placePowered(final GameTestHelper helper, final BlockPos pos) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = place(helper, player, pos);
@@ -53,12 +61,54 @@ public final class ComputerFixture implements MachineFixture {
         return computer;
     }
 
-    public static ComputerFixture at(final GameTestHelper helper, final BlockPos pos) {
-        return new ComputerFixture(helper, pos);
+    public static ComputerFixture placeWithCable(final GameTestHelper helper, final Player player) {
+        final ComputerFixture computer = place(helper, player);
+        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
+        return computer;
     }
 
     public static ComputerFixture at(final GameTestHelper helper) {
         return new ComputerFixture(helper, COMPUTER_POS);
+    }
+
+    public static ComputerFixture at(final GameTestHelper helper, final BlockPos pos) {
+        return new ComputerFixture(helper, pos);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
+    public VirtualMachine virtualMachine() {
+        return blockEntity().getVirtualMachine();
+    }
+
+    @Override
+    public Terminal terminal() {
+        return blockEntity().getTerminal();
+    }
+
+    @Override
+    public ItemHandler handler(final DeviceType type) {
+        return blockEntity().getItemStackHandlers().getItemHandler(type)
+            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
+    }
+
+    @Override
+    public String describe() {
+        final VirtualMachine vm = virtualMachine();
+        return "runState=" + vm.getRunState()
+            + ", bootError=" + vm.getBootError()
+            + ", error=" + vm.getError()
+            + ", devices=" + deviceCount()
+            + ", cycles=" + guestInstructions()
+            + ", energy=" + energy()
+            + ", deviceList=" + devices().stream().map(d -> d.getClass().getSimpleName()).sorted().toList();
+    }
+
+    @Override
+    public ComputerFixture install(final DeviceType type, final ItemStack stack) {
+        installInto(type, stack);
+        return this;
     }
 
     // --------------------------------------------------------------------- //
@@ -67,22 +117,12 @@ public final class ComputerFixture implements MachineFixture {
         return pos;
     }
 
-    @Override
-    public Terminal terminal() {
-        return blockEntity().getTerminal();
-    }
-
     public ComputerBlockEntity blockEntity() {
         final ComputerBlockEntity blockEntity = helper.getBlockEntity(pos);
         if (blockEntity == null) {
             throw new GameTestAssertException("no computer at " + pos);
         }
         return blockEntity;
-    }
-
-    @Override
-    public VirtualMachine virtualMachine() {
-        return blockEntity().getVirtualMachine();
     }
 
     public VMRunState runState() {
@@ -113,20 +153,8 @@ public final class ComputerFixture implements MachineFixture {
 
     // --------------------------------------------------------------------- //
 
-    @Override
-    public ItemHandler handler(final DeviceType type) {
-        return blockEntity().getItemStackHandlers().getItemHandler(type)
-            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
-    }
-
     public ItemStack slot(final DeviceType type) {
         return handler(type).getStackInSlot(0);
-    }
-
-    @Override
-    public ComputerFixture install(final DeviceType type, final ItemStack stack) {
-        installInto(type, stack);
-        return this;
     }
 
     public ItemStack uninstall(final DeviceType type) {
@@ -166,20 +194,6 @@ public final class ComputerFixture implements MachineFixture {
 
     public void load(final CompoundTag tag) {
         blockEntity().loadWithComponents(tag, registries());
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Override
-    public String describe() {
-        final VirtualMachine vm = virtualMachine();
-        return "runState=" + vm.getRunState()
-            + ", bootError=" + vm.getBootError()
-            + ", error=" + vm.getError()
-            + ", devices=" + deviceCount()
-            + ", cycles=" + guestInstructions()
-            + ", energy=" + energy()
-            + ", deviceList=" + devices().stream().map(d -> d.getClass().getSimpleName()).sorted().toList();
     }
 
     // --------------------------------------------------------------------- //

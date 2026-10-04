@@ -4,12 +4,12 @@ package li.cil.oc2.gametest.neoforge;
 
 import io.netty.buffer.Unpooled;
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.DiskDriveFixture;
+import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
@@ -37,18 +37,14 @@ public final class ItemSyncSizeTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void storageItemsSyncByHandle(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
         BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
         player.setYRot(90);
         final DiskDriveFixture drive = DiskDriveFixture.place(helper, player, DEVICE_POS);
 
         helper.startSequence()
             .thenExecuteAfter(60, () -> {
-                computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()));
+                Hardware.installLinux(computer);
                 drive.insert(new ItemStack(Items.FLOPPY.get()));
             })
             .thenExecuteAfter(20, computer::start)

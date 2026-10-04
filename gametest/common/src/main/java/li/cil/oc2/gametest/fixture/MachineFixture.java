@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public interface MachineFixture {
@@ -74,8 +75,7 @@ public interface MachineFixture {
         return GuestTests.of(virtualMachine());
     }
 
-    default String screen() {
-        final Terminal terminal = terminal();
+    static String screen(final Terminal terminal) {
         final CompoundTag tag;
         synchronized (terminal) {
             tag = NBTSerialization.serialize(terminal);
@@ -92,6 +92,10 @@ public interface MachineFixture {
             text.append('\n');
         }
         return text.toString();
+    }
+
+    default String screen() {
+        return screen(terminal());
     }
 
     default void type(final String text) {
@@ -113,12 +117,14 @@ public interface MachineFixture {
         }
     }
 
-    default void assertScreenMatches(final Pattern pattern, final String what) {
+    default Matcher assertScreenMatches(final Pattern pattern, final String what) {
         final String text = screen();
-        if (!pattern.matcher(text).find()) {
+        final Matcher matcher = pattern.matcher(text);
+        if (!matcher.find()) {
             throw new GameTestAssertException(what + ": screen does not match [" + pattern + "]; "
                 + describe() + "\n" + text);
         }
+        return matcher;
     }
 
     default void assertNoGuestPanic() {

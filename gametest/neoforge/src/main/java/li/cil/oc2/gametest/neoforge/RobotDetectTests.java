@@ -13,9 +13,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static li.cil.oc2.gametest.BlockOperationsModuleTests.ROBOT_POS;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeRpc;
 import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
+import static li.cil.oc2.gametest.util.TestSupport.ROBOT_POS;
 import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
 @GameTestHolder(MOD_ID)
@@ -65,6 +65,8 @@ public final class RobotDetectTests {
             })
             .thenSucceed();
     }
+
+    // --------------------------------------------------------------------- //
 
     private RobotDetectTests() {
     }

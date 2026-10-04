@@ -21,6 +21,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +40,8 @@ public class InternetStackIntegrationTests {
     private static final byte[] OTHER_GUEST_MAC = {0x02, 0x00, 0x00, 0x00, 0x00, 0x02};
     private static final int OTHER_GUEST_IP = 0x0A000003;
     private static final int GATEWAY_IP = 0x0A000001;
+    private static final int LOOPBACK_IP = 0x7F000001;
+    private static final byte[] BROADCAST_MAC = {-1, -1, -1, -1, -1, -1};
 
     private ServerSocket server;
     private LinkLocalLayer stack;
@@ -147,19 +150,8 @@ public class InternetStackIntegrationTests {
 
         final short port = (short) server.getLocalPort();
 
-        send(tcpFrame(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, port, new byte[0]));
-
-        final Tcp synAck = parseTcp(pumpUntilFrame());
-        assertTrue(synAck.header().syn, "expected a SYN-ACK");
-        assertTrue(synAck.header().ack);
-        assertEquals(guestSequence + 1, synAck.header().acknowledgmentNumber);
-        gatewaySequence = synAck.header().sequenceNumber + 1;
-        guestSequence += 1;
-
-        final Socket accepted = server.accept();
+        final Socket accepted = connect(port);
         accepted.setSoTimeout(10000);
-
-        send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
 
         final byte[] request = "GET / HTTP/1.0\r\n\r\n".getBytes(StandardCharsets.UTF_8);
         send(tcpFrame(TcpHeader.FLAG_ACK | TcpHeader.FLAG_PSH, guestSequence, gatewaySequence, 8192, port, request));
@@ -182,18 +174,8 @@ public class InternetStackIntegrationTests {
 
         guestSequence += request.length;
 
-        final ByteBuffer collected = ByteBuffer.allocate(response.length);
-        while (collected.hasRemaining()) {
-            final Tcp segment = parseTcp(pumpUntilFrame());
-            if (segment.payload().length == 0) {
-                continue;
-            }
-            assertEquals(gatewaySequence, segment.header().sequenceNumber, "segments should arrive in order");
-            collected.put(segment.payload());
-            gatewaySequence += segment.payload().length;
-            send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
-        }
-        assertArrayEquals(response, collected.array(), "what the world sent should arrive byte for byte");
+        assertArrayEquals(response, receive(port, response.length, "segments should arrive in order"),
+            "what the world sent should arrive byte for byte");
 
         accepted.close();
     }
@@ -215,7 +197,7 @@ public class InternetStackIntegrationTests {
             final DatagramPacket incoming = new DatagramPacket(new byte[64], 64);
             peer.receive(incoming);
             assertArrayEquals(request,
-                java.util.Arrays.copyOf(incoming.getData(), incoming.getLength()),
+                Arrays.copyOf(incoming.getData(), incoming.getLength()),
                 "the datagram should arrive byte for byte");
 
             final byte[] response = "pong".getBytes(StandardCharsets.UTF_8);
@@ -241,7 +223,7 @@ public class InternetStackIntegrationTests {
             final DatagramPacket incoming = new DatagramPacket(new byte[64], 64);
             peer.receive(incoming);
 
-            send(udpFrame(gatewayMac, OTHER_GUEST_MAC, GUEST_IP, 0x7F000001,
+            send(udpFrame(gatewayMac, OTHER_GUEST_MAC, GUEST_IP, LOOPBACK_IP,
                 (short) 40002, peerPort, "spoof".getBytes(StandardCharsets.UTF_8)));
             pump();
 
@@ -261,7 +243,7 @@ public class InternetStackIntegrationTests {
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.setSoTimeout(200);
-            send(udpFrame(OTHER_GUEST_MAC, GUEST_MAC, GUEST_IP, 0x7F000001,
+            send(udpFrame(OTHER_GUEST_MAC, GUEST_MAC, GUEST_IP, LOOPBACK_IP,
                 (short) 40004, (short) peer.getLocalPort(), "not for you".getBytes(StandardCharsets.UTF_8)));
 
             for (int i = 0; i < 20; ++i) {
@@ -279,7 +261,7 @@ public class InternetStackIntegrationTests {
     public void broadcastIsNotAnsweredWithAnError() throws Exception {
         resolveGateway();
 
-        send(udpFrame(new byte[]{-1, -1, -1, -1, -1, -1}, GUEST_MAC, GUEST_IP, 0xFFFFFFFF,
+        send(udpFrame(BROADCAST_MAC, GUEST_MAC, GUEST_IP, 0xFFFFFFFF,
             (short) 68, (short) 67, "dhcp discover".getBytes(StandardCharsets.UTF_8)));
 
         for (int i = 0; i < 20; ++i) {
@@ -336,14 +318,7 @@ public class InternetStackIntegrationTests {
         resolveGateway();
         final short port = (short) server.getLocalPort();
 
-        send(tcpFrame(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, port, new byte[0]));
-        final Tcp synAck = parseTcp(pumpUntilFrame());
-        assertTrue(synAck.header().syn);
-        gatewaySequence = synAck.header().sequenceNumber + 1;
-        guestSequence += 1;
-
-        final Socket accepted = server.accept();
-        send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
+        final Socket accepted = connect(port);
         pump();
 
         assertEquals(1, limits.getUsed(), "the connection should hold exactly one slot");
@@ -364,13 +339,7 @@ public class InternetStackIntegrationTests {
         resolveGateway();
         final short port = (short) server.getLocalPort();
 
-        send(tcpFrame(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, port, new byte[0]));
-        final Tcp synAck = parseTcp(pumpUntilFrame());
-        gatewaySequence = synAck.header().sequenceNumber + 1;
-        guestSequence += 1;
-
-        final Socket accepted = server.accept();
-        send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
+        final Socket accepted = connect(port);
         pump();
 
         send(tcpFrame(TcpHeader.FLAG_SYN, guestSequence + 500, 0, 8192, port, new byte[0]));
@@ -392,32 +361,15 @@ public class InternetStackIntegrationTests {
                 "open".getBytes(StandardCharsets.UTF_8)));
             pump();
 
-            send(tcpFrame(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, port, new byte[0]));
-            final Tcp synAck = parseTcp(pumpUntilFrame());
-            gatewaySequence = synAck.header().sequenceNumber + 1;
-            guestSequence += 1;
-
-            final Socket accepted = server.accept();
-            send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
+            final Socket accepted = connect(port);
             pump();
 
             final byte[] response = "the quick brown fox".getBytes(StandardCharsets.UTF_8);
             accepted.getOutputStream().write(response);
             accepted.getOutputStream().flush();
 
-            final ByteBuffer collected = ByteBuffer.allocate(response.length);
-            while (collected.hasRemaining()) {
-                final Tcp segment = parseTcp(pumpUntilFrame());
-                if (segment.payload().length == 0) {
-                    continue;
-                }
-                assertEquals(gatewaySequence, segment.header().sequenceNumber,
-                    "the segment must be built at the start of the frame, not shifted");
-                collected.put(segment.payload());
-                gatewaySequence += segment.payload().length;
-                send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
-            }
-            assertArrayEquals(response, collected.array());
+            assertArrayEquals(response, receive(port, response.length,
+                "the segment must be built at the start of the frame, not shifted"));
 
             accepted.close();
         }
@@ -439,7 +391,7 @@ public class InternetStackIntegrationTests {
         assertFalse(reply.header().syn, "no handshake should be completed");
 
         server.setSoTimeout(300);
-        assertThrows(java.net.SocketTimeoutException.class, server::accept,
+        assertThrows(SocketTimeoutException.class, server::accept,
             "no connection should have been opened to the blocked port");
     }
 
@@ -550,6 +502,10 @@ public class InternetStackIntegrationTests {
         return new LinkLocalLayer(networkLayer);
     }
 
+    private void send(final byte[] frame) {
+        stack.sendEthernetFrame(ByteBuffer.wrap(frame));
+    }
+
     private List<byte[]> pump() {
         return pump(stack);
     }
@@ -595,8 +551,55 @@ public class InternetStackIntegrationTests {
         throw new AssertionError("the stack produced no frame with EtherType " + etherType);
     }
 
-    private void send(final byte[] frame) {
-        stack.sendEthernetFrame(ByteBuffer.wrap(frame));
+    private void resolveGateway() throws InterruptedException {
+        send(arpRequest(GUEST_IP, GATEWAY_IP));
+
+        final byte[] reply = pumpUntilFrame();
+        final ByteBuffer buffer = ByteBuffer.wrap(reply);
+        final byte[] destinationMac = new byte[6];
+        buffer.get(destinationMac);
+        assertArrayEquals(GUEST_MAC, destinationMac);
+
+        gatewayMac = new byte[6];
+        buffer.get(gatewayMac);
+        assertEquals(ETHERTYPE_ARP, buffer.getShort());
+
+        buffer.position(LinkLocalLayer.FRAME_HEADER_SIZE + 6);
+        assertEquals(2, buffer.getShort(), "expected an ARP reply");
+        final byte[] senderMac = new byte[6];
+        buffer.get(senderMac);
+        assertArrayEquals(gatewayMac, senderMac, "the reply should advertise the gateway's own MAC");
+        assertEquals(GATEWAY_IP, buffer.getInt(), "the gateway should answer to the address it was asked for");
+    }
+
+    private Socket connect(final short port) throws IOException, InterruptedException {
+        send(tcpFrame(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, port, new byte[0]));
+
+        final Tcp synAck = parseTcp(pumpUntilFrame());
+        assertTrue(synAck.header().syn, "expected a SYN-ACK");
+        assertTrue(synAck.header().ack);
+        assertEquals(guestSequence + 1, synAck.header().acknowledgmentNumber);
+        gatewaySequence = synAck.header().sequenceNumber + 1;
+        guestSequence += 1;
+
+        final Socket accepted = server.accept();
+        send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
+        return accepted;
+    }
+
+    private byte[] receive(final short port, final int length, final String orderMessage) throws InterruptedException {
+        final ByteBuffer collected = ByteBuffer.allocate(length);
+        while (collected.hasRemaining()) {
+            final Tcp segment = parseTcp(pumpUntilFrame());
+            if (segment.payload().length == 0) {
+                continue;
+            }
+            assertEquals(gatewaySequence, segment.header().sequenceNumber, orderMessage);
+            collected.put(segment.payload());
+            gatewaySequence += segment.payload().length;
+            send(tcpFrame(TcpHeader.FLAG_ACK, guestSequence, gatewaySequence, 8192, port, new byte[0]));
+        }
+        return collected.array();
     }
 
     private static ByteBuffer frame(final byte[] destinationMac, final byte[] sourceMac, final short etherType, final int extra) {
@@ -612,7 +615,7 @@ public class InternetStackIntegrationTests {
     }
 
     private static byte[] arpRequest(final byte[] senderMac, final int senderIp, final int targetIp) {
-        final ByteBuffer buffer = frame(new byte[]{-1, -1, -1, -1, -1, -1}, senderMac, ETHERTYPE_ARP, 28);
+        final ByteBuffer buffer = frame(BROADCAST_MAC, senderMac, ETHERTYPE_ARP, 28);
         buffer.putShort((short) 1);
         buffer.putShort(ETHERTYPE_IPv4);
         buffer.put((byte) 6);
@@ -632,16 +635,7 @@ public class InternetStackIntegrationTests {
         final ByteBuffer buffer = frame(gatewayMac, GUEST_MAC, ETHERTYPE_IPv4, ipLength);
         final int ipStart = buffer.position();
 
-        buffer.put((byte) 0x45);
-        buffer.put((byte) 0);
-        buffer.putShort((short) ipLength);
-        buffer.putShort((short) 0);
-        buffer.putShort((short) 0x4000);
-        buffer.put((byte) 64);
-        buffer.put(PROTOCOL_TCP);
-        buffer.putShort((short) 0);
-        buffer.putInt(GUEST_IP);
-        buffer.putInt(0x7F000001);
+        ipv4Header(buffer, PROTOCOL_TCP, ipLength, GUEST_IP, LOOPBACK_IP);
 
         buffer.putShort((short) 40000);
         buffer.putShort(destinationPort);
@@ -663,16 +657,7 @@ public class InternetStackIntegrationTests {
         final int ipLength = 20 + icmpLength;
         final ByteBuffer buffer = frame(gatewayMac, GUEST_MAC, ETHERTYPE_IPv4, ipLength);
 
-        buffer.put((byte) 0x45);
-        buffer.put((byte) 0);
-        buffer.putShort((short) ipLength);
-        buffer.putShort((short) 0);
-        buffer.putShort((short) 0x4000);
-        buffer.put((byte) 64);
-        buffer.put(PROTOCOL_ICMP);
-        buffer.putShort((short) 0);
-        buffer.putInt(GUEST_IP);
-        buffer.putInt(0x7F000001);
+        ipv4Header(buffer, PROTOCOL_ICMP, ipLength, GUEST_IP, LOOPBACK_IP);
 
         buffer.put((byte) 8);
         buffer.put((byte) 0);
@@ -689,7 +674,7 @@ public class InternetStackIntegrationTests {
 
     private byte[] udpFrame(final byte[] sourceMac, final int sourceIp,
                             final short sourcePort, final short destinationPort, final byte[] payload) {
-        return udpFrame(gatewayMac, sourceMac, sourceIp, 0x7F000001, sourcePort, destinationPort, payload);
+        return udpFrame(gatewayMac, sourceMac, sourceIp, LOOPBACK_IP, sourcePort, destinationPort, payload);
     }
 
     private byte[] udpFrame(final byte[] destinationMac, final byte[] sourceMac, final int sourceIp, final int destinationIp,
@@ -698,16 +683,7 @@ public class InternetStackIntegrationTests {
         final int ipLength = 20 + udpLength;
         final ByteBuffer buffer = frame(destinationMac, sourceMac, ETHERTYPE_IPv4, ipLength);
 
-        buffer.put((byte) 0x45);
-        buffer.put((byte) 0);
-        buffer.putShort((short) ipLength);
-        buffer.putShort((short) 0);
-        buffer.putShort((short) 0x4000);
-        buffer.put((byte) 64);
-        buffer.put(PROTOCOL_UDP);
-        buffer.putShort((short) 0);
-        buffer.putInt(sourceIp);
-        buffer.putInt(destinationIp);
+        ipv4Header(buffer, PROTOCOL_UDP, ipLength, sourceIp, destinationIp);
 
         buffer.putShort(sourcePort);
         buffer.putShort(destinationPort);
@@ -715,6 +691,20 @@ public class InternetStackIntegrationTests {
         buffer.putShort((short) 0);
         buffer.put(payload);
         return buffer.array();
+    }
+
+    private static void ipv4Header(final ByteBuffer buffer, final byte protocol, final int length,
+                                   final int sourceIp, final int destinationIp) {
+        buffer.put((byte) 0x45);
+        buffer.put((byte) 0);
+        buffer.putShort((short) length);
+        buffer.putShort((short) 0);
+        buffer.putShort((short) 0x4000);
+        buffer.put((byte) 64);
+        buffer.put(protocol);
+        buffer.putShort((short) 0);
+        buffer.putInt(sourceIp);
+        buffer.putInt(destinationIp);
     }
 
     private byte[] parseUdp(final byte[] frame) {
@@ -737,9 +727,6 @@ public class InternetStackIntegrationTests {
         return payload;
     }
 
-    private record Tcp(TcpHeader header, byte[] payload) {
-    }
-
     private Tcp parseTcp(final byte[] frame) {
         final ByteBuffer buffer = ByteBuffer.wrap(frame);
         final byte[] destinationMac = new byte[6];
@@ -756,7 +743,7 @@ public class InternetStackIntegrationTests {
         buffer.position(ipStart + 9);
         assertEquals(PROTOCOL_TCP, buffer.get(), "expected a TCP packet");
         buffer.position(ipStart + 12);
-        assertEquals(0x7F000001, buffer.getInt(), "source should be the address the guest dialled");
+        assertEquals(LOOPBACK_IP, buffer.getInt(), "source should be the address the guest dialled");
         assertEquals(GUEST_IP, buffer.getInt(), "destination should be the guest");
 
         buffer.position(ipStart + headerSize);
@@ -771,7 +758,7 @@ public class InternetStackIntegrationTests {
     }
 
     private static byte[] destinationMacOf(final byte[] frame) {
-        return java.util.Arrays.copyOf(frame, 6);
+        return Arrays.copyOf(frame, 6);
     }
 
     private static int arpSenderIpOf(final byte[] frame) {
@@ -782,24 +769,8 @@ public class InternetStackIntegrationTests {
         return ByteBuffer.wrap(frame).getInt(LinkLocalLayer.FRAME_HEADER_SIZE + 24);
     }
 
-    private void resolveGateway() throws InterruptedException {
-        send(arpRequest(GUEST_IP, GATEWAY_IP));
+    // --------------------------------------------------------------------- //
 
-        final byte[] reply = pumpUntilFrame();
-        final ByteBuffer buffer = ByteBuffer.wrap(reply);
-        final byte[] destinationMac = new byte[6];
-        buffer.get(destinationMac);
-        assertArrayEquals(GUEST_MAC, destinationMac);
-
-        gatewayMac = new byte[6];
-        buffer.get(gatewayMac);
-        assertEquals(ETHERTYPE_ARP, buffer.getShort());
-
-        buffer.position(LinkLocalLayer.FRAME_HEADER_SIZE + 6);
-        assertEquals(2, buffer.getShort(), "expected an ARP reply");
-        final byte[] senderMac = new byte[6];
-        buffer.get(senderMac);
-        assertArrayEquals(gatewayMac, senderMac, "the reply should advertise the gateway's own MAC");
-        assertEquals(GATEWAY_IP, buffer.getInt(), "the gateway should answer to the address it was asked for");
+    private record Tcp(TcpHeader header, byte[] payload) {
     }
 }

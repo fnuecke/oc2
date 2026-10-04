@@ -3,10 +3,9 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
-import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.device.GuestTestDevices;
 import li.cil.oc2.gametest.fixture.GuestTests;
+import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -35,31 +34,20 @@ public final class RobotActionEventTests {
         helper.startSequence()
             .thenExecuteAfter(20, () -> {
                 robot.charge();
-                robot.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get()))
-                    .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                    .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
-                    .install(DeviceTypes.ROBOT_MODULE.get(), new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get()));
+                Hardware.installLinuxWithExtraMemory(robot);
+                robot.install(DeviceTypes.ROBOT_MODULE.get(), new ItemStack(GuestTestDevices.GUEST_TEST_PORT.get()));
             })
             .thenExecuteAfter(20, robot::start)
             .thenWaitUntil(() -> {
-                keepAlive(robot);
+                robot.keepAlive();
                 tests.requireReady();
             })
             .thenExecute(() -> tests.run(SUITE))
             .thenWaitUntil(() -> {
-                keepAlive(robot);
+                robot.keepAlive();
                 tests.requireSuccess();
             })
             .thenSucceed();
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private static void keepAlive(final RobotFixture robot) {
-        robot.charge();
-        robot.assertNoGuestPanic();
     }
 
     // --------------------------------------------------------------------- //

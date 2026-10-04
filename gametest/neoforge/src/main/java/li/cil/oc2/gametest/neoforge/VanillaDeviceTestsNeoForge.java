@@ -83,4 +83,9 @@ public final class VanillaDeviceTestsNeoForge {
     public static void noteBlockTunes(final GameTestHelper helper) {
         VanillaDeviceTests.noteBlockTunes(helper);
     }
+
+    // --------------------------------------------------------------------- //
+
+    private VanillaDeviceTestsNeoForge() {
+    }
 }

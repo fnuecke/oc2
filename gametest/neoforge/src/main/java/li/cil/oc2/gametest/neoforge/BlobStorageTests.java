@@ -17,7 +17,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -33,15 +32,13 @@ import java.nio.file.attribute.FileTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static li.cil.oc2.gametest.util.Blobs.*;
 import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
 import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
-import static li.cil.oc2.gametest.util.TestSupport.createBlob;
 
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class BlobStorageTests {
-    private static final String DEVICE_KEY = "oc2:hard_drive";
-    private static final String BLOB_HANDLE_TAG_NAME = "blob";
     private static final long ANCIENT_MILLIS = 1000L;
 
     // --------------------------------------------------------------------- //
@@ -153,8 +150,7 @@ public final class BlobStorageTests {
         }
 
         try {
-            Files.createFile(directory.resolve(handle.toString()));
-            Files.createFile(directory.resolve(handle + ".dirty"));
+            markStale(handle);
 
             if (!BlobStorage.isStaleHandle(handle)) {
                 throw new GameTestAssertException("marker from another session should read as stale");
@@ -480,7 +476,7 @@ public final class BlobStorageTests {
             final UUID handle = createBlob(blob);
             blob.close();
 
-            final ItemStack stack = driveReferencing(handle);
+            final ItemStack stack = driveReferencing(new ItemStack(Items.HARD_DRIVE_LARGE.get()), handle);
             StorageItemUtils.setState(stack, State.CORRUPTED);
 
             if (!isCorrupted(stack)) {
@@ -492,7 +488,7 @@ public final class BlobStorageTests {
             if (isCorrupted(stack)) {
                 throw new GameTestAssertException("Resetting the item should clear the corrupted flag");
             }
-            if (ItemDeviceUtils.getItemDeviceData(stack).getCompound(DEVICE_KEY).hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            if (ItemDeviceUtils.getItemDeviceData(stack).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
                 throw new GameTestAssertException("Resetting the item should drop the blob handle");
             }
             if (BlobStorage.exists(handle)) {
@@ -513,7 +509,7 @@ public final class BlobStorageTests {
         try {
             final UUID handle = createBlob(blob);
 
-            StorageItemUtils.clearBlobData(driveReferencing(handle));
+            StorageItemUtils.clearBlobData(driveReferencing(new ItemStack(Items.HARD_DRIVE_LARGE.get()), handle));
 
             if (!BlobStorage.exists(handle)) {
                 throw new GameTestAssertException("a blob another item holds open should survive a reset");
@@ -534,10 +530,10 @@ public final class BlobStorageTests {
             final UUID handle = createBlob(blob);
             blob.close();
 
-            final ItemStack stack = driveReferencing(handle);
+            final ItemStack stack = driveReferencing(new ItemStack(Items.HARD_DRIVE_LARGE.get()), handle);
             StorageItemUtils.stripBlobData(stack);
 
-            if (ItemDeviceUtils.getItemDeviceData(stack).getCompound(DEVICE_KEY).hasUUID(BLOB_HANDLE_TAG_NAME)) {
+            if (ItemDeviceUtils.getItemDeviceData(stack).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
                 throw new GameTestAssertException("Stripping should drop the blob handle");
             }
             if (!BlobStorage.exists(handle)) {
@@ -623,20 +619,6 @@ public final class BlobStorageTests {
         return CraftingInput.of(stacks.length, 1, List.of(stacks));
     }
 
-    private static ItemStack driveReferencing(final UUID handle) {
-        final ItemStack stack = new ItemStack(Items.HARD_DRIVE_LARGE.get());
-
-        final CompoundTag driveData = new CompoundTag();
-        driveData.putUUID(BLOB_HANDLE_TAG_NAME, handle);
-
-        final CompoundTag deviceData = new CompoundTag();
-        deviceData.put(DEVICE_KEY, driveData);
-
-        ItemDeviceUtils.setItemDeviceData(stack, deviceData);
-
-        return stack;
-    }
-
     private static UUID createClosedBlob(final List<UUID> handles, final long lastUsedMillis) throws IOException {
         final BlobReference blob = new BlobReference();
         final UUID handle = createBlob(blob);
@@ -669,10 +651,6 @@ public final class BlobStorageTests {
     private static void release(final BlobReference blob) {
         blob.delete();
         BlobStorage.handleSaved();
-    }
-
-    private static boolean isCorrupted(final ItemStack stack) {
-        return StorageItemUtils.getState(stack) == State.CORRUPTED;
     }
 
     // --------------------------------------------------------------------- //

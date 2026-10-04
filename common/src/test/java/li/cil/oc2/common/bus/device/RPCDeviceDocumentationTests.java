@@ -11,7 +11,6 @@ import li.cil.oc2.common.bus.device.item.AbstractItemDevice;
 import li.cil.oc2.common.bus.device.item.BlockOperationsModuleDevice;
 import li.cil.oc2.common.bus.device.item.InventoryOperationsModuleDevice;
 import li.cil.oc2.common.bus.device.item.TankOperationsModuleDevice;
-import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.world.item.ItemStack;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class RPCDeviceDocumentationTests {
     @Test
     public void itemHandlerSlotParametersAreNamed() {
-        final List<RPCMethodGroup> groups = new ObjectDevice(new ItemHandlerDevice(new EmptyItemHandler())).getMethodGroups();
+        final List<RPCMethodGroup> groups = new ObjectDevice(new ItemHandlerDevice(new EmptyItemHandler(0))).getMethodGroups();
 
         for (final String name : List.of("getItemStackInSlot", "getItemSlotLimit")) {
             for (final RPCMethod overload : overloadsOf(groups, name)) {
@@ -82,27 +81,5 @@ public class RPCDeviceDocumentationTests {
             .findFirst()
             .orElseThrow(() -> new AssertionError("no callback named " + name))
             .getOverloads();
-    }
-
-    private static final class EmptyItemHandler implements ItemHandler {
-        @Override
-        public int getSlots() {
-            return 0;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(final int slot) {
-            return ItemStack.EMPTY;
-        }
-
-        @Override
-        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
-            return stack;
-        }
-
-        @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-            return ItemStack.EMPTY;
-        }
     }
 }

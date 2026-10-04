@@ -15,10 +15,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
 
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
+import static li.cil.oc2.gametest.util.TestSupport.hitResult;
 
 public final class WrenchTests {
     public static void rotatesOnTopFace(final GameTestHelper helper) {
@@ -106,12 +105,8 @@ public final class WrenchTests {
         final ItemStack wrench = new ItemStack(Items.WRENCH.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, wrench);
 
-        final BlockPos absolute = helper.absolutePos(pos);
-        final Vec3 location = Vec3.atCenterOf(absolute)
-            .add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
-
         player.gameMode.useItemOn(player, helper.getLevel(), wrench, InteractionHand.MAIN_HAND,
-            new BlockHitResult(location, face, absolute, false));
+            hitResult(helper, pos, face));
     }
 
     private static BusCableBlockEntity busCable(final GameTestHelper helper, final BlockPos pos) {

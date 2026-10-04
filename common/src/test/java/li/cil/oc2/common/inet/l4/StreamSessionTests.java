@@ -508,8 +508,22 @@ public class StreamSessionTests {
 
     // --------------------------------------------------------------------- //
 
-    private void advance(final long millis) {
-        now += TimeUnit.MILLISECONDS.toNanos(millis);
+    private void establish() {
+        fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
+        expectNothingToSend();
+
+        session.connect();
+        final Segment synAck = expectSegment();
+        assertTrue(synAck.header().syn);
+        assertTrue(synAck.header().ack);
+        assertEquals(guestSequence + 1, synAck.header().acknowledgmentNumber);
+        assertEquals(StreamSession.DEFAULT_MAX_SEGMENT_SIZE, synAck.header().maxSegmentSize);
+
+        sessionSequence = synAck.header().sequenceNumber + 1;
+        guestSequence += 1;
+
+        fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 8192, new byte[0]);
+        assertEquals(SessionState.ESTABLISHED, session.getState());
     }
 
     private void fromGuest(final int flags, final int sequenceNumber, final int acknowledgmentNumber,
@@ -525,6 +539,10 @@ public class StreamSessionTests {
         inbound.psh = (flags & TcpHeader.FLAG_PSH) != 0;
         inbound.window = window;
         session.onSegment(inbound, ByteBuffer.wrap(payload), now);
+    }
+
+    private void fromRemote(final String text) {
+        session.getReceiveBuffer().put(text.getBytes(StandardCharsets.UTF_8));
     }
 
     @Nullable
@@ -555,34 +573,18 @@ public class StreamSessionTests {
         assertNull(toGuest(), "expected the session to have nothing to send");
     }
 
-    private void establish() {
-        fromGuest(TcpHeader.FLAG_SYN, guestSequence, 0, 8192, new byte[0]);
-        expectNothingToSend();
-
-        session.connect();
-        final Segment synAck = expectSegment();
-        assertTrue(synAck.header().syn);
-        assertTrue(synAck.header().ack);
-        assertEquals(guestSequence + 1, synAck.header().acknowledgmentNumber);
-        assertEquals(StreamSession.DEFAULT_MAX_SEGMENT_SIZE, synAck.header().maxSegmentSize);
-
-        sessionSequence = synAck.header().sequenceNumber + 1;
-        guestSequence += 1;
-
-        fromGuest(TcpHeader.FLAG_ACK, guestSequence, sessionSequence, 8192, new byte[0]);
-        assertEquals(SessionState.ESTABLISHED, session.getState());
-    }
-
-    private void fromRemote(final String text) {
-        session.getReceiveBuffer().put(text.getBytes(StandardCharsets.UTF_8));
-    }
-
     private String drainToRemote() {
         final ByteBuffer buffer = session.getSendBuffer();
         final byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
         return new String(bytes, StandardCharsets.UTF_8);
     }
+
+    private void advance(final long millis) {
+        now += TimeUnit.MILLISECONDS.toNanos(millis);
+    }
+
+    // --------------------------------------------------------------------- //
 
     private record Segment(TcpHeader header, byte[] payload) {
         String text() {

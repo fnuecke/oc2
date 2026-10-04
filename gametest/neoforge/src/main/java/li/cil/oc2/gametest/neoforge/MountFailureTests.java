@@ -29,7 +29,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.player.Player;
@@ -50,6 +49,7 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
 
+import static li.cil.oc2.gametest.util.Blobs.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
@@ -348,9 +348,7 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("Precondition: the drive has data to keep");
             }
 
-            final CompoundTag deviceData = new CompoundTag();
-            deviceData.put("oc2:hard_drive", tagReferencing(handle));
-            ItemDeviceUtils.setItemDeviceData(drive, deviceData);
+            driveReferencing(drive, handle);
             StorageItemUtils.setState(drive, State.INCONSISTENT);
 
             final CraftingInput input = CraftingInput.of(2, 1,
@@ -366,7 +364,7 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("The craft moves the drive to acknowledged, got "
                     + StorageItemUtils.getState(result));
             }
-            if (!ItemDeviceUtils.getItemDeviceData(result).getCompound("oc2:hard_drive").hasUUID("blob")) {
+            if (!ItemDeviceUtils.getItemDeviceData(result).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
                 throw new GameTestAssertException("reset of an unverified drive should keep the handle");
             }
 
@@ -406,15 +404,9 @@ public final class MountFailureTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 900)
     public static void permanentMountFailureStopsComputer(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
-        final ItemStack drive = new ItemStack(Items.HARD_DRIVE_SMALL.get());
-        final CompoundTag driveData = new CompoundTag();
-        driveData.putUUID("blob", BlobStorage.allocateHandle());
-        final CompoundTag deviceData = new CompoundTag();
-        deviceData.put("oc2:hard_drive", driveData);
-        ItemDeviceUtils.setItemDeviceData(drive, deviceData);
+        final ItemStack drive = driveReferencing(new ItemStack(Items.HARD_DRIVE_SMALL.get()), BlobStorage.allocateHandle());
 
         helper.startSequence()
             .thenExecuteAfter(20, () -> computer
@@ -475,22 +467,6 @@ public final class MountFailureTests {
         }, null), unused -> OptionalLong.empty());
     }
 
-    private static CompoundTag tagReferencing(final UUID handle) {
-        final CompoundTag tag = new CompoundTag();
-        tag.putUUID("blob", handle);
-        return tag;
-    }
-
-    private static void markStale(final UUID handle) throws IOException {
-        final Path directory = BlobStorage.getDataDirectory();
-        if (directory == null) {
-            throw new GameTestAssertException("Blob storage is not initialized");
-        }
-
-        Files.createFile(directory.resolve(handle.toString()));
-        Files.createFile(directory.resolve(handle + ".dirty"));
-    }
-
     private static void release(final BlobReference blob) {
         final UUID handle = blob.getHandle();
         blob.close();
@@ -511,10 +487,6 @@ public final class MountFailureTests {
                 throw new GameTestAssertException("Failed cleaning up: " + e);
             }
         }
-    }
-
-    private static boolean isCorrupted(final ItemStack stack) {
-        return StorageItemUtils.getState(stack) == State.CORRUPTED;
     }
 
     // --------------------------------------------------------------------- //

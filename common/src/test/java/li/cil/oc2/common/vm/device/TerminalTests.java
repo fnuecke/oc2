@@ -55,8 +55,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         saved.putOutput(bytes[0]);
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         loaded.putOutput(bytes[1]);
 
@@ -81,7 +80,7 @@ public class TerminalTests {
             terminal.putInput((byte) 'x');
         }
 
-        assertEquals(cap, drainInput(terminal), "input past the cap should be dropped, not queued");
+        assertEquals(cap, readResponse(terminal).length(), "input past the cap should be dropped, not queued");
     }
 
     @Test
@@ -91,7 +90,7 @@ public class TerminalTests {
 
         terminal.putInput(ByteBuffer.wrap(new byte[cap * 2]));
 
-        assertEquals(cap, drainInput(terminal));
+        assertEquals(cap, readResponse(terminal).length());
     }
 
     @Test
@@ -100,10 +99,10 @@ public class TerminalTests {
         final int cap = maxInputSize();
 
         terminal.putInput(ByteBuffer.wrap(new byte[cap * 2]));
-        assertEquals(cap, drainInput(terminal));
+        assertEquals(cap, readResponse(terminal).length());
 
         terminal.putInput((byte) 'x');
-        assertEquals(1, drainInput(terminal));
+        assertEquals(1, readResponse(terminal).length());
     }
 
     @Test
@@ -167,6 +166,56 @@ public class TerminalTests {
     }
 
     @Test
+    public void horizontalMovementDoesNotChangeTheRow() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r");
+
+        write(terminal, "\033[C");
+
+        assertEquals(0, terminal.getCursorY(), "moving right must not drag the cursor into the scroll region");
+    }
+
+    @Test
+    public void saturatedCursorForwardStopsAtTheLastColumn() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[1;2H");
+
+        write(terminal, "\033[2147483647C");
+
+        assertEquals(Terminal.WIDTH - 1, terminal.getCursorX());
+    }
+
+    @Test
+    public void saturatedCursorDownStopsAtTheLastRow() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[2;1H");
+
+        write(terminal, "\033[2147483647B");
+
+        assertEquals(Terminal.HEIGHT - 1, terminal.getCursorY());
+    }
+
+    @Test
+    public void saturatedCursorPositionStopsAtTheLastRow() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[2147483647;2147483647H");
+
+        assertEquals(Terminal.WIDTH - 1, terminal.getCursorX());
+        assertEquals(Terminal.HEIGHT - 1, terminal.getCursorY());
+    }
+
+    @Test
+    public void saturatedCursorPositionClampsToBottomMarginInOriginMode() {
+        final Terminal terminal = new Terminal();
+        write(terminal, "\033[5;20r\033[?6h");
+
+        write(terminal, "\033[2147483647;1H");
+
+        assertEquals(19, terminal.getCursorY());
+    }
+
+    @Test
     public void eraseToStartOfLineAtTheRightMarginClearsTheWholeLine() {
         final Terminal terminal = new Terminal();
         write(terminal, fill(Terminal.WIDTH));
@@ -220,6 +269,15 @@ public class TerminalTests {
     }
 
     @Test
+    public void erasingKeepsTheCurrentBackground() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[44m\033[2K");
+
+        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
+    }
+
+    @Test
     public void reverseIndexKeepsTheColumn() {
         final Terminal terminal = new Terminal();
         write(terminal, "\033[5;40H");
@@ -238,16 +296,6 @@ public class TerminalTests {
         write(terminal, "\033[1;1H\033M");
 
         assertEquals("TOP", read(terminal, Terminal.WIDTH, 3), "the top line should have moved down one");
-    }
-
-    @Test
-    public void horizontalMovementDoesNotChangeTheRow() {
-        final Terminal terminal = new Terminal();
-        write(terminal, "\033[5;20r");
-
-        write(terminal, "\033[C");
-
-        assertEquals(0, terminal.getCursorY(), "moving right must not drag the cursor into the scroll region");
     }
 
     @Test
@@ -329,8 +377,7 @@ public class TerminalTests {
     public void extendedColorsStillWorkAfterSaveAndLoad() {
         final Terminal saved = new Terminal();
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         write(loaded, "\033[38;2;255;0;0mX");
 
@@ -425,15 +472,6 @@ public class TerminalTests {
     }
 
     @Test
-    public void erasingKeepsTheCurrentBackground() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[44m\033[2K");
-
-        assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(terminal.getCell(0)));
-    }
-
-    @Test
     public void scrollingExposesLinesWithTheCurrentBackground() {
         final Terminal terminal = new Terminal();
 
@@ -441,15 +479,6 @@ public class TerminalTests {
 
         final int cell = terminal.getCell((Terminal.HEIGHT - 1) * Terminal.WIDTH);
         assertEquals(COLOR_BLUE, Terminal.getBackgroundColorIndex(cell));
-    }
-
-    @Test
-    public void savedCursorRestoresAttributes() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\0337\033[31m\0338X");
-
-        assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(0)));
     }
 
     @Test
@@ -470,16 +499,6 @@ public class TerminalTests {
         write(terminal, "TOP\033[24;1H\n");
 
         assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 0));
-    }
-
-    @Test
-    public void cursorPositionReportStaysOnScreenAtTheRightMargin() {
-        final Terminal terminal = new Terminal();
-        write(terminal, fill(Terminal.WIDTH));
-
-        write(terminal, "\033[6n");
-
-        assertEquals("\033[1;80R", readResponse(terminal));
     }
 
     @Test
@@ -562,16 +581,6 @@ public class TerminalTests {
         write(terminal, "\033[>31mX");
 
         assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(0)));
-    }
-
-    @Test
-    public void decPrivateModesStillApply() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[?7l");
-
-        write(terminal, fill(Terminal.WIDTH + 5));
-        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1), "ESC[?7l must still turn wrapping off");
     }
 
     @Test
@@ -712,46 +721,6 @@ public class TerminalTests {
     }
 
     @Test
-    public void saturatedCursorForwardStopsAtTheLastColumn() {
-        final Terminal terminal = new Terminal();
-        write(terminal, "\033[1;2H");
-
-        write(terminal, "\033[2147483647C");
-
-        assertEquals(Terminal.WIDTH - 1, terminal.getCursorX());
-    }
-
-    @Test
-    public void saturatedCursorDownStopsAtTheLastRow() {
-        final Terminal terminal = new Terminal();
-        write(terminal, "\033[2;1H");
-
-        write(terminal, "\033[2147483647B");
-
-        assertEquals(Terminal.HEIGHT - 1, terminal.getCursorY());
-    }
-
-    @Test
-    public void saturatedCursorPositionStopsAtTheLastRow() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[2147483647;2147483647H");
-
-        assertEquals(Terminal.WIDTH - 1, terminal.getCursorX());
-        assertEquals(Terminal.HEIGHT - 1, terminal.getCursorY());
-    }
-
-    @Test
-    public void saturatedCursorPositionClampsToBottomMarginInOriginMode() {
-        final Terminal terminal = new Terminal();
-        write(terminal, "\033[5;20r\033[?6h");
-
-        write(terminal, "\033[2147483647;1H");
-
-        assertEquals(19, terminal.getCursorY());
-    }
-
-    @Test
     public void subParameterSequencesAreNotPrintedToTheScreen() {
         final Terminal terminal = new Terminal();
 
@@ -791,21 +760,6 @@ public class TerminalTests {
 
         assertEquals(0, terminal.getCursorY());
         assertEquals("A" + " ".repeat(Terminal.WIDTH - 1), readLine(terminal, 0));
-    }
-
-    @Test
-    public void cursorPositionReportsUseLatinDigits() {
-        final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
-        try {
-            Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag("ar-EG-u-nu-arab"));
-
-            final Terminal terminal = new Terminal();
-            write(terminal, "\033[12;34H\033[6n");
-
-            assertEquals("\033[12;34R", readResponse(terminal));
-        } finally {
-            Locale.setDefault(Locale.Category.FORMAT, previous);
-        }
     }
 
     @Test
@@ -850,6 +804,17 @@ public class TerminalTests {
     }
 
     @Test
+    public void unimplementedHighModesLeaveLowOnesAlone() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?39l");
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+
+        assertEquals(fill(5) + " ".repeat(Terminal.WIDTH - 5), readLine(terminal, 1));
+    }
+
+    @Test
     public void ansiNewLineModeStillApplies() {
         final Terminal terminal = new Terminal();
 
@@ -857,6 +822,16 @@ public class TerminalTests {
 
         write(terminal, "abc\n");
         assertEquals(0, terminal.getCursorX());
+    }
+
+    @Test
+    public void decPrivateModesStillApply() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\033[?7l");
+
+        write(terminal, fill(Terminal.WIDTH + 5));
+        assertEquals(" ".repeat(Terminal.WIDTH), readLine(terminal, 1), "ESC[?7l must still turn wrapping off");
     }
 
     @Test
@@ -884,8 +859,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, fill(Terminal.WIDTH));
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         write(loaded, "X");
         assertEquals('X', readLine(loaded, 1).charAt(0), "the deferred wrap should still happen");
@@ -896,12 +870,20 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "\033[2");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         write(loaded, ";3HX");
 
         assertEquals('X', readLine(loaded, 1).charAt(2), "the split sequence should still be a CUP");
+    }
+
+    @Test
+    public void savedCursorRestoresAttributes() {
+        final Terminal terminal = new Terminal();
+
+        write(terminal, "\0337\033[31m\0338X");
+
+        assertEquals(Terminal.COLOR_WHITE, Terminal.getForegroundColorIndex(terminal.getCell(0)));
     }
 
     @Test
@@ -938,8 +920,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "\033[6;7H\0337\033[1;1H");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         write(loaded, "\0338");
         assertEquals(6, loaded.getCursorX());
@@ -1186,8 +1167,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "\033[?25l");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         assertFalse(loaded.isCursorVisible());
     }
@@ -1215,8 +1195,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "\033[?2004h");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         assertTrue(loaded.isBracketedPasteMode());
     }
@@ -1229,17 +1208,6 @@ public class TerminalTests {
         write(terminal, "\033c");
 
         assertFalse(terminal.isBracketedPasteMode());
-    }
-
-    @Test
-    public void unimplementedHighModesLeaveLowOnesAlone() {
-        final Terminal terminal = new Terminal();
-
-        write(terminal, "\033[?39l");
-
-        write(terminal, fill(Terminal.WIDTH + 5));
-
-        assertEquals(fill(5) + " ".repeat(Terminal.WIDTH - 5), readLine(terminal, 1));
     }
 
     @Test
@@ -1361,8 +1329,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "\033[91mA");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         assertTrue(Terminal.isForegroundBright(loaded.getCell(0)), "the bright bit is the color byte's sign bit");
         assertEquals(COLOR_RED, Terminal.getForegroundColorIndex(loaded.getCell(0)));
@@ -1477,8 +1444,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "shell\033[?1049heditor");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         assertTrue(loaded.isAltBufferActive());
         write(loaded, "\033[?1049l");
@@ -1550,8 +1516,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "shell\033[?1049h\033[1;1Heditor");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         assertEquals("editor", read(loaded, 0, 6), "the alt screen itself must survive too");
         write(loaded, "\033[?1049l");
@@ -1623,8 +1588,7 @@ public class TerminalTests {
         final Terminal saved = new Terminal();
         write(saved, "\033[?1000h\033[?1006h");
 
-        final Terminal loaded = new Terminal();
-        NBTSerialization.deserialize(NBTSerialization.serialize(saved), loaded);
+        final Terminal loaded = reload(saved);
 
         assertTrue(loaded.isMouseReportingEnabled());
         loaded.putMouseEvent(0, 0, 0, true);
@@ -1636,7 +1600,7 @@ public class TerminalTests {
         final Terminal terminal = new Terminal();
 
         assertFalse(terminal.putScroll(true, 3), "there is no scrollback to move, so the GUI keeps the event");
-        assertEquals(0, drainInput(terminal));
+        assertEquals("", readResponse(terminal));
     }
 
     @Test
@@ -1675,7 +1639,7 @@ public class TerminalTests {
         write(terminal, "\033[?1049h\033[?1007l");
 
         assertFalse(terminal.putScroll(true, 3));
-        assertEquals(0, drainInput(terminal));
+        assertEquals("", readResponse(terminal));
     }
 
     @Test
@@ -1694,7 +1658,32 @@ public class TerminalTests {
 
         write(terminal, "\033[?25h\033[?0c");
 
-        assertEquals(0, drainInput(terminal), "answering this would type the reply into whatever is running");
+        assertEquals("", readResponse(terminal), "answering this would type the reply into whatever is running");
+    }
+
+    @Test
+    public void cursorPositionReportStaysOnScreenAtTheRightMargin() {
+        final Terminal terminal = new Terminal();
+        write(terminal, fill(Terminal.WIDTH));
+
+        write(terminal, "\033[6n");
+
+        assertEquals("\033[1;80R", readResponse(terminal));
+    }
+
+    @Test
+    public void cursorPositionReportsUseLatinDigits() {
+        final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
+        try {
+            Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag("ar-EG-u-nu-arab"));
+
+            final Terminal terminal = new Terminal();
+            write(terminal, "\033[12;34H\033[6n");
+
+            assertEquals("\033[12;34R", readResponse(terminal));
+        } finally {
+            Locale.setDefault(Locale.Category.FORMAT, previous);
+        }
     }
 
     @Test
@@ -1712,43 +1701,16 @@ public class TerminalTests {
 
         write(terminal, "\033[?6n");
 
-        assertEquals(0, drainInput(terminal));
+        assertEquals("", readResponse(terminal));
     }
 
     // --------------------------------------------------------------------- //
 
-    private static int cellCharacter(final Terminal terminal, final int index) {
-        return Terminal.getCharacter(terminal.getCell(index));
+    private static Terminal reload(final Terminal terminal) {
+        final Terminal loaded = new Terminal();
+        NBTSerialization.deserialize(NBTSerialization.serialize(terminal), loaded);
+        return loaded;
     }
-
-    private static int drainInput(final Terminal terminal) {
-        int count = 0;
-        while (terminal.readInput() != -1) {
-            count++;
-        }
-        return count;
-    }
-
-    private static String readResponse(final Terminal terminal) {
-        final StringBuilder response = new StringBuilder();
-        int value;
-        while ((value = terminal.readInput()) != -1) {
-            response.append((char) value);
-        }
-        return response.toString();
-    }
-
-    private static int maxInputSize() {
-        try {
-            final Field field = Terminal.class.getDeclaredField("MAX_INPUT_SIZE");
-            field.setAccessible(true);
-            return field.getInt(null);
-        } catch (final ReflectiveOperationException e) {
-            throw new AssertionError("could not read the terminal's input cap", e);
-        }
-    }
-
-    // --------------------------------------------------------------------- //
 
     private static void write(final Terminal terminal, final String value) {
         for (final byte b : value.getBytes(StandardCharsets.UTF_8)) {
@@ -1776,14 +1738,33 @@ public class TerminalTests {
     }
 
     private static String read(final Terminal terminal, final int offset, final int length) {
+        final StringBuilder text = new StringBuilder(length);
+        for (int i = offset; i < offset + length; i++) {
+            text.append((char) cellCharacter(terminal, i));
+        }
+        return text.toString();
+    }
+
+    private static int cellCharacter(final Terminal terminal, final int index) {
+        return Terminal.getCharacter(terminal.getCell(index));
+    }
+
+    private static String readResponse(final Terminal terminal) {
+        final StringBuilder response = new StringBuilder();
+        int value;
+        while ((value = terminal.readInput()) != -1) {
+            response.append((char) value);
+        }
+        return response.toString();
+    }
+
+    private static int maxInputSize() {
         try {
-            final Field field = Terminal.class.getDeclaredField("buffer");
+            final Field field = Terminal.class.getDeclaredField("MAX_INPUT_SIZE");
             field.setAccessible(true);
-            final byte[] cells = new byte[length];
-            System.arraycopy(field.get(terminal), offset, cells, 0, length);
-            return new String(cells, StandardCharsets.ISO_8859_1);
+            return field.getInt(null);
         } catch (final ReflectiveOperationException e) {
-            throw new AssertionError("could not read the terminal's cell buffer", e);
+            throw new AssertionError("could not read the terminal's input cap", e);
         }
     }
 }

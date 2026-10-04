@@ -39,6 +39,8 @@ public final class WrenchTestsNeoForge {
         WrenchTests.sneakingBreaksWrenchBreakableBlock(helper);
     }
 
+    // --------------------------------------------------------------------- //
+
     private WrenchTestsNeoForge() {
     }
 }

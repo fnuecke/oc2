@@ -93,10 +93,6 @@ public final class CompoundNetworkInterfaceTests {
             this.side = side;
         }
 
-        private void queue(final byte[] frame) {
-            pending.add(frame);
-        }
-
         @Nullable
         @SuppressWarnings("unchecked")
         @Override
@@ -106,6 +102,10 @@ public final class CompoundNetworkInterfaceTests {
             }
 
             return null;
+        }
+
+        private void queue(final byte[] frame) {
+            pending.add(frame);
         }
 
         private final class CardInterface implements NetworkInterface {

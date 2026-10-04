@@ -9,6 +9,10 @@ import java.nio.ByteBuffer;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TcpHeaderTests {
+    private static final byte[] NO_BYTES = {};
+
+    // --------------------------------------------------------------------- //
+
     @Test
     public void plainHeaderParses() {
         final TcpHeader header = new TcpHeader();
@@ -183,8 +187,6 @@ public class TcpHeaderTests {
     }
 
     // --------------------------------------------------------------------- //
-
-    private static final byte[] NO_BYTES = {};
 
     private static ByteBuffer segment(
         final int sequenceNumber,

@@ -16,6 +16,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.regex.Pattern;
 
+import static li.cil.oc2.gametest.fixture.MachineFixture.LOGIN_PROMPT;
+import static li.cil.oc2.gametest.fixture.MachineFixture.SHELL_PROMPT;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
 @GameTestHolder(MOD_ID)
@@ -24,8 +26,6 @@ public final class GuestToolingTests {
     private static final String GEOMETRY_BATCH = "oc2_guest_tooling_geometry";
     private static final String SWAP_BATCH = "oc2_guest_tooling_swap";
     private static final String SOUND_BATCH = "oc2_guest_tooling_sound";
-
-    private static final String PROMPT = "# ";
 
     // --------------------------------------------------------------------- //
 
@@ -36,9 +36,9 @@ public final class GuestToolingTests {
         helper.startSequence()
             .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
-            .thenWaitUntil(() -> requireScreen(computer, "login:"))
-            .thenExecute(() -> computer.type("root\n"))
-            .thenWaitUntil(() -> requireScreen(computer, PROMPT))
+            .thenWaitUntil(() -> requireScreen(computer, LOGIN_PROMPT))
+            .thenExecute(computer::loginAsRoot)
+            .thenWaitUntil(() -> requireScreen(computer, SHELL_PROMPT))
             .thenExecuteAfter(20, () -> computer.type(script("fdisk -l /dev/vda; echo GEOMETRY:$?")))
             .thenWaitUntil(() -> requireScreen(computer, "GEOMETRY:0"))
             .thenExecute(() -> {
@@ -64,13 +64,13 @@ public final class GuestToolingTests {
                 computer.install(DeviceTypes.HARD_DRIVE.get(), new ItemStack(Items.HARD_DRIVE_SMALL.get()));
             })
             .thenExecuteAfter(20, computer::start)
-            .thenWaitUntil(() -> requireScreen(computer, "login:"))
-            .thenExecute(() -> computer.type("root\n"))
-            .thenWaitUntil(() -> requireScreen(computer, PROMPT))
+            .thenWaitUntil(() -> requireScreen(computer, LOGIN_PROMPT))
+            .thenExecute(computer::loginAsRoot)
+            .thenWaitUntil(() -> requireScreen(computer, SHELL_PROMPT))
             .thenExecuteAfter(20, () -> computer.type(script(
                 "mkswap /dev/vdb >/dev/null && swapon /dev/vdb && grep -q vdb /proc/swaps; echo SWAP:$?")))
             .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("SWAP"), "swap setup should report back"))
-            .thenExecute(() -> requireContains(computer.screen(), "SWAP:0", "guest could not enable swap"))
+            .thenExecute(() -> computer.assertScreenContains("SWAP:0", "guest could not enable swap"))
             .thenSucceed();
     }
 
@@ -84,25 +84,25 @@ public final class GuestToolingTests {
                 computer.install(DeviceTypes.CARD.get(), new ItemStack(Items.SOUND_CARD.get()));
             })
             .thenExecuteAfter(20, computer::start)
-            .thenWaitUntil(() -> requireScreen(computer, "login:"))
+            .thenWaitUntil(() -> requireScreen(computer, LOGIN_PROMPT))
             .thenExecute(() -> {
                 if (computer.devices().stream().noneMatch(SoundCardDevice.class::isInstance)) {
                     throw new GameTestAssertException("the sound card was not detected by a RISC-V machine");
                 }
-                computer.type("root\n");
+                computer.loginAsRoot();
             })
-            .thenWaitUntil(() -> requireScreen(computer, PROMPT))
+            .thenWaitUntil(() -> requireScreen(computer, SHELL_PROMPT))
             .thenExecuteAfter(20, () -> computer.type(script(
                 "head -c 8000 /dev/urandom > /tmp/noise.raw; ls /dev/dsp /dev/snd/pcmC0D0p >/dev/null; echo DEVICES:$?")))
             .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("DEVICES"), "the device check should report back"))
-            .thenExecute(() -> requireContains(computer.screen(), "DEVICES:0", "the guest has no sound card"))
+            .thenExecute(() -> computer.assertScreenContains("DEVICES:0", "the guest has no sound card"))
             .thenExecute(() -> computer.type(script("cat /tmp/noise.raw > /dev/dsp; echo FIRST:$?")))
             .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("FIRST"), "playback should report back"))
-            .thenExecute(() -> requireContains(computer.screen(), "FIRST:0", "playback failed"))
+            .thenExecute(() -> computer.assertScreenContains("FIRST:0", "playback failed"))
             .thenExecute(() -> requireAudioReachedTheCard(computer))
             .thenExecute(() -> computer.type(script("cat /tmp/noise.raw > /dev/dsp; echo SECOND:$?")))
             .thenWaitUntil(() -> computer.assertScreenMatches(exitStatus("SECOND"), "the second playback should report back"))
-            .thenExecute(() -> requireContains(computer.screen(), "SECOND:0", "playing a second time failed"))
+            .thenExecute(() -> computer.assertScreenContains("SECOND:0", "playing a second time failed"))
             .thenSucceed();
     }
 

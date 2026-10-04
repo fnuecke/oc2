@@ -18,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import java.nio.charset.StandardCharsets;
 
 import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
-import static li.cil.oc2.gametest.util.TestSupport.placePower;
 
 public final class SerialInterfaceTests {
     private static final byte[] PEER_MAC = {0x02, 0x6F, 0x63, 0x7E, 0x7E, 0x7E};
@@ -28,8 +27,7 @@ public final class SerialInterfaceTests {
 
     public static void connectorResolvesSerialCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         player.setXRot(90);
         final ConnectorFixture connector = ConnectorFixture.place(helper, player, computer.pos().above());
@@ -56,8 +54,7 @@ public final class SerialInterfaceTests {
 
     public static void disabledSideExposesNoInterface(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         final ItemStack card = new ItemStack(Items.SERIAL_INTERFACE_CARD.get());
         SerialInterfaceCardItem.setSideConfiguration(card, Direction.UP, false);
@@ -77,8 +74,7 @@ public final class SerialInterfaceTests {
 
     public static void cardDoesNotEchoItsOwnFrame(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         helper.startSequence()
             .thenExecuteAfter(40, () -> computer.install(DeviceTypes.CARD.get(),
@@ -103,8 +99,7 @@ public final class SerialInterfaceTests {
 
     public static void twoSerialCardsFitOneComputer(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        placePower(helper, player);
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
 
         helper.startSequence()
             .thenExecuteAfter(40, () -> {

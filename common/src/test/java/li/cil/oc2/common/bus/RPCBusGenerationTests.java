@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import li.cil.ceres.BinarySerialization;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.sedna.Sedna;
@@ -70,6 +69,19 @@ public final class RPCBusGenerationTests {
     }
 
     @Test
+    public void resultReplyCarriesGeneration() {
+        addDevice("redstone");
+        adapter.rebuild(busController);
+        final int expected = generation();
+
+        final JsonObject result = request("invoke", "\"data\":{\"deviceId\":\""
+            + onlyIdentifier() + "\",\"name\":\"ping\",\"parameters\":[]}");
+        assertEquals("result", result.get("type").getAsString(), result.toString());
+        assertEquals(expected, result.get("gen").getAsInt(),
+            "result reply reported a different generation than list");
+    }
+
+    @Test
     public void generationMovesWhenDevicesChange() {
         addDevice("redstone");
         adapter.rebuild(busController);
@@ -121,19 +133,6 @@ public final class RPCBusGenerationTests {
         adapter.reset();
 
         assertEquals(before, generation(), "reset must leave the generation exactly where it was");
-    }
-
-    @Test
-    public void resultReplyCarriesGeneration() {
-        addDevice("redstone");
-        adapter.rebuild(busController);
-        final int expected = generation();
-
-        final JsonObject result = request("invoke", "\"data\":{\"deviceId\":\""
-            + onlyIdentifier() + "\",\"name\":\"ping\",\"parameters\":[]}");
-        assertEquals("result", result.get("type").getAsString(), result.toString());
-        assertEquals(expected, result.get("gen").getAsInt(),
-            "result reply reported a different generation than list");
     }
 
     @Test
@@ -206,12 +205,5 @@ public final class RPCBusGenerationTests {
         final Set<UUID> ids = new HashSet<>();
         ids.add(UUID.randomUUID());
         identifiers.put(device, ids);
-    }
-
-    public static final class Pingable {
-        @Callback(synchronize = false)
-        public int ping() {
-            return 1;
-        }
     }
 }

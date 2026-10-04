@@ -4,9 +4,7 @@ package li.cil.oc2.common.bus.device;
 
 import li.cil.oc2.MinecraftBootstrap;
 import li.cil.oc2.api.bus.DeviceBusController;
-import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.object.IOCallback;
-import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
 import li.cil.oc2.common.bus.TestIOInvocation;
@@ -23,6 +21,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
+import static li.cil.oc2.common.bus.TestIOInvocation.method;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,6 +38,7 @@ public final class ItemHandlerDeviceIOTests {
     private static final int REG_STATUS = 3;
     private static final int STATUS_DATA_AVAILABLE = 0b0000_0010;
     private static final int STATUS_ERROR = 0b1000_0000;
+    private static final int ERROR_INVALID_ARGUMENTS = 0x05;
     private static final int CONTROL_EXECUTE = 0x01;
 
     private static final int SLOT_RECORD_SIZE = 4;
@@ -61,6 +61,13 @@ public final class ItemHandlerDeviceIOTests {
     @Test
     public void deviceIsNamedItems() {
         assertEquals("ITEMS", new ObjectDevice(new ItemHandlerDevice(new ArrayItemHandler(1))).getIOName());
+    }
+
+    @Test
+    public void slotReadsRunOnTheServerThread() {
+        assertTrue(isSynchronized(GET_SLOT_COUNT), "reading the slot count touches the inventory");
+        assertTrue(isSynchronized(GET_SLOTS), "reading slots touches the inventory");
+        assertTrue(isSynchronized(GET_SLOT_LIMIT), "reading a slot limit touches the inventory");
     }
 
     @Test
@@ -146,18 +153,6 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     @Test
-    public void slotLimitClampsToByte() throws Throwable {
-        assertArrayEquals(new byte[]{(byte) 255}, invoke(new ArrayItemHandler(1, 1000), GET_SLOT_LIMIT, 0));
-    }
-
-    @Test
-    public void slotReadsRunOnTheServerThread() {
-        assertTrue(isSynchronized(GET_SLOT_COUNT), "reading the slot count touches the inventory");
-        assertTrue(isSynchronized(GET_SLOTS), "reading slots touches the inventory");
-        assertTrue(isSynchronized(GET_SLOT_LIMIT), "reading a slot limit touches the inventory");
-    }
-
-    @Test
     public void bulkReadRejectsZeroCount() {
         assertThrows(IllegalArgumentException.class, () -> invoke(new ArrayItemHandler(4), GET_SLOTS, 0, 0));
     }
@@ -173,6 +168,21 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     @Test
+    public void slotLimitIsReported() throws Throwable {
+        assertArrayEquals(new byte[]{64}, invoke(new ArrayItemHandler(2), GET_SLOT_LIMIT, 1));
+    }
+
+    @Test
+    public void slotLimitClampsToByte() throws Throwable {
+        assertArrayEquals(new byte[]{(byte) 255}, invoke(new ArrayItemHandler(1, 1000), GET_SLOT_LIMIT, 0));
+    }
+
+    @Test
+    public void slotLimitRejectsSlotPastTheEnd() {
+        assertThrows(IllegalArgumentException.class, () -> invoke(new ArrayItemHandler(2), GET_SLOT_LIMIT, 2));
+    }
+
+    @Test
     public void missingArgumentsReachTheGuestAsAnArgumentError() {
         final IODeviceBusAdapter adapter = adapterFor(new ArrayItemHandler(4));
         adapter.store(REG_SELECT, 0, Sizes.SIZE_8_LOG2);
@@ -182,18 +192,8 @@ public final class ItemHandlerDeviceIOTests {
         adapter.tick();
 
         assertEquals(STATUS_ERROR, (int) adapter.load(REG_STATUS, Sizes.SIZE_8_LOG2));
-        assertEquals(0x05, (int) adapter.load(REG_DATA, Sizes.SIZE_8_LOG2),
+        assertEquals(ERROR_INVALID_ARGUMENTS, (int) adapter.load(REG_DATA, Sizes.SIZE_8_LOG2),
             "too few arguments is the guest's mistake, not an internal error");
-    }
-
-    @Test
-    public void slotLimitIsReported() throws Throwable {
-        assertArrayEquals(new byte[]{64}, invoke(new ArrayItemHandler(2), GET_SLOT_LIMIT, 1));
-    }
-
-    @Test
-    public void slotLimitRejectsSlotPastTheEnd() {
-        assertThrows(IllegalArgumentException.class, () -> invoke(new ArrayItemHandler(2), GET_SLOT_LIMIT, 2));
     }
 
     @Test
@@ -239,17 +239,13 @@ public final class ItemHandlerDeviceIOTests {
         adapter.tick();
 
         assertEquals(STATUS_ERROR, (int) adapter.load(REG_STATUS, Sizes.SIZE_8_LOG2));
-        assertEquals(0x05, (int) adapter.load(REG_DATA, Sizes.SIZE_8_LOG2));
+        assertEquals(ERROR_INVALID_ARGUMENTS, (int) adapter.load(REG_DATA, Sizes.SIZE_8_LOG2));
     }
 
     // --------------------------------------------------------------------- //
 
     private static boolean isSynchronized(final int code) {
-        return IOCallbacks.collectMethods(new ItemHandlerDevice(new ArrayItemHandler(1))).stream()
-            .filter(m -> m.getCode() == code)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no function with code " + code))
-            .isSynchronized();
+        return method(new ItemHandlerDevice(new ArrayItemHandler(1)), code).isSynchronized();
     }
 
     private static IODeviceBusAdapter adapterFor(final ItemHandler handler) {
@@ -264,22 +260,7 @@ public final class ItemHandlerDeviceIOTests {
     }
 
     private static byte[] invoke(final ItemHandler handler, final int code, final int... arguments) throws Throwable {
-        final byte[] bytes = new byte[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-            bytes[i] = (byte) arguments[i];
-        }
-        return invoke(handler, code, bytes);
-    }
-
-    private static byte[] invoke(final ItemHandler handler, final int code, final byte[] arguments) throws Throwable {
-        final IOMethod method = IOCallbacks.collectMethods(new ItemHandlerDevice(handler)).stream()
-            .filter(m -> m.getCode() == code)
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no function with code " + code));
-
-        final TestIOInvocation invocation = new TestIOInvocation(arguments);
-        method.invoke(invocation);
-        return invocation.results.toByteArray();
+        return TestIOInvocation.invoke(method(new ItemHandlerDevice(handler), code), TestIOInvocation.bytes(arguments));
     }
 
     // --------------------------------------------------------------------- //

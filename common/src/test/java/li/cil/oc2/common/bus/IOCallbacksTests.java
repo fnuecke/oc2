@@ -8,8 +8,7 @@ import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.IODeviceDescription;
-import li.cil.oc2.api.util.Side;
-import net.minecraft.core.Direction;
+import li.cil.oc2.common.bus.device.RedstoneInterfaceDevice;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -17,6 +16,8 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static li.cil.oc2.common.bus.TestIOInvocation.invoke;
+import static li.cil.oc2.common.bus.TestIOInvocation.method;
 import static org.junit.jupiter.api.Assertions.*;
 
 public final class IOCallbacksTests {
@@ -37,23 +38,44 @@ public final class IOCallbacksTests {
     @Test
     public void synchronizeDefaultsToTrue() {
         final AllSignatures target = new AllSignatures();
-        assertTrue(function(target, 1).isSynchronized());
-        assertFalse(function(target, 4).isSynchronized());
+        assertTrue(method(target, 1).isSynchronized());
+        assertFalse(method(target, 4).isSynchronized());
     }
 
     @Test
     public void invokesAllFourSignatures() throws Throwable {
         final AllSignatures target = new AllSignatures();
 
-        invoke(function(target, 1), new byte[0]);
+        invoke(method(target, 1), new byte[0]);
         assertTrue(target.calledWithoutStreams);
 
-        invoke(function(target, 2), new byte[]{42});
+        invoke(method(target, 2), new byte[]{42});
         assertEquals(42, target.readArgument);
 
-        assertArrayEquals(new byte[]{7}, invoke(function(target, 3), new byte[0]));
+        assertArrayEquals(new byte[]{7}, invoke(method(target, 3), new byte[0]));
 
-        assertArrayEquals(new byte[]{23}, invoke(function(target, 4), new byte[]{23}));
+        assertArrayEquals(new byte[]{23}, invoke(method(target, 4), new byte[]{23}));
+    }
+
+    @Test
+    public void richStreamSignaturesAreAccepted() throws Throwable {
+        final RichSignatures target = new RichSignatures();
+        assertEquals(3, IOCallbacks.collectMethods(target).size());
+
+        invoke(method(target, 1), new byte[]{0x34, 0x12});
+        assertEquals(0x1234, target.readArgument, "arguments should read low byte first");
+
+        assertArrayEquals(new byte[]{0x78, 0x56}, invoke(method(target, 2), new byte[0]),
+            "results should write low byte first");
+        assertArrayEquals("hi".getBytes(StandardCharsets.US_ASCII),
+            invoke(method(target, 3), "hi".getBytes(StandardCharsets.US_ASCII)));
+    }
+
+    @Test
+    public void plainStreamSignaturesStillGetTheRicherType() throws Throwable {
+        final AllSignatures target = new AllSignatures();
+        invoke(method(target, 2), new byte[]{42});
+        assertEquals(42, target.readArgument);
     }
 
     @Test
@@ -77,7 +99,7 @@ public final class IOCallbacksTests {
     public void energyIsConsumedBeforeInvocation() throws Throwable {
         final Priced target = new Priced();
         final TestIOInvocation invocation = new TestIOInvocation(new byte[0], 5);
-        function(target, 1).invoke(invocation);
+        method(target, 1).invoke(invocation);
         assertEquals(1, target.calls);
         assertEquals(2, invocation.energy);
     }
@@ -86,7 +108,7 @@ public final class IOCallbacksTests {
     public void insufficientEnergySkipsInvocation() {
         final Priced target = new Priced();
         final TestIOInvocation invocation = new TestIOInvocation(new byte[0], 2);
-        assertThrows(IllegalStateException.class, () -> function(target, 1).invoke(invocation));
+        assertThrows(IllegalStateException.class, () -> method(target, 1).invoke(invocation));
         assertEquals(0, target.calls);
         assertEquals(2, invocation.energy);
     }
@@ -113,70 +135,12 @@ public final class IOCallbacksTests {
     }
 
     @Test
-    public void sideByIndexFollowsMinecraftNumbering() {
-        for (int i = 0; i < 6; i++) {
-            assertEquals(Direction.from3DDataValue(i), Side.byIndex(i).getDirection());
-        }
-        assertThrows(IllegalArgumentException.class, () -> Side.byIndex(-1));
-        assertThrows(IllegalArgumentException.class, () -> Side.byIndex(6));
-    }
-
-    @Test
-    public void richStreamSignaturesAreAccepted() throws Throwable {
-        final RichSignatures target = new RichSignatures();
-        assertEquals(3, IOCallbacks.collectMethods(target).size());
-
-        invoke(function(target, 1), new byte[]{0x34, 0x12});
-        assertEquals(0x1234, target.readArgument, "arguments should read low byte first");
-
-        assertArrayEquals(new byte[]{0x78, 0x56}, invoke(function(target, 2), new byte[0]),
-            "results should write low byte first");
-        assertArrayEquals("hi".getBytes(StandardCharsets.US_ASCII),
-            invoke(function(target, 3), "hi".getBytes(StandardCharsets.US_ASCII)));
-    }
-
-    @Test
-    public void plainStreamSignaturesStillGetTheRicherType() throws Throwable {
-        final AllSignatures target = new AllSignatures();
-        invoke(function(target, 2), new byte[]{42});
-        assertEquals(42, target.readArgument);
+    public void redstoneDeviceExposesItsFunctions() {
+        assertTrue(IOCallbacks.hasMethods(RedstoneInterfaceDevice.class));
+        assertEquals("REDSTN", IOCallbacks.getName(RedstoneInterfaceDevice.class));
     }
 
     // --------------------------------------------------------------------- //
-
-    private static IOMethod function(final Object target, final int code) {
-        return IOCallbacks.collectMethods(target).stream()
-            .filter(f -> f.getCode() == code)
-            .findFirst().orElseThrow();
-    }
-
-    private static byte[] invoke(final IOMethod function, final byte[] arguments) throws Throwable {
-        final TestIOInvocation invocation = new TestIOInvocation(arguments);
-        function.invoke(invocation);
-        return invocation.results.toByteArray();
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @IODeviceDescription(name = "RICH")
-    public static final class RichSignatures {
-        public int readArgument = -1;
-
-        @IOCallback(1)
-        public void argumentsOnly(final IOInputStream arguments) throws Exception {
-            readArgument = arguments.readU16();
-        }
-
-        @IOCallback(2)
-        public void resultsOnly(final IOOutputStream results) throws Exception {
-            results.writeU16(0x5678);
-        }
-
-        @IOCallback(3)
-        public void bothStreams(final IOInputStream arguments, final IOOutputStream results) throws Exception {
-            results.writeString(arguments.readString());
-        }
-    }
 
     @IODeviceDescription(name = "TEST")
     public static final class AllSignatures {
@@ -201,6 +165,26 @@ public final class IOCallbacksTests {
         @IOCallback(value = 4, synchronize = false)
         public void bothStreams(final InputStream arguments, final OutputStream results) throws Exception {
             results.write(arguments.read());
+        }
+    }
+
+    @IODeviceDescription(name = "RICH")
+    public static final class RichSignatures {
+        public int readArgument = -1;
+
+        @IOCallback(1)
+        public void argumentsOnly(final IOInputStream arguments) throws Exception {
+            readArgument = arguments.readU16();
+        }
+
+        @IOCallback(2)
+        public void resultsOnly(final IOOutputStream results) throws Exception {
+            results.writeU16(0x5678);
+        }
+
+        @IOCallback(3)
+        public void bothStreams(final IOInputStream arguments, final IOOutputStream results) throws Exception {
+            results.writeString(arguments.readString());
         }
     }
 

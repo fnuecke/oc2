@@ -8,6 +8,7 @@ import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import static li.cil.oc2.gametest.util.TestSupport.WORK_Y;
 
@@ -32,8 +33,12 @@ public final class RobotCrushTests {
     // --------------------------------------------------------------------- //
 
     public static BlockPos putBlockInsideTheRobot(final GameTestHelper helper, final Block block) {
+        return putBlockInsideTheRobot(helper, block.defaultBlockState());
+    }
+
+    public static BlockPos putBlockInsideTheRobot(final GameTestHelper helper, final BlockState state) {
         final BlockPos target = RobotFixture.place(helper, ROBOT_POS).blockPos();
-        helper.getLevel().setBlockAndUpdate(target, block.defaultBlockState());
+        helper.getLevel().setBlockAndUpdate(target, state);
         return target;
     }
 

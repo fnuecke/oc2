@@ -6,11 +6,9 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.object.IOCallback;
-import li.cil.oc2.api.bus.device.object.IOCallbacks;
 import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
-import li.cil.oc2.common.bus.device.RedstoneInterfaceDevice;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.InterruptController;
@@ -119,6 +117,49 @@ public final class IODeviceBusAdapterTests {
         assertEquals(1, adapter.getDescriptions().size());
         assertEquals(DEVICE_UUID.toString(), adapter.getDescriptions().get(0).id(),
             "the lowest identifier should be the stable one");
+    }
+
+    @Test
+    public void rescanDoesNotRetargetASelectedDevice() {
+        write(REG_SELECT, 0);
+
+        final ObjectDevice other = new ObjectDevice(new OtherTarget(), "other");
+        when(controller.getDevices()).thenReturn(Set.of(subject, other));
+        when(controller.getDeviceIdentifiers(subject)).thenReturn(Set.of(DEVICE_UUID));
+        when(controller.getDeviceIdentifiers(other)).thenReturn(Set.of(LOWER_UUID));
+        adapter.rebuild(controller);
+
+        assertEquals("OTHER", adapter.getDescriptions().get(0).name(), "the inserted device should sort first");
+        assertEquals("TEST", adapter.getDescriptions().get(1).name());
+
+        write(REG_FUNCTION, FUNCTION_ECHO);
+        write(REG_DATA, 1);
+        write(REG_STATUS, CONTROL_EXECUTE);
+
+        assertEquals(2, read(REG_DATA), "the call must still reach the device that was selected, not index 0");
+    }
+
+    @Test
+    public void devicesSharingAnIdentifierEnumerateSeparately() {
+        final ObjectDevice other = new ObjectDevice(new OtherTarget(), "other");
+        when(controller.getDevices()).thenReturn(Set.of(subject, other));
+        when(controller.getDeviceIdentifiers(subject)).thenReturn(Set.of(DEVICE_UUID));
+        when(controller.getDeviceIdentifiers(other)).thenReturn(Set.of(DEVICE_UUID));
+        adapter.rebuild(controller);
+
+        assertEquals(2, adapter.getDescriptions().size(), "each device in a group should get its own sub-index");
+
+        write(REG_SELECT, 0);
+        write(REG_FUNCTION, FUNCTION_ECHO);
+        write(REG_DATA, 1);
+        write(REG_STATUS, CONTROL_EXECUTE);
+        assertEquals(101, read(REG_DATA), "index 0 should reach the first device of the group");
+
+        write(REG_SELECT, 1);
+        write(REG_FUNCTION, FUNCTION_ECHO);
+        write(REG_DATA, 1);
+        write(REG_STATUS, CONTROL_EXECUTE);
+        assertEquals(2, read(REG_DATA), "index 1 should reach the second device of the group");
     }
 
     @Test
@@ -234,49 +275,6 @@ public final class IODeviceBusAdapterTests {
 
         assertEquals(STATUS_DATA_AVAILABLE, read(REG_STATUS), "the ignored writes must not have disturbed the call");
         assertEquals(0x5A, read(REG_DATA));
-    }
-
-    @Test
-    public void rescanDoesNotRetargetASelectedDevice() {
-        write(REG_SELECT, 0);
-
-        final ObjectDevice other = new ObjectDevice(new OtherTarget(), "other");
-        when(controller.getDevices()).thenReturn(Set.of(subject, other));
-        when(controller.getDeviceIdentifiers(subject)).thenReturn(Set.of(DEVICE_UUID));
-        when(controller.getDeviceIdentifiers(other)).thenReturn(Set.of(LOWER_UUID));
-        adapter.rebuild(controller);
-
-        assertEquals("OTHER", adapter.getDescriptions().get(0).name(), "the inserted device should sort first");
-        assertEquals("TEST", adapter.getDescriptions().get(1).name());
-
-        write(REG_FUNCTION, FUNCTION_ECHO);
-        write(REG_DATA, 1);
-        write(REG_STATUS, CONTROL_EXECUTE);
-
-        assertEquals(2, read(REG_DATA), "the call must still reach the device that was selected, not index 0");
-    }
-
-    @Test
-    public void devicesSharingAnIdentifierEnumerateSeparately() {
-        final ObjectDevice other = new ObjectDevice(new OtherTarget(), "other");
-        when(controller.getDevices()).thenReturn(Set.of(subject, other));
-        when(controller.getDeviceIdentifiers(subject)).thenReturn(Set.of(DEVICE_UUID));
-        when(controller.getDeviceIdentifiers(other)).thenReturn(Set.of(DEVICE_UUID));
-        adapter.rebuild(controller);
-
-        assertEquals(2, adapter.getDescriptions().size(), "each device in a group should get its own sub-index");
-
-        write(REG_SELECT, 0);
-        write(REG_FUNCTION, FUNCTION_ECHO);
-        write(REG_DATA, 1);
-        write(REG_STATUS, CONTROL_EXECUTE);
-        assertEquals(101, read(REG_DATA), "index 0 should reach the first device of the group");
-
-        write(REG_SELECT, 1);
-        write(REG_FUNCTION, FUNCTION_ECHO);
-        write(REG_DATA, 1);
-        write(REG_STATUS, CONTROL_EXECUTE);
-        assertEquals(2, read(REG_DATA), "index 1 should reach the second device of the group");
     }
 
     @Test
@@ -589,12 +587,6 @@ public final class IODeviceBusAdapterTests {
         assertEquals(EVENT_QUEUE | EVENT_INTERRUPT, (int) restored.load(REG_EVENT_CONTROL, Sizes.SIZE_8_LOG2));
     }
 
-    @Test
-    public void redstoneDeviceExposesItsFunctions() {
-        assertTrue(IOCallbacks.hasMethods(RedstoneInterfaceDevice.class));
-        assertEquals("REDSTN", IOCallbacks.getName(RedstoneInterfaceDevice.class));
-    }
-
     // --------------------------------------------------------------------- //
 
     private boolean consumeEnergy(final int amount) {
@@ -625,14 +617,6 @@ public final class IODeviceBusAdapterTests {
     }
 
     // --------------------------------------------------------------------- //
-
-    @IODeviceDescription(name = "OTHER")
-    public static final class OtherTarget {
-        @IOCallback(value = FUNCTION_ECHO, synchronize = false)
-        public void echo(final InputStream arguments, final OutputStream results) throws Exception {
-            results.write(arguments.read() + 100);
-        }
-    }
 
     @IODeviceDescription(name = "TEST")
     public static final class TestTarget implements LifecycleAwareDevice {
@@ -675,6 +659,14 @@ public final class IODeviceBusAdapterTests {
         public void priced(final OutputStream results) throws Exception {
             pricedCalls++;
             results.write(1);
+        }
+    }
+
+    @IODeviceDescription(name = "OTHER")
+    public static final class OtherTarget {
+        @IOCallback(value = FUNCTION_ECHO, synchronize = false)
+        public void echo(final InputStream arguments, final OutputStream results) throws Exception {
+            results.write(arguments.read() + 100);
         }
     }
 

@@ -3,7 +3,6 @@
 package li.cil.oc2.common.bus;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.Callback;
@@ -61,7 +60,7 @@ public final class RPCSynchronizedCallTests {
         assertEquals(1, counter.bumps);
 
         adapter.step(0);
-        assertEquals("result", reply().get("type").getAsString());
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString());
     }
 
     @Test
@@ -89,7 +88,7 @@ public final class RPCSynchronizedCallTests {
         serialDevice.putAsVM(invocation("bump"));
         adapter.step(0);
 
-        assertEquals("result", reply().get("type").getAsString(), "the first reply was lost");
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString(), "the first reply was lost");
         assertNull(serialDevice.readMessageAsVM(), "two replies came back for one dispatched call");
     }
 
@@ -99,7 +98,7 @@ public final class RPCSynchronizedCallTests {
         adapter.step(0);
 
         assertEquals(1, counter.bumps);
-        assertEquals("result", reply().get("type").getAsString());
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString());
     }
 
     @Test
@@ -114,7 +113,7 @@ public final class RPCSynchronizedCallTests {
         assertEquals(1, counter.bumps);
 
         adapter.step(0);
-        assertEquals("result", reply().get("type").getAsString());
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString());
     }
 
     @Test
@@ -127,7 +126,7 @@ public final class RPCSynchronizedCallTests {
         assertEquals(0, counter.bumps);
 
         adapter.step(0);
-        final JsonObject reply = reply();
+        final JsonObject reply = serialDevice.readJsonAsVM();
         assertEquals("error", reply.get("type").getAsString());
         assertEquals("not enough energy", reply.get("data").getAsString());
     }
@@ -145,12 +144,6 @@ public final class RPCSynchronizedCallTests {
     private String invocation(final String method) {
         return "{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
             + "\",\"name\":\"" + method + "\",\"parameters\":[]}}";
-    }
-
-    private JsonObject reply() {
-        final String message = serialDevice.readMessageAsVM();
-        assertNotNull(message, "no reply");
-        return JsonParser.parseString(message).getAsJsonObject();
     }
 
     public static final class Counter {

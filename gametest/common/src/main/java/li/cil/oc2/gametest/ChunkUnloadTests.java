@@ -14,9 +14,7 @@ import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestSequence;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.phys.AABB;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -112,18 +110,18 @@ public final class ChunkUnloadTests {
         sequence
             .thenWaitUntil(() -> awaitWrites(computer, writes))
             .thenExecute(() -> computer.type("touch /root/stop\n"))
-            .thenWaitUntil(() -> find(computer, WRITER_DONE))
+            .thenWaitUntil(() -> computer.assertScreenMatches(WRITER_DONE, "the writer should stop"))
             .thenExecute(() -> computer.type(script(
                 "sync",
                 "echo 3 > /proc/sys/vm/drop_caches",
                 "bad=$(cat /root/t/*.md5 | md5sum -c 2>&1 | grep -vc ': OK$')",
                 "err=$(dmesg | grep -ci -e 'fs error' -e 'i/o error' -e corrupt)",
                 "echo RESULT bad=$bad err=$err END")))
-            .thenWaitUntil(() -> find(computer, VERIFY_RESULT))
+            .thenWaitUntil(() -> computer.assertScreenMatches(VERIFY_RESULT, "the verification should report back"))
             .thenExecute(() -> {
                 computer.assertNoError();
                 computer.assertNoGuestPanic();
-                final Matcher result = find(computer, VERIFY_RESULT);
+                final Matcher result = computer.assertScreenMatches(VERIFY_RESULT, "the verification should report back");
                 if (Integer.parseInt(result.group(1)) != 0 || Integer.parseInt(result.group(2)) != 0) {
                     throw new GameTestAssertException("disk diverged from the guest across " + UNLOAD_CYCLES
                         + " unloads (" + writes[0] + " writes): " + result.group() + "\n" + computer.screen());
@@ -181,13 +179,7 @@ public final class ChunkUnloadTests {
     // --------------------------------------------------------------------- //
 
     private static Robot reloadedRobot(final GameTestHelper helper, final Robot unloaded) {
-        final BlockPos pos = helper.absolutePos(ROBOT_SCENE);
-        final List<Robot> robots = helper.getLevel()
-            .getEntitiesOfClass(Robot.class, new AABB(pos).inflate(4));
-        if (robots.size() != 1) {
-            throw new GameTestAssertException("expected exactly one robot to come back, found " + robots.size());
-        }
-        final Robot robot = robots.getFirst();
+        final Robot robot = RobotFixture.find(helper, ROBOT_SCENE, 4).entity();
         if (robot == unloaded) {
             throw new GameTestAssertException("chunk came back without a reload; same robot instance");
         }
@@ -210,15 +202,6 @@ public final class ChunkUnloadTests {
                 + (writes[0] + WRITES_PER_CYCLE));
         }
         writes[0] = latest;
-    }
-
-    private static Matcher find(final ComputerFixture computer, final Pattern pattern) {
-        final String screen = computer.screen();
-        final Matcher matcher = pattern.matcher(screen);
-        if (!matcher.find()) {
-            throw new GameTestAssertException("screen does not match [" + pattern + "]\n" + screen);
-        }
-        return matcher;
     }
 
     // --------------------------------------------------------------------- //

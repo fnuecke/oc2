@@ -25,11 +25,7 @@ public final class InternetGatewayTests {
     // --------------------------------------------------------------------- //
 
     public static void gatewayPlacesAndOffersItsCapabilities(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-
-        final BlockEntity blockEntity = helper.getBlockEntity(GATEWAY_POS);
-        assertNotNull(helper, blockEntity, "gateway block entity");
+        final BlockEntity blockEntity = placeGateway(helper);
         assertTrue(helper, "the block entity should be an internet gateway",
             blockEntity instanceof InternetGatewayBlockEntity);
 
@@ -37,28 +33,19 @@ public final class InternetGatewayTests {
             Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
         assertNotNull(helper, networkInterface, "network interface capability");
 
-        final EnergyHandler energy =
-            Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
-        assertNotNull(helper, energy, "energy storage capability");
+        energy(helper, blockEntity);
 
         helper.succeed();
     }
 
     public static void gatewayWithoutAConnectionDropsFrames(final GameTestHelper helper) {
         final boolean wasEnabled = withInternetAccess(false);
-        final Player player = fakePlayer(helper);
-        place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-
-        final BlockEntity blockEntity = helper.getBlockEntity(GATEWAY_POS);
-        assertNotNull(helper, blockEntity, "gateway block entity");
+        final BlockEntity blockEntity = placeGateway(helper);
         final NetworkInterface networkInterface =
             Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
         assertNotNull(helper, networkInterface, "network interface capability");
 
-        final EnergyHandler energy =
-            Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
-        assertNotNull(helper, energy, "energy storage capability");
-        energy.receiveEnergy(Config.internetGatewayEnergyStorage, false);
+        energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
 
         final byte[] frame = new byte[64];
         for (int i = 0; i < 1000; ++i) {
@@ -76,16 +63,10 @@ public final class InternetGatewayTests {
     }
 
     public static void gatewayKeepsItsEnergyAcrossAReload(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-
+        final BlockEntity blockEntity = placeGateway(helper);
         final BlockPos absolute = helper.absolutePos(GATEWAY_POS);
-        final BlockEntity blockEntity = helper.getBlockEntity(GATEWAY_POS);
-        assertNotNull(helper, blockEntity, "gateway block entity");
 
-        final EnergyHandler energy =
-            Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
-        assertNotNull(helper, energy, "energy storage capability");
+        final EnergyHandler energy = energy(helper, blockEntity);
 
         final long received = energy.receiveEnergy(500, false);
         assertTrue(helper, "the gateway should accept energy", received > 0);
@@ -109,17 +90,10 @@ public final class InternetGatewayTests {
 
     public static void gatewayWithoutInternetAccessIsNotOperational(final GameTestHelper helper) {
         final boolean wasEnabled = withInternetAccess(false);
-        final Player player = fakePlayer(helper);
-        place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-
-        final BlockEntity blockEntity = helper.getBlockEntity(GATEWAY_POS);
-        assertNotNull(helper, blockEntity, "gateway block entity");
+        final BlockEntity blockEntity = placeGateway(helper);
         final InternetGatewayBlockEntity gateway = (InternetGatewayBlockEntity) blockEntity;
 
-        final EnergyHandler energy =
-            Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
-        assertNotNull(helper, energy, "energy storage capability");
-        energy.receiveEnergy(Config.internetGatewayEnergyStorage, false);
+        energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
 
         helper.startSequence()
             .thenExecuteAfter(2, () -> {
@@ -139,15 +113,10 @@ public final class InternetGatewayTests {
         final InternetGatewayBlockEntity gateway;
         final EnergyHandler energy;
         try {
-            final Player player = fakePlayer(helper);
-            place(helper, player, new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-
-            final BlockEntity blockEntity = helper.getBlockEntity(GATEWAY_POS);
-            assertNotNull(helper, blockEntity, "gateway block entity");
+            final BlockEntity blockEntity = placeGateway(helper);
             gateway = (InternetGatewayBlockEntity) blockEntity;
 
-            energy = Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH);
-            assertNotNull(helper, energy, "energy storage capability");
+            energy = energy(helper, blockEntity);
 
             assertTrue(helper, "a gateway without energy should not show as operational",
                 !gateway.isOperational());
@@ -182,6 +151,16 @@ public final class InternetGatewayTests {
 
     // --------------------------------------------------------------------- //
 
+    private static BlockEntity placeGateway(final GameTestHelper helper) {
+        place(helper, fakePlayer(helper), new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
+        return assertNotNull(helper, helper.getBlockEntity(GATEWAY_POS), "gateway block entity");
+    }
+
+    private static EnergyHandler energy(final GameTestHelper helper, final BlockEntity blockEntity) {
+        return assertNotNull(helper, Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, Direction.NORTH),
+            "energy storage capability");
+    }
+
     private static boolean withInternetAccess(final boolean enabled) {
         final boolean wasEnabled = Config.internetEnabled;
         Config.internetEnabled = enabled;
@@ -198,6 +177,8 @@ public final class InternetGatewayTests {
             InternetManager.start();
         }
     }
+
+    // --------------------------------------------------------------------- //
 
     private InternetGatewayTests() {
     }

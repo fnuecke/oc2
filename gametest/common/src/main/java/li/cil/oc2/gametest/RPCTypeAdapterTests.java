@@ -50,11 +50,6 @@ public final class RPCTypeAdapterTests {
         helper.succeed();
     }
 
-    // --------------------------------------------------------------------- //
-
-    private RPCTypeAdapterTests() {
-    }
-
     public static void itemStackCarriesFilteredComponents(final GameTestHelper helper) {
         final Gson gson = RPCTypeAdapters.beginBuildGson().create();
 
@@ -97,5 +92,10 @@ public final class RPCTypeAdapterTests {
             throw failure(helper, "no components in " + json);
         }
         return components.getAsJsonObject();
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private RPCTypeAdapterTests() {
     }
 }

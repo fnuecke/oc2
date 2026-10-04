@@ -30,6 +30,8 @@ public final class ImportExportCardTests {
     private static final int KEEP_ALIVE_EXPIRY_BUDGET_TICKS = 60_000;
     private static final BlockPos KEYBOARD_POS = CABLE_POS.above();
 
+    // --------------------------------------------------------------------- //
+
     @GameTest(template = TEMPLATE, timeoutTicks = 600)
     public static void importExportCardSurvivesReload(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.place(helper);

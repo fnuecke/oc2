@@ -12,22 +12,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AddressFilterTests {
-    private static int ip(final String address) {
-        try {
-            return InternetUtils.parseIpv4Address(address);
-        } catch (final AddressParseException e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    private static AddressFilter denying(final String... rules) {
-        return new AddressFilter(List.of(), List.of(rules), false);
-    }
-
-    private static AddressFilter allowing(final String... rules) {
-        return new AddressFilter(List.of(rules), List.of(), false);
-    }
-
     @Test
     public void loopbackMulticastAndBroadcastAreDeniedWithoutAnyRules() {
         final AddressFilter filter = AddressFilter.withBuiltInDenials(List.of("0.0.0.0/0"), List.of(), false);
@@ -235,5 +219,23 @@ public class AddressFilterTests {
         final AddressFilter filter = allowing("this-name-does-not-exist.invalid");
 
         assertFalse(filter.isAllowed(ip("8.8.8.8")));
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static int ip(final String address) {
+        try {
+            return InternetUtils.parseIpv4Address(address);
+        } catch (final AddressParseException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static AddressFilter denying(final String... rules) {
+        return new AddressFilter(List.of(), List.of(rules), false);
+    }
+
+    private static AddressFilter allowing(final String... rules) {
+        return new AddressFilter(List.of(rules), List.of(), false);
     }
 }

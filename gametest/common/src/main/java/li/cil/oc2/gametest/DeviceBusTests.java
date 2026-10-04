@@ -23,7 +23,7 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 
 public final class DeviceBusTests {
     public static void busTracksNeighborLifecycle(final GameTestHelper helper) {
-        final ComputerFixture computer = placeComputerAndCable(helper);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
 
         final int[] base = new int[1];
         helper.startSequence()
@@ -51,7 +51,7 @@ public final class DeviceBusTests {
     }
 
     public static void busRediscoversReplacedNeighbor(final GameTestHelper helper) {
-        final ComputerFixture computer = placeComputerAndCable(helper);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
 
         final int[] baseline = new int[1];
         final int[] attached = new int[1];
@@ -85,7 +85,7 @@ public final class DeviceBusTests {
     }
 
     public static void busDropsNeighborWithoutBlockUpdate(final GameTestHelper helper) {
-        final ComputerFixture computer = placeComputerAndCable(helper);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
 
         final int[] base = new int[1];
         final int[] attached = new int[1];
@@ -176,7 +176,7 @@ public final class DeviceBusTests {
     }
 
     public static void noteBlockJoinsAndLeavesTheBus(final GameTestHelper helper) {
-        final ComputerFixture computer = placeComputerAndCable(helper);
+        final ComputerFixture computer = ComputerFixture.placeWithCable(helper, fakePlayer(helper));
         helper.setBlock(DEVICE_POS, Blocks.NOTE_BLOCK);
 
         helper.startSequence()
@@ -195,13 +195,6 @@ public final class DeviceBusTests {
     }
 
     // --------------------------------------------------------------------- //
-
-    private static ComputerFixture placeComputerAndCable(final GameTestHelper helper) {
-        final Player player = fakePlayer(helper);
-        final ComputerFixture computer = ComputerFixture.place(helper, player);
-        BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.EAST);
-        return computer;
-    }
 
     private static long countFlashDrives(final ComputerFixture computer) {
         return computer.devices().stream().filter(FlashDriveDevice.class::isInstance).count();

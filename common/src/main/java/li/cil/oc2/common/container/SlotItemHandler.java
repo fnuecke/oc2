@@ -25,10 +25,6 @@ public class SlotItemHandler extends Slot {
 
     // --------------------------------------------------------------------- //
 
-    public ItemHandler getItemHandler() {
-        return itemHandler;
-    }
-
     @Override
     public boolean mayPlace(final ItemStack stack) {
         if (stack.isEmpty()) {

@@ -31,7 +31,7 @@ public final class TestSupport {
     public static final BlockPos DEVICE_POS = new BlockPos(4, WORK_Y, 2);
     public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
 
-    public static final int BOOT_TIMEOUT_TICKS = 900_000;
+    public static final int BOOT_TIMEOUT_TICKS = 50_000;
     public static final int CPM_BOOT_TIMEOUT_TICKS = 20_000;
 
     public static String script(final String... lines) {

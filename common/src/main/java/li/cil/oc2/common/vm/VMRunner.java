@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.vm;
 
+import com.google.common.annotations.VisibleForTesting;
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.event.VMInitializationException;
 import li.cil.oc2.api.bus.device.vm.event.VMPausingEvent;
@@ -26,6 +27,7 @@ public class VMRunner implements Runnable {
     private static final int TICKS_PER_SECOND = 20;
     private static final int TIMESLICE_IN_MS = 500 / TICKS_PER_SECOND;
     private static ExecutorService vmRunners;
+    private static boolean lockstep;
 
     // --------------------------------------------------------------------- //
 
@@ -54,6 +56,11 @@ public class VMRunner implements Runnable {
 
     // --------------------------------------------------------------------- //
 
+    @VisibleForTesting
+    public static void setLockstep(final boolean value) {
+        lockstep = value;
+    }
+
     @Nullable
     public Component getRuntimeError() {
         return runtimeError;
@@ -63,6 +70,12 @@ public class VMRunner implements Runnable {
         architecture.tickDynamicDevices();
 
         cycleLimit += getCyclesPerTick();
+
+        if (lockstep) {
+            timeQuotaInMillis.set(Integer.MAX_VALUE);
+            run();
+            return;
+        }
 
         final int timeQuota = timeQuotaInMillis.updateAndGet(x -> Math.min(x + TIMESLICE_IN_MS, TIMESLICE_IN_MS));
         final boolean needsScheduling = lastSchedule == null || lastSchedule.isDone() || lastSchedule.isCancelled();

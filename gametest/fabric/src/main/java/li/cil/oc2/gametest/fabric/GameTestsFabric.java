@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.fabric;
 
 import li.cil.oc2.api.platform.FabricRegistrationInitializer;
+import li.cil.oc2.common.vm.VMRunner;
 import li.cil.oc2.gametest.device.GuestTestDevices;
 import li.cil.oc2.gametest.util.GameTestReporting;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -15,6 +16,7 @@ public final class GameTestsFabric implements FabricRegistrationInitializer {
     @Override
     public void registerObjects() {
         GuestTestDevices.initialize();
+        VMRunner.setLockstep(true);
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             final String report = System.getProperty(REPORT_FILE_PROPERTY);

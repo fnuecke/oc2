@@ -2,6 +2,7 @@
 
 package li.cil.oc2.gametest.neoforge;
 
+import li.cil.oc2.common.vm.VMRunner;
 import li.cil.oc2.gametest.device.GuestTestDevices;
 import li.cil.oc2.gametest.util.GameTestReporting;
 import net.neoforged.fml.common.Mod;
@@ -17,6 +18,7 @@ public final class GameTests {
 
     public GameTests() {
         GuestTestDevices.initialize();
+        VMRunner.setLockstep(true);
 
         final String directory = System.getProperty(JUNIT_OUTPUT_DIR_PROPERTY);
         GameTestReporting.install(directory == null || directory.isEmpty()

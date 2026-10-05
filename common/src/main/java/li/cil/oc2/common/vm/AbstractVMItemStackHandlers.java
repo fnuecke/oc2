@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -164,6 +165,8 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
 
     // --------------------------------------------------------------------- //
 
+    protected abstract boolean isClientSide();
+
     protected abstract ItemDeviceQuery makeQuery(final ItemStack stack);
 
     protected void onChanged() {
@@ -204,6 +207,11 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return AbstractVMItemStackHandlers.this.makeQuery(stack);
+        }
+
+        @Override
+        protected Set<ItemEntry> collectDevices(final ItemStack stack) {
+            return isClientSide() ? Set.of() : super.collectDevices(stack);
         }
     }
 

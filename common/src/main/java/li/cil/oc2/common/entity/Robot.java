@@ -879,6 +879,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @Override
+        protected boolean isClientSide() {
+            return level().isClientSide();
+        }
+
+        @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return Devices.makeQuery(deviceItems.getArchitectureType().orElse(null), Robot.this, stack);
         }

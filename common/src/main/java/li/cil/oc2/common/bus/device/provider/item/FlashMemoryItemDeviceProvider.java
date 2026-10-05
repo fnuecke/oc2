@@ -33,7 +33,7 @@ public final class FlashMemoryItemDeviceProvider extends AbstractItemDeviceProvi
         final int capacity = Math.max(item.getCapacity(stack), 0);
         final BlockDeviceData data = item.getData(stack);
         return Optional.of(data != null
-            ? new FlashStorageDeviceWithInitialData(stack, capacity, data.getBlockDevice())
+            ? new FlashStorageDeviceWithInitialData(stack, capacity, data)
             : new FlashStorageDevice(stack, capacity));
     }
 }

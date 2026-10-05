@@ -57,6 +57,11 @@ public final class SystemDeviceIOTests {
     public void systemIsMidLevelDeviceZero() {
         final AbstractVMItemStackHandlers handlers = new AbstractVMItemStackHandlers() {
             @Override
+            protected boolean isClientSide() {
+                return false;
+            }
+
+            @Override
             protected ItemDeviceQuery makeQuery(final ItemStack stack) {
                 throw new UnsupportedOperationException();
             }

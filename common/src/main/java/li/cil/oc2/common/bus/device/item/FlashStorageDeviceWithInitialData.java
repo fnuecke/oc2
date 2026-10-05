@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.bus.device.item;
 
-import li.cil.sedna.api.device.BlockDevice;
+import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -12,11 +12,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 public final class FlashStorageDeviceWithInitialData extends FlashStorageDevice {
-    private final BlockDevice base;
+    private final BlockDeviceData base;
 
     // --------------------------------------------------------------------- //
 
-    public FlashStorageDeviceWithInitialData(final ItemStack identity, final int size, final BlockDevice base) {
+    public FlashStorageDeviceWithInitialData(final ItemStack identity, final int size, final BlockDeviceData base) {
         super(identity, size);
         this.base = base;
     }
@@ -35,7 +35,7 @@ public final class FlashStorageDeviceWithInitialData extends FlashStorageDevice 
         }
 
         final ByteBuffer buffer = ByteBuffer.allocate(size);
-        try (InputStream stream = base.getInputStream(0)) {
+        try (InputStream stream = base.getBlockDevice().getInputStream(0)) {
             buffer.put(stream.readAllBytes());
         }
         buffer.flip();

@@ -83,6 +83,7 @@ public final class Items {
     public static final RegistrySupplier<Item> SOUND_CARD = register("sound_card");
 
     public static final RegistrySupplier<Item> BLOCK_OPERATIONS_MODULE = register("block_operations_module", BlockOperationsModule::new);
+    public static final RegistrySupplier<Item> CRAFTING_MODULE = register("crafting_module");
     public static final RegistrySupplier<Item> INVENTORY_OPERATIONS_MODULE = register("inventory_operations_module");
     public static final RegistrySupplier<Item> NETWORK_TUNNEL_MODULE = register("network_tunnel_module", NetworkTunnelItem::new);
     public static final RegistrySupplier<Item> SCANNER_MODULE = register("scanner_module");

@@ -11,6 +11,7 @@ These pages are generated from the devices themselves, so they always match the 
 - [Comparator](comparator.md)
 - [Composter](composter.md)
 - [Crafter](crafter.md)
+- [Crafting](crafting.md)
 - [Energy Storage](energy_storage.md)
 - [File Import Export](file_import_export.md)
 - [Fluid Handler](fluid_handler.md)

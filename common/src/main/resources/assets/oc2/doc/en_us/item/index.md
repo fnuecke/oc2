@@ -3,6 +3,7 @@ This index lists all documented items. If you're looking for a block, see the [b
 
 - [The Computerist's Handbook](manual.md)
 - [Block Operations Module](block_operations_module.md)
+- [Crafting Module](crafting_module.md)
 - [File Import/Export Card](file_import_export_card.md)
 - [Flash Memory](flash_memory.md)
 - [Floppy](floppy.md)

@@ -49,11 +49,12 @@ public final class ModItemModelProvider extends ItemModelProvider {
         simple(Items.FILE_IMPORT_EXPORT_CARD);
         simple(Items.SOUND_CARD);
 
-        simple(Items.INVENTORY_OPERATIONS_MODULE);
-        simple(Items.TANK_OPERATIONS_MODULE);
         simple(Items.BLOCK_OPERATIONS_MODULE);
-        simple(Items.SCANNER_MODULE);
+        simple(Items.CRAFTING_MODULE);
+        simple(Items.INVENTORY_OPERATIONS_MODULE);
         simple(Items.NETWORK_TUNNEL_MODULE);
+        simple(Items.SCANNER_MODULE);
+        simple(Items.TANK_OPERATIONS_MODULE);
 
         simple(Items.TRANSISTOR);
         simple(Items.CIRCUIT_BOARD);

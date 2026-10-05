@@ -93,6 +93,7 @@ public final class Providers {
         registry.accept("sound_card", SoundCardItemDeviceProvider::new);
 
         registry.accept("block_operations_module", BlockOperationsModuleDeviceProvider::new);
+        registry.accept("crafting_module", CraftingModuleDeviceProvider::new);
         registry.accept("inventory_operations_module", InventoryOperationsModuleDeviceProvider::new);
         registry.accept("network_tunnel_module", NetworkTunnelModuleItemDeviceProvider::new);
         registry.accept("scanner_module", ScannerModuleDeviceProvider::new);

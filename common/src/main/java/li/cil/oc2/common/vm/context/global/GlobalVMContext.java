@@ -4,11 +4,11 @@ package li.cil.oc2.common.vm.context.global;
 
 import li.cil.ceres.api.Serialized;
 import li.cil.oc2.api.bus.device.vm.context.*;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.vm.context.EventManager;
 import li.cil.oc2.common.vm.context.InterruptManager;
 import li.cil.oc2.common.vm.context.MemoryRangeManager;
 import li.cil.oc2.common.vm.context.VMContextManagerCollection;
+import li.cil.oc2.common.vm.context.managed.ManagedVMRuntime;
 import li.cil.sedna.api.Board;
 import li.cil.sedna.api.DeviceBus;
 import li.cil.sedna.api.device.InterruptController;
@@ -27,7 +27,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     private final GlobalInterruptController interruptController;
     private final GlobalMemoryAllocator memoryAllocator;
     private final GlobalEventBus eventBus;
-    private final Invalidatable<VMRuntime> runtime;
+    private final ManagedVMRuntime runtime;
     private final RealTimeCounter clock;
 
     // --------------------------------------------------------------------- //
@@ -61,7 +61,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
         this.interruptAllocator = new GlobalInterruptAllocator(board.getInterruptCount(), reservedInterrupts);
         this.interruptController = new GlobalInterruptController(board.getInterruptController(), interruptAllocator);
         this.memoryAllocator = new GlobalMemoryAllocator();
-        this.runtime = Invalidatable.of(runtime);
+        this.runtime = new ManagedVMRuntime(runtime);
         this.eventBus = new GlobalEventBus();
         this.clock = clock;
     }
@@ -126,7 +126,7 @@ public final class GlobalVMContext implements VMContext, VMContextManagerCollect
     }
 
     @Override
-    public Invalidatable<VMRuntime> getRuntime() {
+    public VMRuntime getRuntime() {
         return runtime;
     }
 

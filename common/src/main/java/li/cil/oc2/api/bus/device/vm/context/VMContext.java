@@ -4,7 +4,6 @@ package li.cil.oc2.api.bus.device.vm.context;
 
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.sedna.api.device.InterruptController;
 import li.cil.sedna.api.device.MemoryMappedDevice;
 import li.cil.sedna.api.device.rtc.RealTimeCounter;
@@ -106,14 +105,15 @@ public interface VMContext {
     /**
      * Provides access to the execution state of the virtual machine.
      * <p>
-     * The returned wrapper is valid from {@link VMDevice#mount(VMContext)} until the device is
-     * unloaded, e.g. because it is removed from the {@link DeviceBus} or the VM stopped.
+     * The returned runtime is valid from {@link VMDevice#mount(VMContext)} until the device is
+     * unloaded, e.g. because it is removed from the {@link DeviceBus} or the VM stopped. Using it
+     * after that throws an {@link IllegalStateException}.
      * <p>
-     * Both the wrapper and the {@link VMRuntime} it holds must only be used from the server thread.
+     * The runtime must only be used from the server thread.
      *
      * @return the runtime of the virtual machine.
      */
-    Invalidatable<VMRuntime> getRuntime();
+    VMRuntime getRuntime();
 
     /**
      * The primary clock/time source of the virtual machine.

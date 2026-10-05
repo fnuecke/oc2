@@ -8,7 +8,6 @@ import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.api.bus.device.vm.context.VMContext;
 import li.cil.oc2.api.bus.device.vm.context.VMRuntime;
 import li.cil.oc2.api.bus.device.vm.event.VMResumedRunningEvent;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
@@ -53,8 +52,10 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     // --------------------------------------------------------------------- //
 
     protected boolean readonly;
+    @Nullable
     protected MappedStorage storage;
-    protected Invalidatable<VMRuntime> runtime = Invalidatable.empty();
+    @Nullable
+    protected VMRuntime runtime;
     private volatile CompletableFuture<Void> openJob;
 
     // --------------------------------------------------------------------- //
@@ -98,6 +99,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
             return permanent ? result.asPermanent() : result;
         }
 
+        assert storage != null;
         final VMDeviceLoadResult claim = storage.claim(context, address, interrupt);
         if (!claim.wasSuccessful()) {
             releaseOnFailure();
@@ -121,6 +123,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
         closeDevice();
         blob.close();
+        runtime = null;
     }
 
     @Override
@@ -198,6 +201,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
     protected abstract CompletableFuture<TBlock> createBlockDevice() throws IOException;
 
     protected void setBlockDevice(final BlockDevice blockDevice) throws IOException {
+        assert storage != null;
         storage.setBlockDevice(withAccessListener(blockDevice));
     }
 

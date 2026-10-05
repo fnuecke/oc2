@@ -148,7 +148,8 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
             return false;
         }
 
-        runtime.get().join();
+        assert runtime != null;
+        runtime.join();
 
         try {
             setMedium(null);

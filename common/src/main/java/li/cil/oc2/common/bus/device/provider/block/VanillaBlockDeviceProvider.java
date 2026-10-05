@@ -5,7 +5,6 @@ package li.cil.oc2.common.bus.device.provider.block;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.device.provider.util.AbstractBlockDeviceProvider;
 import li.cil.oc2.common.util.BlockLocation;
 import net.minecraft.core.BlockPos;
@@ -14,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.lang.ref.WeakReference;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -39,12 +39,12 @@ public final class VanillaBlockDeviceProvider extends AbstractBlockDeviceProvide
     // --------------------------------------------------------------------- //
 
     @Override
-    public Invalidatable<Device> getDevice(final BlockDeviceQuery query) {
+    public Optional<Device> getDevice(final BlockDeviceQuery query) {
         if (!predicate.test(query.getLevel(), query.getQueryPosition())) {
-            return Invalidatable.empty();
+            return Optional.empty();
         }
 
         final BlockLocation location = new BlockLocation(new WeakReference<>(query.getLevel()), query.getQueryPosition());
-        return Invalidatable.of(new ObjectDevice(factory.apply(location)));
+        return Optional.of(new ObjectDevice(factory.apply(location)));
     }
 }

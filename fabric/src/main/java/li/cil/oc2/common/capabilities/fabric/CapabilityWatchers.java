@@ -2,117 +2,124 @@
 
 package li.cil.oc2.common.capabilities.fabric;
 
-import li.cil.oc2.api.util.Invalidatable;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import li.cil.oc2.common.capabilities.Capabilities;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 
+import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.WeakHashMap;
 
 final class CapabilityWatchers {
-    private static final Map<LevelAccessor, Map<BlockPos, List<Invalidatable<?>>>> WATCHERS = new WeakHashMap<>();
-    private static final Set<InvalidationKey> INVALIDATING = new HashSet<>();
+    // Weak, like NeoForge's listeners: callers keep their handles alive.
+    private static final Map<LevelAccessor, Long2ObjectMap<Map<BlockPos, List<WeakReference<Handle>>>>> HANDLES = new WeakHashMap<>();
 
     // --------------------------------------------------------------------- //
 
     static void initialize() {
+        ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) ->
+            invalidate(level, blockEntity.getBlockPos()));
         ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) ->
             invalidate(level, blockEntity.getBlockPos()));
 
+        ServerChunkEvents.CHUNK_LOAD.register((level, chunk) -> invalidate(level, chunk.getPos()));
         ServerChunkEvents.CHUNK_UNLOAD.register((level, chunk) -> invalidate(level, chunk.getPos()));
     }
 
-    static <T> Invalidatable<T> watch(final LevelAccessor level, final BlockPos pos, final T value) {
-        final Invalidatable<T> result = Invalidatable.of(value);
+    static Capabilities.InvalidationHandle listen(final LevelAccessor level, final BlockPos pos, final Runnable callback) {
+        final Handle result = new Handle(callback);
 
-        final BlockPos key = pos.immutable();
-        final List<Invalidatable<?>> watchers = WATCHERS
-            .computeIfAbsent(level, ignored -> new HashMap<>())
-            .computeIfAbsent(key, ignored -> new ArrayList<>());
-        watchers.add(result);
-
-        result.addListener(ignored -> remove(level, key, result));
+        final List<WeakReference<Handle>> handles = HANDLES
+            .computeIfAbsent(level, ignored -> new Long2ObjectOpenHashMap<>())
+            .computeIfAbsent(ChunkPos.asLong(pos), ignored -> new HashMap<>())
+            .computeIfAbsent(pos.immutable(), ignored -> new ArrayList<>());
+        handles.removeIf(reference -> {
+            final Handle existing = reference.get();
+            return existing == null || existing.callback == null;
+        });
+        handles.add(new WeakReference<>(result));
 
         return result;
     }
 
     static void invalidate(final LevelAccessor level, final BlockPos pos) {
-        final Map<BlockPos, List<Invalidatable<?>>> byPosition = WATCHERS.get(level);
+        final Long2ObjectMap<Map<BlockPos, List<WeakReference<Handle>>>> byChunk = HANDLES.get(level);
+        if (byChunk == null) {
+            return;
+        }
+
+        final long chunkKey = ChunkPos.asLong(pos);
+        final Map<BlockPos, List<WeakReference<Handle>>> byPosition = byChunk.get(chunkKey);
         if (byPosition == null) {
             return;
         }
 
-        final List<Invalidatable<?>> watchers = byPosition.remove(pos);
-        if (watchers == null) {
-            return;
-        }
-
-        final InvalidationKey key = new InvalidationKey(level, pos.immutable());
-        if (!INVALIDATING.add(key)) {
-            return;
-        }
-
-        try {
-            // Copy: invalidating fires the listener that removes the entry we are iterating.
-            for (final Invalidatable<?> watcher : new ArrayList<>(watchers)) {
-                watcher.invalidate();
-            }
-        } finally {
-            INVALIDATING.remove(key);
-        }
-
+        final List<WeakReference<Handle>> handles = byPosition.remove(pos);
         if (byPosition.isEmpty()) {
-            WATCHERS.remove(level);
+            byChunk.remove(chunkKey);
         }
-    }
 
-    private record InvalidationKey(LevelAccessor level, BlockPos pos) {
+        if (handles != null) {
+            run(handles);
+        }
     }
 
     // --------------------------------------------------------------------- //
 
     private static void invalidate(final LevelAccessor level, final ChunkPos chunkPos) {
-        final Map<BlockPos, List<Invalidatable<?>>> byPosition = WATCHERS.get(level);
-        if (byPosition == null) {
+        final Long2ObjectMap<Map<BlockPos, List<WeakReference<Handle>>>> byChunk = HANDLES.get(level);
+        if (byChunk == null) {
             return;
         }
 
-        final List<BlockPos> positions = byPosition.keySet().stream()
-            .filter(pos -> new ChunkPos(pos).equals(chunkPos))
-            .toList();
-        for (final BlockPos pos : positions) {
-            invalidate(level, pos);
+        final Map<BlockPos, List<WeakReference<Handle>>> byPosition = byChunk.remove(chunkPos.toLong());
+        if (byPosition != null) {
+            byPosition.values().forEach(CapabilityWatchers::run);
         }
     }
 
-    private static void remove(final LevelAccessor level, final BlockPos pos, final Invalidatable<?> watcher) {
-        final Map<BlockPos, List<Invalidatable<?>>> byPosition = WATCHERS.get(level);
-        if (byPosition == null) {
-            return;
-        }
-
-        final List<Invalidatable<?>> watchers = byPosition.get(pos);
-        if (watchers == null) {
-            return;
-        }
-
-        watchers.remove(watcher);
-        if (watchers.isEmpty()) {
-            byPosition.remove(pos);
-            if (byPosition.isEmpty()) {
-                WATCHERS.remove(level);
+    private static void run(final List<WeakReference<Handle>> handles) {
+        for (final WeakReference<Handle> reference : handles) {
+            final Handle handle = reference.get();
+            if (handle != null) {
+                handle.run();
             }
         }
     }
 
     private CapabilityWatchers() {
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static final class Handle implements Capabilities.InvalidationHandle {
+        @Nullable
+        private Runnable callback;
+
+        Handle(final Runnable callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        public void drop() {
+            callback = null;
+        }
+
+        void run() {
+            final Runnable callback = this.callback;
+            if (callback != null) {
+                drop();
+                callback.run();
+            }
+        }
     }
 }

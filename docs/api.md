@@ -173,10 +173,9 @@ interfaces.
 There exists a registry for each, with which all block and item providers must be registered. These registries are
 queried to collect devices for a given block in the world, or an item in a machine inventory.
 
-The two interfaces differ in return type, deliberately. `BlockDeviceProvider` returns an [Invalidatable] device: a block
-can drop its device at any time, and invalidating the value makes the bus drop it and rescan. `ItemDeviceProvider`
-returns a plain `Optional<ItemDevice>`, because an item device is owned by the machine itself, so it can only become
-invalid due to slot changes, which are local/observable directly.
+Both return an `Optional` device. Buses query block providers again on neighbor updates and when capabilities at the
+block's position are invalidated. A block whose devices change without either should invalidate its capabilities on
+NeoForge, via `invalidateCapabilities()`, or on Fabric notify its neighbors via `Level#updateNeighborsAt`.
 
 ### Registering Providers
 
@@ -273,7 +272,6 @@ the memory tracker. In most cases, `VMDevices` will add a `MemoryMappedDevice` t
 [RPCTypeAdapter]: ../common/src/main/java/li/cil/oc2/api/bus/device/rpc/RPCTypeAdapter.java
 [BlockDeviceProvider]: ../common/src/main/java/li/cil/oc2/api/bus/device/provider/BlockDeviceProvider.java
 [ItemDeviceProvider]: ../common/src/main/java/li/cil/oc2/api/bus/device/provider/ItemDeviceProvider.java
-[Invalidatable]: ../common/src/main/java/li/cil/oc2/api/util/Invalidatable.java
 [Registries]: ../common/src/main/java/li/cil/oc2/api/util/Registries.java
 [NeoForge provider registration]: ../examples/third-party-block-neoforge/src/main/java/com/example/thirdpartyblock/Integration.java
 [Fabric provider registration]: ../examples/third-party-block-fabric/src/main/java/com/example/thirdpartyblock/Registration.java

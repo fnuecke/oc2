@@ -8,7 +8,6 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
-import li.cil.oc2.api.util.Invalidatable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,7 +41,7 @@ public abstract class AbstractDeviceBusElement implements DeviceBusElement {
     }
 
     @Override
-    public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
+    public Optional<Collection<DeviceBusElement>> getNeighbors() {
         return Optional.of(Collections.emptyList());
     }
 

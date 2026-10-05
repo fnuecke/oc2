@@ -13,7 +13,6 @@ import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.client.audio.TerminalBell;
 import li.cil.oc2.common.Config;
@@ -900,8 +899,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private UUID deviceId = UUID.randomUUID();
 
         @Override
-        public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
-            return Optional.of(singleton(Invalidatable.of(deviceItems.busElement)));
+        public Optional<Collection<DeviceBusElement>> getNeighbors() {
+            return Optional.of(singleton(deviceItems.busElement));
         }
 
         @Override

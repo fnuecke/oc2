@@ -36,7 +36,7 @@ public final class DeviceCalls {
         return Devices.getDevices(Devices.makeQuery(null, helper.getLevel(), helper.absolutePos(pos), null))
             .orElseThrow(() -> new GameTestAssertException("chunk not loaded"))
             .stream()
-            .map(info -> info.get().device)
+            .map(info -> info.device)
             .toList();
     }
 

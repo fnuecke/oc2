@@ -6,7 +6,6 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.util.Event;
 import li.cil.oc2.common.util.ParameterizedEvent;
 import li.cil.oc2.common.util.TickUtils;
@@ -47,7 +46,6 @@ public class CommonDeviceBusController implements DeviceBusController {
     private final IntSupplier baseEnergyConsumption;
 
     private final Set<DeviceBusElement> elements = new HashSet<>();
-    private final HashMap<DeviceBusElement, Invalidatable.ListenerToken> elementListeners = new HashMap<>();
     private final HashSet<Device> devices = new HashSet<>();
     private final HashMap<Device, Set<UUID>> deviceIds = new HashMap<>();
 
@@ -73,7 +71,6 @@ public class CommonDeviceBusController implements DeviceBusController {
     public void dispose() {
         for (final DeviceBusElement element : elements) {
             element.removeController(this);
-            removeElementListener(element);
 
             // Let other controllers on the bus know we're gone, so they can quickly recover.
             for (final DeviceBusController controller : element.getControllers()) {
@@ -164,18 +161,11 @@ public class CommonDeviceBusController implements DeviceBusController {
         // can detect us in the meantime (for multiple controller detection). This also means that
         // adapters keep devices mounted until a scan, which is a nice performance plus.
 
-        collectBusElements().ifPresent(optionals -> {
-            final HashSet<DeviceBusElement> addedElements = updateElements(optionals.keySet());
+        collectBusElements().ifPresent(addedElements -> {
+            updateElements(addedElements);
 
             if (checkOtherBusControllers()) {
                 return;
-            }
-
-            // Don't have an optional for our root element, so skip that.
-            addedElements.remove(root);
-            for (final DeviceBusElement element : addedElements) {
-                elementListeners.put(element, optionals.get(element)
-                    .addListener(ignored -> scheduleBusScan(ScanReason.BUS_CHANGE)));
             }
 
             updateArchitecture();
@@ -216,7 +206,6 @@ public class CommonDeviceBusController implements DeviceBusController {
     private void clearElements() {
         for (final DeviceBusElement element : elements) {
             element.removeController(this);
-            removeElementListener(element);
         }
 
         elements.clear();
@@ -224,26 +213,17 @@ public class CommonDeviceBusController implements DeviceBusController {
         scanDevices();
     }
 
-    private void removeElementListener(final DeviceBusElement element) {
-        final var token = elementListeners.remove(element);
-        if (token != null) {
-            token.removeListener();
-        }
-    }
-
-    private Optional<HashMap<DeviceBusElement, Invalidatable<DeviceBusElement>>> collectBusElements() {
+    private Optional<HashSet<DeviceBusElement>> collectBusElements() {
         final HashSet<DeviceBusElement> closed = new HashSet<>();
         final Stack<DeviceBusElement> open = new Stack<>();
-        final HashMap<DeviceBusElement, Invalidatable<DeviceBusElement>> optionals = new HashMap<>();
 
         closed.add(root);
         open.add(root);
-        optionals.put(root, Invalidatable.empty()); // Needed because we only return this map.
 
         while (!open.isEmpty()) {
             final DeviceBusElement element = open.pop();
 
-            final Optional<Collection<Invalidatable<DeviceBusElement>>> elementNeighbors = element.getNeighbors();
+            final Optional<Collection<DeviceBusElement>> elementNeighbors = element.getNeighbors();
             if (elementNeighbors.isEmpty()) {
                 scanDelay = INCOMPLETE_RETRY_INTERVAL;
                 state = BusState.INCOMPLETE;
@@ -252,13 +232,10 @@ public class CommonDeviceBusController implements DeviceBusController {
                 return Optional.empty();
             }
 
-            for (final Invalidatable<DeviceBusElement> neighbor : elementNeighbors.get()) {
-                neighbor.ifPresent(neighborElement -> {
-                    if (closed.add(neighborElement)) {
-                        open.add(neighborElement);
-                        optionals.put(neighborElement, neighbor);
-                    }
-                });
+            for (final DeviceBusElement neighbor : elementNeighbors.get()) {
+                if (closed.add(neighbor)) {
+                    open.add(neighbor);
+                }
             }
 
             if (closed.size() > MAX_BUS_ELEMENT_COUNT) {
@@ -270,7 +247,7 @@ public class CommonDeviceBusController implements DeviceBusController {
             }
         }
 
-        return Optional.of(optionals);
+        return Optional.of(closed);
     }
 
     private void updateArchitecture() {
@@ -287,7 +264,7 @@ public class CommonDeviceBusController implements DeviceBusController {
         onArchitectureChanged(currentArchitecture);
     }
 
-    private HashSet<DeviceBusElement> updateElements(final Set<DeviceBusElement> newElements) {
+    private void updateElements(final Set<DeviceBusElement> newElements) {
         final HashSet<DeviceBusElement> removedElements = new HashSet<>(elements);
         removedElements.removeAll(newElements);
 
@@ -295,7 +272,6 @@ public class CommonDeviceBusController implements DeviceBusController {
 
         for (final DeviceBusElement removedElement : removedElements) {
             removedElement.removeController(this);
-            removeElementListener(removedElement);
 
             // Let other controllers on the bus know we're gone, so they can quickly recover.
             for (final DeviceBusController controller : removedElement.getControllers()) {
@@ -311,7 +287,6 @@ public class CommonDeviceBusController implements DeviceBusController {
         for (final DeviceBusElement element : addedElements) {
             element.addController(this);
         }
-        return addedElements;
     }
 
     private boolean checkOtherBusControllers() {

@@ -5,7 +5,6 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
-import li.cil.oc2.api.util.Invalidatable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -60,10 +59,10 @@ public class CommonDeviceBusControllerTests {
         final DeviceBusElement busElement1 = mock(DeviceBusElement.class);
         final DeviceBusElement busElement2 = mock(DeviceBusElement.class);
 
-        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
+        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(busElement1)));
         when(busElement1.getNeighbors()).thenReturn(Optional.of(
-            Set.of(Invalidatable.of(busControllerBusElement), Invalidatable.of(busElement2))));
-        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busElement1))));
+            Set.of(busControllerBusElement, busElement2)));
+        when(busElement2.getNeighbors()).thenReturn(Optional.of(Collections.singleton(busElement1)));
 
         busController.scan();
         assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
@@ -118,23 +117,5 @@ public class CommonDeviceBusControllerTests {
         busController.scan();
         assertEquals(Arrays.asList(ArchitectureType.RISCV, null, ArchitectureType.Z80), reported,
             "swapping the cpu must report a change");
-    }
-
-    @Test
-    public void disposedControllerStopsListeningToItsElements() {
-        final DeviceBusElement busElement = mock(DeviceBusElement.class);
-        final Invalidatable<DeviceBusElement> neighbor = Invalidatable.of(busElement);
-
-        when(busControllerBusElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(neighbor)));
-        when(busElement.getNeighbors()).thenReturn(Optional.of(Collections.singleton(Invalidatable.of(busControllerBusElement))));
-
-        busController.scan();
-        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState());
-
-        busController.dispose();
-        neighbor.invalidate();
-
-        assertEquals(CommonDeviceBusController.BusState.READY, busController.getState(),
-            "a disposed controller must not be called by an element it owned");
     }
 }

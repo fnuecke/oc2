@@ -6,15 +6,16 @@ import li.cil.oc2.api.bus.BlockDeviceBusElement;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.LevelUtils;
+import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 
@@ -24,7 +25,9 @@ import java.util.*;
 import static li.cil.oc2.common.bus.device.provider.Providers.optionalKey;
 
 public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDeviceBusElement<AbstractBlockDeviceBusElement.BlockEntry> implements BlockDeviceBusElement {
-    private final Invalidatable<?>[] neighbors = new Invalidatable<?>[Constants.BLOCK_FACE_COUNT];
+    private final DeviceBusElement[] neighborElements = new DeviceBusElement[Constants.BLOCK_FACE_COUNT];
+    private final Capabilities.InvalidationHandle[] neighborHandles = new Capabilities.InvalidationHandle[Constants.BLOCK_FACE_COUNT];
+    private final boolean[] hasScheduledNeighborUpdate = new boolean[Constants.BLOCK_FACE_COUNT];
 
     // --------------------------------------------------------------------- //
 
@@ -36,13 +39,12 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     // DeviceBusElement
 
     @Override
-    public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
-        final LevelAccessor level = getLevel();
-        if (level == null || level.isClientSide()) {
+    public Optional<Collection<DeviceBusElement>> getNeighbors() {
+        if (!(getLevel() instanceof final ServerLevel level)) {
             return Optional.empty();
         }
 
-        final ArrayList<Invalidatable<DeviceBusElement>> neighbors = new ArrayList<>();
+        final ArrayList<DeviceBusElement> neighbors = new ArrayList<>();
         for (final Direction neighborDirection : Constants.DIRECTIONS) {
             if (!canScanContinueTowards(neighborDirection)) {
                 continue;
@@ -55,8 +57,11 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
                 return Optional.empty();
             }
 
-            final Invalidatable<DeviceBusElement> neighbor = getNeighbor(level, neighborPos, neighborDirection);
-            if (neighbor.isPresent()) {
+            listenToNeighbor(level, neighborDirection);
+
+            final DeviceBusElement neighbor = Capabilities.get(level, neighborPos, Capabilities.DEVICE_BUS_ELEMENT, neighborDirection.getOpposite());
+            neighborElements[neighborDirection.get3DDataValue()] = neighbor;
+            if (neighbor != null) {
                 neighbors.add(neighbor);
             }
         }
@@ -74,8 +79,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     // --------------------------------------------------------------------- //
 
     public void updateDevicesForNeighbor(final Direction side) {
-        final LevelAccessor level = getLevel();
-        if (level == null || level.isClientSide()) {
+        if (!(getLevel() instanceof final ServerLevel level)) {
             return;
         }
 
@@ -95,6 +99,9 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
                 setEntriesForGroupUnloaded(index);
             }
         } else {
+            if (canDetectDevicesTowards(side)) {
+                listenToNeighbor(level, side);
+            }
             collectDevices(level, neighborPos, side).ifPresentOrElse(
                 entries -> setEntriesForGroup(index, entries),
                 () -> setEntriesForGroupUnloaded(index)
@@ -102,8 +109,19 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         }
     }
 
+    public void dropNeighborHandles() {
+        for (final Capabilities.InvalidationHandle handle : neighborHandles) {
+            if (handle != null) {
+                handle.drop();
+            }
+        }
+        Arrays.fill(neighborHandles, null);
+        Arrays.fill(hasScheduledNeighborUpdate, false);
+        Arrays.fill(neighborElements, null);
+    }
+
     public void setRemoved() {
-        Arrays.fill(neighbors, null);
+        dropNeighborHandles();
 
         final LevelAccessor level = getLevel();
         if (level == null || level.isClientSide()) {
@@ -127,17 +145,15 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return canScanContinueTowards(direction);
     }
 
-    protected Optional<Set<BlockEntry>> collectDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
+    protected Optional<Set<BlockEntry>> collectDevices(final ServerLevel level, final BlockPos pos, @Nullable final Direction side) {
         final BlockDeviceQuery query = Devices.makeQuery(getArchitectureType().orElse(null), level, pos, side != null ? side.getOpposite() : null);
         final HashSet<BlockEntry> entries = new HashSet<>();
 
         if (canDetectDevicesTowards(side)) {
-            final Optional<List<Invalidatable<BlockDeviceInfo>>> loadedDevices = Devices.getDevices(query);
+            final Optional<List<BlockDeviceInfo>> loadedDevices = Devices.getDevices(query);
             if (loadedDevices.isPresent()) {
-                for (final Invalidatable<BlockDeviceInfo> deviceInfo : loadedDevices.get()) {
-                    if (deviceInfo.isPresent()) {
-                        entries.add(new BlockEntry(deviceInfo, side));
-                    }
+                for (final BlockDeviceInfo deviceInfo : loadedDevices.get()) {
+                    entries.add(new BlockEntry(deviceInfo, side));
                 }
             } else {
                 return Optional.empty();
@@ -149,7 +165,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         return Optional.of(entries);
     }
 
-    protected void collectSyntheticDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
+    protected void collectSyntheticDevices(final ServerLevel level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
         if (entries.isEmpty()) {
             return;
         }
@@ -160,41 +176,62 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
         }
     }
 
-    @Override
-    protected void onEntryAdded(final BlockEntry entry) {
-        super.onEntryAdded(entry);
-        entry.addListener();
+    // --------------------------------------------------------------------- //
+
+    private void listenToNeighbor(final ServerLevel level, final Direction side) {
+        final int index = side.get3DDataValue();
+        if (neighborHandles[index] == null) {
+            neighborHandles[index] = Capabilities.listen(level, getPosition().relative(side), () -> {
+                neighborHandles[index] = null;
+                scheduleNeighborUpdate(level, side);
+            });
+        }
     }
 
-    @Override
-    protected void onEntryRemoved(final BlockEntry entry) {
-        super.onEntryRemoved(entry);
-        entry.removeListener();
+    // Deferred: callbacks run inside the loader's capability invalidation, which must not re-query capabilities.
+    private void scheduleNeighborUpdate(final ServerLevel level, final Direction side) {
+        final int index = side.get3DDataValue();
+        if (hasScheduledNeighborUpdate[index]) {
+            return;
+        }
+
+        hasScheduledNeighborUpdate[index] = true;
+        final ChunkPos chunk = new ChunkPos(getPosition());
+        ServerScheduler.schedule(level, () -> {
+            if (!hasScheduledNeighborUpdate[index] || !level.hasChunk(chunk.x, chunk.z)) {
+                return;
+            }
+
+            hasScheduledNeighborUpdate[index] = false;
+            if (canScanContinueTowards(side)) {
+                listenToNeighbor(level, side);
+
+                final BlockPos neighborPos = getPosition().relative(side);
+                final ChunkPos neighborChunk = new ChunkPos(neighborPos);
+                final DeviceBusElement neighbor = level.hasChunk(neighborChunk.x, neighborChunk.z)
+                    ? Capabilities.get(level, neighborPos, Capabilities.DEVICE_BUS_ELEMENT, side.getOpposite())
+                    : null;
+                if (neighbor != neighborElements[index]) {
+                    scheduleScan();
+                }
+            }
+            updateDevicesForNeighbor(side);
+        }, 1);
     }
 
     // --------------------------------------------------------------------- //
 
-    protected final class BlockEntry implements Entry {
-        private final Invalidatable<BlockDeviceInfo> deviceInfo;
+    protected static final class BlockEntry implements Entry {
+        private final BlockDeviceInfo deviceInfo;
         @Nullable
         private final String dataKey;
-        private final Device device;
         @Nullable
         private final Direction side;
-        private Invalidatable.ListenerToken token;
-
-        public BlockEntry(final Invalidatable<BlockDeviceInfo> deviceInfo, @Nullable final Direction side) {
-            this.deviceInfo = deviceInfo;
-            this.side = side;
-
-            // Grab these while the device info has not yet been invalidated. We still need to access
-            // these even after the device has been invalidated to clean up.
-            this.dataKey = optionalKey(deviceInfo.get().provider).orElse(null);
-            this.device = deviceInfo.get().device;
-        }
 
         public BlockEntry(final BlockDeviceInfo deviceInfo, @Nullable final Direction side) {
-            this(Invalidatable.of(deviceInfo), side);
+            this.deviceInfo = deviceInfo;
+            this.side = side;
+            this.dataKey = optionalKey(deviceInfo.provider).orElse(null);
         }
 
         @Override
@@ -204,28 +241,12 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
 
         @Override
         public OptionalInt getDeviceEnergyConsumption() {
-            return deviceInfo.isPresent() ? OptionalInt.of(deviceInfo.get().getEnergyConsumption()) : OptionalInt.empty();
+            return OptionalInt.of(deviceInfo.getEnergyConsumption());
         }
 
         @Override
         public Device getDevice() {
-            return device;
-        }
-
-        public void addListener() {
-            // Side can be null for the block that owns the bus element, e.g. in the computer, where the
-            // block adds itself. In this case, we can skip the listener, since the bus element's existence
-            // and validity is tightly coupled to the device source anyway.
-            if (token == null && side != null) {
-                token = deviceInfo.addListener(unused -> updateDevicesForNeighbor(side));
-            }
-        }
-
-        public void removeListener() {
-            if (token != null) {
-                token.removeListener();
-                token = null;
-            }
+            return deviceInfo.device;
         }
 
         @Override
@@ -233,34 +254,17 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             final BlockEntry that = (BlockEntry) o;
-            return Objects.equals(dataKey, that.dataKey) && device.equals(that.device) && side == that.side;
+            return Objects.equals(dataKey, that.dataKey) && deviceInfo.device.equals(that.deviceInfo.device) && side == that.side;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(dataKey, device, side);
+            return Objects.hash(dataKey, deviceInfo.device, side);
         }
 
         @Override
         public String toString() {
-            return device.toString();
+            return deviceInfo.device.toString();
         }
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @SuppressWarnings("unchecked")
-    private Invalidatable<DeviceBusElement> getNeighbor(final LevelAccessor level, final BlockPos pos, final Direction side) {
-        final int index = side.get3DDataValue();
-
-        final Invalidatable<DeviceBusElement> cached = (Invalidatable<DeviceBusElement>) neighbors[index];
-        if (cached != null && cached.isPresent()) {
-            return cached;
-        }
-
-        final Invalidatable<DeviceBusElement> neighbor = Capabilities.watch(
-            level, pos, side.getOpposite(), Capabilities.DEVICE_BUS_ELEMENT);
-        neighbors[index] = neighbor;
-        return neighbor;
     }
 }

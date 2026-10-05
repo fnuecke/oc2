@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Wrapper for objects which may become invalid, such as {@link li.cil.oc2.api.bus.device.Device}s.
+ * Wrapper for objects which may become invalid, such as {@link li.cil.oc2.api.bus.device.vm.context.VMContext#getRuntime()}.
  * <p>
  * This implementation allows listeners added via {@link #addListener(Consumer)} to be removed again
  * using the returned token. This allows avoiding memory leaks due to inversion of reference ownership,

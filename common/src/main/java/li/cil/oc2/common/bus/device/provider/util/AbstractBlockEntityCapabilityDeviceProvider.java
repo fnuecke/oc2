@@ -4,11 +4,13 @@ package li.cil.oc2.common.bus.device.provider.util;
 
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.capabilities.CapabilityCache;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import java.util.Optional;
 
 public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, TBlockEntity extends BlockEntity> extends AbstractBlockEntityDeviceProvider<TBlockEntity> {
     private final CapabilityType<TCapability> capability;
@@ -27,19 +29,10 @@ public abstract class AbstractBlockEntityCapabilityDeviceProvider<TCapability, T
     // --------------------------------------------------------------------- //
 
     @Override
-    protected final Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final BlockEntity blockEntity) {
-        final Invalidatable<TCapability> value = Capabilities.watch(
-            query.getLevel(), blockEntity.getBlockPos(), query.getQuerySide(), capability);
-        if (!value.isPresent()) {
-            return Invalidatable.empty();
-        }
-
-        final Invalidatable<Device> device = getBlockDevice(query, value.get());
-        final Invalidatable.ListenerToken token = value.addListener(unused -> device.invalidate());
-        device.addListener(unused -> token.removeListener());
-
-        return device;
+    protected final Optional<Device> getBlockDevice(final BlockDeviceQuery query, final BlockEntity blockEntity) {
+        return Capabilities.cache(query.getLevel(), blockEntity.getBlockPos(), query.getQuerySide(), capability)
+            .flatMap(value -> getBlockDevice(query, value));
     }
 
-    protected abstract Invalidatable<Device> getBlockDevice(final BlockDeviceQuery query, final TCapability value);
+    protected abstract Optional<Device> getBlockDevice(final BlockDeviceQuery query, final CapabilityCache<TCapability> value);
 }

@@ -5,7 +5,7 @@ package li.cil.oc2.api.bus.device.provider;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
@@ -36,7 +36,7 @@ public interface BlockDeviceQuery {
      *
      * @return the level containing the block.
      */
-    LevelAccessor getLevel();
+    ServerLevel getLevel();
 
     /**
      * The position of the block this query is performed for.

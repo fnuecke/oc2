@@ -5,27 +5,31 @@ package li.cil.oc2.common.capabilities.fabric;
 import li.cil.oc2.api.fabric.EnergyStorage;
 import li.cil.oc2.api.fabric.FluidStorage;
 import li.cil.oc2.api.fabric.ItemStorage;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.capabilities.CapabilityCache;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.inventory.ItemHandler;
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.item.ItemApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public final class CapabilitiesImpl {
     @Nullable
@@ -125,14 +129,21 @@ public final class CapabilitiesImpl {
         return entity(type).find(entity, side);
     }
 
-    public static <T> Invalidatable<T> watch(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side,
-                                             final CapabilityType<T> type) {
-        final T value = level instanceof final Level actual ? get(actual, pos, type, side) : null;
-        if (value == null) {
-            return Invalidatable.empty();
+    public static <T> Optional<CapabilityCache<T>> cache(final ServerLevel level, final BlockPos pos, @Nullable final Direction side,
+                                                         final CapabilityType<T> type) {
+        // Unlike NeoForge's cache, BlockApiCache loads the chunk when queried.
+        final Supplier<T> source = source(level, pos, side, type);
+        final CapabilityCache<T> cache = new CapabilityCache<>(level, pos, side, type,
+            () -> level.isLoaded(pos) ? source.get() : null);
+        if (cache.get() == null) {
+            return Optional.empty();
         }
 
-        return CapabilityWatchers.watch(level, pos, value);
+        return Optional.of(cache);
+    }
+
+    public static Capabilities.InvalidationHandle listen(final ServerLevel level, final BlockPos pos, final Runnable callback) {
+        return CapabilityWatchers.listen(level, pos, callback);
     }
 
     public static void invalidate(final BlockEntity blockEntity) {
@@ -154,6 +165,29 @@ public final class CapabilitiesImpl {
 
     public static <T> EntityApiLookup<T, Direction> entity(final CapabilityType<T> type) {
         return EntityApiLookup.get(type.id(), type.type(), Direction.class);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @SuppressWarnings("unchecked")
+    private static <T> Supplier<T> source(final ServerLevel level, final BlockPos pos, @Nullable final Direction side, final CapabilityType<T> type) {
+        if (type == Capabilities.ENERGY_STORAGE) {
+            final BlockApiCache<team.reborn.energy.api.EnergyStorage, Direction> cache = BlockApiCache.create(EnergyStorage.SIDED, level, pos);
+            return () -> (T) FabricCapabilityAdapters.energy(cache.find(side));
+        }
+
+        if (type == Capabilities.ITEM_HANDLER) {
+            final BlockApiCache<Storage<ItemVariant>, Direction> cache = BlockApiCache.create(ItemStorage.SIDED, level, pos);
+            return () -> (T) FabricCapabilityAdapters.items(cache.find(side));
+        }
+
+        if (type == Capabilities.FLUID_HANDLER) {
+            final BlockApiCache<Storage<FluidVariant>, Direction> cache = BlockApiCache.create(FluidStorage.SIDED, level, pos);
+            return () -> (T) FabricCapabilityAdapters.fluids(cache.find(side));
+        }
+
+        final BlockApiCache<T, Direction> cache = BlockApiCache.create(block(type), level, pos);
+        return () -> cache.find(side);
     }
 
     private CapabilitiesImpl() {

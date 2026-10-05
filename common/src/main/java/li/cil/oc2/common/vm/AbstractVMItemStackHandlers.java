@@ -10,7 +10,6 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.api.bus.device.vm.VMDevice;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.AbstractDeviceBusElement;
 import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
 import li.cil.oc2.common.bus.device.SystemDevice;
@@ -215,9 +214,9 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         private final Device systemDevice = new ObjectDevice(new SystemDevice());
 
         @Override
-        public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
+        public Optional<Collection<DeviceBusElement>> getNeighbors() {
             return Optional.of(itemHandlers.values().stream()
-                .map(handler -> Invalidatable.of((DeviceBusElement) handler.getBusElement()))
+                .map(handler -> (DeviceBusElement) handler.getBusElement())
                 .collect(Collectors.toList()));
         }
 

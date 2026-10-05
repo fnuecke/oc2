@@ -3,7 +3,6 @@
 package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -79,8 +78,7 @@ public final class ConnectorFixture {
         try {
             final Field field = NetworkConnectorBlockEntity.class.getDeclaredField("adjacentInterface");
             field.setAccessible(true);
-            final Invalidatable<?> adjacent = (Invalidatable<?>) field.get(blockEntity());
-            return adjacent != null && adjacent.isPresent() ? adjacent.get() : null;
+            return field.get(blockEntity());
         } catch (final ReflectiveOperationException e) {
             throw new GameTestAssertException("could not read the connector's adjacent interface: " + e);
         }

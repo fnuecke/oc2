@@ -3,15 +3,16 @@
 package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public final class NetworkHubBlockEntity extends ModBlockEntity implements NetworkInterface {
     private static final int TTL_COST = 1;
@@ -21,7 +22,8 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
     // --------------------------------------------------------------------- //
 
-    private final Invalidatable<?>[] adjacentBlockInterfaces = new Invalidatable<?>[Constants.BLOCK_FACE_COUNT];
+    private final NetworkInterface[] adjacentBlockInterfaces = new NetworkInterface[Constants.BLOCK_FACE_COUNT];
+    private final Capabilities.InvalidationHandle[] adjacentBlockHandles = new Capabilities.InvalidationHandle[Constants.BLOCK_FACE_COUNT];
     private boolean haveAdjacentBlocksChanged = true;
 
     // --------------------------------------------------------------------- //
@@ -63,13 +65,8 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
 
         validateAdjacentBlocks();
 
-        for (final Invalidatable<?> adjacent : adjacentBlockInterfaces) {
-            if (adjacent == null || !adjacent.isPresent()) {
-                continue;
-            }
-
-            final NetworkInterface adjacentInterface = (NetworkInterface) adjacent.get();
-            if (adjacentInterface != source) {
+        for (final NetworkInterface adjacentInterface : adjacentBlockInterfaces) {
+            if (adjacentInterface != null && adjacentInterface != source) {
                 adjacentInterface.writeEthernetFrame(this, frame, timeToLive - TTL_COST);
             }
         }
@@ -89,9 +86,13 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
             return;
         }
 
-        for (final Direction side : Constants.DIRECTIONS) {
-            adjacentBlockInterfaces[side.get3DDataValue()] = null;
+        for (final var handle : adjacentBlockHandles) {
+            if (handle != null) {
+                handle.drop();
+            }
         }
+        Arrays.fill(adjacentBlockHandles, null);
+        Arrays.fill(adjacentBlockInterfaces, null);
 
         haveAdjacentBlocksChanged = false;
 
@@ -102,15 +103,9 @@ public final class NetworkHubBlockEntity extends ModBlockEntity implements Netwo
         final BlockPos pos = getBlockPos();
         for (final Direction side : Constants.DIRECTIONS) {
             final BlockPos neighborPos = pos.relative(side);
-            if (!level.isLoaded(neighborPos)) {
-                continue;
-            }
-
-            final Invalidatable<NetworkInterface> neighborInterface = Capabilities.watch(
-                level, neighborPos, side.getOpposite(), Capabilities.NETWORK_INTERFACE);
-            if (neighborInterface.isPresent()) {
-                adjacentBlockInterfaces[side.get3DDataValue()] = neighborInterface;
-                neighborInterface.addListener(unused -> haveAdjacentBlocksChanged = true);
+            adjacentBlockHandles[side.get3DDataValue()] = Capabilities.listen((ServerLevel) level, neighborPos, () -> haveAdjacentBlocksChanged = true);
+            if (level.isLoaded(neighborPos)) {
+                adjacentBlockInterfaces[side.get3DDataValue()] = Capabilities.get(level, neighborPos, Capabilities.NETWORK_INTERFACE, side.getOpposite());
             }
         }
     }

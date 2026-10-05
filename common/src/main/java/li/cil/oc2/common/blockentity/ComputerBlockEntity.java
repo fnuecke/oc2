@@ -8,7 +8,6 @@ import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.client.audio.LoopingSoundManager;
 import li.cil.oc2.client.audio.TerminalBell;
 import li.cil.oc2.common.Config;
@@ -363,6 +362,8 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         // Just in case, so we don't keep it alive if something holds on to us.
         chunk = null;
 
+        busElement.dropNeighborHandles();
+
         // This is necessary in case some other controller found us before our controller
         // did its scan, which can happen because the scan can happen with a delay. In
         // that case we don't know that controller and disposing our controller won't
@@ -481,9 +482,9 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         public void addOwnDevices() {
-            assert level != null;
+            assert level instanceof ServerLevel;
 
-            collectDevices(level, getPosition(), null).ifPresent(entries -> {
+            collectDevices((ServerLevel) level, getPosition(), null).ifPresent(entries -> {
                 for (final BlockEntry info : entries) {
                     devices.add(info.getDevice());
                     super.addDevice(info.getDevice());
@@ -492,12 +493,12 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
-        public Optional<Collection<Invalidatable<DeviceBusElement>>> getNeighbors() {
+        public Optional<Collection<DeviceBusElement>> getNeighbors() {
             return super.getNeighbors().map(neighbors -> {
                 // If we have valid neighbors (complete bus) also add a connection to the bus
                 // element hosting our item devices.
-                final ArrayList<Invalidatable<DeviceBusElement>> list = new ArrayList<>(neighbors);
-                list.add(Invalidatable.of(deviceItems.busElement));
+                final ArrayList<DeviceBusElement> list = new ArrayList<>(neighbors);
+                list.add(deviceItems.busElement);
                 return list;
             });
         }

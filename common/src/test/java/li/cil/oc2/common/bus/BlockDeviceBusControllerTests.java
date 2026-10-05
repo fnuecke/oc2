@@ -15,10 +15,10 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import li.cil.oc2.common.capabilities.Capabilities;
+import li.cil.oc2.common.capabilities.CapabilityCache;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.sedna.api.device.serial.SerialDevice;
@@ -27,6 +27,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,7 +51,7 @@ public class BlockDeviceBusControllerTests {
     private MockedStatic<LevelUtils> levelUtilsMock;
 
     private FakeLevel fakeLevel;
-    private LevelAccessor level;
+    private ServerLevel level;
 
     // --------------------------------------------------------------------- //
 
@@ -58,18 +59,21 @@ public class BlockDeviceBusControllerTests {
     public void setupEach() {
         capabilitiesMock = mockStatic(Capabilities.class);
 
-        capabilitiesMock.when(() -> Capabilities.watch(any(), any(), any(), any())).then(a -> {
+        capabilitiesMock.when(() -> Capabilities.listen(any(), any(), any())).thenReturn((Capabilities.InvalidationHandle) () -> {});
+        capabilitiesMock.when(() -> Capabilities.cache(any(), any(), any(), any())).then(a -> {
             final LevelAccessor watchedLevel = a.getArgument(0);
             final BlockPos watchedPos = a.getArgument(1);
             final Direction watchedSide = a.getArgument(2);
-            final CapabilityType<?> watchedType = a.getArgument(3);
+            final CapabilityType<Object> watchedType = a.getArgument(3);
 
             final BlockEntity blockEntity = watchedLevel.getBlockEntity(watchedPos);
             final Object value = blockEntity == null
                 ? null
                 : Capabilities.get(blockEntity, watchedType, watchedSide);
 
-            return value != null ? Invalidatable.of(value) : Invalidatable.empty();
+            return value != null
+                ? Optional.of(new CapabilityCache<>(watchedLevel, watchedPos, watchedSide, watchedType, () -> value))
+                : Optional.empty();
         });
 
         providersMock = mockStatic(Providers.class);
@@ -230,7 +234,7 @@ public class BlockDeviceBusControllerTests {
 
         final BlockPos elementPos = controllerPos.west();
         final TestBusElementBlockEntity busElementInfo = new TestBusElementBlockEntity(elementPos);
-        capabilitiesMock.when(() -> Capabilities.get(eq(busElementInfo.getBlockEntity()), eq(Capabilities.DEVICE_BUS_ELEMENT), any()))
+        capabilitiesMock.when(() -> Capabilities.get(eq(level), eq(elementPos), eq(Capabilities.DEVICE_BUS_ELEMENT), any()))
             .thenAnswer(a -> busElementInfo.getBusElement());
 
         final BlockPos devicePos = elementPos.west();
@@ -453,7 +457,7 @@ public class BlockDeviceBusControllerTests {
     // --------------------------------------------------------------------- //
 
     private static final class FakeLevel {
-        private final LevelAccessor level = mock(LevelAccessor.class);
+        private final ServerLevel level = mock(ServerLevel.class);
         private final HashMap<BlockPos, BlockEntity> blockEntities = new HashMap<>();
         private final HashSet<ChunkPos> loadedChunks = new HashSet<>();
 
@@ -467,7 +471,7 @@ public class BlockDeviceBusControllerTests {
             });
         }
 
-        public LevelAccessor getLevel() {
+        public ServerLevel getLevel() {
             return level;
         }
 
@@ -510,8 +514,8 @@ public class BlockDeviceBusControllerTests {
         public TestBusElementBlockEntity(final BlockPos pos) {
             super(pos);
             busElement = spy(new TestBlockDeviceBusElement(level, pos));
-            capabilitiesMock.when(() -> Capabilities.get(eq(getBlockEntity()), eq(Capabilities.DEVICE_BUS_ELEMENT), any())).then(a -> {
-                final Direction side = a.getArgument(2);
+            capabilitiesMock.when(() -> Capabilities.get(eq(level), eq(pos), eq(Capabilities.DEVICE_BUS_ELEMENT), any())).then(a -> {
+                final Direction side = a.getArgument(3);
                 return side != null && enabledSides[side.get3DDataValue()] ? busElement : null;
             });
             Arrays.fill(enabledSides, true);
@@ -593,14 +597,14 @@ public class BlockDeviceBusControllerTests {
 
     private static class TestBlockDeviceProvider implements BlockDeviceProvider {
         @Override
-        public Invalidatable<Device> getDevice(final BlockDeviceQuery query) {
+        public Optional<Device> getDevice(final BlockDeviceQuery query) {
             final LevelAccessor level = query.getLevel();
             final BlockEntity blockEntity = level.getBlockEntity(query.getQueryPosition());
             if (blockEntity != null) {
                 final Device device = Capabilities.get(blockEntity, Capabilities.DEVICE, null);
-                return device != null ? Invalidatable.of(device) : Invalidatable.empty();
+                return device != null ? Optional.of(device) : Optional.empty();
             }
-            return Invalidatable.empty();
+            return Optional.empty();
         }
     }
 

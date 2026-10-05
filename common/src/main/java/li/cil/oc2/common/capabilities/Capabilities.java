@@ -10,7 +10,6 @@ import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.capabilities.TerminalUserProvider;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
@@ -21,15 +20,22 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public final class Capabilities {
+    @FunctionalInterface
+    public interface InvalidationHandle {
+        void drop();
+    }
+
+    // --------------------------------------------------------------------- //
+
     // Interop capabilities
     public static final CapabilityType<EnergyHandler> ENERGY_STORAGE = type("energy_storage", EnergyHandler.class);
     public static final CapabilityType<ItemHandler> ITEM_HANDLER = type("item_handler", ItemHandler.class);
@@ -76,8 +82,13 @@ public final class Capabilities {
     }
 
     @ExpectPlatform
-    public static <T> Invalidatable<T> watch(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side,
-                                             final CapabilityType<T> type) {
+    public static <T> Optional<CapabilityCache<T>> cache(final ServerLevel level, final BlockPos pos, @Nullable final Direction side,
+                                                         final CapabilityType<T> type) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static InvalidationHandle listen(final ServerLevel level, final BlockPos pos, final Runnable callback) {
         throw new AssertionError();
     }
 

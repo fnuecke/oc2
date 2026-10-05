@@ -26,6 +26,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -263,6 +264,8 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
         if (isRemove) {
             busElement.setRemoved();
+        } else {
+            busElement.dropNeighborHandles();
         }
 
         for (final NeighborTracker tracker : neighborTrackers) {
@@ -337,7 +340,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
 
         @Override
-        protected void collectSyntheticDevices(final LevelAccessor level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
+        protected void collectSyntheticDevices(final ServerLevel level, final BlockPos pos, @Nullable final Direction side, final HashSet<BlockEntry> entries) {
             super.collectSyntheticDevices(level, pos, side, entries);
 
             if (side == null || entries.isEmpty()) {

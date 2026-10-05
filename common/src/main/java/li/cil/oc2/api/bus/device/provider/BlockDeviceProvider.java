@@ -3,7 +3,8 @@
 package li.cil.oc2.api.bus.device.provider;
 
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.api.util.Invalidatable;
+
+import java.util.Optional;
 
 /**
  * This is used to query for devices given a block face.
@@ -34,13 +35,13 @@ public interface BlockDeviceProvider {
     /**
      * Get a device for the specified query.
      * <p>
-     * The result is {@link Invalidatable} because a block may drop its device out of band, e.g. when
-     * the capability backing it is invalidated. Invalidating the returned value makes the bus drop
-     * the device and rescan. Return {@link Invalidatable#empty()} when this provider has no device
-     * for the query.
+     * Buses query again on neighbor updates and when capabilities at the queried position are
+     * invalidated. A block whose devices change without either should invalidate its capabilities
+     * (NeoForge: {@code invalidateCapabilities()}) or, on Fabric, notify its neighbors
+     * ({@code Level#updateNeighborsAt}).
      *
      * @param query the query describing the object to get a {@link Device} for.
      * @return a device for the specified query, if available.
      */
-    Invalidatable<Device> getDevice(BlockDeviceQuery query);
+    Optional<Device> getDevice(BlockDeviceQuery query);
 }

@@ -3,21 +3,19 @@
 package li.cil.oc2.common.bus.device.util;
 
 import dev.architectury.registry.registries.Registrar;
-import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
-import li.cil.oc2.api.util.Invalidatable;
 import li.cil.oc2.common.bus.device.provider.Providers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nullable;
@@ -27,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class Devices {
-    public static BlockDeviceQuery makeQuery(@Nullable final ArchitectureType architectureType, final LevelAccessor level, final BlockPos pos, @Nullable final Direction side) {
+    public static BlockDeviceQuery makeQuery(@Nullable final ArchitectureType architectureType, final ServerLevel level, final BlockPos pos, @Nullable final Direction side) {
         return new BlockQuery(architectureType, level, pos, side);
     }
 
@@ -43,19 +41,16 @@ public final class Devices {
         return new ItemQuery(architectureType, null, entity, stack);
     }
 
-    public static Optional<List<Invalidatable<BlockDeviceInfo>>> getDevices(final BlockDeviceQuery query) {
+    public static Optional<List<BlockDeviceInfo>> getDevices(final BlockDeviceQuery query) {
         final ChunkPos queryChunk = new ChunkPos(query.getQueryPosition());
         if (!query.getLevel().hasChunk(queryChunk.x, queryChunk.z)) {
             return Optional.empty();
         }
 
         final Registrar<BlockDeviceProvider> registry = Providers.blockDeviceProviderRegistry();
-        final ArrayList<Invalidatable<BlockDeviceInfo>> devices = new ArrayList<>();
+        final ArrayList<BlockDeviceInfo> devices = new ArrayList<>();
         for (final BlockDeviceProvider provider : registry) {
-            final Invalidatable<Device> device = provider.getDevice(query);
-            if (device.isPresent()) {
-                devices.add(device.mapWithDependency(d -> new BlockDeviceInfo(provider, d)));
-            }
+            provider.getDevice(query).ifPresent(d -> devices.add(new BlockDeviceInfo(provider, d)));
         }
 
         return Optional.of(devices);
@@ -96,7 +91,7 @@ public final class Devices {
 
     private record BlockQuery(
         @Nullable ArchitectureType architectureType,
-        LevelAccessor level,
+        ServerLevel level,
         BlockPos pos,
         @Nullable Direction side
     ) implements BlockDeviceQuery {
@@ -106,7 +101,7 @@ public final class Devices {
         }
 
         @Override
-        public LevelAccessor getLevel() {
+        public ServerLevel getLevel() {
             return level;
         }
 

@@ -52,7 +52,7 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
     public void render(final Robot entity, final float entityYaw, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int packedLight) {
         final Robot.AnimationState state = entity.getAnimationState();
         final long gameTime = entity.level().getGameTime();
-        final float time = gameTime + partialTicks;
+        final double time = (double) gameTime + partialTicks;
         float deltaTime = Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
         state.update(time, deltaTime, entity.level().random);
 

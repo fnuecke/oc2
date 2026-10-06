@@ -43,6 +43,10 @@ public final class RobotRotationAction extends AbstractRobotAction {
 
     // --------------------------------------------------------------------- //
 
+    public static boolean isComplete(final Robot robot) {
+        return Mth.degreesDifferenceAbs(robot.getYRot(), robot.getEntityData().get(Robot.TARGET_DIRECTION).toYRot()) <= TARGET_EPSILON;
+    }
+
     public static void rotateTowards(final Robot robot, final Direction targetRotation) {
         robot.setYRot(Mth.approachDegrees(robot.getYRot(), targetRotation.toYRot(), ROTATION_SPEED));
     }

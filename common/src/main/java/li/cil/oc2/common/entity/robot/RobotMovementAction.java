@@ -10,11 +10,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public final class RobotMovementAction extends AbstractRobotAction {
@@ -23,6 +29,8 @@ public final class RobotMovementAction extends AbstractRobotAction {
     // --------------------------------------------------------------------- //
 
     private static final float MOVEMENT_SPEED = 1f / TickUtils.toTicks(Duration.ofSeconds(1)); // blocks per tick
+    private static final double RIDER_EPSILON = 0.01;
+    private static final double RIDER_DEPTH = 0.5;
 
     private static final String DIRECTION_TAG_NAME = "direction";
     private static final String ORIGIN_TAG_NAME = "origin";
@@ -59,13 +67,40 @@ public final class RobotMovementAction extends AbstractRobotAction {
         return Vec3.atBottomCenterOf(position).add(0, 0.5f * (1 - Entities.ROBOT.get().getHeight()), 0);
     }
 
+    public static boolean isComplete(final Robot robot) {
+        return robot.position().distanceToSqr(getTargetPositionInBlock(robot.getEntityData().get(Robot.TARGET_POSITION))) <= TARGET_EPSILON;
+    }
+
     public static void moveTowards(final Robot robot, final Vec3 targetPosition) {
         Vec3 delta = targetPosition.subtract(robot.position());
         if (delta.lengthSqr() > MOVEMENT_SPEED * MOVEMENT_SPEED) {
             delta = delta.normalize().scale(MOVEMENT_SPEED);
         }
 
-        robot.move(MoverType.SELF, delta);
+        final List<Entity> carriedEntities = getCarriedEntities(robot, delta);
+        if (delta.y > 0) {
+            // Lift entities on top first, so they don't block the robot. If not possible they block movement.
+            final double top = robot.getBoundingBox().maxY + delta.y;
+            final List<Entity> passThrough = new ArrayList<>();
+            for (final Entity entity : carriedEntities) {
+                final double lift = top - entity.getBoundingBox().minY;
+                if (shouldMoveEntity(entity)) {
+                    entity.move(MoverType.SHULKER, new Vec3(0, lift, 0));
+                } else if (robot.level().noCollision(entity, entity.getBoundingBox().move(0, lift, 0))) {
+                    passThrough.add(entity);
+                }
+            }
+            robot.move(delta, passThrough);
+        } else {
+            final Vec3 start = robot.position();
+            robot.move(delta, List.of());
+            final Vec3 moved = robot.position().subtract(start);
+            for (final Entity entity : carriedEntities) {
+                if (shouldMoveEntity(entity)) {
+                    entity.move(MoverType.SHULKER, moved);
+                }
+            }
+        }
     }
 
     // --------------------------------------------------------------------- //
@@ -153,13 +188,34 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
         final boolean didCollide = robot.horizontalCollision || robot.verticalCollision;
         final long gameTime = robot.level().getGameTime();
-        if (didCollide && !robot.level().isClientSide()
-            && robot.getLastPistonMovement() < gameTime - 1) {
+        if (didCollide && !robot.level().isClientSide() && robot.getLastPistonMovement() < gameTime - 1) {
             final BlockPos newStart = target;
             target = start;
             start = newStart;
             targetPos = getTargetPositionInBlock(target);
             robot.getEntityData().set(Robot.TARGET_POSITION, target);
+        }
+    }
+
+    private static List<Entity> getCarriedEntities(final Robot robot, final Vec3 delta) {
+        final AABB bounds = robot.getBoundingBox();
+        final AABB top = new AABB(bounds.minX, bounds.maxY - RIDER_DEPTH, bounds.minZ, bounds.maxX, bounds.maxY + Math.max(0, delta.y) + RIDER_EPSILON, bounds.maxZ);
+        return robot.level().getEntities(robot, top, entity ->
+            !(entity instanceof Robot) &&
+                !entity.isSpectator() &&
+                !entity.noPhysics &&
+                !entity.isPassenger() &&
+                entity.getPistonPushReaction() != PushReaction.IGNORE &&
+                entity.getBoundingBox().minY >= top.minY);
+    }
+
+    private static boolean shouldMoveEntity(final Entity entity) {
+        if (entity.level().isClientSide()) {
+            return entity.isControlledByLocalInstance();
+        } else {
+            final boolean isPlayer = entity instanceof Player;
+            final boolean isControlledByPlayer = entity.getControllingPassenger() instanceof Player;
+            return !isPlayer && !isControlledByPlayer;
         }
     }
 

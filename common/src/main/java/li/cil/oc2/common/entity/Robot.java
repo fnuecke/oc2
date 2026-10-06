@@ -60,7 +60,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -120,6 +122,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private static final int TANK_CAPACITY = 12 * FluidHandler.BUCKET;
 
     private static final int CONTAINING_BLOCK_CHECK_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(1));
+    private static final double MOVING_POSITION_SYNC_THRESHOLD = 1;
+    private static final float TURNING_ROTATION_SYNC_THRESHOLD = 45;
 
     // --------------------------------------------------------------------- //
 
@@ -144,6 +148,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Copy for threaded send.
     private long lastPistonMovement;
+    private List<Entity> ignoredColliders = List.of();
     @Nullable
     private GlobalPos origin;
 
@@ -250,6 +255,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     public long getLastPistonMovement() {
         return lastPistonMovement;
+    }
+
+    public void move(final Vec3 delta, final List<Entity> ignoredColliders) {
+        this.ignoredColliders = ignoredColliders; //NOPMD - read by canCollideWith during move
+        move(MoverType.SELF, delta);
+        this.ignoredColliders = List.of();
     }
 
     public void start() {
@@ -390,17 +401,27 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
+    public void lerpTo(final double x, final double y, final double z, final float yRot, final float xRot, final int steps) {
+        // Applying server position and rotation while animating (which also runs on client) causes jitter, so
+        // only snap to the authoritative values when actually relevant.
+        if (RobotMovementAction.isComplete(this) ||
+            position().distanceToSqr(x, y, z) > MOVING_POSITION_SYNC_THRESHOLD * MOVING_POSITION_SYNC_THRESHOLD) {
+            setPos(x, y, z);
+        }
+        if (RobotRotationAction.isComplete(this) ||
+            Mth.degreesDifferenceAbs(getYRot(), yRot) > TURNING_ROTATION_SYNC_THRESHOLD) {
+            setRot(yRot, xRot);
+        }
+    }
+
+    @Override
     public boolean isPickable() {
         return true;
     }
 
     @Override
     public boolean canCollideWith(final Entity entity) {
-        return entity != this;
-    }
-
-    @Override
-    public void push(final Entity entity) {
+        return !ignoredColliders.contains(entity) && Boat.canVehicleCollide(this, entity);
     }
 
     @Override
@@ -657,9 +678,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         public float topRenderRotationSpeed;
         private final float hoverPhase = hashCode() & 0xFFFF;
 
-        public void update(final float time, final float deltaTime, final RandomSource random) {
+        public void update(final double time, final float deltaTime, final RandomSource random) {
             if (getVirtualMachine().isRunning() || actionProcessor.hasQueuedActions()) {
-                final float topOffsetY = Mth.sin(time * HOVER_ANIMATION_SPEED + hoverPhase) / 32f;
+                final float topOffsetY = (float) Math.sin(time * HOVER_ANIMATION_SPEED + hoverPhase) / 32f;
 
                 topRenderOffsetY = lerpClamped(topRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
                 baseRenderOffsetY = lerpClamped(baseRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);

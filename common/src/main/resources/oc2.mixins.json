@@ -6,7 +6,8 @@
     "mixins": [
         "LevelChunkMixin",
         "MinecraftServerMixin",
-        "ServerChunkCacheMixin"
+        "ServerChunkCacheMixin",
+        "ServerGamePacketListenerImplMixin"
     ],
     "client": [
         "FogRendererMixin",

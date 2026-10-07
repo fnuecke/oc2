@@ -28,8 +28,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 public final class IODeviceBusAdapterTests {
     private static final int REG_SELECT = 0;

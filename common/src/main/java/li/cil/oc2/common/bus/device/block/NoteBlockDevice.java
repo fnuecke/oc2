@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"note_block"}, description = """
+@RPCDeviceDescription(typeName = "note_block", description = """
     Provided by note blocks connected to a [bus interface](../block/bus_interface.md).
 
     The device changes what the note block is set to. It does not play it, use redstone signals for that.

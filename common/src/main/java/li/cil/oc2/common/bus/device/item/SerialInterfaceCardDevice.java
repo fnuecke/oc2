@@ -40,7 +40,7 @@ import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-@RPCDeviceDescription(typeNames = {"serial"}, description = """
+@RPCDeviceDescription(typeName = "serial", description = """
     Provided by the [serial interface card](../item/serial_interface_card.md).
 
     The serial port itself is driven through the operating system, see the card's page. This device reports the card's configuration and error counters, for example to tell serial ports apart or to detect collisions.

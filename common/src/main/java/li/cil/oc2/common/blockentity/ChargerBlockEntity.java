@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 
-@RPCDeviceDescription(typeNames = {"charger"}, description = "Provided by the [charger](../block/charger.md) block.")
+@RPCDeviceDescription(typeName = "charger", description = "Provided by the [charger](../block/charger.md) block.")
 @IODeviceDescription(name = "CHARGR")
 public final class ChargerBlockEntity extends ModBlockEntity implements TickableBlockEntity {
     private static final String HAS_ENERGY_TAG_NAME = "has_energy";

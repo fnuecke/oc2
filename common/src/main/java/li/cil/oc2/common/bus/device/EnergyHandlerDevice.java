@@ -12,7 +12,7 @@ import li.cil.oc2.common.energy.EnergyHandler;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"energy_storage"}, description = """
+@RPCDeviceDescription(typeName = "energy_storage", description = """
     Provided by any energy storage connected through a [bus interface](../block/bus_interface.md), such as a [charger](../block/charger.md).""")
 @IODeviceDescription(name = "ENERGY", description = """
     Amounts are four bytes, low byte first. Amounts past `0xFFFFFFFF` read as `0xFFFFFFFF`.""")

@@ -8,10 +8,10 @@ Everything here is done through ports, so it works from assembly. Two libraries 
 `INCLUDE OCAPI.INC`
 
 ## Finding a Device
-Devices announce themselves through an enumeration window at a fixed port. `DEVS.COM` prints what's on there, which is a good first check that a device is connected at all.
+Devices are findable through an enumeration window at a fixed port. `DEVS.COM` prints what's on there, which is a good first check that a device is connected at all.
 
-Every MLAPI device answers on the same port and is told apart by a MLAPI-device index. `OCFIND` in `OCAPI.INC` does the lookup by name:
-- `HL` points at the name, up to six characters, terminated by a zero
+Every MLAPI device answers on the same port and is told apart by an MLAPI-device index. `OCFIND` in `OCAPI.INC` does the lookup by name or bus interface label:
+- `HL` points at the name, terminated by a zero
 - `B` is which one to find, counting from zero, for when several share the same name
 - On success the carry flag is clear, `A` holds the port to talk to and `E` holds the MLAPI-device index
 - On failure the carry flag is set
@@ -64,11 +64,14 @@ This sets the output on side 1, upwards, to 15. Put a redstone lamp above the co
 To write your own, `ED` on the boot disk creates and edits source files, as in `ED B:PROG.Z80`.
 
 ## On a RISC-V Computer
-Linux offers the same registers as a memory page in the file `/dev/uio0`, which needs `root` privileges to open. The C header `mlapi.h` provides utilities to find and map this memory area; layout is then the same as described above. It also provides helpers to find a device and make a call. It lies in `/mnt/builtin/include`, where `tcc` should pick it up automatically.
+Linux offers the same registers as a memory page in the file `/dev/uio0`, which needs `root` privileges to open. The C header `mlapi.h` provides utilities to find and map this memory area; layout is then the same as described above. It also provides a helper to find a device by name or bus interface label, `mlapi_find`, and to make a call. It lives in `/mnt/builtin/include`, where `tcc` should pick it up automatically.
 
 `/mnt/builtin/example/redstone.c` does the same as `REDSTN.Z80` does on the Z80. Run it directly:  
 `tcc -run /mnt/builtin/example/redstone.c 1 15`
 
 Without arguments, it does what `REDWAIT.Z80` does: `mlapi_events_wait` in `mlapi.h` sleeps until the next event.
+
+`/mnt/builtin/example/devices.c` lists every device with its index and names:  
+`tcc -run /mnt/builtin/example/devices.c`
 
 There is one selection and one call for the whole computer. Only let one program use the page at a time.

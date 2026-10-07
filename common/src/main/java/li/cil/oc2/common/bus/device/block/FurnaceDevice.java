@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"furnace"}, description = """
+@RPCDeviceDescription(typeName = "furnace", description = """
     Provided by furnaces, smokers and blast furnaces connected to a [bus interface](../block/bus_interface.md). Times are in ticks. Slots are available through the [item handler](item_handler.md) device.""")
 @IODeviceDescription(name = "FRNACE", description = """
     Times are two bytes, low byte first, capped at 65535.""")

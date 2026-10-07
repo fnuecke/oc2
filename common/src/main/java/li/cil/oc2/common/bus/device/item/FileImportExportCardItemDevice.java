@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-@RPCDeviceDescription(typeNames = {"file_import_export"}, description = """
+@RPCDeviceDescription(typeName = "file_import_export", description = """
     Provided by the [file import/export card](../item/file_import_export_card.md).
 
     ### Exporting

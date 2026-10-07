@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.entity.LecternBlockEntity;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"lectern"}, description = """
+@RPCDeviceDescription(typeName = "lectern", description = """
     Provided by lecterns connected to a [bus interface](../block/bus_interface.md). Pages are numbered from `0`.""")
 @IODeviceDescription(name = "LECTRN")
 public final class LecternDevice extends AbstractBlockDevice {

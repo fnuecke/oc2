@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Locale;
 
-@RPCDeviceDescription(typeNames = {"redstone"}, description = """
+@RPCDeviceDescription(typeName = "redstone", description = """
     Provided by the [redstone interface](../block/redstone_interface.md) block and the [redstone interface card](../item/redstone_interface_card.md).
 
     ### Sides

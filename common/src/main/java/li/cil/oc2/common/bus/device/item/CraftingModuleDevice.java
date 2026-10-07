@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-@RPCDeviceDescription(typeNames = {"crafting"}, description = """
+@RPCDeviceDescription(typeName = "crafting", description = """
     Provided by the [crafting module](../item/crafting_module.md) to robots.
 
     The top part of the robot's inventory, slots `0` to `8`, serves as the crafting grid. Crafted items go into the bottom row, starting at the selected slot.""")

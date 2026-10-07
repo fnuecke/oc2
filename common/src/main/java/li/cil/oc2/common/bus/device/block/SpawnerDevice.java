@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-@RPCDeviceDescription(typeNames = {"spawner"}, description = """
+@RPCDeviceDescription(typeName = "spawner", description = """
     Provided by monster spawners connected to a [bus interface](../block/bus_interface.md).""")
 @IODeviceDescription(name = "SPAWNR")
 public final class SpawnerDevice extends AbstractBlockDevice {

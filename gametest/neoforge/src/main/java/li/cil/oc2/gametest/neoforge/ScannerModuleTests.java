@@ -58,7 +58,7 @@ public final class ScannerModuleTests {
             .thenExecuteAfter(SETTLE_TICKS, () -> robot.install(DeviceTypes.ROBOT_MODULE.get(), new ItemStack(Items.SCANNER_MODULE.get())))
             .thenExecuteAfter(SETTLE_TICKS, () -> {
                 for (final Device device : robot.devices()) {
-                    if (device instanceof final RPCDevice rpc && rpc.getTypeNames().contains("scanner")) {
+                    if (device instanceof final RPCDevice rpc && "scanner".equals(rpc.getTypeName())) {
                         return;
                     }
                 }

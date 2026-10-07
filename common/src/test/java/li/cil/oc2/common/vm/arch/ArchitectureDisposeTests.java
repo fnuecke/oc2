@@ -47,6 +47,7 @@ public final class ArchitectureDisposeTests {
         final VMDevice device = mock(VMDevice.class, withSettings().extraInterfaces(RPCDevice.class));
         final RPCDevice rpcDevice = (RPCDevice) device;
         when(device.mount(any())).thenReturn(VMDeviceLoadResult.success());
+        when(rpcDevice.getTypeName()).thenReturn("test");
         when(rpcDevice.getMethodGroups()).thenReturn(List.of(mock(RPCMethod.class)));
         setDevices(device);
 

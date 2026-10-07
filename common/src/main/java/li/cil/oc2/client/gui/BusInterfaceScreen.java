@@ -9,6 +9,7 @@ import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
+import li.cil.sedna.api.device.bus.DeviceDescription;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -56,6 +57,7 @@ public final class BusInterfaceScreen extends Screen {
         nameField.setTextColor(0xFFFFFFFF);
         nameField.setBordered(false);
         nameField.setMaxLength(32);
+        nameField.setFilter(value -> value.isEmpty() || DeviceDescription.isValidName(value));
         nameField.setValue(busCable.getInterfaceName(side));
         addWidget(nameField);
         setInitialFocus(nameField);

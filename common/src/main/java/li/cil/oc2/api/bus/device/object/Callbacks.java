@@ -93,25 +93,25 @@ public final class Callbacks {
     }
 
     /**
-     * Returns the type names declared by the specified object's {@link RPCDeviceDescription}.
+     * Returns the type name declared by the specified object's {@link RPCDeviceDescription}.
      * <p>
      * Without a declaration, the name is derived from the class name: {@code ExampleDevice}
      * becomes {@code example}.
      * <p>
      * The specified {@code object} can be an instance or a {@link Class}.
      *
-     * @param object the object to read the type names from.
-     * @return the type names.
+     * @param object the object to read the type name from.
+     * @return the type name.
      */
-    public static List<String> getTypeNames(final Object object) {
+    public static String getTypeName(final Object object) {
         final Class<?> type = object instanceof final Class<?> clazz ? clazz : object.getClass();
         for (Class<?> current = type; current != null; current = current.getSuperclass()) {
             final RPCDeviceDescription annotation = current.getAnnotation(RPCDeviceDescription.class);
-            if (annotation != null && annotation.typeNames().length > 0) {
-                return List.of(annotation.typeNames());
+            if (annotation != null && !annotation.typeName().isEmpty()) {
+                return annotation.typeName();
             }
         }
-        return List.of(toNiceTypeName(type));
+        return toNiceTypeName(type);
     }
 
     // --------------------------------------------------------------------- //

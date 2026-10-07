@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"brewing_stand"}, description = """
+@RPCDeviceDescription(typeName = "brewing_stand", description = """
     Provided by brewing stands connected to a [bus interface](../block/bus_interface.md). The stand's slots are available through the [item handler](item_handler.md) device.""")
 @IODeviceDescription(name = "BREW")
 public final class BrewingStandDevice extends AbstractBlockDevice {

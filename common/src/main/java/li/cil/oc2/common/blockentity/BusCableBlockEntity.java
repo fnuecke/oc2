@@ -7,7 +7,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.bus.AbstractBlockDeviceBusElement;
-import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
+import li.cil.oc2.common.bus.device.TypeNameDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.network.Network;
@@ -17,6 +17,7 @@ import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
+import li.cil.sedna.api.device.bus.DeviceDescription;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -285,14 +286,14 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
     private void deserializeInterfaceNames(final ListTag tag) {
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
-            final String name = tag.getString(i).trim();
-            interfaceNames[i] = name.substring(0, Math.min(32, name.length()));
+            interfaceNames[i] = validateName(tag.getString(i));
         }
     }
 
     private static String validateName(final String name) {
         final String trimmed = name.trim();
-        return trimmed.length() > 32 ? trimmed.substring(0, 32) : trimmed;
+        final String capped = trimmed.length() > 32 ? trimmed.substring(0, 32) : trimmed;
+        return DeviceDescription.isValidName(capped) ? capped : "";
     }
 
     private void scanAdjacentBusElements() {
@@ -349,7 +350,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
             final String interfaceName = interfaceNames[side.get3DDataValue()];
             if (!StringUtil.isNullOrEmpty(interfaceName)) {
-                entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameRPCDevice(interfaceName)), side));
+                entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameDevice(interfaceName)), side));
             }
         }
 

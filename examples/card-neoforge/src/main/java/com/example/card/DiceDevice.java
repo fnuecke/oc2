@@ -11,7 +11,7 @@ import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
-@RPCDeviceDescription(typeNames = "dice", description = "Rolls dice.")
+@RPCDeviceDescription(typeName = "dice", description = "Rolls dice.")
 @IODeviceDescription(name = "DICE", description = "Rolls dice.")
 public final class DiceDevice {
     private static final int ROLL_CODE = 0;

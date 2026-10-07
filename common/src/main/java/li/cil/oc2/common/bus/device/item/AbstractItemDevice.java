@@ -33,8 +33,8 @@ public abstract class AbstractItemDevice extends IdentityProxy<ItemStack> implem
     // --------------------------------------------------------------------- //
 
     @Override
-    public List<String> getTypeNames() {
-        return device.getTypeNames();
+    public String getTypeName() {
+        return device.getTypeName();
     }
 
     @Override

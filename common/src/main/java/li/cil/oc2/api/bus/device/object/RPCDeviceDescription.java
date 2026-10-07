@@ -10,23 +10,21 @@ import java.lang.annotation.Target;
 /**
  * Names and documents the high-level API of a class carrying {@link Callback} methods.
  * <p>
- * Optional. Without type names, one is derived from the class name, see {@link Callbacks#getTypeNames(Object)}.
+ * Optional. Without a type name, one is derived from the class name, see {@link Callbacks#getTypeName(Object)}.
  * <p>
  * This is the high-level API counterpart of {@link IODeviceDescription}.
  *
- * @see Callbacks#getTypeNames(Object)
+ * @see Callbacks#getTypeName(Object)
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RPCDeviceDescription {
     /**
-     * The type names a guest can find the device by.
-     * <p>
-     * In a more general sense, these are tags the device can be referenced by inside a VM.
+     * The type name a guest can find the device by.
      *
-     * @return the type names of the device.
+     * @return the type name of the device.
      */
-    String[] typeNames() default {};
+    String typeName() default "";
 
     /**
      * Optional documentation of the device's high-level API as a whole, such as what the

@@ -12,12 +12,7 @@ import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.api.bus.device.rpc.RPCMethodGroup;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 /**
  * A reflection based implementation of {@link RPCDevice} using the {@link Callback}
@@ -28,42 +23,13 @@ import static java.util.Collections.singletonList;
  */
 public final class ObjectDevice implements RPCDevice, IODevice, ItemDevice {
     private final Object object;
-    private final ArrayList<String> typeNames;
+    private final String typeName;
     private final List<RPCMethodGroup> rpcMethods;
     private final String className;
     private final List<IOMethod> ioMethods;
     private final String ioName;
 
     // --------------------------------------------------------------------- //
-
-    /**
-     * Creates a new object device with methods in the specified object and the
-     * specified list of type names.
-     * <p>
-     * Without explicit type names, the class name is used, see {@link Callbacks#getTypeNames(Object)}.
-     *
-     * @param object    the object containing methods provided by this device.
-     * @param typeNames the type names of the device.
-     */
-    public ObjectDevice(final Object object, final List<String> typeNames) {
-        this.object = object;
-        this.typeNames = new ArrayList<>(typeNames.isEmpty() ? Callbacks.getTypeNames(object) : typeNames);
-        this.rpcMethods = Callbacks.collectMethods(object);
-        this.className = object.getClass().getSimpleName();
-        this.ioMethods = IOCallbacks.collectMethods(object);
-        this.ioName = ioMethods.isEmpty() ? "" : IOCallbacks.getName(object);
-    }
-
-    /**
-     * Creates a new object device with methods in the specified object and the
-     * specified list of type names.
-     *
-     * @param object    the object containing methods provided by this device.
-     * @param typeNames the type names of the device.
-     */
-    public ObjectDevice(final Object object, final String... typeNames) {
-        this(object, asList(typeNames));
-    }
 
     /**
      * Creates a new object device with methods in the specified object and the specified
@@ -74,23 +40,30 @@ public final class ObjectDevice implements RPCDevice, IODevice, ItemDevice {
      * @param typeName the type name of the device.
      */
     public ObjectDevice(final Object object, @Nullable final String typeName) {
-        this(object, typeName != null ? singletonList(typeName) : emptyList());
+        this.object = object;
+        this.typeName = typeName != null ? typeName : Callbacks.getTypeName(object);
+        this.rpcMethods = Callbacks.collectMethods(object);
+        this.className = object.getClass().getSimpleName();
+        this.ioMethods = IOCallbacks.collectMethods(object);
+        this.ioName = ioMethods.isEmpty() ? "" : IOCallbacks.getName(object);
     }
 
     /**
      * Creates a new object device with methods in the specified object and no explicit type name.
+     * <p>
+     * The type name is then taken from the object, see {@link Callbacks#getTypeName(Object)}.
      *
      * @param object the object containing the methods provided by this device.
      */
     public ObjectDevice(final Object object) {
-        this(object, emptyList());
+        this(object, null);
     }
 
     // --------------------------------------------------------------------- //
 
     @Override
-    public List<String> getTypeNames() {
-        return typeNames;
+    public String getTypeName() {
+        return typeName;
     }
 
     @Override

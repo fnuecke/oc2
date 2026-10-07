@@ -11,7 +11,7 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCMethod;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
+import li.cil.oc2.common.bus.device.TypeNameDevice;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -231,12 +231,13 @@ public final class RPCDeviceBusAdapterTests {
 
     @Test
     public void deviceListIsStable() {
-        final RPCDevice device1 = mock(RPCDevice.class);
-        final RPCDevice device2 = mock(RPCDevice.class);
-        final RPCDevice listDevice = new RPCDeviceList(new ArrayList<>(Arrays.asList(device1, device2)));
+        final RPCDevice device1 = mockDevice();
+        final RPCDevice device2 = mockDevice();
+        final UUID identifier = UUID.randomUUID();
         when(device1.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         when(device2.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
-        addDevice(listDevice);
+        addDevice(device1, identifier);
+        addDevice(device2, identifier);
 
         adapter.rebuild(controller);
         verify(device1, never()).mount(any());
@@ -256,16 +257,58 @@ public final class RPCDeviceBusAdapterTests {
         verify(device2, atMostOnce()).mount(any());
     }
 
+    @Test
+    public void aliasesAreListedAsTypeNames() {
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+            serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
+        final UUID identifier = UUID.randomUUID();
+        final RPCDevice device = addDevice();
+        when(device.getTypeName()).thenReturn("redstone");
+        deviceIdentifiers.put(device, Set.of(identifier));
+        addDevice(new TypeNameDevice("lamp_ctl"), identifier);
+        addDevice(new TypeNameDevice("oc2:redstone_interface"), identifier);
+        busAdapter.rebuild(controller);
+
+        serial.putAsVM("{\"type\":\"list\"}");
+        busAdapter.step(0);
+
+        final JsonArray devices = serial.readJsonAsVM().getAsJsonArray("data");
+        assertEquals(1, devices.size());
+        assertEquals(JsonParser.parseString("[\"lamp_ctl\",\"oc2:redstone_interface\",\"redstone\"]"),
+            devices.get(0).getAsJsonObject().get("typeNames"));
+    }
+
+    @Test
+    public void aliasesWithoutDevicesAreHidden() {
+        final TestSerialDevice serial = new TestSerialDevice();
+        final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
+            serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
+        addDevice(new TypeNameDevice("lamp_ctl"));
+        busAdapter.rebuild(controller);
+
+        serial.putAsVM("{\"type\":\"list\"}");
+        busAdapter.step(0);
+
+        assertEquals(0, serial.readJsonAsVM().getAsJsonArray("data").size());
+    }
+
     // --------------------------------------------------------------------- //
 
-    private RPCDevice addEmptyDevice() {
+    private static RPCDevice mockDevice() {
         final RPCDevice device = mock(RPCDevice.class);
+        when(device.getTypeName()).thenReturn("test");
+        return device;
+    }
+
+    private RPCDevice addEmptyDevice() {
+        final RPCDevice device = mockDevice();
         addDevice(device);
         return device;
     }
 
     private RPCDevice addDevice() {
-        final RPCDevice device = mock(RPCDevice.class);
+        final RPCDevice device = mockDevice();
         when(device.getMethodGroups()).thenReturn(Collections.singletonList(mock(RPCMethod.class)));
         addDevice(device);
         return device;

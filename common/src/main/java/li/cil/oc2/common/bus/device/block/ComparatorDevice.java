@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.properties.ComparatorMode;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"comparator"}, description = """
+@RPCDeviceDescription(typeName = "comparator", description = """
     Provided by redstone comparators connected to a [bus interface](../block/bus_interface.md).""")
 @IODeviceDescription(name = "CMPRTR")
 public final class ComparatorDevice extends AbstractBlockDevice {

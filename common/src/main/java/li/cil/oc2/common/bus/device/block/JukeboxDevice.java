@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-@RPCDeviceDescription(typeNames = {"jukebox"}, description = """
+@RPCDeviceDescription(typeName = "jukebox", description = """
     Provided by jukeboxes connected to a [bus interface](../block/bus_interface.md). Times are in ticks.""")
 @IODeviceDescription(name = "JUKEBX", description = """
     Times are two bytes, low byte first, capped at 65535.""")

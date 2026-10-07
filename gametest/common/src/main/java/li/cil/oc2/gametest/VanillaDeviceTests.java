@@ -40,7 +40,7 @@ public final class VanillaDeviceTests {
         helper.startSequence()
             .thenWaitUntil(() -> {
                 final boolean hasRpcDevice = computer.devices().stream().anyMatch(device ->
-                    device instanceof final RPCDevice rpc && rpc.getTypeNames().contains("sign"));
+                    device instanceof final RPCDevice rpc && "sign".equals(rpc.getTypeName()));
                 final boolean hasIoDevice = computer.devices().stream().anyMatch(device ->
                     device instanceof final IODevice io && "SIGN".equals(io.getIOName()));
                 if (!hasRpcDevice || !hasIoDevice) {
@@ -57,7 +57,7 @@ public final class VanillaDeviceTests {
 
         helper.startSequence()
             .thenWaitUntil(() -> device[0] = computer.devices().stream()
-                .filter(d -> d instanceof final RPCDevice rpc && rpc.getTypeNames().contains("note_block"))
+                .filter(d -> d instanceof final RPCDevice rpc && "note_block".equals(rpc.getTypeName()))
                 .findFirst()
                 .orElseThrow(() -> new GameTestAssertException("the note block is not on the bus: " + computer.describe())))
             .thenExecute(() -> invokeRpc((RPCDevice) device[0], "setNote", 5))

@@ -15,7 +15,7 @@ public final class RPCDeviceWithIdentifierJsonSerializer implements JsonSerializ
     public JsonElement serialize(final RPCDeviceWithIdentifier src, final Type typeOfSrc, final JsonSerializationContext context) {
         final JsonObject deviceJson = new JsonObject();
         deviceJson.add("deviceId", context.serialize(src.identifier()));
-        deviceJson.add("typeNames", context.serialize(src.device().getTypeNames()));
+        deviceJson.add("typeNames", context.serialize(src.device().typeNames()));
 
         return deviceJson;
     }

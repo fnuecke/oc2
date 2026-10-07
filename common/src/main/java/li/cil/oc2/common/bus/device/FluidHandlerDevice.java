@@ -13,7 +13,7 @@ import li.cil.oc2.common.fluid.FluidStack;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"fluid_handler"}, description = """
+@RPCDeviceDescription(typeName = "fluid_handler", description = """
     Provided by any tank connected through a [bus interface](../block/bus_interface.md), including cauldrons and the tanks of other mods. To move fluids between tanks, use a [transposer](../block/transposer.md). Amounts are in millibuckets, a bucket being 1000.
 
     With several tanks connected, `find` may return any of them. To grab a specific one, give the bus interface in front of the one you want a name with a [wrench](../item/wrench.md), and find it by that name instead.""")

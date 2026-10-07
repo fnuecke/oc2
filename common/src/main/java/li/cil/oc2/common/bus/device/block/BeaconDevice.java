@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-@RPCDeviceDescription(typeNames = {"beacon"}, description = """
+@RPCDeviceDescription(typeName = "beacon", description = """
     Provided by beacons connected to a [bus interface](../block/bus_interface.md).""")
 @IODeviceDescription(name = "BEACON")
 public final class BeaconDevice extends AbstractBlockDevice {

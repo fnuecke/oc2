@@ -2,10 +2,10 @@
 ;
 ; OCAPI -- call OpenComputers devices from a program of your own.
 ;
-; INCLUDE DEVLIB.INC before this; the enumeration window constants come from
-; there. Every OpenComputers device sits behind one shared port, so DEVFIND
-; cannot pick one out: they all report the same class. Use OCFIND, which
-; matches on the name instead.
+; INCLUDE DEVLIB.INC before this; the enumeration window constants and DEVFIND
+; come from there. Every OpenComputers device sits behind one shared port and
+; reports the same class, so select a specific one by name. OCFIND does that,
+; and also returns the sub-device index OCSEL takes.
 ;
 ; Not re-entrant. The port holds one selection and one transaction, so do not
 ; call it from an interrupt handler. For those, there are the 'event' registers.
@@ -63,8 +63,8 @@ OCEVP	equ	10000000b	; an event is pending at OCEVD
 ; already handed to the host still runs and still has its effect on the world.
 ; The device stays busy until it is done, and the result is then thrown away.
 
-; OCFIND -- locate the B'th device named at HL (B is 0-based; the name is 0
-; terminated and at most six characters).
+; OCFIND -- locate the B'th device known by the name at HL: its class name, or
+; a label set on a bus interface label (B is 0-based; the name is 0 terminated).
 ; exit  NC, A = port base, E = sub-device index
 ;       CY      no such device
 ; Write E to OCSEL to select the device, then drive the registers from
@@ -74,48 +74,11 @@ OCEVP	equ	10000000b	; an event is pending at OCEVD
 ; E is the attribute byte, which is what OCSEL takes (OC devs all share the
 ; same port).
 OCFIND:
-	in	a,(BCNT)
-	or	a
-	scf
-	ret	z       ; return with carry set if no devices at all
-	ld	d,a
-	ld	e,0
-OCFIND1:
-	ld	a,e
-	out	(BSEL),a
-	in	a,(BCLS)
-	cp	CLSOC
-	jr	nz,OCFIND4
-	push	hl
-	xor	a
-	out	(BNAM),a	; rewind the name stream
-OCFIND2:
-	in	a,(BNAM)
-	cp	(hl)
-	jr	nz,OCFIND3
-	or	a		; both ran out at the same place, so it matched
-	jr	z,OCFIND5
-	inc	hl
-	jr	OCFIND2
-OCFIND3:
-	pop	hl
-OCFIND4:
-	inc	e
-	ld	a,e
-	cp	d
-	jr	c,OCFIND1
-	scf
-	ret
-OCFIND5:
-	pop	hl
-	ld	a,b		; index check
-	or	a
-	jr	z,OCFIND6
-	dec	b
-	jr	OCFIND4
-OCFIND6:
+	ld	c,CLSOC
+	call	DEVFIND
+	ret	c
+	push	af
 	in	a,(BATT)	; the attribute byte is the sub-device index
 	ld	e,a
-	in	a,(BPRT)
-	or	a
+	pop	af
 	ret

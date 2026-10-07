@@ -41,7 +41,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-@RPCDeviceDescription(typeNames = {"block_operations"}, description = """
+@RPCDeviceDescription(typeName = "block_operations", description = """
     Provided by the [block operations module](../item/block_operations_module.md) to robots.
 
     ### Sides

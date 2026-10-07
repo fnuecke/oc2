@@ -99,7 +99,7 @@ public final class RPCMethodTests {
     @Test
     public void customDeviceGroupRejectsInvalidParameters() {
         final RPCDevice device = mock(RPCDevice.class);
-        when(device.getTypeNames()).thenReturn(Collections.singletonList("test"));
+        when(device.getTypeName()).thenReturn("test");
         when(device.getMethodGroups()).thenReturn(Collections.singletonList(new CustomMethodGroup()));
         setDevice(device, DEVICE_UUID);
 
@@ -109,7 +109,7 @@ public final class RPCMethodTests {
     @Test
     public void customDeviceGroupAcceptsValidParameters() {
         final RPCDevice device = mock(RPCDevice.class);
-        when(device.getTypeNames()).thenReturn(Collections.singletonList("test"));
+        when(device.getTypeName()).thenReturn("test");
         when(device.getMethodGroups()).thenReturn(Collections.singletonList(new CustomMethodGroup()));
         setDevice(device, DEVICE_UUID);
 
@@ -160,8 +160,8 @@ public final class RPCMethodTests {
         }
 
         @Override
-        public List<String> getTypeNames() {
-            return singletonList(getClass().getSimpleName());
+        public String getTypeName() {
+            return getClass().getSimpleName();
         }
 
         @Override

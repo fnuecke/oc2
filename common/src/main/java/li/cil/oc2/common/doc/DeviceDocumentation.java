@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public record DeviceDocumentation(@Nullable RPC rpc, @Nullable IO io) {
-    public record RPC(List<String> typeNames, Optional<String> description, List<RPCMethod> methods) {
+    public record RPC(String typeName, Optional<String> description, List<RPCMethod> methods) {
     }
 
     public record RPCMethod(String name, Class<?> returnType, Optional<String> description,
@@ -41,7 +41,7 @@ public record DeviceDocumentation(@Nullable RPC rpc, @Nullable IO io) {
     private static RPC rpc(final Class<?> type) {
         final RPCDeviceDescription annotation = find(type, RPCDeviceDescription.class);
         return new RPC(
-            Callbacks.getTypeNames(type),
+            Callbacks.getTypeName(type),
             annotation != null ? text(annotation.description()) : Optional.empty(),
             methods(type, Callback.class).map(DeviceDocumentation::rpcMethod).toList());
     }

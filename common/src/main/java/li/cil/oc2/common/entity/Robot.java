@@ -1031,7 +1031,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
     }
 
-    @RPCDeviceDescription(typeNames = {"robot"}, description = """
+    @RPCDeviceDescription(typeName = "robot", description = """
         Provided by the [robot](../item/robot.md).
 
         ### Directions

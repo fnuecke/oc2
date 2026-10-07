@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.ComposterBlock;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"composter"}, description = """
+@RPCDeviceDescription(typeName = "composter", description = """
     Provided by composters connected to a [bus interface](../block/bus_interface.md).""")
 @IODeviceDescription(name = "CMPSTR")
 public final class ComposterDevice extends AbstractBlockDevice {

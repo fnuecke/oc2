@@ -7,7 +7,7 @@ import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.provider.BlockDeviceQuery;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
+import li.cil.oc2.common.bus.device.TypeNameDevice;
 import li.cil.oc2.common.bus.device.util.BlockDeviceInfo;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.capabilities.Capabilities;
@@ -172,7 +172,7 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
 
         final String blockName = LevelUtils.getBlockName(level, pos);
         if (blockName != null) {
-            entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameRPCDevice(blockName)), side));
+            entries.add(new BlockEntry(new BlockDeviceInfo(null, new TypeNameDevice(blockName)), side));
         }
     }
 

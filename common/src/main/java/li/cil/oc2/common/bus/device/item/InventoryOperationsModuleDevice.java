@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-@RPCDeviceDescription(typeNames = {"inventory_operations"}, description = """
+@RPCDeviceDescription(typeName = "inventory_operations", description = """
     Provided by the [inventory operations module](../item/inventory_operations_module.md) to robots.
 
     The side parameter in the following methods represents a direction from the perspective of the robot. Valid values are: `front`, `up` and `down`.

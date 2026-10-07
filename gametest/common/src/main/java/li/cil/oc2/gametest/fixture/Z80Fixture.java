@@ -3,9 +3,11 @@
 package li.cil.oc2.gametest.fixture;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.util.BusCables;
+import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -55,6 +57,15 @@ public final class Z80Fixture {
         final ChestBlockEntity chest = helper.getBlockEntity(pos);
         chest.setItem(0, new ItemStack(REDSTONE, 42));
         chest.setItem(2, new ItemStack(IRON_PICKAXE));
+        return this;
+    }
+
+    public Z80Fixture withLabelledRedstoneInterface(final String label) {
+        BusCables.placeInterface(helper, player, CABLE_POS, Direction.UP);
+        TestSupport.place(helper, player, new ItemStack(Items.REDSTONE_INTERFACE.get()), CABLE_POS.above());
+
+        final BusCableBlockEntity cable = helper.getBlockEntity(CABLE_POS);
+        cable.setInterfaceName(Direction.UP, label);
         return this;
     }
 

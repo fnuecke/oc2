@@ -6,6 +6,7 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IODevice;
+import li.cil.oc2.common.bus.device.DeviceWithAliases;
 import li.cil.sedna.api.device.bus.DeviceDescription;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -82,23 +83,41 @@ final class IODeviceRegistry {
     }
 
     void rebuild(final DeviceBusController controller) {
-        final Map<IODevice, UUID> identifierByDevice = new HashMap<>();
+        final HashMap<IODevice, HashSet<UUID>> identifiersByDevice = new HashMap<>();
+        final HashMap<UUID, TreeSet<String>> namesByIdentifier = new HashMap<>();
         for (final Device device : controller.getDevices()) {
-            if (!(device instanceof final IODevice ioDevice)) {
-                continue;
+            final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
+            if (device instanceof final IODevice ioDevice && !ioDevice.getIOMethods().isEmpty()) {
+                if (!DeviceDescription.isValidName(ioDevice.getIOName())) {
+                    LOGGER.warn("Device [{}] has a name [{}] that is empty or not printable ASCII and is not reachable from the guest.", device.getClass().getName(), ioDevice.getIOName());
+                } else {
+                    for (final UUID identifier : identifiers) {
+                        identifiersByDevice
+                            .computeIfAbsent(ioDevice, unused -> new HashSet<>())
+                            .add(identifier);
+                    }
+                }
             }
-
-            if (ioDevice.getIOMethods().isEmpty()) {
-                continue;
-            }
-
-            for (final UUID identifier : controller.getDeviceIdentifiers(device)) {
-                identifierByDevice.merge(ioDevice, identifier, (a, b) -> a.compareTo(b) <= 0 ? a : b);
+            if (device instanceof final DeviceWithAliases deviceWithAliases) {
+                for (final String alias : deviceWithAliases.getAliases()) {
+                    if (!DeviceDescription.isValidName(alias)) {
+                        LOGGER.warn("Device [{}] has an alias [{}] that is empty or not printable ASCII and is not listed for the guest.", device.getClass().getName(), alias);
+                        continue;
+                    }
+                    for (final UUID identifier : identifiers) {
+                        namesByIdentifier
+                            .computeIfAbsent(identifier, unused -> new TreeSet<>())
+                            .add(alias);
+                    }
+                }
             }
         }
 
-        final ArrayList<Binding> newBindings = new ArrayList<>(identifierByDevice.size());
-        identifierByDevice.forEach((device, identifier) -> newBindings.add(new Binding(identifier, bindingKey(identifier, device), device)));
+        final ArrayList<Binding> newBindings = new ArrayList<>(identifiersByDevice.size());
+        identifiersByDevice.forEach((device, identifiers) -> {
+            final UUID identifier = Collections.min(identifiers);
+            newBindings.add(new Binding(identifier, bindingKey(identifier, device), device, names(device, identifiers, namesByIdentifier)));
+        });
 
         newBindings.sort(Comparator.comparing(Binding::identifier).thenComparing(binding -> binding.device().getIOName()).thenComparing(binding -> binding.device().getClass().getName()));
 
@@ -125,7 +144,7 @@ final class IODeviceRegistry {
             newBindingsByKey.put(binding.key(), binding);
             newIndexByKey.put(binding.key(), index);
             keyByDevice.put(binding.device(), binding.key());
-            newDescriptions.add(new DeviceDescription(IODeviceBusAdapter.DEVICE_CLASS, binding.device().getIOName(), binding.identifier().toString(), index));
+            newDescriptions.add(new DeviceDescription(IODeviceBusAdapter.DEVICE_CLASS, binding.names(), binding.identifier().toString(), index));
         }
 
         bindings = newBindings;
@@ -150,13 +169,28 @@ final class IODeviceRegistry {
 
     // --------------------------------------------------------------------- //
 
+    private static List<String> names(final IODevice device, final Set<UUID> identifiers, final Map<UUID, TreeSet<String>> namesByIdentifier) {
+        final TreeSet<String> aliases = new TreeSet<>();
+        for (final UUID identifier : identifiers) {
+            final TreeSet<String> identifierNames = namesByIdentifier.get(identifier);
+            if (identifierNames != null) {
+                aliases.addAll(identifierNames);
+            }
+        }
+
+        final ArrayList<String> names = new ArrayList<>(aliases.size() + 1);
+        names.add(device.getIOName());
+        names.addAll(aliases);
+        return names;
+    }
+
     private static UUID bindingKey(final UUID identifier, final IODevice device) {
         return UUID.nameUUIDFromBytes((identifier + "/" + device.getIOName()).getBytes(StandardCharsets.UTF_8));
     }
 
     // --------------------------------------------------------------------- //
 
-    private record Binding(UUID identifier, UUID key, IODevice device) {
+    private record Binding(UUID identifier, UUID key, IODevice device, List<String> names) {
     }
 
     private static final class MountedContext implements IOBusContext {

@@ -27,6 +27,7 @@ public final class Z80Tests {
     private static final String DEVS_BATCH = "oc2_z80_devs";
     private static final String EVENTS_BATCH = "oc2_z80_events";
     private static final String ITEMS_BATCH = "oc2_z80_items";
+    private static final String NAMES_BATCH = "oc2_z80_names";
     private static final String SERIAL_BATCH = "oc2_z80_serial";
 
     private static final int GET_SLOTS_CODE = 2;
@@ -157,6 +158,22 @@ public final class Z80Tests {
             .thenExecuteAfter(20, z80::start)
             .thenWaitUntil(() -> z80.assertScreenContains("A>", "CP/M should reach its prompt"))
             .thenExecute(() -> assertChestIsReadable(z80))
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = NAMES_BATCH)
+    public static void devsListsTheLabelOfAnInterface(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        final Z80Fixture z80 = Z80Fixture.place(helper, player);
+        placePower(helper, player);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> z80.install().withLabelledRedstoneInterface("lamp_ctl"))
+            .thenExecuteAfter(20, z80::start)
+            .thenWaitUntil(() -> z80.assertScreenContains("A>", "CP/M should reach its prompt"))
+            .thenExecute(() -> z80.command("DEVS"))
+            .thenWaitUntil(() -> z80.assertScreenContains("REDSTN, lamp_ctl, oc2:redstone_interface",
+                "DEVS should list the label and block id after the device's name"))
             .thenSucceed();
     }
 

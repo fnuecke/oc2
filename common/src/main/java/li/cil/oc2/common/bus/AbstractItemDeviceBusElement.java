@@ -5,7 +5,7 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.ItemDevice;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
-import li.cil.oc2.common.bus.device.rpc.TypeNameRPCDevice;
+import li.cil.oc2.common.bus.device.TypeNameDevice;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
@@ -88,7 +88,7 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
         final ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(query.getItemStack().getItem());
         if (registryName != null) {
             final String itemName = registryName.toString();
-            entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameRPCDevice(itemName), 0)));
+            entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameDevice(itemName), 0)));
         }
     }
 

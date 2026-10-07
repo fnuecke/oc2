@@ -32,7 +32,7 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-@RPCDeviceDescription(typeNames = {"transposer"}, description = """
+@RPCDeviceDescription(typeName = "transposer", description = """
     Provided by the [transposer](../block/transposer.md) block.
 
     Allows inspecting and operating on block and entity containers. If neither are present, space permitting, items are dropped into the world or picked up, fluids are poured or drained, one bucket at a time.

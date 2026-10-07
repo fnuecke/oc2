@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.entity.BeehiveBlockEntity;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"beehive"}, description = """
+@RPCDeviceDescription(typeName = "beehive", description = """
     Provided by beehives and bee nests connected to a [bus interface](../block/bus_interface.md).""")
 @IODeviceDescription(name = "BHIVE")
 public final class BeehiveDevice extends AbstractBlockDevice {

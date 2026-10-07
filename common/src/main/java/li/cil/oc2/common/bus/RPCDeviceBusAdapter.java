@@ -8,7 +8,7 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.rpc.*;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.Constants;
-import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
+import li.cil.oc2.common.bus.device.rpc.RPCDeviceGroup;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceWithIdentifier;
 import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.serialization.gson.*;
@@ -299,7 +299,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void processMethodInvocation(final MethodInvocation methodInvocation, final boolean isMainThread) {
-        final RPCDevice device = registry.byId(methodInvocation.deviceId);
+        final RPCDeviceGroup device = registry.byId(methodInvocation.deviceId);
         if (device == null) {
             writeError(ERROR_UNKNOWN_DEVICE);
             return;
@@ -372,7 +372,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     private void writeDeviceMethods(final UUID deviceId) {
-        final RPCDeviceList device = registry.byId(deviceId);
+        final RPCDeviceGroup device = registry.byId(deviceId);
         if (device != null) {
             writeMessage(Message.MESSAGE_TYPE_METHODS, flattenMethodGroups(device.getMethodGroups()));
         } else {

@@ -45,7 +45,7 @@ public final class TransposerTests {
         helper.startSequence()
             .thenWaitUntil(() -> {
                 final boolean hasRpcDevice = computer.devices().stream().anyMatch(device ->
-                    device instanceof final RPCDevice rpc && rpc.getTypeNames().contains("transposer"));
+                    device instanceof final RPCDevice rpc && "transposer".equals(rpc.getTypeName()));
                 final boolean hasIoDevice = computer.devices().stream().anyMatch(device ->
                     device instanceof final IODevice io && "TRANSP".equals(io.getIOName()));
                 if (!hasRpcDevice || !hasIoDevice) {

@@ -5,10 +5,13 @@ package li.cil.oc2.common.bus;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.io.IOBusContext;
+import li.cil.oc2.api.bus.device.io.IODevice;
+import li.cil.oc2.api.bus.device.io.IOMethod;
 import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.LifecycleAwareDevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
+import li.cil.oc2.common.bus.device.TypeNameDevice;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.InterruptController;
@@ -25,6 +28,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 import static org.mockito.Mockito.when;
 
 public final class IODeviceBusAdapterTests {
@@ -585,6 +589,74 @@ public final class IODeviceBusAdapterTests {
         assertEquals(0x02, (int) restored.load(REG_EVENT_DATA, Sizes.SIZE_8_LOG2));
         assertEquals(0x01, (int) restored.load(REG_EVENT_DATA, Sizes.SIZE_8_LOG2));
         assertEquals(EVENT_QUEUE | EVENT_INTERRUPT, (int) restored.load(REG_EVENT_CONTROL, Sizes.SIZE_8_LOG2));
+    }
+
+    @Test
+    public void descriptionsListAliasesAfterTheName() {
+        setDevices(subject, new TypeNameDevice("oc2:redstone_interface"), new TypeNameDevice("lamp_ctl"));
+        adapter.rebuild(controller);
+
+        assertEquals(List.of("TEST", "lamp_ctl", "oc2:redstone_interface"), adapter.getDescriptions().getFirst().names());
+    }
+
+    @Test
+    public void descriptionsLeaveOutTheTypeName() {
+        assertEquals(List.of("TEST"), adapter.getDescriptions().getFirst().names(),
+            "the device's high-level type name is not an alias");
+    }
+
+    @Test
+    public void deviceWithAnInvalidNameIsSkipped() {
+        final IODevice unnamed = mock(IODevice.class, withSettings().extraInterfaces(Device.class));
+        when(unnamed.getIOName()).thenReturn("");
+        when(unnamed.getIOMethods()).thenReturn(List.of(mock(IOMethod.class)));
+        setDevices(subject, (Device) unnamed);
+        adapter.rebuild(controller);
+
+        assertEquals(1, adapter.getDescriptions().size(), "the device without a valid name should be left out");
+        assertEquals("TEST", adapter.getDescriptions().getFirst().name());
+    }
+
+    @Test
+    public void invalidAliasIsLeftOut() {
+        setDevices(subject, new TypeNameDevice("mötör"), new TypeNameDevice("lamp"));
+        adapter.rebuild(controller);
+
+        assertEquals(List.of("TEST", "lamp"), adapter.getDescriptions().getFirst().names());
+    }
+
+    @Test
+    public void aliasEqualToTheNameIsListedOnce() {
+        setDevices(subject, new TypeNameDevice("TEST"));
+        adapter.rebuild(controller);
+
+        assertEquals(List.of("TEST"), adapter.getDescriptions().getFirst().names());
+    }
+
+    @Test
+    public void deviceReachableTwiceListsTheAliasesOfBothIdentifiers() {
+        final UUID otherUuid = UUID.fromString("00000000-0000-0000-0000-00000000000f");
+        final TypeNameDevice left = new TypeNameDevice("left");
+        final TypeNameDevice right = new TypeNameDevice("right");
+        when(controller.getDevices()).thenReturn(Set.of(subject, left, right));
+        when(controller.getDeviceIdentifiers(subject)).thenReturn(Set.of(DEVICE_UUID, otherUuid));
+        when(controller.getDeviceIdentifiers(left)).thenReturn(Set.of(DEVICE_UUID));
+        when(controller.getDeviceIdentifiers(right)).thenReturn(Set.of(otherUuid));
+        adapter.rebuild(controller);
+
+        assertEquals(List.of("TEST", "left", "right"), adapter.getDescriptions().getFirst().names());
+    }
+
+    @Test
+    public void aliasesFollowARename() {
+        setDevices(subject, new TypeNameDevice("before"));
+        adapter.rebuild(controller);
+        assertEquals(List.of("TEST", "before"), adapter.getDescriptions().getFirst().names());
+
+        setDevices(subject, new TypeNameDevice("after"));
+        adapter.rebuild(controller);
+
+        assertEquals(List.of("TEST", "after"), adapter.getDescriptions().getFirst().names());
     }
 
     // --------------------------------------------------------------------- //

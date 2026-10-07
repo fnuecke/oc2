@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Comparator;
 
-@RPCDeviceDescription(typeNames = {"scanner"}, description = """
+@RPCDeviceDescription(typeName = "scanner", description = """
     Provided by the [scanner module](../item/scanner_module.md) to robots.
 
     ### Sides

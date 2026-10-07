@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"item_handler"}, description = """
+@RPCDeviceDescription(typeName = "item_handler", description = """
     Provided by any inventory connected through a [bus interface](../block/bus_interface.md), such as a chest. To move items between inventories, use a [transposer](../block/transposer.md).
 
     With several inventories connected, `find` may return any of them. To grab a specific one, give the bus interface in front of the one you want a name with a [wrench](../item/wrench.md), and find it by that name instead.""")

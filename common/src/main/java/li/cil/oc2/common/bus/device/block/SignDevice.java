@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.function.UnaryOperator;
 
-@RPCDeviceDescription(typeNames = {"sign"}, description = """
+@RPCDeviceDescription(typeName = "sign", description = """
     Provided by signs connected to a [bus interface](../block/bus_interface.md). Signs can have text on their `front` and `back`.""")
 @IODeviceDescription(name = "SIGN", description = """
     Sides are numbered: `0` for front, `1` for back.

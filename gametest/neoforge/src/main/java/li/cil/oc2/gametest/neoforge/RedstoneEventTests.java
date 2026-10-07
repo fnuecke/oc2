@@ -3,6 +3,7 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
+import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.blockentity.RedstoneInterfaceBlockEntity;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.device.GuestTestDevices;
@@ -30,6 +31,8 @@ public final class RedstoneEventTests {
     private static final String SUITE = "redstone_events";
     private static final String MLAPI_BATCH = "oc2_redstone_mlapi_events";
     private static final String MLAPI_SUITE = "mlapi_events";
+    private static final String MLAPI_NAMES_BATCH = "oc2_mlapi_names";
+    private static final String MLAPI_NAMES_SUITE = "mlapi_names";
 
     private static final BlockPos SIGNAL_POS = DEVICE_POS.above();
 
@@ -72,6 +75,21 @@ public final class RedstoneEventTests {
                     redstoneInterface(helper).getOutputForDirection(Direction.SOUTH) == 15);
             })
             .thenExecute(() -> helper.setBlock(SIGNAL_POS, Blocks.REDSTONE_BLOCK))
+            .thenWaitUntil(() -> {
+                computer.assertNoGuestPanic();
+                tests.requireSuccess();
+            })
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MLAPI_NAMES_BATCH)
+    public static void guestExampleListsInterfaceLabel(final GameTestHelper helper) {
+        final ComputerFixture computer = placeComputerWithRedstoneInterface(helper);
+        final GuestTests tests = computer.guestTests();
+        final BusCableBlockEntity cable = helper.getBlockEntity(CABLE_POS);
+        cable.setInterfaceName(Direction.EAST, "lamp_ctl");
+
+        startSequence(helper, computer, tests, MLAPI_NAMES_SUITE)
             .thenWaitUntil(() -> {
                 computer.assertNoGuestPanic();
                 tests.requireSuccess();

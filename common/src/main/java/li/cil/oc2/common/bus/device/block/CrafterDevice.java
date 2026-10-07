@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.entity.CrafterBlockEntity;
 
 import java.io.IOException;
 
-@RPCDeviceDescription(typeNames = {"crafter"}, description = """
+@RPCDeviceDescription(typeName = "crafter", description = """
     Provided by crafters connected to a [bus interface](../block/bus_interface.md). The grid slots are available through the [item handler](item_handler.md) device.""")
 @IODeviceDescription(name = "CRAFTR", description = """
     Item ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup.""")

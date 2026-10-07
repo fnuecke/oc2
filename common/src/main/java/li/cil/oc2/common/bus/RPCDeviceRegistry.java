@@ -9,7 +9,8 @@ import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.api.bus.device.rpc.RPCBusContext;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
-import li.cil.oc2.common.bus.device.rpc.RPCDeviceList;
+import li.cil.oc2.common.bus.device.DeviceWithAliases;
+import li.cil.oc2.common.bus.device.rpc.RPCDeviceGroup;
 import li.cil.oc2.common.bus.device.rpc.RPCDeviceWithIdentifier;
 
 import javax.annotation.Nullable;
@@ -25,8 +26,8 @@ final class RPCDeviceRegistry {
 
     private final EventSink events;
     private final ArrayList<RPCDeviceWithIdentifier> devices = new ArrayList<>();
-    private final BiMap<UUID, RPCDeviceList> devicesById = HashBiMap.create();
-    private final HashMap<RPCDeviceList, MountedContext> contexts = new HashMap<>();
+    private final BiMap<UUID, RPCDeviceGroup> devicesById = HashBiMap.create();
+    private final HashMap<RPCDeviceGroup, MountedContext> contexts = new HashMap<>();
 
     @Serialized
     private volatile int generation; // bumped whenever the device list changes, sent with every reply
@@ -48,7 +49,7 @@ final class RPCDeviceRegistry {
     }
 
     @Nullable
-    RPCDeviceList byId(final UUID identifier) {
+    RPCDeviceGroup byId(final UUID identifier) {
         return devicesById.get(identifier);
     }
 
@@ -84,24 +85,33 @@ final class RPCDeviceRegistry {
         // identifiers is the same.
 
         final HashMap<UUID, ArrayList<RPCDevice>> devicesByIdentifier = new HashMap<>();
+        final HashMap<UUID, TreeSet<String>> namesByIdentifier = new HashMap<>();
         for (final Device device : controller.getDevices()) {
+            final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
             if (device instanceof final RPCDevice rpcDevice) {
-                final Set<UUID> identifiers = controller.getDeviceIdentifiers(device);
                 for (final UUID identifier : identifiers) {
                     devicesByIdentifier
                         .computeIfAbsent(identifier, unused -> new ArrayList<>())
                         .add(rpcDevice);
+                    namesByIdentifier
+                        .computeIfAbsent(identifier, unused -> new TreeSet<>())
+                        .add(rpcDevice.getTypeName());
+                }
+            }
+            if (device instanceof final DeviceWithAliases deviceWithAliases) {
+                for (final UUID identifier : identifiers) {
+                    namesByIdentifier
+                        .computeIfAbsent(identifier, unused -> new TreeSet<>())
+                        .addAll(deviceWithAliases.getAliases());
                 }
             }
         }
 
-        final HashMap<RPCDeviceList, ArrayList<UUID>> identifiersByDevice = new HashMap<>();
+        final HashMap<RPCDeviceGroup, ArrayList<UUID>> identifiersByDevice = new HashMap<>();
         devicesByIdentifier.forEach((identifier, devices) -> {
-            final RPCDeviceList device = new RPCDeviceList(devices);
+            final RPCDeviceGroup device = new RPCDeviceGroup(devices, List.copyOf(namesByIdentifier.get(identifier)));
 
-            // If there are no methods we have either no devices at all, or all synthetic
-            // devices, i.e. devices that only contribute type names, but have no methods
-            // to call. We do not expose these to avoid cluttering the device list.
+            // Devices without methods to call are not exposed, to avoid cluttering the device list.
             if (device.getMethodGroups().isEmpty()) {
                 return;
             }
@@ -121,10 +131,10 @@ final class RPCDeviceRegistry {
             devicesById.put(identifier, device);
         });
 
-        final Iterator<Map.Entry<RPCDeviceList, MountedContext>> iterator = contexts.entrySet().iterator();
+        final Iterator<Map.Entry<RPCDeviceGroup, MountedContext>> iterator = contexts.entrySet().iterator();
         while (iterator.hasNext()) {
-            final Map.Entry<RPCDeviceList, MountedContext> entry = iterator.next();
-            final RPCDeviceList device = entry.getKey();
+            final Map.Entry<RPCDeviceGroup, MountedContext> entry = iterator.next();
+            final RPCDeviceGroup device = entry.getKey();
             final MountedContext context = entry.getValue();
             final UUID identifier = devicesById.inverse().get(device);
             if (identifier != null) {

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public final class DevicePage {
     public static String pageName(final Class<?> type) {
-        return Callbacks.getTypeNames(type).getFirst();
+        return Callbacks.getTypeName(type);
     }
 
     public static String title(final String pageName) {
@@ -30,8 +30,7 @@ public final class DevicePage {
         if (rpc != null) {
             lines.add("");
             lines.add("## High-level API");
-            lines.add("Device name: " + rpc.typeNames().stream()
-                .map(name -> "`" + name + "`").collect(Collectors.joining(", ")));
+            lines.add("Device name: `" + rpc.typeName() + "`");
             rpc.description().ifPresent(description -> {
                 lines.add("");
                 addParagraphs(lines, description);

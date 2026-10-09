@@ -96,36 +96,48 @@ static int mlapi_open(void) {
     return -1;
 }
 
-/* Finds the nth (0-based) device with the specified name or bus interface label.
- * Returns its index for mlapi_call(), or -1 if there is no such device. */
-static int mlapi_find(const char *name, int nth) {
+/* Returns whether the selected device has the specified name. */
+static int mlapi_has_name(const char *name) {
+    mlapi_io[BNAM] = 0;
+    int c;
+    while ((c = mlapi_io[BNAM]) != 0) {
+        const char *p = name;
+        while (c != 0 && c == (unsigned char) *p) {
+            p++;
+            c = mlapi_io[BNAM];
+        }
+        if (c == 0 && *p == 0) {
+            return 1;
+        }
+        while (c != 0) {
+            c = mlapi_io[BNAM];
+        }
+    }
+    return 0;
+}
+
+static int mlapi_find_all(int nth, const char *const *names) {
     const int count = mlapi_io[BCNT];
     for (int i = 0; i < count; i++) {
         mlapi_io[BSEL] = i;
         if (mlapi_io[BCLS] != CLSOC) {
             continue;
         }
-        mlapi_io[BNAM] = 0;
-        int c;
-        while ((c = mlapi_io[BNAM]) != 0) {
-            const char *p = name;
-            while (c != 0 && c == (unsigned char) *p) {
-                p++;
-                c = mlapi_io[BNAM];
-            }
-            if (c == 0 && *p == 0) {
-                if (nth-- == 0) {
-                    return mlapi_io[BATR];
-                }
-                break;
-            }
-            while (c != 0) {
-                c = mlapi_io[BNAM];
-            }
+        const char *const *name = names;
+        while (*name && mlapi_has_name(*name)) {
+            name++;
+        }
+        if (!*name && nth-- == 0) {
+            return mlapi_io[BATR];
         }
     }
     return -1;
 }
+
+/* Finds the nth (0-based) device that has all the specified names: its device
+ * name or the label set on a bus interface.
+ * Returns its index for mlapi_call(), or -1 if there is no such device. */
+#define mlapi_find(nth, ...) mlapi_find_all((nth), (const char *const[]) {__VA_ARGS__, NULL})
 
 /* Calls a function of a device. Copies up to capacity result bytes into
  * results, which may be NULL. Returns the number of result bytes the device

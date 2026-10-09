@@ -457,7 +457,7 @@ MSEP:	db	': ',0
 MRUB:	db	BS,' ',BS,0
 CRLF:	db	CR,LF,0
 MNOCRD:	db	'No serial interface card on this machine.',CR,LF,0
-SERNAM:	db	'SERIAL',0
+SERNAM:	db	'SERIAL',0,0
 MUSAGE:	db	'Usage: SERCHAT <peer 0-255>',CR,LF,0
 
 	INCLUDE	DEVLIB.INC

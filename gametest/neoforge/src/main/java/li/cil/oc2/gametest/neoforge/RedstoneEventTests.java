@@ -87,7 +87,7 @@ public final class RedstoneEventTests {
         final ComputerFixture computer = placeComputerWithRedstoneInterface(helper);
         final GuestTests tests = computer.guestTests();
         final BusCableBlockEntity cable = helper.getBlockEntity(CABLE_POS);
-        cable.setInterfaceName(Direction.EAST, "lamp_ctl");
+        cable.setInterfaceName(Direction.EAST, "test_device");
 
         startSequence(helper, computer, tests, MLAPI_NAMES_SUITE)
             .thenWaitUntil(() -> {

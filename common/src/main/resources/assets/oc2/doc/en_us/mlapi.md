@@ -10,9 +10,9 @@ Everything here is done through ports, so it works from assembly. Two libraries 
 ## Finding a Device
 Devices are findable through an enumeration window at a fixed port. `DEVS.COM` prints what's on there, which is a good first check that a device is connected at all.
 
-Every MLAPI device answers on the same port and is told apart by an MLAPI-device index. `OCFIND` in `OCAPI.INC` does the lookup by name or bus interface label:
-- `HL` points at the name, terminated by a zero
-- `B` is which one to find, counting from zero, for when several share the same name
+Every MLAPI device answers on the same port and is told apart by an MLAPI-device index. `OCFIND` in `OCAPI.INC` does the lookup by device name, device type or bus interface label:
+- `HL` points at a list of names, each terminated by a zero, with one extra, final zero indicating the end of the list. A device must match all, e.g. a label and a device name: `db 'storage',0,'ITEMS',0,0`
+- `B` is which one to find, counting from zero, for when there are multiple matching devices
 - On success the carry flag is clear, `A` holds the port to talk to and `E` holds the MLAPI-device index
 - On failure the carry flag is set
 
@@ -64,7 +64,7 @@ This sets the output on side 1, upwards, to 15. Put a redstone lamp above the co
 To write your own, `ED` on the boot disk creates and edits source files, as in `ED B:PROG.Z80`.
 
 ## On a RISC-V Computer
-Linux offers the same registers as a memory page in the file `/dev/uio0`, which needs `root` privileges to open. The C header `mlapi.h` provides utilities to find and map this memory area; layout is then the same as described above. It also provides a helper to find a device by name or bus interface label, `mlapi_find`, and to make a call. It lives in `/mnt/builtin/include`, where `tcc` should pick it up automatically.
+Linux offers the same registers as a memory page in the file `/dev/uio0`, which needs `root` privileges to open. The C header `mlapi.h` provides utilities to find and map this memory area; layout is then the same as described above. It also provides a helper to find a device by its names, `mlapi_find(0, "storage", "ITEMS")`, which matches devices the same way as `OCFIND`, and to make a call. It lives in `/mnt/builtin/include`, where `tcc` should pick it up automatically.
 
 `/mnt/builtin/example/redstone.c` does the same as `REDSTN.Z80` does on the Z80. Run it directly:  
 `tcc -run /mnt/builtin/example/redstone.c 1 15`

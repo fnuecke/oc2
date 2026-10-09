@@ -275,9 +275,12 @@ class DeviceBus:
     def get(self, device_id):
         return self._lookup(lambda candidate: candidate.get("deviceId") == device_id)
 
-    def find(self, type_name):
+    def find(self, *type_names):
+        if not type_names:
+            raise TypeError("no names given")
         return self._lookup(
-            lambda candidate: type_name in (candidate.get("typeNames") or []))
+            lambda candidate: all(name in (candidate.get("typeNames") or [])
+                                  for name in type_names))
 
     def methods(self, device_id):
         self.flush()

@@ -62,7 +62,7 @@ NLEVEL	equ	16
 	ld	a,1
 	ld	(WRMODE),a
 
-;	if (!ocfind("REDSTN", 0, &port, &index)) goto nodev;
+;	if (!ocfind(0, "REDSTN", &port, &index)) goto nodev;
 ;	outp(port + OCSEL, index);
 FIND:
 	ld	hl,RSNAME
@@ -314,7 +314,7 @@ OUTVAL:	db	0
 INVAL:	db	0
 WRMODE:	db	0
 
-RSNAME:	db	'REDSTN',0
+RSNAME:	db	'REDSTN',0,0
 
 MSIDE:	db	'side $'
 MSEP:	db	': $'

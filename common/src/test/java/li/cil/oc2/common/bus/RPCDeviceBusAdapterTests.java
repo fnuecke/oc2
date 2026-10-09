@@ -266,7 +266,7 @@ public final class RPCDeviceBusAdapterTests {
         final RPCDevice device = addDevice();
         when(device.getTypeName()).thenReturn("redstone");
         deviceIdentifiers.put(device, Set.of(identifier));
-        addDevice(new TypeNameDevice("lamp_ctl"), identifier);
+        addDevice(new TypeNameDevice("test_device"), identifier);
         addDevice(new TypeNameDevice("oc2:redstone_interface"), identifier);
         busAdapter.rebuild(controller);
 
@@ -275,7 +275,7 @@ public final class RPCDeviceBusAdapterTests {
 
         final JsonArray devices = serial.readJsonAsVM().getAsJsonArray("data");
         assertEquals(1, devices.size());
-        assertEquals(JsonParser.parseString("[\"lamp_ctl\",\"oc2:redstone_interface\",\"redstone\"]"),
+        assertEquals(JsonParser.parseString("[\"oc2:redstone_interface\",\"redstone\",\"test_device\"]"),
             devices.get(0).getAsJsonObject().get("typeNames"));
     }
 
@@ -284,7 +284,7 @@ public final class RPCDeviceBusAdapterTests {
         final TestSerialDevice serial = new TestSerialDevice();
         final RPCDeviceBusAdapter busAdapter = new RPCDeviceBusAdapter(
             serial, new TestSerialDevice(), new TestSerialDevice(), amount -> true);
-        addDevice(new TypeNameDevice("lamp_ctl"));
+        addDevice(new TypeNameDevice("test_device"));
         busAdapter.rebuild(controller);
 
         serial.putAsVM("{\"type\":\"list\"}");

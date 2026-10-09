@@ -593,10 +593,10 @@ public final class IODeviceBusAdapterTests {
 
     @Test
     public void descriptionsListAliasesAfterTheName() {
-        setDevices(subject, new TypeNameDevice("oc2:redstone_interface"), new TypeNameDevice("lamp_ctl"));
+        setDevices(subject, new TypeNameDevice("oc2:redstone_interface"), new TypeNameDevice("test_device"));
         adapter.rebuild(controller);
 
-        assertEquals(List.of("TEST", "lamp_ctl", "oc2:redstone_interface"), adapter.getDescriptions().getFirst().names());
+        assertEquals(List.of("TEST", "oc2:redstone_interface", "test_device"), adapter.getDescriptions().getFirst().names());
     }
 
     @Test

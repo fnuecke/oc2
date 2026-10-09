@@ -15,7 +15,7 @@ EVCHG	equ	1		; redstoneChanged: value is the side, then the level
 ; The interrupt handler needs more room than the stack CP/M leaves us.
 	ld	sp,STACK
 
-;	if (!ocfind("REDSTN", 0, &port, &index)) goto nodev;
+;	if (!ocfind(0, "REDSTN", &port, &index)) goto nodev;
 	ld	hl,RSNAME
 	ld	b,0
 	call	OCFIND
@@ -176,7 +176,7 @@ GOT:	db	0
 SIDE:	db	0
 LEVEL:	db	0
 
-RSNAME:	db	'REDSTN',0
+RSNAME:	db	'REDSTN',0,0
 
 MWAIT:	db	'Waiting for a redstone change...',0Dh,0Ah,'$'
 MSIDE:	db	'side $'

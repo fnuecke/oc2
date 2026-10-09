@@ -18,7 +18,7 @@ import java.io.IOException;
 
     With several tanks connected, `find` may return any of them. To grab a specific one, give the bus interface in front of the one you want a name with a [wrench](../item/wrench.md), and find it by that name instead.""")
 @IODeviceDescription(name = "FLUIDS", description = """
-    Each container is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
+    Each container is listed separately. When several are connected, label the bus interface and pass both the label and `FLUIDS` to `OCFIND`, or check what `DEVS` lists.
 
     Fluid ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. An empty tank reads as fluid 0. Amounts are four bytes, low byte first.""")
 public final class FluidHandlerDevice extends IdentityProxy<FluidHandler> {

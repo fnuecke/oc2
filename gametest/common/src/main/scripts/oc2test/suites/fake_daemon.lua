@@ -32,8 +32,8 @@ local hostPayload = blob.fromFd(blobHost)
 local hostEvents = Channel.fromFd(eventHost)
 
 local DEVICES = {
-  { deviceId = "redstone-1", typeNames = { "redstone" } },
-  { deviceId = "robot-1", typeNames = { "robot" } },
+  { deviceId = "redstone-1", typeNames = { "test_device", "redstone" } },
+  { deviceId = "robot-1", typeNames = { "test_device", "robot" } },
 }
 local METHODS = {
   { name = "getRedstoneOutput", parameters = {} },

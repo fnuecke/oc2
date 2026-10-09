@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    const int redstone = mlapi_find("REDSTN", 0);
+    const int redstone = mlapi_find(0, "REDSTN");
     if (redstone < 0) {
         printf("no redstone interface\n");
         return 1;

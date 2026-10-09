@@ -29,8 +29,8 @@ local eventHost, eventGuest = socketPair()
 local listenFd = assert(socket.listen(PATH))
 
 local DEVICES = {
-  { deviceId = "redstone-1", typeNames = { "redstone" } },
-  { deviceId = "robot-1", typeNames = { "robot" } },
+  { deviceId = "redstone-1", typeNames = { "test_device", "redstone" } },
+  { deviceId = "robot-1", typeNames = { "test_device", "robot" } },
 }
 local METHODS = {
   { name = "getRedstoneOutput", parameters = {} },
@@ -136,6 +136,14 @@ local redstone = first:find("redstone")
 expect("find located a device by type", redstone and redstone.deviceId, "redstone-1")
 expect("methods resolve through the daemon", type(redstone.getRedstoneOutput), "function")
 expect("and invoking one returns the host's answer", redstone:getRedstoneOutput(), 15)
+expect("find by a shared label takes the first", first:find("test_device").deviceId, "redstone-1")
+expect("find with several names matches all of them", first:find("test_device", "robot").deviceId, "robot-1")
+expect("in any order", first:find("robot", "test_device").deviceId, "robot-1")
+local missing, missingReason = first:find("test_device", "nope")
+expect("a name no device has finds nothing", missing, nil)
+expect("and the reason lists the names", missingReason, "no device of type [test_device, nope]")
+expect("a nil name finds nothing", first:find(nil), nil)
+raises("find needs a name", "no names given", function() first:find() end)
 
 -- Device.__index resolves through the cached method list, so repeated lookups on one device
 -- must not go back to the host. Counting the fetches is the only way to see the cache work.

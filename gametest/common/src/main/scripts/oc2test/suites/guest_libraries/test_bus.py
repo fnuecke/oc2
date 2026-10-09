@@ -62,6 +62,13 @@ expect("with the host's devices", devices[0]["deviceId"], "redstone-1")
 redstone = first.find("redstone")
 expect("find located a device by type", redstone and redstone.device_id, "redstone-1")
 expect("and invoking a method returns the host's answer", redstone.getRedstoneOutput(), 15)
+expect("find by a shared label takes the first", first.find("test_device").device_id, "redstone-1")
+expect("find with several names matches all of them",
+       first.find("test_device", "robot").device_id, "robot-1")
+expect("in any order", first.find("robot", "test_device").device_id, "robot-1")
+expect("a name no device has finds nothing", first.find("test_device", "nope"), None)
+expect("a None name finds nothing", first.find(None), None)
+raises("find needs a name", "no names given", lambda: first.find())
 
 raises("a host error surfaces as an error", "the host said no",
        lambda: first.invoke("redstone-1", "explode"))

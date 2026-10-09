@@ -63,8 +63,9 @@ OCEVP	equ	10000000b	; an event is pending at OCEVD
 ; already handed to the host still runs and still has its effect on the world.
 ; The device stays busy until it is done, and the result is then thrown away.
 
-; OCFIND -- locate the B'th device known by the name at HL: its class name, or
-; a label set on a bus interface label (B is 0-based; the name is 0 terminated).
+; OCFIND -- locate the B'th device known by all names in the list at HL: its
+; device name or the label set on a bus interface (B is 0-based; each name is
+; 0 terminated, a repeated 0 indicates the end of the list).
 ; exit  NC, A = port base, E = sub-device index
 ;       CY      no such device
 ; Write E to OCSEL to select the device, then drive the registers from

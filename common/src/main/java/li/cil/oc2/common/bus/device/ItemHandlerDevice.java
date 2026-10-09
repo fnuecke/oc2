@@ -18,7 +18,7 @@ import java.io.IOException;
 
     With several inventories connected, `find` may return any of them. To grab a specific one, give the bus interface in front of the one you want a name with a [wrench](../item/wrench.md), and find it by that name instead.""")
 @IODeviceDescription(name = "ITEMS", description = """
-    Each inventory is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
+    Each inventory is listed separately. When several are connected, label the bus interface and pass both the label and `ITEMS` to `OCFIND`, or check what `DEVS` lists.
 
     Item ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. An empty slot reads as item 0.""")
 public final class ItemHandlerDevice extends IdentityProxy<ItemHandler> {

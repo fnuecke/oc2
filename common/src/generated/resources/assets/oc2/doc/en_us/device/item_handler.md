@@ -26,7 +26,7 @@ Gets what is in the specified slot.
 ## Mid-level API
 Device name: `ITEMS`
 
-Each inventory is listed separately. When several are connected, pass a count in `B` to `OCFIND` to pick one, or check what `DEVS` lists.
+Each inventory is listed separately. When several are connected, label the bus interface and pass both the label and `ITEMS` to `OCFIND`, or check what `DEVS` lists.
 
 Item ids are two bytes, low byte first; [`SYSTEM`](system.md) provides name lookup. An empty slot reads as item 0.
 

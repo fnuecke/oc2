@@ -388,22 +388,32 @@ function DeviceBus:get(deviceId)
   return nil, "no device with id [" .. deviceId .. "]"
 end
 
-function DeviceBus:find(deviceTypeName)
+function DeviceBus:find(...)
+  local deviceTypeNames = table.pack(...)
+  if deviceTypeNames.n == 0 then
+    error("no names given", 2)
+  end
   local device = lookup(self, function(candidate)
-    if candidate.typeNames then
-      for _, typeName in ipairs(candidate.typeNames) do
-        if typeName == deviceTypeName then
-          return true
-        end
+    local typeNames = {}
+    for _, typeName in ipairs(candidate.typeNames or {}) do
+      typeNames[typeName] = true
+    end
+    for i = 1, deviceTypeNames.n do
+      if not typeNames[deviceTypeNames[i]] then
+        return false
       end
     end
-    return false
+    return true
   end)
   if device then
     return device
   end
 
-  return nil, "no device of type [" .. deviceTypeName .. "]"
+  local names = {}
+  for i = 1, deviceTypeNames.n do
+    names[i] = tostring(deviceTypeNames[i])
+  end
+  return nil, "no device of type [" .. table.concat(names, ", ") .. "]"
 end
 
 function DeviceBus:methods(deviceId)

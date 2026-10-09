@@ -4,7 +4,7 @@ Controlling devices using Lua is a core concept when using [computers](block/com
 Everything in this entry needs the Linux system that ships for the [RISC-V processor](item/cpu_riscv.md). To access devices from a [Z80 processor](item/cpu_z80.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
 
 
-If multiple devices of the same type are connected, `find` may return any of them. To grab a specific one, assign the bus interface in front of the desired device a name, by using a [wrench](item/wrench.md), then find it by that name instead.
+If multiple devices of the same type are connected, `find` may return any of them. To grab a specific one, assign the bus interface in front of the desired device a name, by using a [wrench](item/wrench.md), then find it by that name instead. Multiple names can be passed: `find("storage", "item_handler")` only matches a device with both.
 
 For the methods available on devices, see the [list of devices](device/index.md).
 
@@ -23,9 +23,9 @@ To use the `devices` library, import it using `require("devices")`. What you get
 - `id` is the unique identifier of the device.
 - Returns a wrapper for the specified device, or nothing if no device has that identifier.
 
-`find(typeName:string):Device` returns a wrapper for a device of the specified type. If there are many devices of this type, it is undefined which one will be returned. Aliases set in [Bus Interfaces](block/bus_interface.md) may also be used.
-- `typeName` is the device type for which to find a device.
-- Returns a wrapper for a device of that type, or nothing if no device of that type is connected.
+`find(typeName:string...):Device` returns a wrapper for a device that has all the specified names. Names are device types, device names and aliases set in [Bus Interfaces](block/bus_interface.md). If more than one matching device exists, it is undefined which one will be returned.
+- `typeName` is one or more names the device must have.
+- Returns a wrapper for a matching device, or nothing if no device has all specified names.
 
 `methods(id:string):table` returns the list of methods offered by the device with the specified identifier. To obtain the list of methods in a more readable way, get the device wrapper and convert it to a string, instead. Also see the section on the device wrapper type.
 - `id` is the unique identifier of the device.

@@ -17,7 +17,7 @@ end
 
 harness.expect("system device is index 0", system and system:match("^(%d+)\t"), "0")
 harness.expect("redstone interface is listed", redstone ~= nil, true)
-harness.expect("label is among its names", redstone and redstone:find("lamp_ctl", 1, true) ~= nil, true)
+harness.expect("label is among its names", redstone and redstone:find("test_device", 1, true) ~= nil, true)
 harness.expect("block id is among its names", redstone and redstone:find("oc2:redstone_interface", 1, true) ~= nil, true)
 
 harness.report()

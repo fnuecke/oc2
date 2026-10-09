@@ -168,12 +168,12 @@ public final class Z80Tests {
         placePower(helper, player);
 
         helper.startSequence()
-            .thenExecuteAfter(20, () -> z80.install().withLabelledRedstoneInterface("lamp_ctl"))
+            .thenExecuteAfter(20, () -> z80.install().withLabelledRedstoneInterface("test_device"))
             .thenExecuteAfter(20, z80::start)
             .thenWaitUntil(() -> z80.assertScreenContains("A>", "CP/M should reach its prompt"))
             .thenExecute(() -> z80.command("DEVS"))
-            .thenWaitUntil(() -> z80.assertScreenContains("REDSTN, lamp_ctl, oc2:redstone_interface",
-                "DEVS should list the label and block id after the device's name"))
+            .thenWaitUntil(() -> z80.assertScreenContains("REDSTN, oc2:redstone_interface, test_device",
+                "DEVS should list the block id and label after the device's name"))
             .thenSucceed();
     }
 

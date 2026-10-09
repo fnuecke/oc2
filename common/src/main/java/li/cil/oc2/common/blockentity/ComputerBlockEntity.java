@@ -129,6 +129,18 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
     }
 
+    public void shutdown() {
+        if (level != null && !level.isClientSide()) {
+            virtualMachine.shutdown();
+        }
+    }
+
+    public void reboot() {
+        if (level != null && !level.isClientSide()) {
+            virtualMachine.reboot();
+        }
+    }
+
     public void stop() {
         if (level != null && !level.isClientSide()) {
             virtualMachine.stop();

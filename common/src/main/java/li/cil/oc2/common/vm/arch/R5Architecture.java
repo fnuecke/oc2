@@ -24,6 +24,7 @@ public final class R5Architecture extends AbstractArchitecture {
     private static final long BUS_DEVICE_BASE_ADDRESS = 0x30000000L;
     private static final long MLAPI_WINDOW_ADDRESS = 0x03000000L;
     private static final int MLAPI_INTERRUPT = 6;
+    private static final int SYSCON_INTERRUPT = 7;
     private static final String BOOT_ARGUMENTS = "root=/dev/vda rw uio_pdrv_genirq.of_id=oc2,mlapi";
 
     @Serialized
@@ -58,6 +59,10 @@ public final class R5Architecture extends AbstractArchitecture {
             throw new IllegalStateException("Mid-level API interrupt is already claimed.");
         }
         mlapiAdapter.getInterrupt().set(MLAPI_INTERRUPT, getContext().getInterruptController());
+        if (!getContext().getInterruptAllocator().claimInterrupt(SYSCON_INTERRUPT)) {
+            throw new IllegalStateException("System controller interrupt is already claimed.");
+        }
+        board.getSystemController().getInterrupt().set(SYSCON_INTERRUPT, getContext().getInterruptController());
 
         board.getCpu().setFrequency(li.cil.oc2.common.Config.riscvCycleBudgetPerSecond);
         board.setStandardOutputDevice(builtinDevices.uart);
@@ -131,6 +136,16 @@ public final class R5Architecture extends AbstractArchitecture {
     @Override
     public void reset() {
         board.reset();
+    }
+
+    @Override
+    public boolean requestShutdown() {
+        return board.getSystemController().requestPowerOff();
+    }
+
+    @Override
+    public boolean requestReboot() {
+        return board.getSystemController().requestReset();
     }
 
     @Override

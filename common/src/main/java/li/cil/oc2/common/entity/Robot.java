@@ -269,6 +269,18 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
     }
 
+    public void shutdown() {
+        if (!level().isClientSide()) {
+            virtualMachine.shutdown();
+        }
+    }
+
+    public void reboot() {
+        if (!level().isClientSide()) {
+            virtualMachine.reboot();
+        }
+    }
+
     public void stop() {
         if (!level().isClientSide()) {
             virtualMachine.stop();

@@ -52,8 +52,8 @@ final class GlobalInterruptAllocator implements InterruptAllocator, InterruptVal
         allClaimedInterrupts.or(claimedInterrupts);
         allClaimedInterrupts.or(reservedInterrupts);
 
-        final int interrupt = allClaimedInterrupts.nextClearBit(0);
-        if (interrupt >= interruptCount) {
+        final int interrupt = allClaimedInterrupts.previousClearBit(interruptCount - 1);
+        if (interrupt < 0) {
             return OptionalInt.empty();
         }
 

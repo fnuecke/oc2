@@ -75,8 +75,6 @@
   
 	"gui.oc2.computer.capture_input.capt": "Capturar Entrada",
 	"gui.oc2.computer.capture_input.desc": "Quando ativado, enquanto o cursor do rato estiver por cima do conteúdo do terminal, toda a entrada será capturada, incluíndo a tecla de escape.",
-	"gui.oc2.computer.power.capt": "Alternar Eneriga",
-	"gui.oc2.computer.power.desc": "Alterna o estado da energia do computador.",
   
 	"gui.oc2.machine.open_inventory.capt": "Abrir Inventário",
 	"gui.oc2.machine.open_terminal.capt": "Abrir Terminal",

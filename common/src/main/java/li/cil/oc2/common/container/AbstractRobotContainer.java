@@ -10,6 +10,7 @@ import li.cil.oc2.common.network.message.OpenRobotInventoryMessage;
 import li.cil.oc2.common.network.message.OpenRobotTerminalMessage;
 import li.cil.oc2.common.network.message.RobotPowerMessage;
 import li.cil.oc2.common.network.message.RobotTerminalInputMessage;
+import li.cil.oc2.common.vm.PowerAction;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.minecraft.world.entity.player.Player;
@@ -51,8 +52,8 @@ public abstract class AbstractRobotContainer extends AbstractMachineTerminalCont
     }
 
     @Override
-    public void sendPowerStateToServer(final boolean value) {
-        Network.sendToServer(new RobotPowerMessage(robot, value));
+    public void sendPowerActionToServer(final PowerAction action) {
+        Network.sendToServer(new RobotPowerMessage(robot, action));
     }
 
     @Override

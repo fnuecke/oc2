@@ -85,6 +85,14 @@ public abstract class AbstractArchitecture {
 
     public abstract void reset();
 
+    public boolean requestShutdown() {
+        return false;
+    }
+
+    public boolean requestReboot() {
+        return false;
+    }
+
     public final void stopAndReset() {
         setRunning(false);
         reset();

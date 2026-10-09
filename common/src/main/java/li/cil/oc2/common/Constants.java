@@ -58,8 +58,10 @@ public final class Constants {
 
     public static final String TERMINAL_CAPTURE_INPUT_CAPTION = key("gui.{mod}.computer.capture_input.capt");
     public static final String TERMINAL_CAPTURE_INPUT_DESCRIPTION = key("gui.{mod}.computer.capture_input.desc");
-    public static final String COMPUTER_SCREEN_POWER_CAPTION = key("gui.{mod}.computer.power.capt");
-    public static final String COMPUTER_SCREEN_POWER_DESCRIPTION = key("gui.{mod}.computer.power.desc");
+    public static final String COMPUTER_SCREEN_POWER_ON = key("gui.{mod}.computer.power.on");
+    public static final String COMPUTER_SCREEN_POWER_SHUTDOWN = key("gui.{mod}.computer.power.shutdown");
+    public static final String COMPUTER_SCREEN_POWER_REBOOT = key("gui.{mod}.computer.power.reboot");
+    public static final String COMPUTER_SCREEN_POWER_POWER_OFF = key("gui.{mod}.computer.power.power_off");
     public static final String COMPUTER_ERROR_UNKNOWN = key("gui.{mod}.computer.error.unknown");
     public static final String COMPUTER_ERROR_MISSING_CPU = key("gui.{mod}.computer.error.missing_cpu");
     public static final String COMPUTER_ERROR_MISSING_FIRMWARE = key("gui.{mod}.computer.error.missing_firmware");

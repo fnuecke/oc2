@@ -75,8 +75,6 @@
 
   "gui.oc2.computer.capture_input.capt": "Захват ввода",
   "gui.oc2.computer.capture_input.desc": "Пока курсор находится в пределах окна терминала, ввод (включая нажатие на ESC) будет захватываться.",
-  "gui.oc2.computer.power.capt": "Кнопка питания",
-  "gui.oc2.computer.power.desc": "Включает или выключает компьютер.",
 
   "gui.oc2.machine.open_inventory.capt": "Открыть инвентарь",
   "gui.oc2.machine.open_terminal.capt": "Открыть терминал",

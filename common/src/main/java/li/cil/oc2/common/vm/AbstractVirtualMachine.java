@@ -152,6 +152,25 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     }
 
     @Override
+    public void shutdown() {
+        if (architecture == null || !architecture.requestShutdown()) {
+            stop();
+        }
+    }
+
+    @Override
+    public void reboot() {
+        if (runState == VMRunState.STOPPED) {
+            return;
+        }
+
+        if (architecture == null || !architecture.requestReboot()) {
+            stop();
+            start();
+        }
+    }
+
+    @Override
     public void stop() {
         stopRunnerAndReset();
     }

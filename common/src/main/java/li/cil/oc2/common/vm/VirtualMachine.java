@@ -22,5 +22,9 @@ public interface VirtualMachine {
 
     void start();
 
+    void shutdown();
+
+    void reboot();
+
     void stop();
 }

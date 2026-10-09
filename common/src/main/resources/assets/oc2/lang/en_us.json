@@ -119,8 +119,10 @@
 
   "gui.oc2.computer.capture_input.capt": "Capture Input",
   "gui.oc2.computer.capture_input.desc": "When enabled, as long as the mouse cursor is hovering the terminal contents, all input will be captured, including the escape key.",
-  "gui.oc2.computer.power.capt": "Toggle Power",
-  "gui.oc2.computer.power.desc": "Toggles the power state of the computer.",
+  "gui.oc2.computer.power.on": "Power on",
+  "gui.oc2.computer.power.shutdown": "Shutdown",
+  "gui.oc2.computer.power.reboot": "Shift: Reboot",
+  "gui.oc2.computer.power.power_off": "Ctrl: Power off",
 
   "gui.oc2.machine.open_inventory.capt": "Open Inventory",
   "gui.oc2.machine.open_terminal.capt": "Open Terminal",

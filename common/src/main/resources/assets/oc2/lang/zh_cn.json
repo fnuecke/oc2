@@ -75,8 +75,6 @@
 
   "gui.oc2.computer.capture_input.capt": "捕获输入",
   "gui.oc2.computer.capture_input.desc": "当开启并且鼠标移动到终端内时，将捕获所有的输入，包括ESC键",
-  "gui.oc2.computer.power.capt": "电源",
-  "gui.oc2.computer.power.desc": "开启或关闭这台电脑。",
 
   "gui.oc2.machine.open_inventory.capt": "打开物品栏",
   "gui.oc2.machine.open_terminal.capt": "打开终端",

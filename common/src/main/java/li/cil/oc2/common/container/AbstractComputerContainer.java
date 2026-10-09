@@ -11,6 +11,7 @@ import li.cil.oc2.common.network.message.ComputerPowerMessage;
 import li.cil.oc2.common.network.message.ComputerTerminalInputMessage;
 import li.cil.oc2.common.network.message.OpenComputerInventoryMessage;
 import li.cil.oc2.common.network.message.OpenComputerTerminalMessage;
+import li.cil.oc2.common.vm.PowerAction;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.minecraft.world.entity.player.Player;
@@ -50,8 +51,8 @@ public abstract class AbstractComputerContainer extends AbstractMachineTerminalC
     }
 
     @Override
-    public void sendPowerStateToServer(final boolean value) {
-        Network.sendToServer(new ComputerPowerMessage(computer, value));
+    public void sendPowerActionToServer(final PowerAction action) {
+        Network.sendToServer(new ComputerPowerMessage(computer, action));
     }
 
     @Override

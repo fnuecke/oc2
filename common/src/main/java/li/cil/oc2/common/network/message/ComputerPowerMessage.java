@@ -5,18 +5,19 @@ package li.cil.oc2.common.network.message;
 import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
+import li.cil.oc2.common.vm.PowerAction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
 public final class ComputerPowerMessage extends AbstractMessage {
     private BlockPos pos;
-    private boolean power;
+    private PowerAction action;
 
     // --------------------------------------------------------------------- //
 
-    public ComputerPowerMessage(final ComputerBlockEntity computer, final boolean power) {
+    public ComputerPowerMessage(final ComputerBlockEntity computer, final PowerAction action) {
         this.pos = computer.getBlockPos();
-        this.power = power;
+        this.action = action;
     }
 
     public ComputerPowerMessage(final RegistryFriendlyByteBuf buffer) {
@@ -28,13 +29,13 @@ public final class ComputerPowerMessage extends AbstractMessage {
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        power = buffer.readBoolean();
+        action = buffer.readEnum(PowerAction.class);
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        buffer.writeBoolean(power);
+        buffer.writeEnum(action);
     }
 
     // --------------------------------------------------------------------- //
@@ -43,10 +44,11 @@ public final class ComputerPowerMessage extends AbstractMessage {
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos, ComputerBlockEntity.class,
             (player, computer) -> {
-                if (power) {
-                    computer.start();
-                } else {
-                    computer.stop();
+                switch (action) {
+                    case START -> computer.start();
+                    case SHUTDOWN -> computer.shutdown();
+                    case REBOOT -> computer.reboot();
+                    case POWER_OFF -> computer.stop();
                 }
             });
     }

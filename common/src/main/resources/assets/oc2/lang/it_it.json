@@ -75,8 +75,6 @@
 
   "gui.oc2.computer.capture_input.capt": "Cattura Input",
   "gui.oc2.computer.capture_input.desc": "Quando attivo, se il cursore è al di sopra del terminale, tutti gli input saranno catturati, incluso il tasto ESC.",
-  "gui.oc2.computer.power.capt": "Tasto di Accensione",
-  "gui.oc2.computer.power.desc": "Accendi/Spegni il computer.",
 
   "gui.oc2.machine.open_inventory.capt": "Apri Inventario",
   "gui.oc2.machine.open_terminal.capt": "Apri Terminale",

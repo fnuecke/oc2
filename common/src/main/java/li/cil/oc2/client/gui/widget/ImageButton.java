@@ -79,7 +79,8 @@ public abstract class ImageButton extends AbstractButton {
     }
 
     private void renderTooltipIfHovered(final GuiGraphics graphics, final int mouseX, final int mouseY) {
-        if (tooltip.isEmpty()) {
+        final List<Component> lines = getTooltipLines();
+        if (lines.isEmpty()) {
             return;
         }
 
@@ -89,7 +90,7 @@ public abstract class ImageButton extends AbstractButton {
             }
 
             if ((System.currentTimeMillis() - hoveringStartedAt) > TOOLTIP_DELAY) {
-                TooltipRenderer.drawTooltip(graphics, tooltip, mouseX, mouseY, 200);
+                TooltipRenderer.drawTooltip(graphics, lines, mouseX, mouseY, 200);
             }
         } else {
             hoveringStartedAt = 0;
@@ -102,6 +103,10 @@ public abstract class ImageButton extends AbstractButton {
     }
 
     // --------------------------------------------------------------------- //
+
+    protected List<Component> getTooltipLines() {
+        return tooltip;
+    }
 
     protected void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         RenderSystem.enableDepthTest();

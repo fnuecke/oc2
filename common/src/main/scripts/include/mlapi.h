@@ -28,7 +28,7 @@ int usleep(unsigned int microseconds);
 #define BCNT 0x11 /* device count */
 #define BSEL 0x12 /* selected entry */
 #define BCLS 0x13 /* class of the selected entry */
-#define BATR 0x14 /* device index to write to OCSEL */
+#define BATT 0x14 /* device index to write to OCSEL */
 #define BPRT 0x15 /* register offset in the page */
 #define BNAM 0x17 /* names, one character per read, each 0 terminated, an empty one ends the list; any write rewinds */
 
@@ -128,7 +128,7 @@ static int mlapi_find_all(int nth, const char *const *names) {
             name++;
         }
         if (!*name && nth-- == 0) {
-            return mlapi_io[BATR];
+            return mlapi_io[BATT];
         }
     }
     return -1;

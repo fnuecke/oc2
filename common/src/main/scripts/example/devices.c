@@ -21,7 +21,7 @@ int main(void) {
             continue;
         }
 
-        printf("%d", mlapi_io[BATR]);
+        printf("%d", mlapi_io[BATT]);
         mlapi_io[BNAM] = 0;
         int names = 0;
         int c;

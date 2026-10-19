@@ -15,6 +15,7 @@ import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import dev.architectury.event.events.client.ClientTickEvent;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import li.cil.oc2.client.ClientPlatform;
 import li.cil.oc2.common.block.FlippableOrientableBlock;
 import li.cil.oc2.common.block.FlippableOrientation;
@@ -54,10 +55,7 @@ import org.joml.Quaternionf;
 
 import java.lang.ref.WeakReference;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -610,7 +608,13 @@ public final class ProjectorDepthRenderer {
 
     private static MultiBufferSource.BufferSource depthBufferSource() {
         if (depthBufferSource == null) {
-            depthBufferSource = MultiBufferSource.immediate(new ByteBufferBuilder(DEPTH_BUFFER_SOURCE_BYTES));
+            // Same fixed buffers as vanilla. Layered consumers, e.g. enchantment glint, need their own buffer
+            // Direct field access of bufferSource for Iris compatibility (it changes what the getter method returns).
+            final SequencedMap<RenderType, ByteBufferBuilder> fixedBuffers = new Object2ObjectLinkedOpenHashMap<>();
+            for (final RenderType renderType : Minecraft.getInstance().renderBuffers().bufferSource.fixedBuffers.keySet()) {
+                fixedBuffers.put(renderType, new ByteBufferBuilder(renderType.bufferSize()));
+            }
+            depthBufferSource = MultiBufferSource.immediateWithBuffers(fixedBuffers, new ByteBufferBuilder(DEPTH_BUFFER_SOURCE_BYTES));
         }
         return depthBufferSource;
     }

@@ -20,24 +20,23 @@ The two platform packages mirror each other: every entry in `Lookups` has a coun
 ## High-level and Mid-level Devices
 
 The core of the HLAPI and MLAPI device system are the [RPCDevice] and [IODevice] interfaces. An `RPCDevice` defines a
-list of [RPCMethods], an `IODevice` defines a list of [IOMethods], which represent the methods that can be called on the
-device.
+list of [RPCMethodGroups], usually single [RPCMethods], an `IODevice` defines a list of [IOMethods]. These are the
+methods that can be called on the device. The guest side of the two APIs is documented in [hlapi.md] and [mlapi.md].
 
-These are the suggested types of device to add, and allows easily exposing methods in your classes to virtual machines.
+These are the suggested types of device to add, and allow easily exposing methods in your classes to virtual machines.
 
 > [!NOTE]
 > If you've seen the APIs of OpenComputers or ComputerCraft before, the `RPCDevice` should feel fairly familiar.
 
 ### Threading
 
-Methods run on the main server thread by default. By default, exposed methods will be synchronized to the server thread.
-This is what you want if your logic does anything with the level or stuff in it. Opting out makes calls much cheaper,
-since a synchronized call costs at least one tick, but is only safe for methods that touch nothing but their own state.
-Do **not** try to synchronize against the server thread here. VMs are joined to the server thread each tick, so you'd
-just introduce a deadlock.
+By default, exposed methods are synchronized to the server thread. This is what you want if your logic does anything
+with the level or stuff in it. Opting out makes calls much cheaper, since a synchronized call costs at least one tick,
+but is only safe for methods that touch nothing but their own state. Do **not** try to synchronize against the server
+thread here. VMs are joined to the server thread each tick, so you'd just introduce a deadlock.
 
 To have methods called asynchronously, either declare them as non-synchronized in your `RPCMethod`/`IOMethod`, or when
-using the annotations, by using `@Callback(synchronize = false)`/`IOCallback(synchronize = false)`.
+using the annotations, by using `@Callback(synchronize = false)`/`@IOCallback(synchronize = false)`.
 
 ### Energy
 
@@ -45,7 +44,9 @@ Synchronized methods may drain energy from the calling computer, via `consumeEne
 `IOInvocation`. If the computer does not store enough it returns `false` without draining anything. With the
 annotations, `@Callback(energy = n)`/`@IOCallback(energy = n)`, each call drains `n` before the actual invocation, and
 fails if there's not enough energy. The energy is not refunded when the method itself fails (e.g. raises an exception
-due to bad arguments). Calling `consumeEnergy` from a non-synchronized method throws an `IllegalStateException`.
+due to bad arguments). Calling `consumeEnergy` from a non-synchronized method throws an `IllegalStateException`, and an
+annotated method with an energy cost must be synchronized, or the `ObjectDevice` constructor throws an
+`IllegalArgumentException`. When computers and robots are configured to not use energy, `consumeEnergy` always succeeds.
 
 ### The `ObjectDevice`
 
@@ -53,25 +54,40 @@ It is perfectly fine to implement these interfaces manually. There is a more con
 device explicitly for this mod, in the form of the [ObjectDevice]. This class allows wrapping a Java object as an
 `RPCDevice`/`IODevice` (can be both at the same time).
 
-Methods annotated with [Callback] expose functionality to RISC-V computers, through teh high-level API. The class level
+Methods annotated with [Callback] expose functionality to RISC-V computers, through the high-level API. The class level
 annotation with [RPCDeviceDescription] is optional, as the high-level API also supports a level of reflection to
 inspect devices.
 
-Methods annotated with [IOCallback] expose functionality to Z80 computers, through the mid-level API. The class then
-must be annotated with a [IODeviceDescription], to allow machines to identify the device type, since there's no other
-form of type reflection in the mid-level API.
+Methods annotated with [IOCallback] expose functionality through the mid-level API, used by Z80 computers and also
+available on RISC-V computers. The class then must be annotated with an [IODeviceDescription], to allow machines to
+identify the device type, since there's no other form of type reflection in the mid-level API. Its name is one to six
+printable ASCII characters.
 
-The class and the annotated methods must be public.
+`IOCallback` methods return `void`, and take an `IOInputStream` for the arguments, an `IOOutputStream` for the results,
+both or neither. Each has a function code from `0x00` to `0xFE`, unique in its class. Arguments and results are at most
+256 bytes each. A computer can address at most 254 mid-level API devices, further ones are dropped.
+
+The class and the annotated methods must be public. Java does not keep parameter names, unless compiled with
+`-parameters`. Use the [Parameter] annotation to name and describe the parameters of `@Callback` methods.
+
+### Binary Data
+
+`byte[]` parameters and return values are sent as binary payloads, see [hlapi.md][hlapi.md binary payloads].
+Synchronized methods can return them, but cannot take them as parameters. All payloads of one result together may be at
+most 512 KiB.
 
 ### Type Names
 
-In addition to methods, `RPCDevices` provide a list of "type names". These names are metadata, that can be used by
-programs running in the virtual machines to identify devices. These should be clear and unique, to avoid confusion
-between device types. For example, "machine" would probably be a little too generic, whereas "redstone_furnace" would
-probably be a little better. Note that for all `BlockEntities` providing devices, the registry name of their
-`BlockEntityType` is automatically added to the list of type names; for blocks without a block entity, the block's
-registry name is used instead. Equally, for all `Items` providing devices, their registry name is automatically added to
-the list of type names.
+In addition to methods, each `RPCDevice` provides a "type name". These names are metadata, that can be used by programs
+running in the virtual machines to identify devices. These should be clear and unique, to avoid confusion between device
+types. For example, "machine" would probably be a little too generic, whereas "redstone_furnace" would probably be a
+little better. An `ObjectDevice` uses the `typeName` of its [RPCDeviceDescription], or else derives it from the class
+name, e.g. `RedstoneFurnaceDevice` becomes `redstone_furnace`.
+
+Devices found for the same block or item are merged, see below, and list all their type names. Note that for all
+`BlockEntities` providing devices, the registry name of their `BlockEntityType` is automatically added to that list. For
+blocks without a block entity, the block's registry name is used instead. Equally, for all `Items` providing devices,
+their registry name is automatically added to the list.
 
 ### Method Name Collisions
 
@@ -103,10 +119,10 @@ For more control, `RPCMethodGroups` may implement custom overload resolution via
 Method parameters and return values are passed to and from the VM as JSON. Primitives, strings, arrays and plain data
 classes work out of the box. Types that need special handling require a Gson type adapter, described by the
 [RPCTypeAdapter] record. Register one with the `Registries.RPC_TYPE_ADAPTER` registry, exactly as you would a device
-provider. `ItemStack` and `Direction` are registered this way already.
+provider. `ItemStack`, `FluidStack` and `Direction` are registered this way already.
 
 Adapters apply in registration order, so registering one for a type the mod already covers replaces it. An adapter may
-implement Gson's `JsonSerializer`, `JsonDeserializer` or both; only implement the direction you need. The built-in
+implement Gson's `JsonSerializer`, `JsonDeserializer` or both. Only implement the direction you need. The built-in
 `ItemStack` adapter serializes only, because stacks are handed to the guest but never accepted from it.
 
 ### Device Lifecycle
@@ -134,8 +150,8 @@ RISC-V and Z80 computers alike. For an `ObjectDevice`, implement `onIODeviceMoun
 
 The `RPCBusContext` is the device's handle on the computer it was mounted in. A device reachable from several computers,
 such as a block entity with computers on two sides, is mounted once per computer and receives a distinct context for
-each. Thus, a device may receive more than one context. Consider using an [DeviceContext] instance to track them and use
-the `sendEvent` method on it to send events to all computers.
+each. Consider using a [DeviceContext] instance to track them and use the `sendEvent` method on it to send events to all
+computers.
 
 This can be useful for various things. For example:
 
@@ -147,6 +163,12 @@ This can be useful for various things. For example:
     - Close the file in `unmount()`.
     - Delete the file in `dispose()`, and be ready to create it again on the next `mount()`.
 
+### Persistence
+
+Devices may store state with the computer by implementing `serializeNBT()` and `deserializeNBT()` of [Device]. Item
+devices may additionally store state on their item, via `exportToItemStack()` and `importFromItemStack()` of
+[ItemDevice].
+
 ### Events
 
 `RPCBusContext.sendEvent(type, data)` raises an event in the guest, where scripts receive it through `waitEvent`. The
@@ -155,12 +177,12 @@ usually on some state change: the event queue is shared by every device on the c
 that follow once the queue is full are dropped.
 
 `sendEvent` may be called from any thread. `data` is serialized on the calling thread, so only pass game objects such as
-an `ItemStack` from the server thread. Binary payloads (`byte[]`) are not supported in events; such an event is logged
+an `ItemStack` from the server thread. Binary payloads (`byte[]`) are not supported in events, such an event is logged
 and dropped. After `unmount()`, `sendEvent` returns `false`.
 
 `IOBusContext.sendEvent(code, value)` is the mid-level API counterpart: an event code of one byte and a value of two,
-attributed to the device's index. Guests opt in to receiving events, and may have an interrupt raised for them;
-until then `sendEvent` returns `false`. Event codes are per device, like function codes; document them in the
+attributed to the device's index. Guests opt in to receiving events, and may have an interrupt raised for them.
+Until then `sendEvent` returns `false`. Event codes are per device, like function codes. Document them in the
 `IODeviceDescription`. The queue holds 16 events and is shared by all devices of a computer. May be called from any
 thread. After `unmountIO()`, `sendEvent` returns `false`.
 
@@ -173,9 +195,12 @@ interfaces.
 There exists a registry for each, with which all block and item providers must be registered. These registries are
 queried to collect devices for a given block in the world, or an item in a machine inventory.
 
-Both return an `Optional` device. Buses query block providers again on neighbor updates and when capabilities at the
-block's position are invalidated. A block whose devices change without either should invalidate its capabilities on
-NeoForge, via `invalidateCapabilities()`, or on Fabric notify its neighbors via `Level#updateNeighborsAt`.
+Both return an `Optional` device. Item providers return an [ItemDevice], which `ObjectDevice` implements. The queries
+also tell the architecture of the computer, if known, so providers may return different devices for RISC-V and Z80.
+
+Buses query block providers again on neighbor updates and when capabilities at the block's position are invalidated. A
+block whose devices change without either should invalidate its capabilities on NeoForge, via
+`invalidateCapabilities()`, or on Fabric notify its neighbors via `Level#updateNeighborsAt`.
 
 ### Registering Providers
 
@@ -185,8 +210,9 @@ with any other registry.
 On NeoForge, a `DeferredRegister` on the mod event bus is enough, see [Integration][NeoForge provider registration].
 
 On Fabric the registries are created by `oc2` itself, so they only exist once `oc2` has initialized. Use the
-`oc2:registration` entrypoint to ensure correct ordering. In your entrypoint, look the registry up by its key, see
-[Registration][Fabric provider registration] and its declaration in [fabric.mod.json][Fabric entrypoint declaration].
+`oc2:registration` entrypoint, implementing [FabricRegistrationInitializer], to ensure correct ordering. In your
+entrypoint, look the registry up by its key, see [Registration][Fabric provider registration] and its declaration
+in [fabric.mod.json][Fabric entrypoint declaration].
 
 ### Block Devices
 
@@ -206,7 +232,8 @@ means you don't necessarily have to implement your own provider. The following b
   on Fabric). If there is one, the returned device is used. See the [NeoForge][NeoForge block entity example] and
   [Fabric][Fabric block entity example] examples.
     - This allows optional support for this mod, based on whether it is present or not.
-- `Blocks` and `BlockEntities` are scanned for `Callbacks`. If there are any, they are wrapped in an `ObjectDevice`.
+- `Blocks` and `BlockEntities` are scanned for `Callbacks`. If there are any, they are wrapped in an `ObjectDevice`,
+  which also exposes their `IOCallbacks`, if any. A class with only `IOCallbacks` is not picked up.
     - This implies a hard dependency on this mod, due to the use of the `Callback` annotation in your `Block`
       /`BlockEntity` code.
 
@@ -230,18 +257,19 @@ from a static initializer of your own.
 Besides devices, the mod looks for and provides a handful of other capabilities. Each has a Fabric lookup and a NeoForge
 capability under the same name:
 
-| Purpose                                  | Fabric                     | NeoForge                        |
-|------------------------------------------|----------------------------|---------------------------------|
-| Expose a block/item as a device          | `Lookups.Device`           | `Capabilities.Device`           |
-| Join a device bus, e.g. a custom cable   | `Lookups.DeviceBusElement` | `Capabilities.DeviceBusElement` |
-| Emit a redstone signal for a device      | `Lookups.RedstoneEmitter`  | `Capabilities.RedstoneEmitter`  |
-| Exchange ethernet frames with connectors | `Lookups.NetworkInterface` | `Capabilities.NetworkInterface` |
-| Let installed modules reach their host   | `Lookups.Robot`            | `Capabilities.Robot`            |
+| Purpose                                  | Fabric                         | NeoForge                            |
+|------------------------------------------|--------------------------------|-------------------------------------|
+| Expose a block/item as a device          | `Lookups.Device`               | `Capabilities.Device`               |
+| Join a device bus, e.g. a custom cable   | `Lookups.DeviceBusElement`     | `Capabilities.DeviceBusElement`     |
+| Emit a redstone signal for a device      | `Lookups.RedstoneEmitter`      | `Capabilities.RedstoneEmitter`      |
+| Exchange ethernet frames with connectors | `Lookups.NetworkInterface`     | `Capabilities.NetworkInterface`     |
+| Access the robot from installed modules  | `Lookups.Robot`                | `Capabilities.Robot`                |
+| List players using a terminal            | `Lookups.TerminalUserProvider` | `Capabilities.TerminalUserProvider` |
 
-Fabric has no built-in entity lookups for energy or item storage, which robots need. We declare our own:
-`EnergyStorage.ENTITY` and `ItemStorage.ENTITY` in `li.cil.oc2.api.fabric`; the same classes re-export the standard
-`SIDED` and `ITEM` lookups so all three can be reached from one place. On NeoForge the corresponding NeoForge
-capabilities already cover entities, and are used directly.
+Fabric has no built-in entity lookups for energy, item or fluid storage, which robots need. We declare our own:
+`EnergyStorage.ENTITY`, `ItemStorage.ENTITY` and `FluidStorage.ENTITY` in `li.cil.oc2.api.fabric`. The same classes
+re-export the standard `SIDED` and `ITEM` lookups, so all of them can be reached from one place. On NeoForge the
+corresponding NeoForge capabilities already cover entities, and are used directly.
 
 ## The `VMDevice`
 
@@ -264,11 +292,20 @@ the memory tracker. In most cases, `VMDevices` will add a `MemoryMappedDevice` t
 [RPCDevice]: ../common/src/main/java/li/cil/oc2/api/bus/device/rpc/RPCDevice.java
 [IODevice]: ../common/src/main/java/li/cil/oc2/api/bus/device/io/IODevice.java
 [RPCMethods]: ../common/src/main/java/li/cil/oc2/api/bus/device/rpc/RPCMethod.java
+[RPCMethodGroups]: ../common/src/main/java/li/cil/oc2/api/bus/device/rpc/RPCMethodGroup.java
+[IOMethods]: ../common/src/main/java/li/cil/oc2/api/bus/device/io/IOMethod.java
+[Parameter]: ../common/src/main/java/li/cil/oc2/api/bus/device/object/Parameter.java
+[Device]: ../common/src/main/java/li/cil/oc2/api/bus/device/Device.java
+[ItemDevice]: ../common/src/main/java/li/cil/oc2/api/bus/device/ItemDevice.java
+[FabricRegistrationInitializer]: ../common/src/main/java/li/cil/oc2/api/platform/FabricRegistrationInitializer.java
+[hlapi.md]: hlapi.md
+[hlapi.md binary payloads]: hlapi.md#binary-payloads
+[mlapi.md]: mlapi.md
 [ObjectDevice]: ../common/src/main/java/li/cil/oc2/api/bus/device/object/ObjectDevice.java
 [Callback]: ../common/src/main/java/li/cil/oc2/api/bus/device/object/Callback.java
-[IOCallback]: ../common/src/main/java/li/cil/oc2/api/bus/device/io/IOCallback.java
+[IOCallback]: ../common/src/main/java/li/cil/oc2/api/bus/device/object/IOCallback.java
 [RPCDeviceDescription]: ../common/src/main/java/li/cil/oc2/api/bus/device/object/RPCDeviceDescription.java
-[IODeviceDescription]: ../common/src/main/java/li/cil/oc2/api/bus/device/io/IODeviceDescription.java
+[IODeviceDescription]: ../common/src/main/java/li/cil/oc2/api/bus/device/object/IODeviceDescription.java
 [RPCTypeAdapter]: ../common/src/main/java/li/cil/oc2/api/bus/device/rpc/RPCTypeAdapter.java
 [BlockDeviceProvider]: ../common/src/main/java/li/cil/oc2/api/bus/device/provider/BlockDeviceProvider.java
 [ItemDeviceProvider]: ../common/src/main/java/li/cil/oc2/api/bus/device/provider/ItemDeviceProvider.java
@@ -285,5 +322,4 @@ the memory tracker. In most cases, `VMDevices` will add a `MemoryMappedDevice` t
 [DeviceContext]: ../common/src/main/java/li/cil/oc2/api/bus/device/DeviceContext.java
 [VMDevice]: ../common/src/main/java/li/cil/oc2/api/bus/device/vm/VMDevice.java
 [VMContext]: ../common/src/main/java/li/cil/oc2/api/bus/device/vm/context/VMContext.java
-[examples]: ../examples
 [Sedna]: https://github.com/fnuecke/sedna

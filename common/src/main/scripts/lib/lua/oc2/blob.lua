@@ -25,48 +25,90 @@ function blob.wrap(data)
   return setmetatable({ data = data }, blob.marker)
 end
 
+local crcTable = {}
+for i = 0, 255 do
+  local c = i
+  for _ = 1, 8 do
+    c = (c & 1) ~= 0 and (0xEDB88320 ~ (c >> 1)) or (c >> 1)
+  end
+  crcTable[i] = c
+end
+
 function blob.checksum(data)
-  local sum = 0
+  local crc = 0xFFFFFFFF
+  local byte = string.byte
   local length = #data
   local i = 1
+  while i + 7 <= length do
+    local b1, b2, b3, b4, b5, b6, b7, b8 = byte(data, i, i + 7)
+    crc = crcTable[(crc ~ b1) & 0xFF] ~ (crc >> 8)
+    crc = crcTable[(crc ~ b2) & 0xFF] ~ (crc >> 8)
+    crc = crcTable[(crc ~ b3) & 0xFF] ~ (crc >> 8)
+    crc = crcTable[(crc ~ b4) & 0xFF] ~ (crc >> 8)
+    crc = crcTable[(crc ~ b5) & 0xFF] ~ (crc >> 8)
+    crc = crcTable[(crc ~ b6) & 0xFF] ~ (crc >> 8)
+    crc = crcTable[(crc ~ b7) & 0xFF] ~ (crc >> 8)
+    crc = crcTable[(crc ~ b8) & 0xFF] ~ (crc >> 8)
+    i = i + 8
+  end
   while i <= length do
-    local word
-    if i + 3 <= length then
-      word = string.unpack("<I4", data, i)
-    else
-      word = string.unpack("<I4", data:sub(i) .. string.rep("\0", 4 - (length - i + 1)))
+    crc = crcTable[(crc ~ byte(data, i)) & 0xFF] ~ (crc >> 8)
+    i = i + 1
+  end
+  return crc ~ 0xFFFFFFFF
+end
+
+local function encode(value, payloads, indices, depth)
+  if getmetatable(value) == blob.marker then
+    local index = indices[value]
+    if not index then
+      payloads[#payloads + 1] = value.data
+      index = #payloads - 1
+      indices[value] = index
     end
-    sum = (((sum << 1) | (sum >> 31)) + word) & 0xFFFFFFFF
-    i = i + 4
+    return { [blob.key] = index }
   end
-  if sum >= 0x80000000 then
-    sum = sum - 0x100000000
+  if type(value) ~= "table" then
+    return value
   end
-  return sum
+  if depth > maxDepth then
+    error("parameters are nested too deeply", 0)
+  end
+
+  -- Copied only when a payload is found, the caller's tables are never modified.
+  local copy
+  for key, item in pairs(value) do
+    local encoded = encode(item, payloads, indices, depth + 1)
+    if encoded ~= item then
+      if not copy then
+        copy = setmetatable({}, getmetatable(value))
+        for k, v in pairs(value) do
+          copy[k] = v
+        end
+      end
+      copy[key] = encoded
+    end
+  end
+  return copy or value
 end
 
 function blob.extract(...)
   local packed = table.pack(...)
   local parameters = {}
-  local payload
+  local payloads = {}
+  local indices = {}
   for i = 1, packed.n do
     local value = packed[i]
-    if getmetatable(value) == blob.marker then
-      if payload then
-        error("a call may carry at most one binary payload", 2)
-      end
-      payload = value.data
-      parameters[i] = { [blob.key] = true }
-    elseif value == nil then
+    if value == nil then
       parameters[i] = json_null
     else
-      parameters[i] = value
+      parameters[i] = encode(value, payloads, indices, 0)
     end
   end
-  return parameters, payload
+  return parameters, payloads
 end
 
-function blob.substitute(value, payload, depth)
+function blob.substitute(value, payloads, depth)
   if type(value) ~= "table" then
     return value
   end
@@ -76,12 +118,13 @@ function blob.substitute(value, payload, depth)
     error("host reply is nested too deeply", 0)
   end
 
-  if value[blob.key] then
-    return payload
+  local index = value[blob.key]
+  if index ~= nil then
+    return payloads[index + 1]
   end
 
   for key, item in pairs(value) do
-    value[key] = blob.substitute(item, payload, depth + 1)
+    value[key] = blob.substitute(item, payloads, depth + 1)
   end
   return value
 end
@@ -133,27 +176,43 @@ function Payload:read(length, timeout)
   return Channel.readExactly(self.fd, length, timeout or readTimeout)
 end
 
+function blob.length(references)
+  local length = 0
+  for _, reference in ipairs(references) do
+    if reference.length < 0 then
+      return -1
+    end
+    length = length + reference.length
+  end
+  return length
+end
+
 function blob.resolve(channel, result)
-  local reference = result.blob
-  if not reference then
+  local references = result.blobs
+  if not references or #references == 0 then
     return result.data
   end
 
-  if reference.length < 0 or reference.length > blob.maxInbound then
-    error("host announced an implausible payload size: " .. tostring(reference.length), 0)
+  local length = blob.length(references)
+  if length < 0 or length > blob.maxInbound then
+    error("host announced an implausible payload size: " .. tostring(length), 0)
   end
 
-  local data, reason = channel:read(reference.length)
-  if not data then
-    channel:reset()
-    error("could not read binary payload: " .. tostring(reason), 0)
-  end
-  if blob.checksum(data) ~= reference.checksum then
-    channel:reset()
-    error("binary payload failed its checksum; the data channel is corrupt or out of sync", 0)
+  local payloads = {}
+  for i, reference in ipairs(references) do
+    local data, reason = channel:read(reference.length)
+    if not data then
+      channel:reset()
+      error("could not read binary payload: " .. tostring(reason), 0)
+    end
+    if blob.checksum(data) ~= reference.checksum then
+      channel:reset()
+      error("binary payload failed its checksum; the data channel is corrupt or out of sync", 0)
+    end
+    payloads[i] = data
   end
 
-  return blob.substitute(result.data, data)
+  return blob.substitute(result.data, payloads)
 end
 
 return blob

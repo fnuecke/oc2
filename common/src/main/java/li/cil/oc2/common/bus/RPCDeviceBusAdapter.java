@@ -106,6 +106,7 @@ public final class RPCDeviceBusAdapter implements Steppable {
     }
 
     public void reset() {
+        registry.reset();
         messages.reset();
         payloads.reset();
         events.reset();
@@ -180,24 +181,24 @@ public final class RPCDeviceBusAdapter implements Steppable {
 
     private void acceptMessage(final byte[] messageData) {
         final JsonElement parsed;
-        final BlobReference reference;
+        final List<BlobReference> references;
         try {
             parsed = JsonParser.parseReader(new InputStreamReader(new ByteArrayInputStream(messageData), StandardCharsets.UTF_8));
-            reference = peekBlobReference(parsed);
+            references = peekBlobReferences(parsed);
         } catch (final Throwable e) {
             payloads.discard();
             writeError(ERROR_MALFORMED_MESSAGE);
             return;
         }
 
-        if (reference == null) {
+        if (references.isEmpty()) {
             payloads.discard(); // Just in case, so the next message doesn't break.
             processMessage(parsed);
             return;
         }
 
         try {
-            blobs.setReceived(payloads.take(reference.length(), reference.checksum()));
+            blobs.setReceived(payloads.take(references));
         } catch (final RPCPayloadChannel.PayloadException e) {
             writeError(e.error);
             return;
@@ -210,52 +211,28 @@ public final class RPCDeviceBusAdapter implements Steppable {
         }
     }
 
-    @Nullable
-    private BlobReference peekBlobReference(final JsonElement parsed) {
+    private List<BlobReference> peekBlobReferences(final JsonElement parsed) {
         if (!parsed.isJsonObject()) {
-            return null;
+            return List.of();
         }
 
         final JsonObject message = parsed.getAsJsonObject();
-        final JsonElement blob = message.get("blob");
-        if (blob == null || !blob.isJsonObject()) {
-            return null;
+        final JsonElement array = message.get("blobs");
+        if (array == null || !array.isJsonArray() || array.getAsJsonArray().isEmpty()) {
+            return List.of();
         }
 
         final JsonElement type = message.get("type");
         if (type == null || !Objects.equals(type.getAsString(), Message.MESSAGE_TYPE_INVOKE_METHOD)) {
-            throw new JsonParseException("only an invocation may carry a binary payload");
+            throw new JsonParseException("only an invocation may carry binary payloads");
         }
 
-        final int markers = countBlobMarkers(message);
-        if (markers != 1) {
-            throw new JsonParseException("a call carrying a payload must refer to it exactly once, saw " + markers);
+        final ArrayList<BlobReference> references = new ArrayList<>();
+        for (final JsonElement blob : array.getAsJsonArray()) {
+            final JsonObject reference = blob.getAsJsonObject();
+            references.add(new BlobReference(reference.get("length").getAsInt(), reference.get("checksum").getAsLong()));
         }
-
-        final JsonObject reference = blob.getAsJsonObject();
-        return new BlobReference(reference.get("length").getAsInt(), reference.get("checksum").getAsInt());
-    }
-
-    private static int countBlobMarkers(final JsonElement element) {
-        if (element.isJsonObject()) {
-            final JsonObject object = element.getAsJsonObject();
-            if (object.has(RPCBlobJsonSerializer.BLOB_REFERENCE_KEY)) {
-                return 1;
-            }
-            int count = 0;
-            for (final Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                count += countBlobMarkers(entry.getValue());
-            }
-            return count;
-        }
-        if (element.isJsonArray()) {
-            int count = 0;
-            for (final JsonElement child : element.getAsJsonArray()) {
-                count += countBlobMarkers(child);
-            }
-            return count;
-        }
-        return 0;
+        return references;
     }
 
     private void processMessage(final JsonElement parsed) {
@@ -401,23 +378,38 @@ public final class RPCDeviceBusAdapter implements Steppable {
         blobs.clearPending();
         final JsonElement dataElement = gson.toJsonTree(data);
 
-        BlobReference blob = null;
-        final byte[] pending = blobs.getPending();
-        if (pending != null) {
+        List<BlobReference> references = null;
+        final List<byte[]> pending = blobs.getPending();
+        if (!pending.isEmpty()) {
             if (!Objects.equals(type, Message.MESSAGE_TYPE_RESULT)) {
-                throw new IllegalStateException("only a result may carry a binary payload");
+                throw new IllegalStateException("only a result may carry binary payloads");
             }
-            if (pending.length > Constants.RPC_MAX_PAYLOAD_SIZE) {
+            long length = 0;
+            for (final byte[] blob : pending) {
+                length += blob.length;
+            }
+            if (length > Constants.RPC_MAX_PAYLOAD_SIZE) {
+                blobs.clearPending();
                 writeError(ERROR_PAYLOAD_TOO_LARGE);
                 return;
             }
 
-            blob = new BlobReference(pending.length, RPCPayloadChannel.checksum(pending));
-            payloads.send(pending);
+            references = new ArrayList<>(pending.size());
+            final byte[] payload = pending.size() == 1 ? pending.getFirst() : new byte[(int) length];
+            int offset = 0;
+            for (final byte[] blob : pending) {
+                references.add(new BlobReference(blob.length, RPCPayloadChannel.checksum(blob)));
+                if (payload != blob) {
+                    System.arraycopy(blob, 0, payload, offset, blob.length);
+                    offset += blob.length;
+                }
+            }
+            blobs.clearPending();
+            payloads.send(payload);
         }
 
         messages.send(RPCMessageChannel.frame(encode(
-            new Message(type, currentRequestId, registry.generation(), null, dataElement, blob))));
+            new Message(type, currentRequestId, registry.generation(), null, dataElement, references))));
     }
 
     private void announceDroppedEvents() {
@@ -437,11 +429,11 @@ public final class RPCDeviceBusAdapter implements Steppable {
     public record EmptyMethodGroup(String name) {
     }
 
-    public record BlobReference(int length, int checksum) {
+    public record BlobReference(int length, long checksum) {
     }
 
     public record Message(String type, int id, int gen, @Nullable UUID deviceId,
-                          @Nullable Object data, @Nullable BlobReference blob) {
+                          @Nullable Object data, @Nullable List<BlobReference> blobs) {
         // Device -> VM
         public static final String MESSAGE_TYPE_LIST = "list";
         public static final String MESSAGE_TYPE_METHODS = "methods";

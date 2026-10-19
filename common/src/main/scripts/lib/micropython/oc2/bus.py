@@ -207,11 +207,11 @@ class DeviceBus:
                 return event
 
     def _discard_payload(self, reply):
-        reference = reply.get("blob")
-        if self.payload is None or not isinstance(reference, dict):
+        references = reply.get("blobs")
+        if self.payload is None or not isinstance(references, list):
             return
-        length = reference.get("length")
-        if isinstance(length, int) and 0 < length <= oc2_blob.MAX_INBOUND:
+        length = oc2_blob.length(references)
+        if 0 < length <= oc2_blob.MAX_INBOUND:
             self.payload.read(length)
 
     def _request(self, message, expected):
@@ -292,23 +292,24 @@ class DeviceBus:
     def invoke(self, device_id, method_name, *args):
         self.flush()
 
-        parameters, payload = oc2_blob.extract(args)
+        parameters, payloads = oc2_blob.extract(args)
         message = {"type": "invoke", "data": {
             "deviceId": device_id,
             "name": method_name,
             "parameters": parameters
         }}
 
-        if payload is not None:
+        if payloads:
             if self.payload is None:
                 raise Exception("this session has no payload channel; "
                                 "open one with the blob role")
-            self.payload.write(payload)
-            message["blob"] = {"length": len(payload),
-                               "checksum": oc2_blob.checksum(payload)}
+            self.payload.write(b"".join(payloads))
+            message["blobs"] = [{"length": len(payload),
+                                 "checksum": oc2_blob.checksum(payload)}
+                                for payload in payloads]
 
         reply = self._request(message, "result")
-        if reply.get("blob") is not None and self.payload is None:
+        if reply.get("blobs") and self.payload is None:
             raise Exception("the host sent a payload, but this session has no payload channel")
         return oc2_blob.resolve(self.payload, reply)
 

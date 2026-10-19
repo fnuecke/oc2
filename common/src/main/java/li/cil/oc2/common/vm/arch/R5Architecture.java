@@ -22,7 +22,7 @@ public final class R5Architecture extends AbstractArchitecture {
     private static final long ITEM_DEVICE_BASE_ADDRESS = 0x20000000L;
     private static final int ITEM_DEVICE_STRIDE = 0x1000;
     private static final long BUS_DEVICE_BASE_ADDRESS = 0x30000000L;
-    private static final long MLAPI_WINDOW_ADDRESS = 0x03000000L;
+    private static final long MLAPI_WINDOW_ADDRESS = 0x10000000L;
     private static final int MLAPI_INTERRUPT = 6;
     private static final int SYSCON_INTERRUPT = 7;
     private static final String BOOT_ARGUMENTS = "root=/dev/vda rw uio_pdrv_genirq.of_id=oc2,mlapi";
@@ -47,14 +47,14 @@ public final class R5Architecture extends AbstractArchitecture {
     private R5Architecture(final R5Board board, final Config config) {
         super(board, board.getCpu(), config);
         this.board = board;
-        this.builtinDevices = new BuiltinDevices(getContext());
-        builtinDevices.rtcMinecraft.setGameTimeSource(config.gameTimeProvider());
-        this.hlapiAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort(), config.consumeEnergy());
         this.mlapiAdapter = new IODeviceBusAdapter(config.consumeEnergy());
         this.mlapiWindow = new IODeviceBusWindow(mlapiAdapter);
         if (!getContext().getMemoryRangeAllocator().claimMemoryRange(MLAPI_WINDOW_ADDRESS, mlapiWindow)) {
             throw new IllegalStateException("Mid-level API window does not fit the memory map.");
         }
+        this.builtinDevices = new BuiltinDevices(getContext());
+        builtinDevices.rtcMinecraft.setGameTimeSource(config.gameTimeProvider());
+        this.hlapiAdapter = new RPCDeviceBusAdapter(builtinDevices.getRpcPort(), builtinDevices.getBlobPort(), builtinDevices.getEventPort(), config.consumeEnergy());
         if (!getContext().getInterruptAllocator().claimInterrupt(MLAPI_INTERRUPT)) {
             throw new IllegalStateException("Mid-level API interrupt is already claimed.");
         }
@@ -105,6 +105,7 @@ public final class R5Architecture extends AbstractArchitecture {
 
     @Override
     public void boot() throws MemoryAccessException {
+        hlapiAdapter.reset();
         board.reset();
         board.setBootArguments(BOOT_ARGUMENTS);
         board.initialize();

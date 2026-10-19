@@ -134,7 +134,7 @@ function Channel:read(timeout)
         parts = self.parts
 
         local ok, result = pcall(cjson.decode, frame)
-        if ok and type(result) == "table" then -- can get one broken message after reset
+        if ok and type(result) == "table" then -- the first message after a reset may be broken
           return result
         end
       else

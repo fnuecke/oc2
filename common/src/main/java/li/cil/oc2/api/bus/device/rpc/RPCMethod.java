@@ -28,6 +28,8 @@ import java.util.Set;
 public interface RPCMethod extends RPCMethodGroup {
     /**
      * When {@code true}, invocations of this method will be synchronized to the main thread.
+     * <p>
+     * Synchronized methods cannot take {@code byte[]} parameters. They may return them.
      *
      * @return {@code true} when to be executed on main thread; {@code false} otherwise.
      */

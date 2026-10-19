@@ -38,6 +38,8 @@ public @interface Callback {
      * Use this when the targeted method interacts with data that is not thread
      * safe, for example the level or any objects inside the level, such as
      * entities and block entities.
+     * <p>
+     * Synchronized methods cannot take {@code byte[]} parameters. They may return them.
      *
      * @return {@code true} when to be executed on main thread; {@code false} otherwise.
      */

@@ -113,14 +113,13 @@ public final class RPCBusGenerationTests {
     }
 
     @Test
-    public void resetDoesNotRewindGeneration() {
+    public void resetRewindsGeneration() {
         addDevice("redstone");
         adapter.rebuild(busController);
-        final int before = generation();
 
         adapter.reset();
 
-        assertEquals(before, generation(), "reset must leave the generation exactly where it was");
+        assertEquals(0, generation(), "a fresh guest starts at generation 0");
     }
 
     @Test

@@ -27,7 +27,7 @@ end
 --- /run is a tmpfs, so this is gone after every boot.
 local function ensureDirectory(path)
   if path:sub(1, 1) ~= "/" then
-    return -- a relative socket path is the caller's business, not ours to guess at
+    return -- relative socket paths are left to the caller
   end
 
   local directory = path:match("^(.*)/[^/]+$")
@@ -61,8 +61,8 @@ local function openPort(name, open)
   end
   local handle, reason = open(path)
   if not handle then
-    -- EBUSY means something else already holds the port: another daemon, or a script that
-    -- started while none was running. Exiting frees the socket so clients stop waiting on us.
+    -- EBUSY means another program has the port open, e.g. another daemon, or a script started
+    -- while no daemon was running. Exiting frees the socket, so clients stop waiting.
     die("could not open %s (%s): %s", name, path, tostring(reason))
   end
   return handle

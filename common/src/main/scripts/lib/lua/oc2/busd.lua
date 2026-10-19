@@ -1,15 +1,14 @@
 --- The OpenComputers II bus daemon.
 ---
---- Takes ownership of the three bus ports -- rpc, blob and event -- while it runs and
---- multiplexes them to many clients over an AF_UNIX socket. The kernel lets only one process
---- open a virtio port at a time, so without this exactly one script can talk to the host at
---- all, and any event queued while nobody holds the event port is discarded by the driver.
+--- Opens the three bus ports (rpc, blob and event) while it runs, and shares them between
+--- many clients over an AF_UNIX socket. Linux allows only one process to open a virtio port at
+--- a time. Without the daemon, only one program can talk to the host, and events sent while no
+--- program has the event port open are lost.
 ---
---- Between daemon and client the wire format is the same as when talking to the host, with an
---- additional handshake at the start: every connection opens with a one byte role code,
---- "R", "B" or "E". The rpc connection then exchanges a JSON `hello` and is handed a session
---- token; the blob and event connections present that token as their first 32 bytes, which
---- binds them to the session for as long as they live. The token is no longer used after that.
+--- Clients use the same wire format as the host, plus a handshake. Each connection starts with
+--- a one byte role code, "R", "B" or "E". The rpc connection then exchanges a JSON `hello` and
+--- receives a session token. The blob and event connections send that token as their first 32
+--- bytes, which binds them to the session. After that, the token is not used.
 
 local Channel = require("oc2.channel")
 local blob = require("oc2.blob")
@@ -34,12 +33,12 @@ busd.replyBufferLimit = 256 * 1024
 busd.maxEventsPerPump = 32
 busd.maxFramesPerPump = 64
 
---- The host refuses anything larger than 4 KB, so a client frame past this is going nowhere
---- useful anyway. Well under Channel's own default, which is sized for host replies.
+--- The host refuses requests larger than 4 KiB. Channel's own default is larger, since it is
+--- sized for host replies.
 busd.maxRequestSize = 16 * 1024
 
---- How long a session may sit unfinished -- still attaching, or waiting for payload bytes that
---- were announced and never arrived -- before it is dropped.
+--- How long a session may stay incomplete (still attaching, or waiting for announced payload
+--- bytes) before it is dropped.
 busd.sessionTimeout = 10000
 
 --- Handlers keyed by message type.
@@ -58,8 +57,8 @@ busd.log = log
 
 -- Buffered output
 --
--- The daemon must never block on a client. A 512 KB payload will not fit in a socket buffer,
--- and a client that stops reading must cost us nothing but memory we chose to spend.
+-- The daemon must never block on a client. A 512 KiB payload does not fit in a socket buffer,
+-- and a client that stops reading may only cost a bounded amount of memory.
 
 local Writer = {}
 Writer.__index = Writer
@@ -68,8 +67,8 @@ function Writer.new(fd, limit)
   return setmetatable({ fd = fd, chunks = {}, size = 0, limit = limit }, Writer)
 end
 
---- Returns false when the queue is already at its limit, which means the peer has stopped
---- reading. A reply stream cannot meaningfully be shortened, so callers drop the session.
+--- Returns false when the queue is at its limit, i.e. the peer stopped reading. A reply cannot
+--- be partially dropped, so callers drop the session instead.
 function Writer:push(data)
   if #data == 0 then
     return true
@@ -93,7 +92,7 @@ function Writer:flush()
     local written, reason, number = unistd.write(self.fd, chunk)
     if not written then
       if isRetryable(number) then
-        return true -- come back when poll says it drained
+        return true -- retried once poll reports the socket writable
       end
       return false, reason
     end
@@ -126,8 +125,8 @@ function Session.new(token)
     established = false,
     dead = false,
     eventsDropped = 0,
-    -- Armed until the session finishes attaching, and again while a request waits for a
-    -- payload it announced. Both are states a client can enter and then simply abandon.
+    -- Set while the session is attaching, and while a request waits for the payload it
+    -- announced. A client can abandon either state.
     deadline = clock.deadline(busd.sessionTimeout),
   }, Session)
 end
@@ -177,7 +176,7 @@ local function randomToken()
     source:close()
   end
   if not bytes or #bytes < 16 then
-    -- We don't need a secure id here, just make sure we avoid conflicting ids.
+    -- Tokens only need to be unique, not secret.
     bytes = string.pack("<I8I8", clock.ms(), unistd.getpid())
   end
   return (bytes:gsub(".", function(c) return string.format("%02x", c:byte()) end))
@@ -227,7 +226,7 @@ function Daemon:dropConnection(connection, reason)
 
   local session = connection.session
   if session and not session.dead then
-    -- Any one socket going away means we consider the whole session closed for simplicity.
+    -- If any of a session's sockets closes, the whole session is closed.
     self:dropSession(session, reason or "a session socket closed")
   end
 end
@@ -263,7 +262,7 @@ function Daemon:dropSession(session, reason)
     end
   end
 
-  -- Any in-flight request stays so we know to throw away the pending host reply.
+  -- An in-flight request is kept, so its host reply is discarded when it arrives.
 
   if reason then
     log("session %s (pid %s) ended: %s",
@@ -438,6 +437,22 @@ local function clientIdOf(message)
   return type(id) == "number" and id or nil
 end
 
+-- Total length of the payloads a message announces: nil for none, -1 if malformed.
+local function payloadLength(message)
+  local references = message.blobs
+  if type(references) ~= "table" or #references == 0 then
+    return nil
+  end
+  local length = 0
+  for _, reference in ipairs(references) do
+    if type(reference) ~= "table" or type(reference.length) ~= "number" or not (reference.length >= 0) then
+      return -1
+    end
+    length = length + reference.length
+  end
+  return length
+end
+
 function Daemon:noteGeneration(gen)
   if type(gen) ~= "number" or (self.generation and gen <= self.generation) then
     return
@@ -555,16 +570,15 @@ function Daemon:onRequest(session, message)
   end
 
   local handler = busd.handlers[message.type]
-  if handler and message.blob == nil and session.established
+  if handler and payloadLength(message) == nil and session.established
       and not (self.inFlight and self.inFlight.session == session)
       and handler(self, session, message) then
     return
   end
 
-  local reference = message.blob
-  if type(reference) == "table" then
-    local length = reference.length
-    if type(length) ~= "number" or length < 0 or length > blob.maxOutbound then
+  local length = payloadLength(message)
+  if length then
+    if not (length >= 0 and length <= blob.maxOutbound) then
       self:sendError(session, "announced payload size is out of range", clientIdOf(message))
       return
     end
@@ -665,15 +679,14 @@ function Daemon:onHostReply()
   self:noteGeneration(message.gen)
 
   local payload
-  local reference = message.blob
-  if type(reference) == "table" and type(reference.length) == "number" then
-    if reference.length < 0 or reference.length > blob.maxInbound then
-      log("host announced an implausible payload size: %s", tostring(reference.length))
+  local length = payloadLength(message)
+  if length then
+    if not (length >= 0 and length <= blob.maxInbound) then
+      log("host announced an implausible payload size: %s", tostring(length))
       self:resync()
     else
-      -- Blocking, briefly: the bytes are already on their way, and the host is the one peer
-      -- that cannot be a hostile slow writer.
-      local data, reason = self.payload:read(reference.length, busd.hostBlobTimeout)
+      -- Blocks briefly. The bytes are already on their way, and the host is trusted to send them.
+      local data, reason = self.payload:read(length, busd.hostBlobTimeout)
       if not data then
         log("could not read the host payload: %s", tostring(reason))
         self:resync()
@@ -744,8 +757,8 @@ function Daemon:expire()
     local session = self.inFlight.session
     local clientId = self.inFlight.clientId
     self.inFlight = nil
-    -- The host was never told to stop, so it answers eventually. That answer carries the id of the
-    -- request that gave up, which is how onHostReply knows to drop it.
+    -- The host still answers eventually. The answer has the id of the timed out request, so
+    -- onHostReply drops it.
     self:resync()
     if session and not session.dead then
       self:sendError(session, "the host did not answer in time", clientId)
@@ -782,7 +795,7 @@ function Daemon:onClientRequests(connection)
   local session = connection.session
   for _ = 1, busd.maxFramesPerPump do
     if session.dead then
-      return -- a previous request in this same batch ended the session, and closed its socket
+      return -- an earlier request in this batch ended the session and closed its socket
     end
     local message = self:readFrame(connection)
     if not message then
@@ -888,9 +901,8 @@ function Daemon:flushAll()
   end
 end
 
---- `budget` caps how long this pass may wait, which is what lets a test drive the daemon by
---- hand instead of handing it a thread. The daemon itself never passes one: with nothing
---- pending there is nothing to wake up for.
+--- `budget` limits how long this pass may wait. Tests use it to step the daemon manually. The
+--- daemon itself passes none, since with nothing pending there is nothing to wake up for.
 function Daemon:step(budget)
   if not self.listenFd or not self.rpc.fd or not self.events.fd then
     return false
@@ -962,10 +974,9 @@ function Daemon:primeGeneration()
   repeat
     message = self.rpc:read(clock.remaining(deadline))
     if message and type(message.id) == "number" and message.id ~= 0 and message.id ~= id then
-      local reference = message.blob
-      if type(reference) == "table" and type(reference.length) == "number"
-          and reference.length > 0 and reference.length <= blob.maxInbound then
-        self.payload:read(reference.length, busd.hostBlobTimeout)
+      local length = payloadLength(message)
+      if length and length > 0 and length <= blob.maxInbound then
+        self.payload:read(length, busd.hostBlobTimeout)
       end
       message = nil
     end
@@ -977,7 +988,7 @@ function Daemon:primeGeneration()
       self:cacheDeviceList(message.data)
     end
   else
-    -- Shouldn't really happen, but we can cope (get one later).
+    -- Should not happen. If it does, the generation is learned from a later message.
     log("host did not report a bus generation at startup")
   end
 end

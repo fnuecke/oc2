@@ -7,6 +7,8 @@ import li.cil.oc2.common.Constants;
 import li.cil.sedna.api.device.serial.SerialDevice;
 
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.zip.CRC32;
 
 final class RPCPayloadChannel {
     private final SerialDevice device;
@@ -48,22 +50,35 @@ final class RPCPayloadChannel {
         }
     }
 
-    byte[] take(final int length, final int expectedChecksum) {
+    byte[][] take(final List<RPCDeviceBusAdapter.BlobReference> references) {
+        long length = 0;
+        for (final RPCDeviceBusAdapter.BlobReference reference : references) {
+            if (reference.length() < 0) {
+                length = -1;
+                break;
+            }
+            length += reference.length();
+        }
         if (guestToHost.limit() == 0 || length != guestToHost.position()) {
             discard();
             throw new PayloadException(RPCDeviceBusAdapter.ERROR_PAYLOAD_MISMATCH);
         }
 
         guestToHost.flip();
-        final byte[] payload = new byte[length];
-        guestToHost.get(payload);
+        final byte[][] payloads = new byte[references.size()][];
+        for (int i = 0; i < payloads.length; i++) {
+            payloads[i] = new byte[references.get(i).length()];
+            guestToHost.get(payloads[i]);
+        }
         guestToHost.clear();
 
-        if (checksum(payload) != expectedChecksum) {
-            throw new PayloadException(RPCDeviceBusAdapter.ERROR_PAYLOAD_CORRUPT);
+        for (int i = 0; i < payloads.length; i++) {
+            if (checksum(payloads[i]) != references.get(i).checksum()) {
+                throw new PayloadException(RPCDeviceBusAdapter.ERROR_PAYLOAD_CORRUPT);
+            }
         }
 
-        return payload;
+        return payloads;
     }
 
     void discard() {
@@ -101,17 +116,10 @@ final class RPCPayloadChannel {
 
     // --------------------------------------------------------------------- //
 
-    static int checksum(final byte[] data) {
-        int sum = 0;
-        for (int i = 0; i < data.length; i += 4) {
-            int word = 0;
-            for (int j = 0; j < 4; j++) {
-                final int index = i + j;
-                word |= (index < data.length ? (data[index] & 0xFF) : 0) << (j * 8);
-            }
-            sum = Integer.rotateLeft(sum, 1) + word;
-        }
-        return sum;
+    static long checksum(final byte[] data) {
+        final CRC32 crc = new CRC32();
+        crc.update(data);
+        return crc.getValue();
     }
 
     static final class PayloadException extends RuntimeException {

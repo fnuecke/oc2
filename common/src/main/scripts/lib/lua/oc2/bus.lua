@@ -221,7 +221,7 @@ end
 
 local function noteGeneration(bus_, result)
   if result.type == "error" and result.gen == nil then
-    return -- Daemon error
+    return -- an error from the daemon, which has no generation
   end
 
   local gen = assert(result.gen, "host reply carried no bus generation")
@@ -260,7 +260,7 @@ function DeviceBus:pumpEvents()
   for _ = 1, bus.maxEventsPerPump do
     local event = self.events:poll()
     if not event then
-      break -- nothing pending, or a frame we could not parse; either way, stop
+      break -- nothing pending, or a frame that could not be parsed
     end
     if applyEvent(self, event) then
       count = count + 1
@@ -299,12 +299,12 @@ function DeviceBus:waitEvent(timeout, eventType)
 end
 
 local function discardPayload(bus_, result)
-  local reference = result.blob
-  if not bus_.payload or type(reference) ~= "table" or type(reference.length) ~= "number" then
+  if not bus_.payload or type(result.blobs) ~= "table" then
     return
   end
-  if reference.length > 0 and reference.length <= blob.maxInbound then
-    bus_.payload:read(reference.length, blob.readTimeout)
+  local length = blob.length(result.blobs)
+  if length > 0 and length <= blob.maxInbound then
+    bus_.payload:read(length, blob.readTimeout)
   end
 end
 
@@ -428,23 +428,26 @@ end
 function DeviceBus:invoke(deviceId, methodName, ...)
   self:flush()
 
-  local parameters, payload = blob.extract(...)
+  local parameters, payloads = blob.extract(...)
   local message = { type = "invoke", data = {
     deviceId = deviceId,
     name = methodName,
     parameters = parameters
   }}
 
-  if payload then
+  if #payloads > 0 then
     if not self.payload then
       error("this session has no payload channel; open one with the blob role", 0)
     end
-    self.payload:write(payload)
-    message.blob = { length = #payload, checksum = blob.checksum(payload) }
+    self.payload:write(table.concat(payloads))
+    message.blobs = {}
+    for i, payload in ipairs(payloads) do
+      message.blobs[i] = { length = #payload, checksum = blob.checksum(payload) }
+    end
   end
 
   local result = request(self, message, "result")
-  if result.blob and not self.payload then
+  if result.blobs and #result.blobs > 0 and not self.payload then
     error("the host sent a payload, but this session has no payload channel", 0)
   end
   return blob.resolve(self.payload, result)

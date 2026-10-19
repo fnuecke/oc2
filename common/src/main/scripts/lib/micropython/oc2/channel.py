@@ -27,8 +27,8 @@ class Channel:
         self.max_frame = max_frame
         self.buffer = None
         self.buffer_pos = 0
-        # A frame split across reads stays here, so a poll that times out mid-frame costs
-        # nothing: the next call picks it up where it left off.
+        # Keeps a frame split across reads, so a poll that times out mid-frame does not lose
+        # it. The next call continues where this one stopped.
         self.parts = []
         self.parts_size = 0
 
@@ -93,7 +93,7 @@ class Channel:
             if self.buffer is None:
                 remaining = None if deadline is None else clock.remaining(deadline)
                 if not self._fill(remaining):
-                    return None  # genuine timeout; self.parts keeps any partial frame
+                    return None  # timeout, self.parts keeps any partial frame
 
             if not self.parts:
                 while self.buffer_pos < len(self.buffer) and self.buffer[self.buffer_pos] == 0:
@@ -167,8 +167,8 @@ def write_all(file, write_poll, payload):
             ready = write_poll.poll(WRITE_TIMEOUT_MS)
             if not ready:
                 raise OSError("timed out writing to the channel")
-            # poll reports ERR and HUP whatever events were asked for, so a retry loop that
-            # trusts it alone would spin against a peer that has gone away.
+            # poll reports ERR and HUP regardless of the requested events. Without this check,
+            # the loop would spin on a peer that has gone away.
             if ready[0][1] & (select.POLLERR | select.POLLHUP):
                 raise OSError("the far end of the channel went away")
             continue

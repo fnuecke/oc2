@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
@@ -40,12 +41,14 @@ public final class RPCBlobChannelTests {
     public void payloadGoesOutOnTheBlobPortAndIsDescribedByTheMessage() {
         final JsonObject reply = invoke("readBlob");
 
-        final JsonObject blob = reply.getAsJsonObject("blob");
-        assertNotNull(blob, "the message must describe the payload: " + reply);
+        final JsonArray blobs = reply.getAsJsonArray("blobs");
+        assertNotNull(blobs, "the message must describe the payload: " + reply);
+        assertEquals(1, blobs.size());
+        final JsonObject blob = blobs.get(0).getAsJsonObject();
         assertEquals(PAYLOAD.length, blob.get("length").getAsInt());
-        assertEquals(RPCPayloadChannel.checksum(PAYLOAD), blob.get("checksum").getAsInt());
+        assertEquals(RPCPayloadChannel.checksum(PAYLOAD), blob.get("checksum").getAsLong());
 
-        assertTrue(reply.getAsJsonObject("data").get("$blob").getAsBoolean(),
+        assertEquals(0, reply.getAsJsonObject("data").get("$blob").getAsInt(),
             "the data should carry only a marker");
         assertArrayEquals(PAYLOAD, blobDevice.drainAsVM(), "the payload goes out on the blob port");
     }
@@ -73,19 +76,38 @@ public final class RPCBlobChannelTests {
     public void deviceDataCannotForgeAPayloadReference() {
         final JsonObject reply = invoke("readForgedReference");
 
-        assertFalse(reply.has("blob"), "message announced a payload that was never sent: " + reply);
+        assertFalse(reply.has("blobs"), "message announced a payload that was never sent: " + reply);
         assertEquals(0, blobDevice.drainAsVM().length);
     }
 
     @Test
-    public void twoPayloadsInOneMessageAreRefusedAndDoNotLeak() {
+    public void twoPayloadsGoOutBackToBackInArrayOrder() {
         final JsonObject reply = invoke("readTwoBlobs");
-        assertEquals("error", reply.get("type").getAsString(), reply.toString());
-        assertEquals(0, blobDevice.drainAsVM().length, "a refused message must send no bytes");
 
-        final JsonObject next = invoke("readBlob");
-        assertEquals(PAYLOAD.length, next.getAsJsonObject("blob").get("length").getAsInt());
+        final JsonArray blobs = reply.getAsJsonArray("blobs");
+        assertEquals(2, blobs.size(), reply.toString());
+        assertEquals(1, blobs.get(0).getAsJsonObject().get("length").getAsInt());
+        assertEquals(2, blobs.get(1).getAsJsonObject().get("length").getAsInt());
+        assertEquals(0, reply.getAsJsonArray("data").get(0).getAsJsonObject().get("$blob").getAsInt());
+        assertEquals(1, reply.getAsJsonArray("data").get(1).getAsJsonObject().get("$blob").getAsInt());
+        assertArrayEquals(new byte[]{1, 2, 3}, blobDevice.drainAsVM());
+    }
+
+    @Test
+    public void theSameArrayTwiceIsSentOnce() {
+        final JsonObject reply = invoke("readSameBlobTwice");
+
+        assertEquals(1, reply.getAsJsonArray("blobs").size(), reply.toString());
+        assertEquals(0, reply.getAsJsonArray("data").get(1).getAsJsonObject().get("$blob").getAsInt());
         assertArrayEquals(PAYLOAD, blobDevice.drainAsVM());
+    }
+
+    @Test
+    public void payloadsPastTheCapTogetherAreRefused() {
+        final JsonObject reply = invoke("readTwoHalvesPastTheCap");
+
+        assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_TOO_LARGE, reply.get("data").getAsString(), reply.toString());
+        assertEquals(0, blobDevice.drainAsVM().length, "part of an over-large message was sent");
     }
 
     @Test
@@ -126,15 +148,16 @@ public final class RPCBlobChannelTests {
         adapter.step(0);
         assertEquals(0, blobDevice.drainAsVM().length, "reset must abandon the transfer");
 
-        assertEquals(PAYLOAD.length, invoke("readBlob").getAsJsonObject("blob").get("length").getAsInt());
+        assertEquals(PAYLOAD.length, invoke("readBlob").getAsJsonArray("blobs").get(0).getAsJsonObject().get("length").getAsInt());
     }
 
     @Test
     public void checksumMatchesTheAgreedAlgorithm() {
-        assertEquals(746590911, RPCPayloadChannel.checksum(PAYLOAD));
+        assertEquals(3421780262L, RPCPayloadChannel.checksum("123456789".getBytes(StandardCharsets.US_ASCII)));
+        assertEquals(2445345482L, RPCPayloadChannel.checksum(PAYLOAD));
         assertEquals(0, RPCPayloadChannel.checksum(new byte[0]));
-        assertEquals(513, RPCPayloadChannel.checksum(new byte[]{1, 2}));
-        assertEquals(258, RPCPayloadChannel.checksum(new byte[]{2, 1}));
+        assertEquals(3066839698L, RPCPayloadChannel.checksum(new byte[]{1, 2}));
+        assertEquals(82329835L, RPCPayloadChannel.checksum(new byte[]{2, 1}));
     }
 
     @Test
@@ -154,7 +177,7 @@ public final class RPCBlobChannelTests {
     public void emptyPayloadStillRoundTrips() {
         final JsonObject reply = invoke("readEmpty");
 
-        assertEquals(0, reply.getAsJsonObject("blob").get("length").getAsInt());
+        assertEquals(0, reply.getAsJsonArray("blobs").get(0).getAsJsonObject().get("length").getAsInt());
         assertEquals(0, blobDevice.drainAsVM().length, "an empty payload should send no bytes");
     }
 
@@ -166,7 +189,7 @@ public final class RPCBlobChannelTests {
         assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_TOO_LARGE, reply.get("data").getAsString());
         assertEquals(0, blobDevice.drainAsVM().length, "part of an over-large payload was sent");
 
-        assertEquals(PAYLOAD.length, invoke("readBlob").getAsJsonObject("blob").get("length").getAsInt());
+        assertEquals(PAYLOAD.length, invoke("readBlob").getAsJsonArray("blobs").get(0).getAsJsonObject().get("length").getAsInt());
         assertArrayEquals(PAYLOAD, blobDevice.drainAsVM());
     }
 
@@ -240,8 +263,19 @@ public final class RPCBlobChannelTests {
         }
 
         @Callback(synchronize = false)
-        public Map<String, byte[]> readTwoBlobs() {
-            return Map.of("a", new byte[]{1}, "b", new byte[]{2});
+        public List<byte[]> readTwoBlobs() {
+            return List.of(new byte[]{1}, new byte[]{2, 3});
+        }
+
+        @Callback(synchronize = false)
+        public List<byte[]> readSameBlobTwice() {
+            return List.of(PAYLOAD, PAYLOAD);
+        }
+
+        @Callback(synchronize = false)
+        public List<byte[]> readTwoHalvesPastTheCap() {
+            final int half = Constants.RPC_MAX_PAYLOAD_SIZE / 2 + 1;
+            return List.of(new byte[half], new byte[half]);
         }
 
         @Callback(synchronize = false)

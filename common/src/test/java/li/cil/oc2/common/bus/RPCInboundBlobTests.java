@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 public final class RPCInboundBlobTests {
     private static final byte[] PAYLOAD = "the quick brown fox".getBytes(StandardCharsets.UTF_8);
-    private static final int CHECKSUM = 746590911;
+    private static final long CHECKSUM = 2445345482L;
 
     private TestSerialDevice serialDevice;
     private TestSerialDevice blobDevice;
@@ -147,8 +147,8 @@ public final class RPCInboundBlobTests {
     @Test
     public void payloadOnANonInvocationIsRefused() {
         blobDevice.putRawAsVM(PAYLOAD);
-        serialDevice.putAsVM("{\"type\":\"list\",\"blob\":{\"length\":" + PAYLOAD.length
-            + ",\"checksum\":" + CHECKSUM + "}}");
+        serialDevice.putAsVM("{\"type\":\"list\",\"blobs\":[{\"length\":" + PAYLOAD.length
+            + ",\"checksum\":" + CHECKSUM + "}]}");
         adapter.step(0);
 
         assertEquals(RPCDeviceBusAdapter.ERROR_MALFORMED_MESSAGE, serialDevice.readJsonAsVM().get("data").getAsString());
@@ -164,23 +164,54 @@ public final class RPCInboundBlobTests {
     }
 
     @Test
-    public void twoMarkersInOneCallAreRefused() {
+    public void twoPayloadsReachTwoParameters() {
+        final byte[] second = {9, 8, 7};
         blobDevice.putRawAsVM(PAYLOAD);
-        serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":{\"length\":" + PAYLOAD.length
-            + ",\"checksum\":" + CHECKSUM + "},\"data\":{\"deviceId\":\"" + deviceId
-            + "\",\"name\":\"writeTwo\",\"parameters\":[{\"$blob\":true},{\"$blob\":true}]}}");
+        blobDevice.putRawAsVM(second);
+        serialDevice.putAsVM("{\"type\":\"invoke\",\"blobs\":[{\"length\":" + PAYLOAD.length
+            + ",\"checksum\":" + CHECKSUM + "},{\"length\":3,\"checksum\":" + RPCPayloadChannel.checksum(second)
+            + "}],\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeTwo\",\"parameters\":[{\"$blob\":0},{\"$blob\":1}]}}");
         adapter.step(0);
 
-        assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString());
-        assertNull(sink.received, "one payload must not be handed to two parameters");
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString());
+        assertArrayEquals(PAYLOAD, sink.received);
+        assertArrayEquals(second, sink.receivedSecond);
+    }
+
+    @Test
+    public void onePayloadMayReachTwoParameters() {
+        blobDevice.putRawAsVM(PAYLOAD);
+        serialDevice.putAsVM("{\"type\":\"invoke\",\"blobs\":[{\"length\":" + PAYLOAD.length
+            + ",\"checksum\":" + CHECKSUM + "}],\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeTwo\",\"parameters\":[{\"$blob\":0},{\"$blob\":0}]}}");
+        adapter.step(0);
+
+        assertEquals("result", serialDevice.readJsonAsVM().get("type").getAsString());
+        assertArrayEquals(PAYLOAD, sink.received);
+        assertArrayEquals(PAYLOAD, sink.receivedSecond);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"1", "-1", "0.5", "true", "\"0\""})
+    public void invalidPayloadIndexIsRefused(final String index) {
+        blobDevice.putRawAsVM(PAYLOAD);
+        serialDevice.putAsVM("{\"type\":\"invoke\",\"blobs\":[{\"length\":" + PAYLOAD.length
+            + ",\"checksum\":" + CHECKSUM + "}],\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":" + index + "}]}}");
+        adapter.step(0);
+
+        assertNull(sink.received);
+        assertEquals(RPCDeviceBusAdapter.ERROR_INVALID_PARAMETER_SIGNATURE,
+            serialDevice.readJsonAsVM().get("data").getAsString());
     }
 
     @Test
     public void binaryParameterOnASynchronizedCallbackIsRefusedClearly() {
         blobDevice.putRawAsVM(PAYLOAD);
-        serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":{\"length\":" + PAYLOAD.length
-            + ",\"checksum\":" + CHECKSUM + "},\"data\":{\"deviceId\":\"" + deviceId
-            + "\",\"name\":\"writeSynchronized\",\"parameters\":[{\"$blob\":true}]}}");
+        serialDevice.putAsVM("{\"type\":\"invoke\",\"blobs\":[{\"length\":" + PAYLOAD.length
+            + ",\"checksum\":" + CHECKSUM + "}],\"data\":{\"deviceId\":\"" + deviceId
+            + "\",\"name\":\"writeSynchronized\",\"parameters\":[{\"$blob\":0}]}}");
         adapter.step(0);
 
         assertEquals(RPCDeviceBusAdapter.ERROR_PAYLOAD_NEEDS_UNSYNCHRONIZED,
@@ -189,11 +220,11 @@ public final class RPCInboundBlobTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"{\"checksum\":0}", "{\"length\":\"x\",\"checksum\":0}", "5"})
-    public void malformedPayloadReferenceIsRefused(final String blob) {
-        serialDevice.putAsVM("{\"type\":\"invoke\",\"blob\":" + blob
+    @ValueSource(strings = {"[{\"checksum\":0}]", "[{\"length\":\"x\",\"checksum\":0}]", "[5]", "5"})
+    public void malformedPayloadReferenceIsRefused(final String blobs) {
+        serialDevice.putAsVM("{\"type\":\"invoke\",\"blobs\":" + blobs
             + ",\"data\":{\"deviceId\":\"" + deviceId
-            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
+            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":0}]}}");
         assertDoesNotThrow(() -> adapter.step(0), "blob reference escaped as an exception");
         assertNull(sink.received, "blob reference was accepted");
         assertEquals("error", serialDevice.readJsonAsVM().get("type").getAsString(),
@@ -213,7 +244,7 @@ public final class RPCInboundBlobTests {
     @Test
     public void markerWithNoPayloadIsRefused() {
         serialDevice.putAsVM("{\"type\":\"invoke\",\"data\":{\"deviceId\":\"" + deviceId
-            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}");
+            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":0}]}}");
         adapter.step(0);
 
         assertNull(sink.received, "a marker without a payload must not reach the callback");
@@ -307,14 +338,15 @@ public final class RPCInboundBlobTests {
 
     // --------------------------------------------------------------------- //
 
-    private String invocation(final int length, final int checksum) {
-        return "{\"type\":\"invoke\",\"blob\":{\"length\":" + length + ",\"checksum\":" + checksum + "},"
+    private String invocation(final int length, final long checksum) {
+        return "{\"type\":\"invoke\",\"blobs\":[{\"length\":" + length + ",\"checksum\":" + checksum + "}],"
             + "\"data\":{\"deviceId\":\"" + deviceId
-            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":true}]}}";
+            + "\",\"name\":\"writeBlob\",\"parameters\":[{\"$blob\":0}]}}";
     }
 
     public static final class BlobSink {
         public byte[] received;
+        public byte[] receivedSecond;
         public int calls;
 
         @Callback(synchronize = false)
@@ -327,6 +359,7 @@ public final class RPCInboundBlobTests {
         @Callback(synchronize = false)
         public int writeTwo(@Parameter("a") final byte[] a, @Parameter("b") final byte[] b) {
             received = a;
+            receivedSecond = b;
             calls++;
             return a.length + b.length;
         }

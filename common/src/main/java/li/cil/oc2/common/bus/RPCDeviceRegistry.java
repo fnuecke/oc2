@@ -40,6 +40,10 @@ final class RPCDeviceRegistry {
 
     // --------------------------------------------------------------------- //
 
+    void reset() {
+        generation = 0;
+    }
+
     int generation() {
         return generation;
     }

@@ -1,6 +1,6 @@
+import binascii
 import io
 import select
-import struct
 
 from oc2 import ports
 from oc2.channel import read_exactly, write_all
@@ -28,44 +28,38 @@ def wrap(data):
 
 
 def checksum(data):
-    total = 0
-    length = len(data)
+    return binascii.crc32(data)
 
-    whole = length - (length % 4)
-    for offset in range(0, whole, 4):
-        word = struct.unpack_from("<I", data, offset)[0]
-        total = ((total << 1) | (total >> 31)) & 0xFFFFFFFF
-        total = (total + word) & 0xFFFFFFFF
 
-    if whole < length:  # zero-padded tail, once
-        word = 0
-        for i in range(whole, length):
-            word |= data[i] << ((i - whole) * 8)
-        total = ((total << 1) | (total >> 31)) & 0xFFFFFFFF
-        total = (total + word) & 0xFFFFFFFF
-
-    return total - 0x100000000 if total >= 0x80000000 else total
+def _encode(value, payloads, indices, depth):
+    if isinstance(value, Blob):
+        index = indices.get(value)
+        if index is None:
+            index = len(payloads)
+            indices[value] = index
+            payloads.append(value.data)
+        return {KEY: index}
+    if isinstance(value, (bytes, bytearray)):
+        # json.dumps would encode these as a string. Binary data must be wrapped, so it is
+        # sent on the payload channel and the host receives a byte array.
+        raise Exception("wrap binary parameters in bus.blob(...)")
+    if isinstance(value, (dict, list, tuple)):
+        if depth > MAX_DEPTH:
+            raise Exception("parameters are nested too deeply")
+        if isinstance(value, dict):
+            return {key: _encode(item, payloads, indices, depth + 1) for key, item in value.items()}
+        return [_encode(item, payloads, indices, depth + 1) for item in value]
+    return value
 
 
 def extract(args):
-    payload = None
-    parameters = []
-    for value in args:
-        if isinstance(value, Blob):
-            if payload is not None:
-                raise Exception("a call may carry at most one binary payload")
-            payload = value.data
-            parameters.append({KEY: True})
-        elif isinstance(value, (bytes, bytearray)):
-            # json.dumps would quietly encode these as a string. Binary has to be declared,
-            # so it travels on the payload channel and the host sees a byte array.
-            raise Exception("wrap binary parameters in bus.blob(...)")
-        else:
-            parameters.append(value)
-    return parameters, payload
+    payloads = []
+    indices = {}
+    parameters = [_encode(value, payloads, indices, 0) for value in args]
+    return parameters, payloads
 
 
-def substitute(value, payload, depth=0):
+def substitute(value, payloads, depth=0):
     if not isinstance(value, (dict, list)):
         return value
 
@@ -73,13 +67,13 @@ def substitute(value, payload, depth=0):
         raise Exception("host reply is nested too deeply")
 
     if isinstance(value, dict):
-        if value.get(KEY):
-            return payload
+        if KEY in value:
+            return payloads[value[KEY]]
         for key in value:
-            value[key] = substitute(value[key], payload, depth + 1)
+            value[key] = substitute(value[key], payloads, depth + 1)
     else:
         for i in range(len(value)):
-            value[i] = substitute(value[i], payload, depth + 1)
+            value[i] = substitute(value[i], payloads, depth + 1)
     return value
 
 
@@ -125,24 +119,36 @@ class PayloadChannel:
         return read_exactly(self.file, self.poll, length, timeout)
 
 
+def length(references):
+    total = 0
+    for reference in references:
+        if reference["length"] < 0:
+            return -1
+        total += reference["length"]
+    return total
+
+
 def resolve(channel, message):
-    reference = message.get("blob")
-    if reference is None:
+    references = message.get("blobs")
+    if not references:
         return message.get("data")
 
-    length = reference["length"]
-    if length < 0 or length > MAX_INBOUND:
-        raise Exception("host announced an implausible payload size: %s" % length)
+    total = length(references)
+    if total < 0 or total > MAX_INBOUND:
+        raise Exception("host announced an implausible payload size: %s" % total)
 
-    try:
-        data = channel.read(length)
-    except Exception as e:
-        channel.reset()
-        raise Exception("could not read binary payload: %s" % e)
+    payloads = []
+    for reference in references:
+        try:
+            data = channel.read(reference["length"])
+        except Exception as e:
+            channel.reset()
+            raise Exception("could not read binary payload: %s" % e)
 
-    if checksum(data) != reference.get("checksum"):
-        channel.reset()
-        raise Exception("binary payload failed its checksum; "
-                        "the data channel is corrupt or out of sync")
+        if checksum(data) != reference["checksum"]:
+            channel.reset()
+            raise Exception("binary payload failed its checksum; "
+                            "the data channel is corrupt or out of sync")
+        payloads.append(data)
 
-    return substitute(message.get("data"), data)
+    return substitute(message.get("data"), payloads)

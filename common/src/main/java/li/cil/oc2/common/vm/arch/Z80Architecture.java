@@ -166,9 +166,9 @@ public final class Z80Architecture extends AbstractArchitecture {
         final DeviceEnumerator enumerator = new DeviceEnumerator(
             board.getPortMap(), board.getDevices(), board.getInterruptController());
         if (!board.addPortDevice(ENUMERATOR_PORT, enumerator)
-            || board.addPortDevice(mlapiAdapter).isEmpty()
             || board.addPortDevice(new BootRomLatch(board)).isEmpty()
-            || board.addPortDevice(uart).isEmpty()) {
+            || board.addPortDevice(uart).isEmpty()
+            || board.addPortDevice(mlapiAdapter).isEmpty()) {
             throw new IllegalStateException("Built-in devices do not fit the port space.");
         }
     }

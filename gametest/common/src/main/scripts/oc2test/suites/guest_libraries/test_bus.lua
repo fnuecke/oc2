@@ -70,10 +70,10 @@ if child == 0 then
       elseif message.type == "invoke" then
         local name = message.data and message.data.name
         if name == "echoBlob" then
-          local sent = hostPayload:read(message.blob.length, 2000) or ""
+          local sent = hostPayload:read(message.blobs[1].length, 2000) or ""
           hostPayload:write(sent)
-          host:write({ type = "result", gen = generation, data = { [blob.key] = true },
-                       blob = { length = #sent, checksum = blob.checksum(sent) } })
+          host:write({ type = "result", gen = generation, data = { [blob.key] = 0 },
+                       blobs = { { length = #sent, checksum = blob.checksum(sent) } } })
         elseif name == "explode" then
           host:write({ type = "error", gen = generation, data = "the host said no" })
         elseif name == "bumpGeneration" then

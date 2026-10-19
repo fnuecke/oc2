@@ -299,7 +299,7 @@ expect("so the current bus is what gets served",
 -- are already on the wire, and would otherwise be charged to whatever request came next.
 Channel.writeAll(first.blobFd, "junk")
 pump()
-first.rpc:write({ type = "list", blob = { length = 4, checksum = 0 } })
+first.rpc:write({ type = "list", blobs = { { length = 4, checksum = 0 } } })
 pump()
 expect("a request carrying a payload is never answered from the cache",
        field(hostAnswers({ type = "list", gen = 8, data = { { deviceId = "ccc" } } }), "type"), "list")
@@ -359,7 +359,7 @@ local payload = "the quick brown fox"
 Channel.writeAll(first.blobFd, payload)
 pump()
 first.rpc:write({ type = "invoke", data = { deviceId = "aaa", name = "write" },
-                  blob = { length = #payload, checksum = 0 } })
+                  blobs = { { length = #payload, checksum = 0 } } })
 pump()
 
 local invoked = host:read(500)
@@ -369,10 +369,10 @@ expect("and its payload went out on the blob port",
 
 local reply = "reply payload"
 Channel.writeAll(blobHost, reply)
-host:write({ type = "result", gen = 3, data = true, blob = { length = #reply, checksum = 0 } })
+host:write({ type = "result", gen = 3, data = true, blobs = { { length = #reply, checksum = 0 } } })
 pump()
 local blobReply = first.rpc:read(500)
-expect("the reply frame announces its payload", blobReply and blobReply.blob.length, #reply)
+expect("the reply frame announces its payload", blobReply and blobReply.blobs[1].length, #reply)
 expect("a reply payload reaches the client",
        Channel.readExactly(first.blobFd, #reply, 500), reply)
 
@@ -501,7 +501,7 @@ stillWorks("the bus survives a client that pipelines")
 local truant = connect()
 busd.sessionTimeout = 50
 truant.rpc:write({ type = "invoke", data = { deviceId = "aaa", name = "write" },
-                   blob = { length = 4096, checksum = 0 } })
+                   blobs = { { length = 4096, checksum = 0 } } })
 pump()
 sleep(80)
 expectClosed("a payload that never arrives reaps the session", truant.rpcFd)
@@ -513,7 +513,7 @@ stillWorks("the bus survives an abandoned payload")
 local liar = connect()
 Channel.writeAll(liar.blobFd, string.rep("z", 64))
 liar.rpc:write({ type = "invoke", data = { deviceId = "aaa", name = "write" },
-                 blob = { length = 8, checksum = 0 } })
+                 blobs = { { length = 8, checksum = 0 } } })
 pump()
 local liarReply = liar.rpc:read(500)
 expect("over-sending its payload is an error", liarReply and liarReply.type, "error")
@@ -597,9 +597,23 @@ local anonymous = first.rpc:read(500)
 expect("a client that sends no id gets none back", field(anonymous, "id"), nil)
 expect("and is answered all the same", field(anonymous, "type"), "list")
 
-first.rpc:write({ type = "invoke", id = 9, blob = { length = -1 } })
+first.rpc:write({ type = "invoke", id = 9, blobs = { { length = -1 } } })
 pump()
 expect("an error names the request it refuses", field(first.rpc:read(500), "id"), 9)
+
+-- cjson decodes NaN, which fails every comparison. It must not pass the range check.
+Channel.writeAll(first.rpcFd, "\0" .. '{"type":"invoke","id":10,"blobs":[{"length":NaN}]}' .. "\0")
+pump()
+local refusedNaN = first.rpc:read(500)
+expect("a NaN payload length is refused", field(refusedNaN, "id"), 10)
+expect("by the daemon itself", field(refusedNaN, "data"), "announced payload size is out of range")
+
+local half = blob.maxOutbound // 2 + 1
+first.rpc:write({ type = "invoke", id = 11, blobs = { { length = half }, { length = half } } })
+pump()
+local refusedLarge = first.rpc:read(500)
+expect("payloads too large together are refused", field(refusedLarge, "id"), 11)
+expect("before they reach the host", field(refusedLarge, "data"), "announced payload size is out of range")
 
 first:close()
 second:close()

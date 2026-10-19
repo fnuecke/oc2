@@ -395,11 +395,17 @@ public final class RPCDeviceBusAdapter implements Steppable {
             }
 
             references = new ArrayList<>(pending.size());
-            final byte[] payload = pending.size() == 1 ? pending.getFirst() : new byte[(int) length];
-            int offset = 0;
             for (final byte[] blob : pending) {
                 references.add(new BlobReference(blob.length, RPCPayloadChannel.checksum(blob)));
-                if (payload != blob) {
+            }
+
+            final byte[] payload;
+            if (pending.size() == 1) {
+                payload = pending.getFirst();
+            } else {
+                payload = new byte[(int) length];
+                int offset = 0;
+                for (final byte[] blob : pending) {
                     System.arraycopy(blob, 0, payload, offset, blob.length);
                     offset += blob.length;
                 }

@@ -469,6 +469,9 @@ public final class ProjectorDepthRenderer {
         RenderSystem.getModelViewStack().popMatrix();
         RenderSystem.applyModelViewMatrix();
 
+        // renderSnowAndRain leaves depth writes disabled outside "Fabulous!".
+        RenderSystem.depthMask(true);
+
         restoreFog();
     }
 

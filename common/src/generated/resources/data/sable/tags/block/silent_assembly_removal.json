@@ -1,0 +1,18 @@
+{
+  "values": [
+    "oc2:bus_cable",
+    "oc2:charger",
+    "oc2:computer",
+    "oc2:creative_energy",
+    "oc2:disk_drive",
+    "oc2:flash_drive",
+    "oc2:keyboard",
+    "oc2:network_connector",
+    "oc2:network_hub",
+    "oc2:internet_gateway",
+    "oc2:projector",
+    "oc2:redstone_interface",
+    "oc2:terminal",
+    "oc2:transposer"
+  ]
+}

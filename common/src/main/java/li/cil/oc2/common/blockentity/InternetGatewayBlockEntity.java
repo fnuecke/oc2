@@ -104,8 +104,8 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     }
 
     @Override
-    protected void unloadServer(final boolean isRemove) {
-        super.unloadServer(isRemove);
+    protected void unloadServer(final boolean isDestroyed) {
+        super.unloadServer(isDestroyed);
         final InternetConnection connection = this.connection;
         if (connection != null) {
             connection.stop();

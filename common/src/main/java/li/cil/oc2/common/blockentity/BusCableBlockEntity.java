@@ -252,10 +252,10 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     }
 
     @Override
-    protected void unloadServer(final boolean isRemove) {
-        super.unloadServer(isRemove);
+    protected void unloadServer(final boolean isDestroyed) {
+        super.unloadServer(isDestroyed);
 
-        if (isRemove) {
+        if (isDestroyed) {
             busElement.setRemoved();
         } else {
             busElement.dropNeighborHandles();

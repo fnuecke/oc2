@@ -23,6 +23,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     private final Runnable onWorldUnloaded = this::onWorldUnloaded;
     private boolean needsWorldUnloadEvent;
     private boolean isUnloaded;
+    private boolean isDestroyed;
 
     // --------------------------------------------------------------------- //
 
@@ -31,6 +32,12 @@ public abstract class ModBlockEntity extends BlockEntity {
     }
 
     // --------------------------------------------------------------------- //
+
+    public static void markDestroyed(final Level level, final BlockPos pos, final BlockState state, final BlockState newState, final boolean movedByPiston) {
+        if (!movedByPiston && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof final ModBlockEntity blockEntity) {
+            blockEntity.isDestroyed = true;
+        }
+    }
 
     @Nullable
     public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
@@ -85,7 +92,7 @@ public abstract class ModBlockEntity extends BlockEntity {
         super.setRemoved();
         Capabilities.invalidate(this);
         if (!isUnloaded) {
-            onUnload(true);
+            onUnload(isDestroyed);
         }
     }
 
@@ -107,9 +114,9 @@ public abstract class ModBlockEntity extends BlockEntity {
 
     // --------------------------------------------------------------------- //
 
-    protected void onUnload(final boolean isRemove) {
+    protected void onUnload(final boolean isDestroyed) {
         if (level != null && !level.isClientSide()) {
-            unloadServer(isRemove);
+            unloadServer(isDestroyed);
             ServerScheduler.cancelOnUnload(level, onWorldUnloaded);
         }
     }
@@ -130,7 +137,7 @@ public abstract class ModBlockEntity extends BlockEntity {
     protected void loadServerInLoadedLevel() {
     }
 
-    protected void unloadServer(final boolean isRemove) {
+    protected void unloadServer(final boolean isDestroyed) {
     }
 
     // --------------------------------------------------------------------- //

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -37,12 +38,46 @@ public class ModBlockEntityUnloadTests {
     }
 
     @Test
-    public void removalOnItsOwnStillUnloads() {
+    public void removalOnItsOwnUnloadsWithoutDestroying() {
         withBlockEntity(blockEntity -> {
             blockEntity.setRemoved();
 
             assertEquals(1, blockEntity.unloadCount);
-            assertTrue(blockEntity.lastWasRemove);
+            assertFalse(blockEntity.lastWasDestroyed);
+        });
+    }
+
+    @Test
+    public void removalAfterReplacementDestroys() {
+        withBlockEntity(blockEntity -> {
+            replace(blockEntity, false);
+            blockEntity.setRemoved();
+
+            assertEquals(1, blockEntity.unloadCount);
+            assertTrue(blockEntity.lastWasDestroyed);
+        });
+    }
+
+    @Test
+    public void stateChangeOfSameBlockDoesNotDestroy() {
+        withBlockEntity(blockEntity -> {
+            final ServerLevel level = (ServerLevel) blockEntity.getLevel();
+            when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(blockEntity);
+            ModBlockEntity.markDestroyed(level, BlockPos.ZERO, blockEntity.getBlockState(), blockEntity.getBlockState(), false);
+            blockEntity.setRemoved();
+
+            assertFalse(blockEntity.lastWasDestroyed);
+        });
+    }
+
+    @Test
+    public void removalAfterMoveDoesNotDestroy() {
+        withBlockEntity(blockEntity -> {
+            replace(blockEntity, true);
+            blockEntity.setRemoved();
+
+            assertEquals(1, blockEntity.unloadCount);
+            assertFalse(blockEntity.lastWasDestroyed);
         });
     }
 
@@ -61,6 +96,12 @@ public class ModBlockEntityUnloadTests {
         }
     }
 
+    private static void replace(final CountingBlockEntity blockEntity, final boolean movedByPiston) {
+        final ServerLevel level = (ServerLevel) blockEntity.getLevel();
+        when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(blockEntity);
+        ModBlockEntity.markDestroyed(level, BlockPos.ZERO, blockEntity.getBlockState(), Blocks.AIR.defaultBlockState(), movedByPiston);
+    }
+
     private static BlockEntityType<?> anyBlockEntityType() {
         final BlockEntityType<?> type = mock(BlockEntityType.class);
         when(type.isValid(any())).thenReturn(true);
@@ -69,17 +110,17 @@ public class ModBlockEntityUnloadTests {
 
     private static final class CountingBlockEntity extends ModBlockEntity {
         private int unloadCount;
-        private boolean lastWasRemove;
+        private boolean lastWasDestroyed;
 
         CountingBlockEntity() {
             super(anyBlockEntityType(), BlockPos.ZERO, Blocks.STONE.defaultBlockState());
         }
 
         @Override
-        protected void unloadServer(final boolean isRemove) {
-            super.unloadServer(isRemove);
+        protected void unloadServer(final boolean isDestroyed) {
+            super.unloadServer(isDestroyed);
             unloadCount++;
-            lastWasRemove = isRemove;
+            lastWasDestroyed = isDestroyed;
         }
     }
 }

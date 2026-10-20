@@ -359,10 +359,10 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
     }
 
     @Override
-    protected void unloadServer(final boolean isRemove) {
-        super.unloadServer(isRemove);
+    protected void unloadServer(final boolean isDestroyed) {
+        super.unloadServer(isDestroyed);
 
-        if (isRemove) {
+        if (isDestroyed) {
             virtualMachine.stop();
         } else {
             virtualMachine.suspend();

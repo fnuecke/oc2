@@ -282,8 +282,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     // --------------------------------------------------------------------- //
 
     @Override
-    protected void onUnload(final boolean isRemove) {
-        super.onUnload(isRemove);
+    protected void onUnload(final boolean isDestroyed) {
+        super.onUnload(isDestroyed);
 
         setFrameConsumer(null); // expected to stay null -> this will no longer be rendered.
 

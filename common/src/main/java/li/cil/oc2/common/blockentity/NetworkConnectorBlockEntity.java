@@ -294,10 +294,10 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     }
 
     @Override
-    protected void unloadServer(final boolean isRemove) {
-        super.unloadServer(isRemove);
+    protected void unloadServer(final boolean isDestroyed) {
+        super.unloadServer(isDestroyed);
 
-        if (isRemove) {
+        if (isDestroyed) {
             // When we're being removed we want to break the actual link to any connected
             // connectors. This will also cause cables to be dropped.
             final ArrayList<NetworkConnectorBlockEntity> list = new ArrayList<>(connectors.values());

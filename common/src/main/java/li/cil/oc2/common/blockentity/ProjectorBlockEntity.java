@@ -171,6 +171,11 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
     @Override
     public void serverTick() {
+        final BlockState state = getBlockState();
+        if (state.getValue(ProjectorBlock.LIT) != isMounted) {
+            level.setBlock(getBlockPos(), state.setValue(ProjectorBlock.LIT, isMounted), Block.UPDATE_CLIENTS);
+        }
+
         if (!isMounted) {
             return;
         }
@@ -323,9 +328,9 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
             return;
         }
 
-        // We may get called from unmount() of our device, which can be triggered due to chunk unload.
+        // We may get called from unmount() of our device, which can be triggered due to chunk unload or removal.
         // Hence, we need to check the loaded state here, lest we ghost load the chunk, breaking everything.
-        if (level != null && !level.isClientSide() && level.isLoaded(getBlockPos())) {
+        if (isValid() && level != null && !level.isClientSide() && level.isLoaded(getBlockPos())) {
             if (this.isMounted && !isMounted) {
                 Arrays.fill(picture.getPlaneData(0), (byte) -128);
                 Arrays.fill(picture.getPlaneData(1), (byte) 0);
@@ -334,8 +339,6 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
             this.isMounted = isMounted;
             this.hasEnergy = hasEnergy;
-
-            level.setBlock(getBlockPos(), getBlockState().setValue(ProjectorBlock.LIT, isMounted), Block.UPDATE_CLIENTS);
 
             Network.sendToClientsTrackingBlockEntity(new ProjectorStateMessage(this, isMounted, hasEnergy), this);
         }

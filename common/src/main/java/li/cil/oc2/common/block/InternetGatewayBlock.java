@@ -7,6 +7,7 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.item.TooltipUtils;
@@ -78,6 +79,12 @@ public final class InternetGatewayBlock extends HorizontalDirectionalBlock imple
             tooltip.add(Component.translatable(Constants.TOOLTIP_INTERNET_DISABLED)
                 .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED))));
         }
+    }
+
+    @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

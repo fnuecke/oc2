@@ -3,6 +3,7 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -25,6 +26,14 @@ public final class CreativeEnergyBlock extends Block implements EntityBlock {
             .sound(SoundType.METAL)
             .strength(-1, 3600000)
             .noLootTable());
+    }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     // --------------------------------------------------------------------- //

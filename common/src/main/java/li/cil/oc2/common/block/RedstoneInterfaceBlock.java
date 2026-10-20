@@ -4,6 +4,7 @@ package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.RedstoneInterfaceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -73,6 +74,12 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
         if (level.getBlockEntity(pos) instanceof final RedstoneInterfaceBlockEntity redstoneInterface) {
             redstoneInterface.handleNeighborChanged();
         }
+    }
+
+    @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     // --------------------------------------------------------------------- //

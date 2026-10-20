@@ -5,6 +5,7 @@ package li.cil.oc2.common.block;
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.util.BlockPlacement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -45,6 +46,19 @@ public final class FlashDriveBlock extends OrientableBlock implements EntityBloc
     }
 
     @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        if (!state.is(newState.getBlock())) {
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof final FlashDriveBlockEntity drive) {
+                drive.dropMedia();
+            }
+        }
+
+        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
     protected ItemInteractionResult useItemOn(final ItemStack heldStack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final FlashDriveBlockEntity drive) {
@@ -77,20 +91,6 @@ public final class FlashDriveBlock extends OrientableBlock implements EntityBloc
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
         return BlockEntities.FLASH_DRIVE.get().create(pos, state);
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            final BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof final FlashDriveBlockEntity drive) {
-                drive.dropMedia();
-            }
-        }
-
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     // --------------------------------------------------------------------- //

@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 import li.cil.oc2.client.gui.KeyboardScreen;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.entity.CatBehaviorGoal;
 import li.cil.oc2.common.util.VoxelShapeUtils;
 import net.fabricmc.api.EnvType;
@@ -65,6 +66,12 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

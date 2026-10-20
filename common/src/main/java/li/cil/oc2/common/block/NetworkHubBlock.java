@@ -4,6 +4,7 @@ package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkHubBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,6 +51,12 @@ public final class NetworkHubBlock extends HorizontalDirectionalBlock implements
         if (blockEntity instanceof final NetworkHubBlockEntity networkHub) {
             networkHub.handleNeighborChanged();
         }
+    }
+
+    @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     // --------------------------------------------------------------------- //

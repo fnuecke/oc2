@@ -5,6 +5,7 @@ package li.cil.oc2.common.block;
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
+import li.cil.oc2.common.blockentity.ModBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -53,6 +54,19 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
     }
 
     @Override
+    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
+        if (!state.is(newState.getBlock())) {
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof final DiskDriveBlockEntity drive) {
+                drive.dropMedia();
+            }
+        }
+
+        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
+    @Override
     protected ItemInteractionResult useItemOn(final ItemStack heldStack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final DiskDriveBlockEntity diskDrive) {
@@ -93,17 +107,5 @@ public final class DiskDriveBlock extends HorizontalDirectionalBlock implements 
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
-    }
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            final BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof final DiskDriveBlockEntity drive) {
-                drive.dropMedia();
-            }
-        }
-
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

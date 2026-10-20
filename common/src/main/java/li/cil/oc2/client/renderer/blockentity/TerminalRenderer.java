@@ -9,7 +9,6 @@ import li.cil.oc2.client.renderer.TerminalOverlayRenderer;
 import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.blockentity.TerminalBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
@@ -17,12 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlockEntity> {
-    private final BlockEntityRenderDispatcher renderer;
-
-    // --------------------------------------------------------------------- //
-
     public TerminalRenderer(final BlockEntityRendererProvider.Context context) {
-        this.renderer = context.getBlockEntityRenderDispatcher();
     }
 
     // --------------------------------------------------------------------- //
@@ -31,10 +25,9 @@ public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlock
     public void render(final TerminalBlockEntity terminal, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
         final BlockState state = terminal.getBlockState();
         final Direction blockFacing = state.getValue(OrientableBlock.FACING);
-        final Vec3 cameraPosition = renderer.camera.getEntity().getEyePosition(partialTicks);
+        final Vec3 cameraOffset = TerminalOverlayRenderer.getCameraOffset(stack);
 
-        final Vec3 relativeCameraPosition = cameraPosition.subtract(Vec3.atCenterOf(terminal.getBlockPos()));
-        final double projectedCameraPosition = relativeCameraPosition.dot(Vec3.atLowerCornerOf(blockFacing.getNormal()));
+        final double projectedCameraPosition = cameraOffset.dot(Vec3.atLowerCornerOf(blockFacing.getNormal()));
         if (projectedCameraPosition <= 0) {
             return;
         }
@@ -56,7 +49,7 @@ public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlock
         stack.scale(pixelScale, pixelScale, pixelScale);
 
         stack.translate(0, 0, -10f);
-        TerminalOverlayRenderer.renderTerminal(terminal.getBlockPos(), terminal.getTerminal(), stack, bufferSource, cameraPosition);
+        TerminalOverlayRenderer.renderTerminal(terminal.getTerminal(), stack, bufferSource, cameraOffset);
 
         stack.translate(0, 0, -0.1f);
 

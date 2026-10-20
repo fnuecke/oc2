@@ -12,7 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
@@ -26,12 +25,7 @@ import org.joml.Quaternionf;
 import java.util.List;
 
 public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
-    private final BlockEntityRenderDispatcher renderer;
-
-    // --------------------------------------------------------------------- //
-
     public ComputerRenderer(final BlockEntityRendererProvider.Context context) {
-        this.renderer = context.getBlockEntityRenderDispatcher();
     }
 
     // --------------------------------------------------------------------- //
@@ -39,12 +33,11 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
     @Override
     public void render(final ComputerBlockEntity computer, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
         final Direction blockFacing = computer.getBlockState().getValue(ComputerBlock.FACING);
-        final Vec3 cameraPosition = renderer.camera.getEntity().getEyePosition(partialTicks);
+        final Vec3 cameraOffset = TerminalOverlayRenderer.getCameraOffset(stack);
 
         // If viewer is not in front of the block we can skip the rest, it cannot be visible.
         // We check against the center of the block instead of the actual relevant face for simplicity.
-        final Vec3 relativeCameraPosition = cameraPosition.subtract(Vec3.atCenterOf(computer.getBlockPos()));
-        final double projectedCameraPosition = relativeCameraPosition.dot(Vec3.atLowerCornerOf(blockFacing.getNormal()));
+        final double projectedCameraPosition = cameraOffset.dot(Vec3.atLowerCornerOf(blockFacing.getNormal()));
         if (projectedCameraPosition <= 0) {
             return;
         }
@@ -66,9 +59,9 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
         stack.scale(pixelScale, pixelScale, pixelScale);
 
         if (computer.getVirtualMachine().isRunning()) {
-            TerminalOverlayRenderer.renderTerminal(computer.getBlockPos(), computer.getTerminal(), stack, bufferSource, cameraPosition);
+            TerminalOverlayRenderer.renderTerminal(computer.getTerminal(), stack, bufferSource, cameraOffset);
         } else {
-            renderStatusText(computer, stack, bufferSource, cameraPosition);
+            renderStatusText(computer, stack, bufferSource, cameraOffset);
         }
 
         stack.translate(0, 0, -0.1f);
@@ -104,8 +97,8 @@ public final class ComputerRenderer implements BlockEntityRenderer<ComputerBlock
 
     // --------------------------------------------------------------------- //
 
-    private void renderStatusText(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraPosition) {
-        if (!Vec3.atCenterOf(computer.getBlockPos()).closerThan(cameraPosition, 12f)) {
+    private void renderStatusText(final ComputerBlockEntity computer, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraOffset) {
+        if (cameraOffset.lengthSqr() >= 12 * 12) {
             return;
         }
 

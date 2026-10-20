@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -27,7 +28,7 @@ public final class MessageUtils {
     @SuppressWarnings("unchecked")
     public static <T extends BlockEntity> void withNearbyServerBlockEntity(final NetworkManager.PacketContext context, final BlockPos pos, final Class<T> type, final int maxDistance, final BiConsumer<ServerPlayer, T> callback) {
         if (!(context.getPlayer() instanceof final ServerPlayer player)
-            || !pos.closerToCenterThan(player.position(), maxDistance)) {
+            || player.distanceToSqr(Vec3.atCenterOf(pos)) >= maxDistance * maxDistance) {
             return;
         }
 

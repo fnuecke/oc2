@@ -244,9 +244,13 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
             return;
         }
 
-        final AABB bounds = AABB.ofSize(Vec3.atCenterOf(getBlockPos()),
-            VIEW_DISTANCE * 2, VIEW_DISTANCE * 2, VIEW_DISTANCE * 2);
-        final Set<ServerPlayer> players = new LinkedHashSet<>(serverLevel.getEntitiesOfClass(ServerPlayer.class, bounds));
+        final Vec3 center = Vec3.atCenterOf(getBlockPos());
+        final Set<ServerPlayer> players = new LinkedHashSet<>();
+        for (final ServerPlayer player : serverLevel.players()) {
+            if (!player.isSpectator() && player.distanceToSqr(center) <= VIEW_DISTANCE * VIEW_DISTANCE) {
+                players.add(player);
+            }
+        }
 
         for (final Player user : getTerminalUsers()) {
             if (user instanceof final ServerPlayer serverPlayer) {

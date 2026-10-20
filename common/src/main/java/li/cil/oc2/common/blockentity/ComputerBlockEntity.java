@@ -395,9 +395,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
             return;
         }
 
-        final AABB bounds = AABB.ofSize(Vec3.atCenterOf(getBlockPos()),
-            TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2, TERMINAL_VIEW_DISTANCE * 2);
-        final Set<ServerPlayer> players = new LinkedHashSet<>(serverLevel.getEntitiesOfClass(ServerPlayer.class, bounds));
+        final Vec3 center = Vec3.atCenterOf(getBlockPos());
+        final Set<ServerPlayer> players = new LinkedHashSet<>();
+        for (final ServerPlayer player : serverLevel.players()) {
+            if (!player.isSpectator() && player.distanceToSqr(center) <= TERMINAL_VIEW_DISTANCE * TERMINAL_VIEW_DISTANCE) {
+                players.add(player);
+            }
+        }
 
         for (final Player player : terminalUsers) {
             if (player instanceof final ServerPlayer serverPlayer) {

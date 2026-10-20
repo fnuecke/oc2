@@ -5,7 +5,7 @@ package li.cil.oc2.common.ext;
 import net.minecraft.client.renderer.culling.Frustum;
 
 public interface LevelRendererExt {
-    Frustum getCullingFrustum();
+    Frustum oc2$getCullingFrustum();
 
-    void setCullingFrustum(Frustum frustum);
+    void oc2$setCullingFrustum(Frustum frustum);
 }

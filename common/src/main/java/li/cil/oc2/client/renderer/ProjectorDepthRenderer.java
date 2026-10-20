@@ -237,7 +237,7 @@ public final class ProjectorDepthRenderer {
 
     private static boolean isProjectionVisible(final ProjectorBlockEntity projector) {
         return ((LevelRendererExt) Minecraft.getInstance().levelRenderer)
-            .getCullingFrustum().isVisible(projectionBounds(projector));
+            .oc2$getCullingFrustum().isVisible(projectionBounds(projector));
     }
 
     private static AABB projectionBounds(final ProjectorBlockEntity projector) {
@@ -510,14 +510,14 @@ public final class ProjectorDepthRenderer {
         levelRenderer.setupRender(PROJECTOR_DEPTH_CAMERA, frustum, false, false);
 
         final LevelRendererExt levelRendererExt = (LevelRendererExt) levelRenderer;
-        final Frustum cullingFrustum = levelRendererExt.getCullingFrustum();
-        levelRendererExt.setCullingFrustum(frustum);
+        final Frustum cullingFrustum = levelRendererExt.oc2$getCullingFrustum();
+        levelRendererExt.oc2$setCullingFrustum(frustum);
         try {
             levelRenderer.renderSectionLayer(RenderType.solid(), cameraX, cameraY, cameraZ, frustumMatrix, projectionMatrix);
             levelRenderer.renderSectionLayer(RenderType.cutoutMipped(), cameraX, cameraY, cameraZ, frustumMatrix, projectionMatrix);
             levelRenderer.renderSectionLayer(RenderType.cutout(), cameraX, cameraY, cameraZ, frustumMatrix, projectionMatrix);
         } finally {
-            levelRendererExt.setCullingFrustum(cullingFrustum);
+            levelRendererExt.oc2$setCullingFrustum(cullingFrustum);
         }
 
         bindActiveProjectorDepthTarget(minecraft);

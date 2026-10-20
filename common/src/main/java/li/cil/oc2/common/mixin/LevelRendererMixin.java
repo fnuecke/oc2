@@ -35,12 +35,12 @@ public abstract class LevelRendererMixin implements LevelRendererExt {
     private Frustum cullingFrustum;
 
     @Override
-    public Frustum getCullingFrustum() {
+    public Frustum oc2$getCullingFrustum() {
         return cullingFrustum;
     }
 
     @Override
-    public void setCullingFrustum(final Frustum frustum) {
+    public void oc2$setCullingFrustum(final Frustum frustum) {
         cullingFrustum = frustum;
     }
 

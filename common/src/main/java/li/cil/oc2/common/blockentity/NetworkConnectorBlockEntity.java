@@ -149,8 +149,10 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
 
         if (ownedCables.remove(pos)) {
             if (level != null) {
-                final Vec3 middle = Vec3.atCenterOf(getBlockPos().offset(pos)).scale(0.5f);
-                ItemStackUtils.spawnAsEntity(level, middle, new ItemStack(Items.NETWORK_CABLE.get()));
+                final Vec3 dropPosition = pos.closerThan(getBlockPos(), MAX_CONNECTION_DISTANCE)
+                    ? Vec3.atCenterOf(getBlockPos().offset(pos)).scale(0.5f)
+                    : Vec3.atCenterOf(getBlockPos());
+                ItemStackUtils.spawnAsEntity(level, dropPosition, new ItemStack(Items.NETWORK_CABLE.get()));
             }
         }
 

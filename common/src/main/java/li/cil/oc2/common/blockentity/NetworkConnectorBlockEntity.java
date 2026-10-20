@@ -359,6 +359,11 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
             return;
         }
 
+        if (!connectedPosition.closerThan(getBlockPos(), MAX_CONNECTION_DISTANCE)) {
+            disconnectFrom(connectedPosition);
+            return;
+        }
+
         final ChunkPos destinationChunk = new ChunkPos(connectedPosition);
         if (!level.hasChunk(destinationChunk.x, destinationChunk.z)) {
             ServerScheduler.schedule(level, () -> dirtyConnectors.add(connectedPosition), RETRY_UNLOADED_CHUNK_INTERVAL);
@@ -366,14 +371,9 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
 
         final BlockEntity blockEntity = level.getBlockEntity(connectedPosition);
-        if (!(blockEntity instanceof final NetworkConnectorBlockEntity networkConnector)) {
+        if (!(blockEntity instanceof final NetworkConnectorBlockEntity networkConnector)
+            || !networkConnector.connectorPositions.contains(getBlockPos())) {
             disconnectFrom(connectedPosition);
-            return;
-        }
-
-        if (!connectedPosition.closerThan(getBlockPos(), MAX_CONNECTION_DISTANCE)) {
-            disconnectFrom(connectedPosition);
-            networkConnector.disconnectFrom(getBlockPos());
             return;
         }
 

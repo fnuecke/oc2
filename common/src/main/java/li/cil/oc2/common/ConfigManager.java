@@ -56,6 +56,11 @@ public abstract class ConfigManager {
         throw new AssertionError();
     }
 
+    @ExpectPlatform
+    public static void applyConfigFile(final String fileName, final byte[] contents) {
+        throw new AssertionError();
+    }
+
     // --------------------------------------------------------------------- //
 
     protected static <T> void fillSpec(final T instance, final Builder builder, final ArrayList<ConfigFieldPair<?>> values) {

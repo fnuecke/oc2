@@ -92,6 +92,7 @@ public final class Network {
         registerMessage(KeyboardInputMessage.class, KeyboardInputMessage::new, NetworkManager.clientToServer());
 
         registerMessage(BlockDeviceDataMessage.class, BlockDeviceDataMessage::new, NetworkManager.serverToClient());
+        registerMessage(ServerConfigMessage.class, ServerConfigMessage::new, NetworkManager.serverToClient());
 
         registerMessage(MultipartMessage.class, MultipartMessage::new, NetworkManager.clientToServer());
 

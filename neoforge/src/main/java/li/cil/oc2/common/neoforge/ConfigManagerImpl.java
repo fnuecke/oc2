@@ -12,6 +12,7 @@ import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,10 @@ public final class ConfigManagerImpl extends ConfigManager {
             };
             MainNeoForge.MOD_CONTAINER.registerConfig(platformType, spec);
         });
+    }
+
+    public static void applyConfigFile(final String fileName, final byte[] contents) {
+        throw new NotImplementedException("NeoForge doesn't need the config sync workaround for Velocity proxies.");
     }
 
     // --------------------------------------------------------------------- //

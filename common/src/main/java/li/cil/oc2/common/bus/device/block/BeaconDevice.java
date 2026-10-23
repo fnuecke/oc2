@@ -79,7 +79,7 @@ public final class BeaconDevice extends AbstractBlockDevice {
 
     @Nullable
     private static String toName(@Nullable final Holder<MobEffect> effect) {
-        return effect == null ? null : effect.unwrapKey().map(key -> key.location().toString()).orElse(null);
+        return effect == null ? null : effect.unwrapKey().map(key -> key.identifier().toString()).orElse(null);
     }
 
     private BeaconBlockEntity getBeacon() {

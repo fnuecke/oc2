@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "G": "#c:glass_blocks",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "CGX",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:network_interface_card"
+  }
+}

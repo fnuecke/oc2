@@ -17,7 +17,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -27,8 +27,8 @@ import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 @JeiPlugin
 public class ExtraItemsJEIPlugin implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "extra_items");
+    public Identifier getPluginUid() {
+        return Identifier.fromNamespaceAndPath(API.MOD_ID, "extra_items");
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
         }
         if (tag instanceof CompoundTag compoundTag) {
             stringBuilder.append("{");
-            compoundTag.getAllKeys().stream().sorted().forEach(key -> {
+            compoundTag.keySet().stream().sorted().forEach(key -> {
                 stringBuilder.append(key).append(":");
                 stableTagToString(compoundTag.get(key), stringBuilder);
                 stringBuilder.append(",");
@@ -74,7 +74,7 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
             stringBuilder.setLength(stringBuilder.length() - 1); // remove last comma
             stringBuilder.append("]");
         } else if (tag instanceof NumericTag numericTag) {
-            stringBuilder.append(numericTag.getAsNumber());
+            stringBuilder.append(numericTag.box());
         } else {
             stringBuilder.append(tag);
         }
@@ -85,13 +85,6 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
         @Override
         public final Object getSubtypeData(final ItemStack ingredient, final UidContext context) {
             return getInfo(ingredient);
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        public final String getLegacyStringSubtypeInfo(final ItemStack ingredient, final UidContext context) {
-            final String info = getInfo(ingredient);
-            return info == null ? "" : info;
         }
 
         @Nullable
@@ -118,7 +111,7 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
         @Nullable
         @Override
         protected String getInfo(final ItemStack stack) {
-            final String registryName = ItemStackUtils.getModDataTag(stack).getString(StorageItemUtils.IMAGE_TAG_NAME);
+            final String registryName = ItemStackUtils.getModDataTag(stack).getStringOr(StorageItemUtils.IMAGE_TAG_NAME, "");
             return registryName.isEmpty() ? null : registryName;
         }
     }

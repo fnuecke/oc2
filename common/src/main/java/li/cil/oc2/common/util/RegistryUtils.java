@@ -27,7 +27,7 @@ public abstract class RegistryUtils {
     public static <T> RegistrarBuilder<T> builder(final ResourceKey<Registry<T>> key, final T... typeGetter) {
         if (phase != Phase.INIT) throw new IllegalStateException();
 
-        return RegistrarManager.get(API.MOD_ID).builder(key.location(), typeGetter);
+        return RegistrarManager.get(API.MOD_ID).builder(key.identifier(), typeGetter);
     }
 
     public static <T> DeferredRegister<T> getInitializerFor(final ResourceKey<Registry<T>> key) {

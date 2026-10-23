@@ -4,14 +4,15 @@ package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -20,14 +21,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 
 public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<NetworkConnectorBlock> CODEC = MapCodec.unit(NetworkConnectorBlock::new);
+    public static final MapCodec<NetworkConnectorBlock> CODEC = simpleCodec(NetworkConnectorBlock::new);
 
     @Override
     protected MapCodec<? extends NetworkConnectorBlock> codec() {
@@ -43,9 +44,8 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
 
     // --------------------------------------------------------------------- //
 
-    public NetworkConnectorBlock() {
-        super(Properties
-            .of()
+    public NetworkConnectorBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .strength(1.5f, 6.0f));
@@ -69,19 +69,24 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
     }
 
     @Override
-    public void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
-        if (Objects.equals(changedBlockPos, pos.relative(getFacing(state).getOpposite()))) {
-            final BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof final NetworkConnectorBlockEntity networkConnector) {
+    protected void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block neighborBlock, @Nullable final Orientation orientation, final boolean movedByPiston) {
+        if (!level.isClientSide() && level.getBlockState(pos.relative(getFacing(state).getOpposite())).is(neighborBlock)) {
+            if (level.getBlockEntity(pos) instanceof final NetworkConnectorBlockEntity networkConnector) {
                 networkConnector.scheduleAdjacentInterfaceCheck();
             }
         }
     }
 
     @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
+    protected BlockState updateShape(final BlockState state, final LevelReader level, final ScheduledTickAccess scheduledTickAccess, final BlockPos pos, final Direction direction, final BlockPos neighborPos, final BlockState neighborState, final RandomSource random) {
+        if (!level.isClientSide() && direction == getFacing(state).getOpposite()) {
+            final BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof final NetworkConnectorBlockEntity networkConnector) {
+                networkConnector.scheduleAdjacentInterfaceCheck();
+            }
+        }
+
+        return super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override

@@ -8,24 +8,24 @@ import li.cil.oc2.gametest.device.GuestTestDevices;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.GuestTests;
 import li.cil.oc2.gametest.fixture.Hardware;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "rpc_roundtrip")
 public final class RpcRoundtripTests {
     private static final String BATCH = "oc2_rpc_roundtrip";
     private static final String SUITE = "rpc_roundtrip";
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @TestHolder
     public static void rpcRoundtripSuitePasses(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.placePowered(helper, player);

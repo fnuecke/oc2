@@ -12,12 +12,11 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.common.vm.fs.LayeredFileSystem;
 import li.cil.sedna.fs.FileSystem;
 import li.cil.sedna.fs.ZipStreamFileSystem;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,7 +45,7 @@ public final class FileSystems {
 
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
+            Identifier.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
         LifecycleEvent.SERVER_STOPPED.register(server -> LAYERED_FILE_SYSTEM.clear());
     }
 
@@ -56,13 +55,13 @@ public final class FileSystems {
         LAYERED_FILE_SYSTEM.clear();
 
         LOGGER.info("Searching for datapack file systems...");
-        final Map<ResourceLocation, Resource> descriptors = resourceManager
+        final Map<Identifier, Resource> descriptors = resourceManager
             .listResources(DIRECTORY, location -> location.getPath().endsWith(DESCRIPTOR_EXTENSION));
 
         final ArrayList<ZipStreamFileSystem> fileSystems = new ArrayList<>();
         final Object2IntArrayMap<ZipStreamFileSystem> fileSystemOrder = new Object2IntArrayMap<>();
 
-        for (final Map.Entry<ResourceLocation, Resource> entry : descriptors.entrySet()) {
+        for (final Map.Entry<Identifier, Resource> entry : descriptors.entrySet()) {
             LOGGER.info("Found [{}]", entry.getKey());
             try {
                 final JsonObject json;
@@ -98,7 +97,7 @@ public final class FileSystems {
         fileSystems.forEach(LAYERED_FILE_SYSTEM::addLayer);
     }
 
-    private static ResourceLocation getArchiveLocation(final ResourceLocation descriptorLocation) {
+    private static Identifier getArchiveLocation(final Identifier descriptorLocation) {
         final String path = descriptorLocation.getPath();
         return descriptorLocation.withPath(path.substring(0, path.length() - DESCRIPTOR_EXTENSION.length()) + ARCHIVE_EXTENSION);
     }
@@ -109,9 +108,9 @@ public final class FileSystems {
         public static final ReloadListener INSTANCE = new ReloadListener();
 
         @Override
-        public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
+        public CompletableFuture<Void> reload(final SharedState sharedState, final Executor backgroundExecutor, final PreparationBarrier stage, final Executor gameExecutor) {
             return CompletableFuture
-                .runAsync(() -> FileSystems.reload(resourceManager), backgroundExecutor)
+                .runAsync(() -> FileSystems.reload(sharedState.resourceManager()), backgroundExecutor)
                 .thenCompose(stage::wait);
         }
     }

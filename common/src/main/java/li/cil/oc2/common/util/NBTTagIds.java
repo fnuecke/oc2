@@ -18,5 +18,4 @@ public final class NBTTagIds {
     public static final int TAG_COMPOUND = Tag.TAG_COMPOUND;
     public static final int TAG_INT_ARRAY = Tag.TAG_INT_ARRAY;
     public static final int TAG_LONG_ARRAY = Tag.TAG_LONG_ARRAY;
-    public static final int TAG_ANY_NUMERIC = Tag.TAG_ANY_NUMERIC;
 }

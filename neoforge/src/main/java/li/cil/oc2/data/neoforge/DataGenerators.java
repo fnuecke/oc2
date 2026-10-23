@@ -10,25 +10,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @EventBusSubscriber
 public final class DataGenerators {
+    private static final AtomicBoolean EXIT_WATCHDOG_INSTALLED = new AtomicBoolean();
+
     @SubscribeEvent
-    public static void gatherData(final GatherDataEvent event) {
+    public static void gatherServerData(final GatherDataEvent.Server event) {
         haltWhenDataGenerationFinishes();
 
-        final var generator = event.getGenerator();
-        final var output = generator.getPackOutput();
-        final var lookupProvider = event.getLookupProvider();
-        final var existingFileHelper = event.getExistingFileHelper();
+        event.createBlockAndItemTags(ModBlockTagsProvider::new, ModItemTagsProvider::new);
+        event.createProvider(ModLootTableProvider::new);
+        event.createProvider(ModRecipesProvider::new);
+    }
 
-        final var blockTags = generator.addProvider(event.includeServer(),
-            new ModBlockTagsProvider(output, lookupProvider, existingFileHelper));
-        generator.addProvider(event.includeServer(),
-            new ModItemTagsProvider(output, lookupProvider, blockTags.contentsGetter(), existingFileHelper));
-        generator.addProvider(event.includeServer(), new ModLootTableProvider(output, lookupProvider));
-        generator.addProvider(event.includeServer(), new ModRecipesProvider(output, lookupProvider));
+    @SubscribeEvent
+    public static void gatherClientData(final GatherDataEvent.Client event) {
+        haltWhenDataGenerationFinishes();
 
-        generator.addProvider(event.includeClient(), new ModBlockStateProvider(output, existingFileHelper));
-        generator.addProvider(event.includeClient(), new ModItemModelProvider(output, existingFileHelper));
-        generator.addProvider(event.includeClient(), new ModManualProvider(output));
+        event.createProvider(ModModelProvider::new);
+        event.createProvider(ModManualProvider::new);
     }
 
     private DataGenerators() {
@@ -37,6 +35,10 @@ public final class DataGenerators {
     // --------------------------------------------------------------------- //
 
     private static void haltWhenDataGenerationFinishes() {
+        if (!EXIT_WATCHDOG_INSTALLED.compareAndSet(false, true)) {
+            return;
+        }
+
         final Thread dataGenerationThread = Thread.currentThread();
         final AtomicBoolean failed = new AtomicBoolean();
 

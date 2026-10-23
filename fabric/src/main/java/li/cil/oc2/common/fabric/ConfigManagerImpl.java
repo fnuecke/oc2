@@ -3,8 +3,8 @@
 package li.cil.oc2.common.fabric;
 
 import dev.architectury.event.events.common.PlayerEvent;
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeModConfigEvents;
+import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
+import fuzs.forgeconfigapiport.fabric.api.v5.ModConfigEvents;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.ConfigManager;
 import li.cil.oc2.common.config.ConfigType;
@@ -42,9 +42,9 @@ public final class ConfigManagerImpl extends ConfigManager {
     }
 
     public static void initialize() {
-        NeoForgeModConfigEvents.loading(API.MOD_ID).register(config -> handleModConfigEvent(config, false));
-        NeoForgeModConfigEvents.reloading(API.MOD_ID).register(config -> handleModConfigEvent(config, false));
-        NeoForgeModConfigEvents.unloading(API.MOD_ID).register(config -> handleModConfigEvent(config, true));
+        ModConfigEvents.loading(API.MOD_ID).register(config -> handleModConfigEvent(config, false));
+        ModConfigEvents.reloading(API.MOD_ID).register(config -> handleModConfigEvent(config, false));
+        ModConfigEvents.unloading(API.MOD_ID).register(config -> handleModConfigEvent(config, true));
         PlayerEvent.PLAYER_JOIN.register(ConfigManagerImpl::sendServerConfigs);
 
         CONFIGS.forEach((spec, config) -> {
@@ -55,7 +55,7 @@ public final class ConfigManagerImpl extends ConfigManager {
                 case CLIENT -> ModConfig.Type.CLIENT;
                 case SERVER -> ModConfig.Type.SERVER;
             };
-            NeoForgeConfigRegistry.INSTANCE.register(API.MOD_ID, platformType, spec);
+            ConfigRegistry.INSTANCE.register(API.MOD_ID, platformType, spec);
         });
     }
 

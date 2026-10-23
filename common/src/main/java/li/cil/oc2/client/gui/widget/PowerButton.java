@@ -7,7 +7,8 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.container.AbstractMachineContainer;
 import li.cil.oc2.common.vm.PowerAction;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -37,8 +38,8 @@ public final class PowerButton extends ToggleImageButton {
     // --------------------------------------------------------------------- //
 
     @Override
-    public void onPress() {
-        super.onPress();
+    public void onPress(final InputWithModifiers input) {
+        super.onPress(input);
         menu.sendPowerActionToServer(getAction());
     }
 
@@ -68,10 +69,10 @@ public final class PowerButton extends ToggleImageButton {
         if (!isToggled()) {
             return PowerAction.START;
         }
-        if (Screen.hasControlDown()) {
+        if (Minecraft.getInstance().hasControlDown()) {
             return PowerAction.POWER_OFF;
         }
-        if (Screen.hasShiftDown()) {
+        if (Minecraft.getInstance().hasShiftDown()) {
             return PowerAction.REBOOT;
         }
         return PowerAction.SHUTDOWN;

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "R": "#c:dusts/redstone",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "CTC",
+    "RBR"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:flash_memory"
+  }
+}

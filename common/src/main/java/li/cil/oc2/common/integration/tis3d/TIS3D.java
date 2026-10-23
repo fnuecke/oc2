@@ -15,7 +15,7 @@ import li.cil.tis3d.api.serial.SerialInterfaceProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -35,7 +35,7 @@ public final class TIS3D {
     }
 
     public static BlockEntityType<?> casingBlockEntityType() {
-        return Objects.requireNonNull(BuiltInRegistries.BLOCK_ENTITY_TYPE.get(ResourceLocation.fromNamespaceAndPath(ModIntegration.TIS3D.modId(), "casing")));
+        return Objects.requireNonNull(BuiltInRegistries.BLOCK_ENTITY_TYPE.getValue(Identifier.fromNamespaceAndPath(ModIntegration.TIS3D.modId(), "casing")));
     }
 
     @Nullable

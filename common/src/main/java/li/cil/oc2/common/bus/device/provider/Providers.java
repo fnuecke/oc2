@@ -8,7 +8,7 @@ import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.common.bus.device.block.*;
 import li.cil.oc2.common.bus.device.provider.block.*;
 import li.cil.oc2.common.bus.device.provider.item.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.*;
 
@@ -42,7 +42,7 @@ public final class Providers {
             return Optional.empty();
         }
 
-        final ResourceLocation id = registrar.getId(value);
+        final Identifier id = registrar.getId(value);
         return id == null ? Optional.empty() : Optional.of(id.toString());
     }
 

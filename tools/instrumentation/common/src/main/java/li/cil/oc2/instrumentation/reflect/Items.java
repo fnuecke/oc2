@@ -6,7 +6,7 @@ import li.cil.oc2.common.container.ItemHandlerUtils;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.vm.AbstractVMItemStackHandlers;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -121,7 +121,7 @@ public final class Items {
         if (tokens.size() < 2) {
             throw new IllegalArgumentException("missing item id");
         }
-        final Item item = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(tokens.get(1)))
+        final Item item = BuiltInRegistries.ITEM.getOptional(Identifier.parse(tokens.get(1)))
             .orElseThrow(() -> new IllegalArgumentException("no such item: " + tokens.get(1)));
         return new ItemStack(item);
     }

@@ -20,6 +20,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -30,27 +31,27 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public final class BusInterfaceItem extends ModBlockItem implements CreativeTabItemProvider {
-    public BusInterfaceItem() {
-        super(Blocks.BUS_CABLE.get());
+    public BusInterfaceItem(final Properties properties) {
+        super(Blocks.BUS_CABLE.get(), properties);
     }
 
     // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display, final Consumer<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.busInterfaceEnergyPerTick, tooltip);
     }
 
     @Override
     public InteractionResult useOn(final UseOnContext context) {
         final Vec3 localHitPos = context.getClickLocation().subtract(Vec3.atCenterOf(context.getClickedPos()));
-        final Direction side = Direction.getNearest(localHitPos.x, localHitPos.y, localHitPos.z);
+        final Direction side = Direction.getApproximateNearest(localHitPos);
         final InteractionResult result = tryAddToBlock(context, side);
         return result.consumesAction() ? result : super.useOn(context);
     }
@@ -59,11 +60,6 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
     public InteractionResult place(final BlockPlaceContext context) {
         final InteractionResult result = tryAddToBlock(context, context.getClickedFace().getOpposite());
         return result.consumesAction() ? result : super.place(context);
-    }
-
-    @Override
-    public String getDescriptionId() {
-        return getOrCreateDescriptionId();
     }
 
     @Override
@@ -116,6 +112,6 @@ public final class BusInterfaceItem extends ModBlockItem implements CreativeTabI
             stack.shrink(1);
         }
 
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

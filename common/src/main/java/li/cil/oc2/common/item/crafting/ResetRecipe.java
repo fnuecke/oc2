@@ -70,8 +70,8 @@ public final class ResetRecipe extends CustomRecipe {
             final ItemStack stack = input.getItem(slot);
             if (StorageItemUtils.getState(stack) == State.CORRUPTED) {
                 StorageItemUtils.clearBlobData(stack);
-            } else if (stack.getItem().hasCraftingRemainingItem()) {
-                result.set(slot, new ItemStack(stack.getItem().getCraftingRemainingItem()));
+            } else if (!stack.getItem().getCraftingRemainder().isEmpty()) {
+                result.set(slot, stack.getItem().getCraftingRemainder());
             } else if (Wrenches.isWrench(stack)) {
                 final ItemStack copy = stack.copy();
                 copy.setCount(1);
@@ -83,12 +83,7 @@ public final class ResetRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean canCraftInDimensions(final int width, final int height) {
-        return width * height >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<ResetRecipe> getSerializer() {
         return RecipeSerializers.RESET.get();
     }
 

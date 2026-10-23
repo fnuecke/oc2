@@ -7,9 +7,15 @@ import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.oc2.common.util.StorageItemUtils.State;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,8 +35,12 @@ public final class Blobs {
 
     public static CompoundTag tagReferencing(final UUID handle) {
         final CompoundTag tag = new CompoundTag();
-        tag.putUUID(HANDLE_TAG_NAME, handle);
+        tag.store(HANDLE_TAG_NAME, UUIDUtil.CODEC, handle);
         return tag;
+    }
+
+    public static ValueInput inputReferencing(final UUID handle) {
+        return TagValueInput.create(ProblemReporter.DISCARDING, RegistryAccess.EMPTY, tagReferencing(handle));
     }
 
     public static ItemStack driveReferencing(final ItemStack drive, final UUID handle) {
@@ -43,7 +53,7 @@ public final class Blobs {
     public static void markStale(final UUID handle) throws IOException {
         final Path directory = BlobStorage.getDataDirectory();
         if (directory == null) {
-            throw new GameTestAssertException("Blob storage is not initialized");
+            throw new GameTestAssertException(Component.literal("Blob storage is not initialized"), 0);
         }
 
         Files.createFile(directory.resolve(handle.toString()));

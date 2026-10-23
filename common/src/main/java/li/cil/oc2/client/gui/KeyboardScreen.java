@@ -12,8 +12,11 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.KeyboardInputMessage;
 import li.cil.oc2.common.network.message.KeyboardKeepAliveMessage;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -35,8 +38,14 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
 
     // --------------------------------------------------------------------- //
 
+    public static void open(final KeyboardBlockEntity keyboard) {
+        Minecraft.getInstance().setScreen(new KeyboardScreen(keyboard));
+    }
+
+    // --------------------------------------------------------------------- //
+
     public KeyboardScreen(final KeyboardBlockEntity keyboard) {
-        super(Items.KEYBOARD.get().getDescription(), keyboard);
+        super(Items.KEYBOARD.get().getName(), keyboard);
     }
 
     // --------------------------------------------------------------------- //
@@ -59,30 +68,30 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     }
 
     @Override
-    public boolean keyPressed(final int keycode, final int scancode, final int modifiers) {
-        if (pressedKeys.add(keycode)) {
-            sendInputMessage(keycode, true);
+    public boolean keyPressed(final KeyEvent event) {
+        if (pressedKeys.add(event.key())) {
+            sendInputMessage(event.key(), true);
         }
 
         return true;
     }
 
     @Override
-    public boolean keyReleased(final int keycode, final int scancode, final int modifiers) {
-        if (pressedKeys.remove(keycode)) {
-            sendInputMessage(keycode, false);
+    public boolean keyReleased(final KeyEvent event) {
+        if (pressedKeys.remove(event.key())) {
+            sendInputMessage(event.key(), false);
         }
 
         return true;
     }
 
     @Override
-    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
-        if (button == GLFW.GLFW_MOUSE_BUTTON_2) {
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean isDoubleClick) {
+        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_2) {
             onClose();
             return true;
         } else {
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, isDoubleClick);
         }
     }
 
@@ -126,7 +135,7 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     private void grabMouse() {
         final MouseHandler mouseHandler = minecraft.mouseHandler;
         mouseHandler.mouseGrabbed = true;
-        InputConstants.grabOrReleaseMouse(minecraft.getWindow().getWindow(), InputConstants.CURSOR_DISABLED, mouseHandler.xpos(), mouseHandler.ypos());
+        InputConstants.grabOrReleaseMouse(minecraft.getWindow(), InputConstants.CURSOR_DISABLED, mouseHandler.xpos(), mouseHandler.ypos());
     }
 
     private void sendKeepAlive() {

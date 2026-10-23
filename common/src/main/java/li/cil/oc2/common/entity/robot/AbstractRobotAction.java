@@ -3,7 +3,8 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.Robot;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class AbstractRobotAction {
     private static final String ID_TAG_NAME = "id";
@@ -19,9 +20,9 @@ public abstract class AbstractRobotAction {
         this.type = type;
     }
 
-    public AbstractRobotAction(final AbstractRobotActionType type, final CompoundTag tag) {
+    public AbstractRobotAction(final AbstractRobotActionType type, final ValueInput input) {
         this(type);
-        deserialize(tag);
+        deserialize(input);
     }
 
     // --------------------------------------------------------------------- //
@@ -43,15 +44,11 @@ public abstract class AbstractRobotAction {
 
     public abstract RobotActionResult perform(Robot robot);
 
-    public CompoundTag serialize() {
-        final CompoundTag tag = new CompoundTag();
-
-        tag.putInt(ID_TAG_NAME, id);
-
-        return tag;
+    public void serialize(final ValueOutput output) {
+        output.putInt(ID_TAG_NAME, id);
     }
 
-    public void deserialize(final CompoundTag tag) {
-        id = tag.getInt(ID_TAG_NAME);
+    public void deserialize(final ValueInput input) {
+        id = input.getIntOr(ID_TAG_NAME, 0);
     }
 }

@@ -4,7 +4,10 @@ package li.cil.oc2.common.serial;
 
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.util.SerializationUtils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.util.function.LongSupplier;
@@ -14,10 +17,11 @@ public final class SerialEndpoint {
     public static final int MIN_BAUD_RATE = 300;
     public static final int MAX_BAUD_RATE = 115200;
 
+    static final String ADDRESS_TAG_NAME = "address";
+    static final String BAUD_RATE_TAG_NAME = "baudRate";
+
     private static final String PORT_TAG_NAME = "port";
     private static final String LINE_TAG_NAME = "line";
-    private static final String ADDRESS_TAG_NAME = "address";
-    private static final String BAUD_RATE_TAG_NAME = "baudRate";
 
     // --------------------------------------------------------------------- //
 
@@ -105,30 +109,24 @@ public final class SerialEndpoint {
 
     // --------------------------------------------------------------------- //
 
-    public void saveConfiguration(final CompoundTag tag) {
-        tag.putInt(ADDRESS_TAG_NAME, address);
-        tag.putInt(BAUD_RATE_TAG_NAME, baudRate);
+    public void saveConfiguration(final ValueOutput output) {
+        output.putInt(ADDRESS_TAG_NAME, address);
+        output.putInt(BAUD_RATE_TAG_NAME, baudRate);
     }
 
-    public void loadConfiguration(final CompoundTag tag) {
-        if (tag.contains(ADDRESS_TAG_NAME) && tag.contains(BAUD_RATE_TAG_NAME)) {
-            setConfiguration(tag.getInt(ADDRESS_TAG_NAME), tag.getInt(BAUD_RATE_TAG_NAME));
-        }
-    }
-
-    public void save(final CompoundTag tag) {
-        tag.put(PORT_TAG_NAME, NBTSerialization.serialize(port));
+    public void save(final ValueOutput output) {
+        output.store(PORT_TAG_NAME, CompoundTag.CODEC, NBTSerialization.serialize(port));
         if (line != null) {
-            tag.put(LINE_TAG_NAME, NBTSerialization.serialize(line));
+            output.store(LINE_TAG_NAME, CompoundTag.CODEC, NBTSerialization.serialize(line));
         }
-        saveConfiguration(tag);
+        saveConfiguration(output);
     }
 
-    public void load(final CompoundTag tag) {
-        NBTSerialization.deserialize(tag.getCompound(PORT_TAG_NAME), port);
-        address = tag.getInt(ADDRESS_TAG_NAME);
-        baudRate = tag.getInt(BAUD_RATE_TAG_NAME);
-        lineTag = tag.contains(LINE_TAG_NAME) ? tag.getCompound(LINE_TAG_NAME) : null;
+    public void load(final ValueInput input) {
+        NBTSerialization.deserialize(SerializationUtils.getCompoundOrEmpty(input, PORT_TAG_NAME), port);
+        address = input.getIntOr(ADDRESS_TAG_NAME, 0);
+        baudRate = input.getIntOr(BAUD_RATE_TAG_NAME, 0);
+        lineTag = input.read(LINE_TAG_NAME, CompoundTag.CODEC).orElse(null);
     }
 
     // --------------------------------------------------------------------- //

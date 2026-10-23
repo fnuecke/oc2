@@ -24,6 +24,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
@@ -113,18 +115,18 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
     }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
+        energy.serialize(output.child(Constants.ENERGY_TAG_NAME));
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
 
-        energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
-        hasEnergy = tag.getBoolean(HAS_ENERGY_TAG_NAME);
+        energy.deserialize(input.childOrEmpty(Constants.ENERGY_TAG_NAME));
+        hasEnergy = input.getBooleanOr(HAS_ENERGY_TAG_NAME, false);
     }
 
     // --------------------------------------------------------------------- //
@@ -176,7 +178,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
         assert level != null;
 
         final long amount = Math.min(energy.getEnergyStored(), Config.chargerEnergyPerTick);
-        final boolean simulate = level.isClientSide;
+        final boolean simulate = level.isClientSide();
         if (energy.extractEnergy(energyHandler.receiveEnergy(amount, simulate), simulate) > 0) {
             isCharging = true;
         }

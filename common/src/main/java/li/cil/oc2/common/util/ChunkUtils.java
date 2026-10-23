@@ -110,14 +110,14 @@ public final class ChunkUtils {
      */
     public static void applyChunkLazyUnsaved() {
         for (final ChunkAccess chunk : UNSAVED_CHUNKS) {
-            chunk.setUnsaved(true);
+            chunk.markUnsaved();
         }
         UNSAVED_CHUNKS.clear();
     }
 
     public static void onChunkUnload(final ChunkAccess chunk) {
         if (UNSAVED_CHUNKS.remove(chunk)) {
-            chunk.setUnsaved(true);
+            chunk.markUnsaved();
         }
     }
 }

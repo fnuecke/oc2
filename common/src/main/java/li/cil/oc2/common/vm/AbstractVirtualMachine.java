@@ -8,8 +8,7 @@ import li.cil.oc2.api.bus.device.vm.VMDeviceLoadResult;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.CommonDeviceBusController;
 import li.cil.oc2.common.serialization.NBTSerialization;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.SerializationUtils;
 import li.cil.oc2.common.util.TickUtils;
 import li.cil.oc2.common.vm.arch.AbstractArchitecture;
 import li.cil.oc2.common.vm.arch.R5Architecture;
@@ -19,6 +18,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -216,46 +217,45 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         }
     }
 
-    public CompoundTag serialize() {
+    public void serialize(final ValueOutput output) {
         joinWorkerThread();
-
-        final CompoundTag tag = new CompoundTag();
 
         if (architecture == null) {
             // Didn't get to set architecture, save what we loaded, if anything.
             if (pending != null) {
-                tag.putString(ARCHITECTURE_TAG_NAME, pending.architectureType().name());
-                tag.put(STATE_TAG_NAME, pending.state());
+                output.putString(ARCHITECTURE_TAG_NAME, pending.architectureType().name());
+                output.store(STATE_TAG_NAME, CompoundTag.CODEC, pending.state());
             }
             if (pending != null && pending.runner() != null) {
-                tag.put(RUNNER_TAG_NAME, pending.runner());
+                output.store(RUNNER_TAG_NAME, CompoundTag.CODEC, pending.runner());
             } else {
-                NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
+                SerializationUtils.putEnum(output, RUN_STATE_TAG_NAME, runState);
             }
-            return tag;
+            return;
         }
 
         if (runner != null) {
-            tag.put(RUNNER_TAG_NAME, NBTSerialization.serialize(runner));
+            output.store(RUNNER_TAG_NAME, CompoundTag.CODEC, NBTSerialization.serialize(runner));
         } else {
-            NBTUtils.putEnum(tag, RUN_STATE_TAG_NAME, runState);
+            SerializationUtils.putEnum(output, RUN_STATE_TAG_NAME, runState);
         }
 
-        tag.put(STATE_TAG_NAME, NBTSerialization.serialize(architecture));
-        tag.putString(ARCHITECTURE_TAG_NAME, architecture.getType().name());
-
-        return tag;
+        output.store(STATE_TAG_NAME, CompoundTag.CODEC, NBTSerialization.serialize(architecture));
+        output.putString(ARCHITECTURE_TAG_NAME, architecture.getType().name());
     }
 
-    public void deserialize(final CompoundTag tag) {
-        joinWorkerThread();
+    public void deserialize(final ValueInput input) {
+        if (architecture != null) {
+            joinWorkerThread();
+            architecture.unmountAllDevices();
+            disposeArchitecture();
+        }
 
-        final CompoundTag runnerTag = tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)
-            ? tag.getCompound(RUNNER_TAG_NAME) : null;
+        final CompoundTag runnerTag = input.read(RUNNER_TAG_NAME, CompoundTag.CODEC).orElse(null);
         if (runnerTag != null) {
             runState = VMRunState.LOADING_DEVICES;
         } else {
-            runState = NBTUtils.getEnum(tag, RUN_STATE_TAG_NAME, VMRunState.class);
+            runState = SerializationUtils.getEnum(input, RUN_STATE_TAG_NAME, VMRunState.class);
             if (runState == null) {
                 runState = VMRunState.STOPPED;
             } else if (runState == VMRunState.RUNNING) {
@@ -263,10 +263,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             }
         }
 
-        final ArchitectureType architectureType = tag.contains(ARCHITECTURE_TAG_NAME, NBTTagIds.TAG_STRING)
-            ? findArchitecture(tag.getString(ARCHITECTURE_TAG_NAME)) : null;
-        pending = architectureType != null && tag.contains(STATE_TAG_NAME, NBTTagIds.TAG_COMPOUND)
-            ? new PendingState(architectureType, tag.getCompound(STATE_TAG_NAME), runnerTag)
+        final ArchitectureType architectureType = input.getString(ARCHITECTURE_TAG_NAME)
+            .map(AbstractVirtualMachine::findArchitecture).orElse(null);
+        final CompoundTag stateTag = input.read(STATE_TAG_NAME, CompoundTag.CODEC).orElse(null);
+        pending = architectureType != null && stateTag != null
+            ? new PendingState(architectureType, stateTag, runnerTag)
             : null;
     }
 

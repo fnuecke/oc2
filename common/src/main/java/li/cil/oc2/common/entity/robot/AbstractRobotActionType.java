@@ -3,7 +3,7 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.Robot;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
 
 public abstract class AbstractRobotActionType {
     private final int id;
@@ -29,5 +29,5 @@ public abstract class AbstractRobotActionType {
     public void performClient(final Robot robot) {
     }
 
-    public abstract AbstractRobotAction deserialize(final CompoundTag tag);
+    public abstract AbstractRobotAction deserialize(final ValueInput input);
 }

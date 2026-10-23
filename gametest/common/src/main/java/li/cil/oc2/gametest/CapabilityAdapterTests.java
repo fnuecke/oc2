@@ -2,7 +2,9 @@
 
 package li.cil.oc2.gametest;
 
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.block.Blocks;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ContainerFluidHandler;
 import li.cil.oc2.common.container.ContainerItemHandler;
@@ -10,15 +12,24 @@ import li.cil.oc2.common.container.ItemStackHandler;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.fluid.FluidTank;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.vm.AbstractVMItemStackHandlers;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.function.Function;
 
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
@@ -36,6 +47,16 @@ public final class CapabilityAdapterTests {
         ItemStack apply(GameTestHelper helper, ItemHandler handler, int slot, ItemStack stack);
     }
 
+    @FunctionalInterface
+    public interface ItemMove {
+        int apply(GameTestHelper helper, int slot, ItemStack stack, boolean commit);
+    }
+
+    @FunctionalInterface
+    public interface FluidMove {
+        int apply(FluidHandler handler, FluidStack stack, boolean commit);
+    }
+
     public static final Function<GameTestHelper, EnergyHandler> ENERGY = helper -> {
         helper.setBlock(DEVICE_POS, Blocks.CHARGER.get());
         return Capabilities.get(blockEntity(helper), Capabilities.ENERGY_STORAGE, null);
@@ -44,12 +65,21 @@ public final class CapabilityAdapterTests {
         helper.setBlock(DEVICE_POS, Blocks.COMPUTER.get());
         return Capabilities.get(blockEntity(helper), Capabilities.ITEM_HANDLER, null);
     };
+    public static final ItemOperation SIMULATED_EXTRACT = (helper, handler, slot, stack) ->
+        handler.extractItem(slot, stack.getCount(), true);
+    public static final Item LARGE_SLOT_ITEM = net.minecraft.world.item.Items.DIRT;
+    public static final int LARGE_SLOT_AMOUNT = 200;
+    public static final Function<GameTestHelper, ItemHandler> FOREIGN_ITEMS = helper -> {
+        helper.setBlock(DEVICE_POS, net.minecraft.world.level.block.Blocks.CHEST);
+        return Capabilities.get(blockEntity(helper), Capabilities.ITEM_HANDLER, null);
+    };
 
     private static final long AMOUNT = 100;
     private static final Item SHULKER_BOX = net.minecraft.world.item.Items.SHULKER_BOX;
     private static final Item DIRT = net.minecraft.world.item.Items.DIRT;
     private static final Item BUCKET = net.minecraft.world.item.Items.BUCKET;
     private static final Item WATER_BUCKET = net.minecraft.world.item.Items.WATER_BUCKET;
+    private static final int FURNACE_RESULT_SLOT = 2;
 
     // --------------------------------------------------------------------- //
 
@@ -105,7 +135,7 @@ public final class CapabilityAdapterTests {
         final EnergyHandler storage = assertNotNull(helper, energy.apply(helper), "energy storage");
         final long capacity = storage.getMaxEnergyStored();
         if (capacity <= 0) {
-            throw new GameTestAssertException("expected a positive capacity, was " + capacity);
+            throw new GameTestAssertException(Component.literal("expected a positive capacity, was " + capacity), 0);
         }
 
         final long accepted = storage.receiveEnergy(capacity * 2, false);
@@ -165,7 +195,7 @@ public final class CapabilityAdapterTests {
 
         assertEquals(helper, "simulated insert should consume the whole stack", 0, remainder.getCount());
         if (!ItemStack.matches(before, handler.getStackInSlot(slot))) {
-            throw new GameTestAssertException("simulated insert must not change slot " + slot);
+            throw new GameTestAssertException(Component.literal("simulated insert must not change slot " + slot), 0);
         }
         helper.succeed();
     }
@@ -180,7 +210,7 @@ public final class CapabilityAdapterTests {
         assertEquals(helper, "committed insert should consume the whole stack", 0, remainder.getCount());
         final ItemStack inSlot = handler.getStackInSlot(slot);
         if (!inSlot.is(stack.getItem())) {
-            throw new GameTestAssertException("committed insert did not land in slot " + slot + ", found " + inSlot);
+            throw new GameTestAssertException(Component.literal("committed insert did not land in slot " + slot + ", found " + inSlot), 0);
         }
         assertEquals(helper, "committed insert should have moved one item", 1, inSlot.getCount());
         helper.succeed();
@@ -195,8 +225,8 @@ public final class CapabilityAdapterTests {
         final ItemStack extracted = handler.extractItem(slot, 1, false);
 
         if (!extracted.is(stack.getItem())) {
-            throw new GameTestAssertException("round trip changed the item: expected "
-                + stack.getItem() + ", got " + extracted);
+            throw new GameTestAssertException(Component.literal("round trip changed the item: expected "
+                + stack.getItem() + ", got " + extracted), 0);
         }
         assertEquals(helper, "round trip changed the count", 1, extracted.getCount());
         assertEquals(helper, "slot should be empty again", 0, handler.getStackInSlot(slot).getCount());
@@ -215,9 +245,68 @@ public final class CapabilityAdapterTests {
 
         assertEquals(helper, "aborted insert should report what it would move", 0, remainder.getCount());
         if (!ItemStack.matches(before, handler.getStackInSlot(slot))) {
-            throw new GameTestAssertException("an aborted insert must leave slot " + slot
-                + " untouched, found " + handler.getStackInSlot(slot));
+            throw new GameTestAssertException(Component.literal("an aborted insert must leave slot " + slot
+                + " untouched, found " + handler.getStackInSlot(slot)), 0);
         }
+        helper.succeed();
+    }
+
+    public static void extractLeavesDeviceSlotUntouched(final GameTestHelper helper, final ItemOperation extract) {
+        final ItemHandler handler = assertNotNull(helper, ITEMS.apply(helper), "item handler");
+        final AbstractVMItemStackHandlers computer = (AbstractVMItemStackHandlers)
+            helper.getBlockEntity(DEVICE_POS, ComputerBlockEntity.class).getItemStackHandlers();
+        final ItemStack memory = new ItemStack(Items.MEMORY_SMALL.get());
+        final int slot = acceptingSlot(handler, memory);
+        handler.insertItem(slot, memory, false);
+        final ItemStack inSlot = computer.combinedItemHandlers.getStackInSlot(slot);
+        final Set<Device> devices = Collections.newSetFromMap(new IdentityHashMap<>());
+        devices.addAll(computer.getDevices());
+
+        final ItemStack extracted = extract.apply(helper, handler, slot, inSlot.copy());
+
+        assertStack("reported extraction", extracted, memory.getItem(), 1);
+        if (computer.combinedItemHandlers.getStackInSlot(slot) != inSlot) {
+            throw new GameTestAssertException(Component.literal("the device slot holds a different stack: "
+                + computer.combinedItemHandlers.getStackInSlot(slot)), 0);
+        }
+        if (computer.getDevices().size() != devices.size() || !devices.containsAll(computer.getDevices())) {
+            throw new GameTestAssertException(Component.literal("the devices were rebuilt: " + computer.getDevices()), 0);
+        }
+        helper.succeed();
+    }
+
+    public static void itemMoveBetweenAdaptersLeavesSlotUnchanged(final GameTestHelper helper, final ItemMove move) {
+        final ItemHandler handler = assertNotNull(helper, ITEMS.apply(helper), "item handler");
+        final ItemStack memory = new ItemStack(Items.MEMORY_SMALL.get());
+        final int slot = acceptingSlot(handler, memory);
+        handler.insertItem(slot, memory.copy(), false);
+
+        assertEquals(helper, "aborted move should report the inserted amount", 1, move.apply(helper, slot, memory, false));
+        assertStack("slot after aborted move", handler.getStackInSlot(slot), memory.getItem(), 1);
+        assertEquals(helper, "committed move should report the inserted amount", 1, move.apply(helper, slot, memory, true));
+        assertStack("slot after committed move", handler.getStackInSlot(slot), memory.getItem(), 1);
+        helper.succeed();
+    }
+
+    public static void fluidMoveBetweenAdaptersLeavesTankUnchanged(final GameTestHelper helper, final FluidMove move) {
+        final FluidTank tank = new FluidTank(FluidHandler.BUCKET);
+        tank.fill(water(), false);
+        final FluidStack stack = water().withAmount(FluidHandler.BUCKET / 10);
+
+        assertEquals(helper, "aborted move should report the inserted amount", stack.amount(), move.apply(tank, stack, false));
+        assertEquals(helper, "tank after aborted move", FluidHandler.BUCKET, tank.getFluidInTank(0).amount());
+        assertEquals(helper, "committed move should report the inserted amount", stack.amount(), move.apply(tank, stack, true));
+        assertEquals(helper, "tank after committed move", FluidHandler.BUCKET, tank.getFluidInTank(0).amount());
+        helper.succeed();
+    }
+
+    public static void extractFromLargeSlotYieldsAtMostAStack(final GameTestHelper helper, final Function<GameTestHelper, ItemHandler> largeSlot) {
+        final ItemHandler handler = assertNotNull(helper, largeSlot.apply(helper), "item handler");
+        final int stackSize = LARGE_SLOT_ITEM.getDefaultMaxStackSize();
+
+        assertStack("simulated extract", handler.extractItem(0, LARGE_SLOT_AMOUNT, true), LARGE_SLOT_ITEM, stackSize);
+        assertStack("extracted stack", handler.extractItem(0, LARGE_SLOT_AMOUNT, false), LARGE_SLOT_ITEM, stackSize);
+        assertStack("slot after extract", handler.getStackInSlot(0), LARGE_SLOT_ITEM, LARGE_SLOT_AMOUNT - stackSize);
         helper.succeed();
     }
 
@@ -235,6 +324,74 @@ public final class CapabilityAdapterTests {
         helper.succeed();
     }
 
+    public static void slotCapabilityWritesToForeignInventory(final GameTestHelper helper) {
+        final ItemHandler chest = assertNotNull(helper, FOREIGN_ITEMS.apply(helper), "chest item handler");
+        final ChestBlockEntity blockEntity = helper.getBlockEntity(DEVICE_POS, ChestBlockEntity.class);
+        blockEntity.setItem(0, new ItemStack(SHULKER_BOX));
+        final ItemStack before = blockEntity.getItem(0).copy();
+        final ItemHandler handler = assertNotNull(helper, Capabilities.get(chest, 0, Capabilities.ITEM_HANDLER), "shulker box item handler");
+
+        assertEquals(helper, "simulated insert should consume the whole stack", 0, handler.insertItem(0, new ItemStack(DIRT, 5), true).getCount());
+        if (!ItemStack.matches(before, blockEntity.getItem(0))) {
+            throw new GameTestAssertException(Component.literal("simulated insert must not change the chest, found " + blockEntity.getItem(0)), 0);
+        }
+
+        assertEquals(helper, "insert should consume the whole stack", 0, handler.insertItem(0, new ItemStack(DIRT, 5), false).getCount());
+        final ItemHandler reread = assertNotNull(helper, Capabilities.get(chest, 0, Capabilities.ITEM_HANDLER), "shulker box item handler");
+        assertStack("shulker box contents", reread.getStackInSlot(0), DIRT, 5);
+        assertStack("chest slot", blockEntity.getItem(0), SHULKER_BOX, 1);
+        helper.succeed();
+    }
+
+    public static void slotCapabilityRespectsInsertRestrictions(final GameTestHelper helper) {
+        helper.setBlock(DEVICE_POS, net.minecraft.world.level.block.Blocks.FURNACE);
+        final FurnaceBlockEntity furnace = helper.getBlockEntity(DEVICE_POS, FurnaceBlockEntity.class);
+        furnace.setItem(FURNACE_RESULT_SLOT, new ItemStack(SHULKER_BOX));
+        final ItemHandler sided = assertNotNull(helper, Capabilities.get(furnace, Capabilities.ITEM_HANDLER, Direction.DOWN), "furnace item handler");
+        final int slot = slotHolding(sided, SHULKER_BOX);
+        final ItemHandler handler = assertNotNull(helper, Capabilities.get(sided, slot, Capabilities.ITEM_HANDLER), "shulker box item handler");
+
+        final ItemStack remainder = handler.insertItem(0, new ItemStack(DIRT, 5), false);
+
+        assertEquals(helper, "a container item in an output slot must not be changed", 5, remainder.getCount());
+        final ItemStack result = furnace.getItem(FURNACE_RESULT_SLOT);
+        assertStack("furnace output slot", result, SHULKER_BOX, 1);
+        if (!ItemStack.matches(result, new ItemStack(SHULKER_BOX))) {
+            throw new GameTestAssertException(Component.literal("the container item in the output slot changed: " + result), 0);
+        }
+        helper.succeed();
+    }
+
+    public static void stackCapabilityWritesToStack(final GameTestHelper helper) {
+        final ItemStack box = new ItemStack(SHULKER_BOX);
+        final ItemHandler handler = assertNotNull(helper, Capabilities.get(box, Capabilities.ITEM_HANDLER), "shulker box item handler");
+
+        assertEquals(helper, "simulated insert should consume the whole stack", 0, handler.insertItem(0, new ItemStack(DIRT, 5), true).getCount());
+        if (!ItemStack.matches(box, new ItemStack(SHULKER_BOX))) {
+            throw new GameTestAssertException(Component.literal("simulated insert must not change the stack, found " + box), 0);
+        }
+
+        assertEquals(helper, "insert should consume the whole stack", 0, handler.insertItem(0, new ItemStack(DIRT, 5), false).getCount());
+        assertStack("contents through the same handler", handler.getStackInSlot(0), DIRT, 5);
+        final ItemHandler reread = assertNotNull(helper, Capabilities.get(box, Capabilities.ITEM_HANDLER), "shulker box item handler");
+        assertStack("contents of the stack", reread.getStackInSlot(0), DIRT, 5);
+
+        assertStack("extracted stack", handler.extractItem(0, 5, false), DIRT, 5);
+        if (!ItemStack.matches(box, new ItemStack(SHULKER_BOX))) {
+            throw new GameTestAssertException(Component.literal("emptying the stack should restore its default components, found " + box), 0);
+        }
+        helper.succeed();
+    }
+
+    public static void stackCapabilityKeepsItem(final GameTestHelper helper) {
+        final ItemStack bucket = new ItemStack(BUCKET);
+        final FluidHandler handler = assertNotNull(helper, Capabilities.get(bucket, Capabilities.FLUID_HANDLER), "bucket fluid handler");
+
+        assertEquals(helper, "a fill that replaces the item must be rejected", 0, handler.fill(water(), false));
+        assertStack("bucket", bucket, BUCKET, 1);
+        helper.succeed();
+    }
+
     public static void containerItemSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
         final ItemStackHandler inventory = inventory(new ItemStack(SHULKER_BOX));
         final ItemHandler handler = assertNotNull(helper, ContainerItemHandler.of(inventory, 0), "container item handler");
@@ -244,7 +401,7 @@ public final class CapabilityAdapterTests {
 
         assertEquals(helper, "simulated insert should consume the whole stack", 0, remainder.getCount());
         if (!ItemStack.matches(before, inventory.getStackInSlot(0))) {
-            throw new GameTestAssertException("simulated insert must not change the container item, found " + inventory.getStackInSlot(0));
+            throw new GameTestAssertException(Component.literal("simulated insert must not change the container item, found " + inventory.getStackInSlot(0)), 0);
         }
         helper.succeed();
     }
@@ -317,7 +474,7 @@ public final class CapabilityAdapterTests {
 
         assertEquals(helper, "drain should yield a full bucket", FluidHandler.BUCKET, drained.amount());
         if (!drained.isSameFluid(water())) {
-            throw new GameTestAssertException("drained the wrong fluid: " + drained);
+            throw new GameTestAssertException(Component.literal("drained the wrong fluid: " + drained), 0);
         }
         assertStack("container item", inventory.getStackInSlot(0), BUCKET, 1);
         helper.succeed();
@@ -326,9 +483,9 @@ public final class CapabilityAdapterTests {
     // --------------------------------------------------------------------- //
 
     private static BlockEntity blockEntity(final GameTestHelper helper) {
-        final BlockEntity blockEntity = helper.getBlockEntity(DEVICE_POS);
+        final BlockEntity blockEntity = helper.getBlockEntity(DEVICE_POS, BlockEntity.class);
         if (blockEntity == null) {
-            throw new GameTestAssertException("no block entity at " + DEVICE_POS);
+            throw new GameTestAssertException(Component.literal("no block entity at " + DEVICE_POS), 0);
         }
         return blockEntity;
     }
@@ -345,8 +502,17 @@ public final class CapabilityAdapterTests {
 
     private static void assertStack(final String what, final ItemStack stack, final Item item, final int count) {
         if (!stack.is(item) || stack.getCount() != count) {
-            throw new GameTestAssertException(what + ": expected " + count + " " + item + ", got " + stack);
+            throw new GameTestAssertException(Component.literal(what + ": expected " + count + " " + item + ", got " + stack), 0);
         }
+    }
+
+    private static int slotHolding(final ItemHandler handler, final Item item) {
+        for (int slot = 0; slot < handler.getSlots(); slot++) {
+            if (handler.getStackInSlot(slot).is(item)) {
+                return slot;
+            }
+        }
+        throw new GameTestAssertException(Component.literal("no slot holds " + item), 0);
     }
 
     private static int acceptingSlot(final ItemHandler handler, final ItemStack stack) {
@@ -355,8 +521,8 @@ public final class CapabilityAdapterTests {
                 return slot;
             }
         }
-        throw new GameTestAssertException("no slot accepts " + stack + " in a handler with "
-            + handler.getSlots() + " slot(s)");
+        throw new GameTestAssertException(Component.literal("no slot accepts " + stack + " in a handler with "
+            + handler.getSlots() + " slot(s)"), 0);
     }
 
     // --------------------------------------------------------------------- //

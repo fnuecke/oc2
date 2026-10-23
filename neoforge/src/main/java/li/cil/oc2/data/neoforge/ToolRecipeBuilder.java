@@ -7,16 +7,16 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
 import net.minecraft.core.NonNullList;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.ItemLike;
 
@@ -50,10 +50,6 @@ public final class ToolRecipeBuilder implements RecipeBuilder {
     }
 
     // --------------------------------------------------------------------- //
-
-    public ToolRecipeBuilder requires(final TagKey<Item> tag) {
-        return requires(Ingredient.of(tag));
-    }
 
     public ToolRecipeBuilder requires(final ItemLike item) {
         return requires(item, 1);
@@ -90,9 +86,9 @@ public final class ToolRecipeBuilder implements RecipeBuilder {
     }
 
     @Override
-    public void save(final RecipeOutput output, final ResourceLocation id) {
+    public void save(final RecipeOutput output, final ResourceKey<Recipe<?>> id) {
         if (criteria.isEmpty()) {
-            throw new IllegalStateException("No way of obtaining recipe " + id);
+            throw new IllegalStateException("No way of obtaining recipe " + id.identifier());
         }
 
         final Advancement.Builder advancement = output.advancement()
@@ -107,6 +103,6 @@ public final class ToolRecipeBuilder implements RecipeBuilder {
             result,
             ingredients);
 
-        output.accept(id, new ToolRecipe(shapeless), advancement.build(id.withPrefix("recipes/misc/")));
+        output.accept(id, new ToolRecipe(shapeless), advancement.build(id.identifier().withPrefix("recipes/misc/")));
     }
 }

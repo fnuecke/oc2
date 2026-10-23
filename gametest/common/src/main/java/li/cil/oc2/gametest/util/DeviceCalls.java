@@ -14,6 +14,7 @@ import li.cil.oc2.common.bus.device.util.Devices;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -34,7 +35,7 @@ public final class DeviceCalls {
 
     public static List<Device> devicesAt(final GameTestHelper helper, final BlockPos pos) {
         return Devices.getDevices(Devices.makeQuery(null, helper.getLevel(), helper.absolutePos(pos), null))
-            .orElseThrow(() -> new GameTestAssertException("chunk not loaded"))
+            .orElseThrow(() -> new GameTestAssertException(Component.literal("chunk not loaded"), 0))
             .stream()
             .map(info -> info.device)
             .toList();
@@ -45,14 +46,14 @@ public final class DeviceCalls {
             .filter(device -> device instanceof final IODevice io && name.equals(io.getIOName()))
             .map(IODevice.class::cast)
             .findFirst()
-            .orElseThrow(() -> new GameTestAssertException("no " + name + " device"));
+            .orElseThrow(() -> new GameTestAssertException(Component.literal("no " + name + " device"), 0));
     }
 
     @Nullable
     public static Object invokeRpc(final RPCDevice device, final String name, final Object... arguments) {
         final RPCInvocation invocation = invocation(arguments);
         return invoke(findMethod(device, name, invocation)
-            .orElseThrow(() -> new GameTestAssertException("the device exposes no " + name + " callback")), name, invocation);
+            .orElseThrow(() -> new GameTestAssertException(Component.literal("the device exposes no " + name + " callback"), 0)), name, invocation);
     }
 
     @Nullable
@@ -67,7 +68,7 @@ public final class DeviceCalls {
             }
         }
 
-        throw new GameTestAssertException("no device exposes a " + name + " callback");
+        throw new GameTestAssertException(Component.literal("no device exposes a " + name + " callback"), 0);
     }
 
     public static byte[] invokeIo(final IODevice device, final int code, final int... arguments) {
@@ -86,12 +87,12 @@ public final class DeviceCalls {
             } catch (final IllegalArgumentException e) {
                 throw e;
             } catch (final Throwable e) {
-                throw new GameTestAssertException("function " + code + " failed: " + e);
+                throw new GameTestAssertException(Component.literal("function " + code + " failed: " + e), 0);
             }
             return results.toByteArray();
         }
 
-        throw new GameTestAssertException("device has no function with code " + code);
+        throw new GameTestAssertException(Component.literal("device has no function with code " + code), 0);
     }
 
     public static int[] ascii(final String text) {
@@ -208,7 +209,7 @@ public final class DeviceCalls {
         }
 
         if (found) {
-            throw new GameTestAssertException("no " + name + " overload matched the arguments");
+            throw new GameTestAssertException(Component.literal("no " + name + " overload matched the arguments"), 0);
         }
         return Optional.empty();
     }
@@ -218,7 +219,7 @@ public final class DeviceCalls {
         try {
             return method.invoke(invocation);
         } catch (final Throwable e) {
-            throw new GameTestAssertException(name + " threw: " + e);
+            throw new GameTestAssertException(Component.literal(name + " threw: " + e), 0);
         }
     }
 

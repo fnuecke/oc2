@@ -4,11 +4,18 @@ val neoforgeVersion: String = libs.versions.neoforge.platform.get()
 val neoforgeLoaderVersion: String = libs.versions.neoforge.loader.get()
 val architecturyVersion: String = libs.versions.architectury.get()
 val manualVersion: String = markdownManualVersion(libs.versions.manual.get())
+val tis3dVersion: String = tis3dVersion(libs.versions.tis3d.get())
 
 val gameTestRuntime = configurations.create("gameTestRuntime")
 val gameTestResultsDir = layout.buildDirectory.dir("test-results/gameTest")
 val devOnlyMods = configurations.create("devOnlyMods")
 val devOnlyModNames = provider { devOnlyMods.resolvedConfiguration.resolvedArtifacts.map { it.moduleVersion.id.name } }
+
+sourceSets.main {
+    resources.srcDir("src/generated/client")
+    resources.srcDir("src/generated/server")
+    resources.exclude(".cache/**")
+}
 
 loom {
     accessWidenerPath.set(project(":common").loom.accessWidenerPath)
@@ -19,18 +26,24 @@ loom {
 
         create("gameTestServer") {
             server()
+            mainClass.set("net.neoforged.fml.startup.GameTestServer")
             runDirectory.set(file("run/gametest"))
-            systemProperties.put("neoforge.gameTestServer", "true")
-            systemProperties.put("neoforge.enabledGameTestNamespaces", "oc2_gametest")
+            programArguments.addAll("--tests", "${modId}_gametest:*")
             systemProperties.put("oc2.gameTest.junitDir", gameTestResultsDir.get().asFile.absolutePath)
             jvmArguments.add("-ea")
         }
 
-        create("data") {
-            data()
-            programArguments.add("--all")
+        create("clientData") {
+            clientData()
             programArguments.addAll("--mod", modId)
-            programArguments.addAll("--output", project(":common").file("src/generated/resources").absolutePath)
+            programArguments.addAll("--output", file("src/generated/client").absolutePath)
+            programArguments.addAll("--existing", project(":common").file("src/main/resources").absolutePath)
+            programArguments.addAll("--existing", file("src/main/resources").absolutePath)
+        }
+        create("serverData") {
+            serverData()
+            programArguments.addAll("--mod", modId)
+            programArguments.addAll("--output", file("src/generated/server").absolutePath)
             programArguments.addAll("--existing", project(":common").file("src/main/resources").absolutePath)
             programArguments.addAll("--existing", file("src/main/resources").absolutePath)
         }
@@ -38,29 +51,20 @@ loom {
 }
 
 val gameTestBlobDirectories = listOf(
-    file("run/gametest/world/oc2-blobs"),
-    file("run/gametest/world/oc2-blobs-trash"),
+    file("run/gametest/gametestserver/oc2-blobs"),
+    file("run/gametest/gametestserver/oc2-blobs-trash"),
 )
 
 val cleanGameTestResults = tasks.register<Delete>("cleanGameTestResults") {
     description = "Deletes game test results and the scratch world from previous runs."
     delete(gameTestResultsDir)
-    delete(layout.projectDirectory.dir("run/gametest/world"))
-}
-
-val fixGameTestReport = tasks.register("fixGameTestReport") {
-    val reportFile = gameTestResultsDir.map { it.file("neoforge-game-tests.xml") }
-    outputs.upToDateWhen { false }
-    doLast {
-        normalizeGameTestReport(reportFile.get().asFile)
-    }
+    delete(layout.projectDirectory.dir("run/gametest/gametestserver"))
 }
 
 tasks.named<JavaExec>("runGameTestServer") {
     dependsOn(cleanGameTestResults)
     classpath += gameTestRuntime
     classpath = classpath.filter { file -> devOnlyModNames.get().none { file.name.startsWith("${it}-") } }
-    finalizedBy(fixGameTestReport)
     doFirst {
         gameTestBlobDirectories.forEach { it.deleteRecursively() }
     }
@@ -108,7 +112,8 @@ tasks {
             "loaderVersion" to neoforgeLoaderVersion,
             "neoforgeVersion" to neoforgeVersion,
             "architecturyVersion" to architecturyVersion,
-            "manualVersion" to manualVersion
+            "manualVersion" to manualVersion,
+            "tis3dVersion" to tis3dVersion
         )
         inputs.properties(properties)
         filesMatching("META-INF/neoforge.mods.toml") {

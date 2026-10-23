@@ -5,9 +5,13 @@ package li.cil.oc2.common.bus;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import li.cil.oc2.api.bus.DeviceBusController;
 import li.cil.oc2.api.bus.device.Device;
-import li.cil.oc2.common.util.NBTTagIds;
+import li.cil.oc2.common.util.SerializationUtils;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.*;
 
@@ -54,51 +58,55 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
 
     // --------------------------------------------------------------------- //
 
-    public CompoundTag save() {
+    public void save(final ValueOutput output) {
         if (groups.stream().anyMatch(group -> !group.isEmpty())) {
             onSaving();
         }
 
-        final ListTag listTag = new ListTag();
+        final ValueOutput.ValueOutputList groupsOutput = output.childrenList(GROUPS_TAG_NAME);
         for (int i = 0; i < groupCount; i++) {
-            saveGroup(i);
-
-            final CompoundTag sideTag = new CompoundTag();
-
-            sideTag.putUUID(GROUP_ID_TAG_NAME, groupIds[i]);
-            sideTag.put(GROUP_DATA_TAG_NAME, groupData[i]);
-
-            listTag.add(sideTag);
+            final ValueOutput groupOutput = groupsOutput.addChild();
+            groupOutput.store(GROUP_ID_TAG_NAME, UUIDUtil.CODEC, groupIds[i]);
+            saveGroup(i, groupOutput.child(GROUP_DATA_TAG_NAME));
         }
-
-        final CompoundTag tag = new CompoundTag();
-        tag.put(GROUPS_TAG_NAME, listTag);
-        return tag;
     }
 
-    public void load(final CompoundTag tag) {
-        final ListTag listTag = tag.getList(GROUPS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
-
-        final int count = Math.min(groupCount, listTag.size());
-        for (int i = 0; i < count; i++) {
-            final CompoundTag sideTag = listTag.getCompound(i);
-
-            if (sideTag.hasUUID(GROUP_ID_TAG_NAME)) {
-                groupIds[i] = sideTag.getUUID(GROUP_ID_TAG_NAME);
+    public void load(final ValueInput input) {
+        int i = 0;
+        for (final ValueInput groupInput : input.childrenListOrEmpty(GROUPS_TAG_NAME)) {
+            if (i >= groupCount) {
+                break;
             }
-            if (sideTag.contains(GROUP_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-                groupData[i] = sideTag.getCompound(GROUP_DATA_TAG_NAME);
-            }
+
+            groupIds[i] = groupInput.read(GROUP_ID_TAG_NAME, UUIDUtil.CODEC).orElse(groupIds[i]);
+            groupData[i] = groupInput.read(GROUP_DATA_TAG_NAME, CompoundTag.CODEC).orElse(groupData[i]);
 
             // Immediately load data into devices, if we already have some.
+            final ValueInput devicesInput = groupInput.childOrEmpty(GROUP_DATA_TAG_NAME);
             for (final TEntry entry : groups.get(i)) {
-                final CompoundTag devicesTag = groupData[i];
-                entry.getDeviceDataKey().ifPresent(key -> {
-                    if (devicesTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                        entry.getDevice().deserializeNBT(devicesTag.getCompound(key));
-                    }
-                });
+                entry.getDeviceDataKey()
+                    .flatMap(devicesInput::child)
+                    .ifPresent(entry.getDevice()::deserialize);
             }
+
+            i++;
+        }
+    }
+
+    public void reset() {
+        final boolean hadEntries = groups.stream().anyMatch(group -> !group.isEmpty());
+        for (int i = 0; i < groupCount; i++) {
+            for (final TEntry entry : groups.get(i)) {
+                devices.removeInt(entry.getDevice());
+                deviceGroups.removeInt(entry.getDevice());
+                onEntryRemoved(entry);
+            }
+            groups.get(i).clear();
+            groupData[i] = new CompoundTag();
+        }
+
+        if (hadEntries) {
+            scanDevices();
         }
     }
 
@@ -120,7 +128,11 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         }
 
         onSaving();
-        saveGroup(index);
+        final CompoundTag devicesTag = groupData[index];
+        for (final TEntry entry : oldEntries) {
+            entry.getDeviceDataKey().ifPresent(key ->
+                devicesTag.put(key, SerializationUtils.saveToTag(new ProblemReporter.RootFieldPathElement(key), getRegistries(), entry.getDevice()::serialize)));
+        }
 
         for (final TEntry entry : oldEntries) {
             devices.removeInt(entry.getDevice());
@@ -137,7 +149,7 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         final HashSet<TEntry> entries = groups.get(index);
         if (Objects.equals(newEntries, entries)) {
             if (entries.isEmpty()) {
-                groupData[index].getAllKeys().clear();
+                groupData[index].keySet().clear();
             }
 
             return;
@@ -174,12 +186,13 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         // the list of serialized data we have for devices that have gone missing without being
         // explicitly removed. This can happen if a device is removed while the bus element is
         // unloaded.
-        final HashSet<String> invalidDataKeys = new HashSet<>(devicesTag.getAllKeys());
+        final HashSet<String> invalidDataKeys = new HashSet<>(devicesTag.keySet());
         for (final TEntry entry : addedEntries) {
             entry.getDeviceDataKey().ifPresent(key -> {
                 invalidDataKeys.remove(key);
-                if (devicesTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                    entry.getDevice().deserializeNBT(devicesTag.getCompound(key));
+                final Optional<CompoundTag> deviceTag = devicesTag.getCompound(key);
+                if (deviceTag.isPresent()) {
+                    SerializationUtils.loadFromTag(new ProblemReporter.RootFieldPathElement(key), getRegistries(), deviceTag.get(), entry.getDevice()::deserialize);
                 } else {
                     devicesTag.remove(key);
                 }
@@ -207,6 +220,8 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         }
     }
 
+    protected abstract HolderLookup.Provider getRegistries();
+
     protected void onEntryAdded(final TEntry entry) {
     }
 
@@ -223,17 +238,25 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         }
     }
 
-    private void saveGroup(final int index) {
-        // We merge into what's already present instead of replacing it, because we might be saving
-        // before we had a chance to do a full scan (something triggered a chunk save immediately
-        // after its load for example). In that case we might end up dropping saved data here, which
-        // would then be missing on the next load+scan. Any stale data we accumulate this way will
-        // be cleaned up in the next controller scan.
+    private void saveGroup(final int index, final ValueOutput output) {
+        // We keep data of devices that are not present (yet), because we might be saving before we
+        // had a chance to do a full scan (something triggered a chunk save immediately after its load
+        // for example). Otherwise, we might end up dropping saved data here, which would then be missing
+        // on the next load+scan. Any stale data we accumulate this way will be cleaned up in the next
+        // controller scan.
         final CompoundTag devicesTag = groupData[index];
+        final HashSet<String> savedKeys = new HashSet<>();
         for (final TEntry entry : groups.get(index)) {
-            entry.getDeviceDataKey().ifPresent(key ->
+            entry.getDeviceDataKey().ifPresent(key -> {
                 // Always store, even if the data is empty, so we know a device by this provider existed.
-                devicesTag.put(key, entry.getDevice().serializeNBT()));
+                entry.getDevice().serialize(output.child(key));
+                savedKeys.add(key);
+            });
+        }
+        for (final String key : devicesTag.keySet()) {
+            if (!savedKeys.contains(key)) {
+                devicesTag.getCompound(key).ifPresent(tag -> output.store(key, CompoundTag.CODEC, tag));
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ package li.cil.oc2.common.util;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -74,7 +74,7 @@ public final class LevelUtils {
 
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity != null) {
-            final ResourceLocation registryName = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType());
+            final Identifier registryName = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType());
             if (registryName != null) {
                 return registryName.toString();
             }
@@ -82,7 +82,7 @@ public final class LevelUtils {
 
         final Block block = level.getBlockState(pos).getBlock();
         {
-            final ResourceLocation registryName = BuiltInRegistries.BLOCK.getKey(block);
+            final Identifier registryName = BuiltInRegistries.BLOCK.getKey(block);
             if (registryName != null) {
                 return registryName.toString();
             }

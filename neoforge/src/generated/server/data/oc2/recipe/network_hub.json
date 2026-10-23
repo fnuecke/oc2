@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "oc2:network_connector",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "ICI",
+    "CTC",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:network_hub"
+  }
+}

@@ -2,11 +2,10 @@
 
 package li.cil.oc2.common.bus.device.rpc;
 
-import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
 
@@ -15,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public final class RPCItemStackTagFilter {
-    public ResourceLocation item;
+    public Identifier item;
     public String[] tags;
 
     private String[][] paths; // Cache of resolved paths specified in tags.
@@ -59,10 +58,10 @@ public final class RPCItemStackTagFilter {
         CompoundTag currentTarget = result;
         for (int j = 0; j < path.length - 1; j++) {
             final String segment = path[j];
-            if (currentSource.contains(segment, NBTTagIds.TAG_COMPOUND)) {
-                currentSource = currentSource.getCompound(segment);
+            if (currentSource.getCompound(segment).isPresent()) {
+                currentSource = currentSource.getCompoundOrEmpty(segment);
                 currentTarget.put(segment, new CompoundTag());
-                currentTarget = currentTarget.getCompound(segment);
+                currentTarget = currentTarget.getCompoundOrEmpty(segment);
             } else {
                 return null; // Path mismatch, inner element is not a compound tag.
             }

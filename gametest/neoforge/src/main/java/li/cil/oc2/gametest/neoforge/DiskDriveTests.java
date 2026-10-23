@@ -5,18 +5,18 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.DiskDriveFixture;
 import li.cil.oc2.gametest.util.Drops;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "disk_drive")
 public final class DiskDriveTests {
-    @GameTest(template = TEMPLATE, timeoutTicks = 200)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 200)
+    @TestHolder
     public static void breakingDiskDriveDropsItsFloppy(final GameTestHelper helper) {
         final DiskDriveFixture drive = DiskDriveFixture.place(helper);
 

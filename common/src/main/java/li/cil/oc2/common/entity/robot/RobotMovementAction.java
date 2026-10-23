@@ -4,16 +4,16 @@ package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.Robot;
-import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.SerializationUtils;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -57,8 +57,8 @@ public final class RobotMovementAction extends AbstractRobotAction {
         this.direction = direction.resolve();
     }
 
-    RobotMovementAction(final CompoundTag tag) {
-        super(RobotActions.MOVEMENT, tag);
+    RobotMovementAction(final ValueInput input) {
+        super(RobotActions.MOVEMENT, input);
     }
 
     // --------------------------------------------------------------------- //
@@ -147,33 +147,25 @@ public final class RobotMovementAction extends AbstractRobotAction {
     }
 
     @Override
-    public CompoundTag serialize() {
-        final CompoundTag tag = super.serialize();
+    public void serialize(final ValueOutput output) {
+        super.serialize(output);
 
-        NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
-        if (origin != null) {
-            tag.put(ORIGIN_TAG_NAME, NbtUtils.writeBlockPos(origin));
-        }
-        if (start != null) {
-            tag.put(START_TAG_NAME, NbtUtils.writeBlockPos(start));
-        }
-        if (target != null) {
-            tag.put(TARGET_TAG_NAME, NbtUtils.writeBlockPos(target));
-        }
-
-        return tag;
+        SerializationUtils.putEnum(output, DIRECTION_TAG_NAME, direction);
+        output.storeNullable(ORIGIN_TAG_NAME, BlockPos.CODEC, origin);
+        output.storeNullable(START_TAG_NAME, BlockPos.CODEC, start);
+        output.storeNullable(TARGET_TAG_NAME, BlockPos.CODEC, target);
     }
 
     @Override
-    public void deserialize(final CompoundTag tag) {
-        super.deserialize(tag);
+    public void deserialize(final ValueInput input) {
+        super.deserialize(input);
 
-        direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, MovementDirection.class);
+        direction = SerializationUtils.getEnum(input, DIRECTION_TAG_NAME, MovementDirection.class);
         if (direction == null) direction = MovementDirection.FORWARD;
         direction = direction.resolve();
-        origin = NbtUtils.readBlockPos(tag, ORIGIN_TAG_NAME).orElse(null);
-        start = NbtUtils.readBlockPos(tag, START_TAG_NAME).orElse(null);
-        target = NbtUtils.readBlockPos(tag, TARGET_TAG_NAME).orElse(null);
+        origin = input.read(ORIGIN_TAG_NAME, BlockPos.CODEC).orElse(null);
+        start = input.read(START_TAG_NAME, BlockPos.CODEC).orElse(null);
+        target = input.read(TARGET_TAG_NAME, BlockPos.CODEC).orElse(null);
         if (target != null) {
             targetPos = getTargetPositionInBlock(target);
         }
@@ -211,7 +203,7 @@ public final class RobotMovementAction extends AbstractRobotAction {
 
     private static boolean shouldMoveEntity(final Entity entity) {
         if (entity.level().isClientSide()) {
-            return entity.isControlledByLocalInstance();
+            return entity.isLocalInstanceAuthoritative();
         } else {
             final boolean isPlayer = entity instanceof Player;
             final boolean isControlledByPlayer = entity.getControllingPassenger() instanceof Player;

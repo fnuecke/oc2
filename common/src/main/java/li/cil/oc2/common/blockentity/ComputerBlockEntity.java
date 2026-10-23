@@ -37,8 +37,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -47,6 +50,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -265,60 +270,69 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         tag.putInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME, virtualMachine.getRunState().ordinal());
         final Component bootError = virtualMachine.getBootError();
         if (bootError != null) {
-            tag.putString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, Component.Serializer.toJson(bootError, registries));
+            tag.store(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, ComponentSerialization.CODEC, registries.createSerializationContext(NbtOps.INSTANCE), bootError);
         }
 
         return tag;
     }
 
-
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-
-        if (virtualMachine.getRunState() != VMRunState.STOPPED) {
-            tag.put(STATE_TAG_NAME, virtualMachine.serialize());
-            synchronized (terminal) {
-                tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
-            }
-        }
-
-        tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
-        tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
-        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems(registries));
-        tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
+    public void removeComponentsFromTag(final ValueOutput output) {
+        // Picked blocks must not share running state or blobs with this computer.
+        output.discard(STATE_TAG_NAME);
+        output.discard(TERMINAL_TAG_NAME);
+        output.discard(ENERGY_TAG_NAME);
+        output.discard(BUS_ELEMENT_TAG_NAME);
+        output.discard(ITEMS_TAG_NAME);
+        output.discard(DEVICES_TAG_NAME);
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
-        virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
+        if (virtualMachine.getRunState() != VMRunState.STOPPED) {
+            virtualMachine.serialize(output.child(STATE_TAG_NAME));
+            synchronized (terminal) {
+                output.store(TERMINAL_TAG_NAME, CompoundTag.CODEC, NBTSerialization.serialize(terminal));
+            }
+        }
+
+        energy.serialize(output.child(ENERGY_TAG_NAME));
+        busElement.save(output.child(BUS_ELEMENT_TAG_NAME));
+        deviceItems.saveItems(output.child(ITEMS_TAG_NAME));
+        deviceItems.saveDevices(output.child(DEVICES_TAG_NAME));
+    }
+
+    @Override
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
+
+        energy.deserialize(input.childOrEmpty(ENERGY_TAG_NAME));
+        virtualMachine.deserialize(input.childOrEmpty(STATE_TAG_NAME));
+        NBTSerialization.deserialize(SerializationUtils.getCompoundOrEmpty(input, TERMINAL_TAG_NAME), terminal);
 
         // Client-visible state, only present in the tag produced by getUpdateTag().
-        if (tag.contains(AbstractVirtualMachine.BUS_STATE_TAG_NAME)) {
+        if (input.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME).isPresent()) {
             EnvExecutor.runInEnv(EnvType.CLIENT, () -> () -> {
-                virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[tag.getInt(AbstractVirtualMachine.BUS_STATE_TAG_NAME)]);
-                virtualMachine.setRunStateClient(VMRunState.values()[tag.getInt(AbstractVirtualMachine.RUN_STATE_TAG_NAME)]);
-                virtualMachine.setBootErrorClient(tag.contains(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME)
-                    ? Component.Serializer.fromJson(tag.getString(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME), registries)
-                    : null);
+                virtualMachine.setBusStateClient(CommonDeviceBusController.BusState.values()[input.getIntOr(AbstractVirtualMachine.BUS_STATE_TAG_NAME, 0)]);
+                virtualMachine.setRunStateClient(VMRunState.values()[input.getIntOr(AbstractVirtualMachine.RUN_STATE_TAG_NAME, 0)]);
+                virtualMachine.setBootErrorClient(input.read(AbstractVirtualMachine.BOOT_ERROR_TAG_NAME, ComponentSerialization.CODEC).orElse(null));
             });
         }
-        busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
+        busElement.load(input.childOrEmpty(BUS_ELEMENT_TAG_NAME));
 
-        deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
-        deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
+        deviceItems.resetDevices();
+        deviceItems.loadItems(input.childOrEmpty(ITEMS_TAG_NAME));
+        deviceItems.loadDevices(input.childOrEmpty(DEVICES_TAG_NAME));
     }
 
     public void exportToItemStack(final ItemStack stack) {
         final HolderLookup.Provider registries = requireNonNull(getLevel()).registryAccess();
-        ItemStackUtils.modifyBlockEntityDataTag(stack, getType(), tag -> {
-            deviceItems.saveItems(registries, NBTUtils.getOrCreateChildTag(tag, ITEMS_TAG_NAME));
-            tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
-        });
+        ItemStackUtils.modifyBlockEntityDataTag(stack, getType(), tag -> tag.merge(SerializationUtils.saveToTag(problemPath(), registries, output -> {
+            deviceItems.saveItems(output.child(ITEMS_TAG_NAME));
+            energy.serialize(output.child(ENERGY_TAG_NAME));
+        })));
     }
 
     // --------------------------------------------------------------------- //
@@ -469,6 +483,11 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
+        protected HolderLookup.Provider getRegistries() {
+            return requireNonNull(level).registryAccess();
+        }
+
+        @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return Devices.makeQuery(deviceItems.getArchitectureType().orElse(null), ComputerBlockEntity.this, stack);
         }
@@ -542,17 +561,15 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
-        public CompoundTag save() {
-            final CompoundTag tag = super.save();
-            tag.putUUID(DEVICE_ID_TAG_NAME, deviceId);
-            return tag;
+        public void save(final ValueOutput output) {
+            super.save(output);
+            output.store(DEVICE_ID_TAG_NAME, UUIDUtil.CODEC, deviceId);
         }
 
-        public void load(final CompoundTag tag) {
-            super.load(tag);
-            if (tag.hasUUID(DEVICE_ID_TAG_NAME)) {
-                deviceId = tag.getUUID(DEVICE_ID_TAG_NAME);
-            }
+        @Override
+        public void load(final ValueInput input) {
+            super.load(input);
+            deviceId = input.read(DEVICE_ID_TAG_NAME, UUIDUtil.CODEC).orElse(deviceId);
         }
     }
 

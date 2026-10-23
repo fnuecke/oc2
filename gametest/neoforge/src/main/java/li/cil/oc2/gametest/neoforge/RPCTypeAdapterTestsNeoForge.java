@@ -3,28 +3,29 @@
 package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.gametest.RPCTypeAdapterTests;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
-import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "rpc_type_adapter")
 public final class RPCTypeAdapterTestsNeoForge {
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void directionAdapterIsApplied(final GameTestHelper helper) {
         RPCTypeAdapterTests.directionAdapterIsApplied(helper);
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void itemStackAdapterIsApplied(final GameTestHelper helper) {
         RPCTypeAdapterTests.itemStackAdapterIsApplied(helper);
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void itemStackCarriesFilteredComponents(final GameTestHelper helper) {
         RPCTypeAdapterTests.itemStackCarriesFilteredComponents(helper);
     }

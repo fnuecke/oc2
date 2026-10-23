@@ -5,7 +5,7 @@ import li.cil.oc2.api.platform.FabricRegistrationInitializer;
 import li.cil.oc2.api.util.Registries;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 // Fabric only calls this when oc2 is present.
 public final class Registration implements FabricRegistrationInitializer {
@@ -16,6 +16,6 @@ public final class Registration implements FabricRegistrationInitializer {
     public void registerObjects() {
         final Registry<BlockDeviceProvider> registry =
             (Registry<BlockDeviceProvider>) BuiltInRegistries.REGISTRY.get(Registries.BLOCK_DEVICE_PROVIDER.location());
-        Registry.register(registry, ResourceLocation.fromNamespaceAndPath(MOD_ID, "furnace"), new FurnaceDeviceProvider());
+        Registry.register(registry, Identifier.fromNamespaceAndPath(MOD_ID, "furnace"), new FurnaceDeviceProvider());
     }
 }

@@ -10,9 +10,10 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityProvider;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 
@@ -56,14 +57,12 @@ public final class RedstoneInterfaceCardItemDevice extends AbstractItemDevice im
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        final CompoundTag tag = new CompoundTag();
-        redstoneInterface.save(tag);
-        return tag;
+    public void serialize(final ValueOutput output) {
+        redstoneInterface.save(output);
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag tag) {
-        redstoneInterface.load(tag);
+    public void deserialize(final ValueInput input) {
+        redstoneInterface.load(input);
     }
 }

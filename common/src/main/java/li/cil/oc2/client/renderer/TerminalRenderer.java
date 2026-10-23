@@ -3,25 +3,19 @@
 package li.cil.oc2.client.renderer;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import li.cil.oc2.api.API;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
-
-import javax.annotation.Nullable;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static li.cil.oc2.common.vm.device.Terminal.*;
 
 @Environment(EnvType.CLIENT)
-public final class TerminalRenderer implements Terminal.Listener, AutoCloseable {
-    private static final ResourceLocation LOCATION_FONT_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/font/terminus.png");
+public final class TerminalRenderer {
+    private static final Identifier LOCATION_FONT_TEXTURE = Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/font/terminus.png");
     private static final int TEXTURE_RESOLUTION = 256;
     private static final float ONE_OVER_TEXTURE_RESOLUTION = 1.0f / TEXTURE_RESOLUTION;
     private static final float CHAR_WIDTH_IN_UV = CHAR_WIDTH * ONE_OVER_TEXTURE_RESOLUTION;
@@ -71,118 +65,27 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
 
     private final Terminal terminal;
 
-    @Nullable
-    private VertexBuffer buffer;
-
-    private final AtomicBoolean dirty = new AtomicBoolean(true);
-
     private final Matrix4f rowMatrix = new Matrix4f();
-    private final Matrix4f modelViewMatrix = new Matrix4f();
 
     // --------------------------------------------------------------------- //
 
     public TerminalRenderer(final Terminal terminal) {
         this.terminal = terminal;
-        terminal.addListener(this);
     }
 
     // --------------------------------------------------------------------- //
 
-    public void render(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-        renderBody(stack, modelViewBase, projectionMatrix);
-
-        if (shouldRenderCursor(terminal)) {
-            renderCursor(stack);
-        }
-    }
-
-    public void renderBody(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-        validateMesh();
-        renderBuffer(stack, modelViewBase, projectionMatrix);
-    }
-
-    @Override
-    public void handleTerminalChanged() {
-        dirty.set(true);
-    }
-
-    @Override
-    public void close() {
-        terminal.removeListener(this);
-        releaseBuffer();
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private void releaseBuffer() {
-        if (buffer != null) {
-            buffer.close();
-            buffer = null;
-        }
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private void renderBuffer(final PoseStack stack, final Matrix4f modelViewBase, final Matrix4f projectionMatrix) {
-        if (buffer == null) {
-            return;
-        }
-
-        ShaderInstance shader = ModShaders.getTerminalShader();
-        if (shader == null) {
-            // Shouldn't really happen, but just in case.
-            shader = GameRenderer.getPositionTexColorShader();
-        }
-        if (shader == null) {
-            return;
-        }
-
-        RenderSystem.depthMask(false);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
-
-        modelViewMatrix.set(modelViewBase).mul(stack.last().pose());
-
-        buffer.bind();
-        buffer.drawWithShader(modelViewMatrix, projectionMatrix, shader);
-        VertexBuffer.unbind();
-
-        RenderSystem.disableBlend();
-        RenderSystem.depthMask(true);
-    }
-
-    private void validateMesh() {
-        if (!dirty.getAndSet(false)) {
-            return;
-        }
-
-        final BufferBuilder builder = Tesselator.getInstance()
-            .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-
+    public void buildBody(final VertexConsumer builder) {
         for (int row = 0; row < HEIGHT; row++) {
             rowMatrix.translation(0, row * CHAR_HEIGHT, 0);
             renderBackground(rowMatrix, builder, row);
             renderForeground(rowMatrix, builder, row);
         }
-
-        final MeshData mesh = builder.build();
-        if (mesh == null) {
-            // Nothing visible at all; drop the buffer rather than leave the last frame on screen.
-            releaseBuffer();
-            return;
-        }
-
-        if (buffer == null) {
-            buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-        }
-
-        buffer.bind();
-        buffer.upload(mesh);
-        VertexBuffer.unbind();
     }
 
-    private void renderBackground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
+    // --------------------------------------------------------------------- //
+
+    private void renderBackground(final Matrix4f matrix, final VertexConsumer buffer, final int row) {
         // State tracking for drawing background quads spanning multiple characters.
         float backgroundStartX = -1;
         int backgroundColor = 0;
@@ -217,7 +120,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         }
     }
 
-    private void renderBackground(final Matrix4f matrix, final BufferBuilder buffer, final float x0, final float x1, final int color) {
+    private void renderBackground(final Matrix4f matrix, final VertexConsumer buffer, final float x0, final float x1, final int color) {
         final float r = ((color >> 16) & 0xFF) / 255f;
         final float g = ((color >> 8) & 0xFF) / 255f;
         final float b = (color & 0xFF) / 255f;
@@ -228,7 +131,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         buffer.addVertex(matrix, x0, 0, 0).setColor(r, g, b, 1).setUv(WHITE_U, WHITE_V);
     }
 
-    private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final int row) {
+    private void renderForeground(final Matrix4f matrix, final VertexConsumer buffer, final int row) {
         float tx = 0f;
         for (int col = 0, index = row * WIDTH; col < WIDTH; col++, index++) {
             final int cell = terminal.getCell(index);
@@ -253,7 +156,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         return COLORS[index];
     }
 
-    private void renderForeground(final Matrix4f matrix, final BufferBuilder buffer, final float offset, final int character, final int color, final boolean isBold, final boolean isUnderline) {
+    private void renderForeground(final Matrix4f matrix, final VertexConsumer buffer, final float offset, final int character, final int color, final boolean isBold, final boolean isUnderline) {
         final float r = ((color >> 16) & 0xFF) / 255f;
         final float g = ((color >> 8) & 0xFF) / 255f;
         final float b = (color & 0xFF) / 255f;
@@ -280,33 +183,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         }
     }
 
-    private void renderCursor(final PoseStack stack) {
-        ShaderInstance shader = ModShaders.getTerminalShader();
-        if (shader == null) {
-            shader = GameRenderer.getPositionTexColorShader();
-        }
-        if (shader == null) {
-            return;
-        }
-
-        RenderSystem.depthMask(false);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderTexture(0, LOCATION_FONT_TEXTURE);
-
-        final ShaderInstance cursorShader = shader;
-        RenderSystem.setShader(() -> cursorShader);
-
-        final BufferBuilder buffer = Tesselator.getInstance()
-            .begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        buildCursor(stack.last().pose(), buffer);
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
-
-        RenderSystem.disableBlend();
-        RenderSystem.depthMask(true);
-    }
-
-    void buildCursor(final Matrix4f matrix, final BufferBuilder builder) {
+    void buildCursor(final Matrix4f matrix, final VertexConsumer builder) {
         final int cursorX = terminal.getCursorX();
         final int cursorY = terminal.getCursorY();
         final int cell = terminal.getCell(cursorY * WIDTH + cursorX);
@@ -322,7 +199,7 @@ public final class TerminalRenderer implements Terminal.Listener, AutoCloseable 
         }
     }
 
-    static ResourceLocation getFontTexture() {
+    static Identifier getFontTexture() {
         return LOCATION_FONT_TEXTURE;
     }
 

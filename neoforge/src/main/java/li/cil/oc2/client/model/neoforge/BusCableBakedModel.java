@@ -7,144 +7,96 @@ import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.TriState;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.neoforged.neoforge.client.ChunkRenderTypeSet;
-import net.neoforged.neoforge.client.model.IDynamicBakedModel;
-import net.neoforged.neoforge.client.model.data.ModelData;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public record BusCableBakedModel(
-    BakedModel proxy,
-    BakedModel[] straightModelByAxis,
-    BakedModel[] supportModelByFace
-) implements IDynamicBakedModel {
-    private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
-    private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
-    private static final ChunkRenderTypeSet CABLE_RENDER_TYPES = ChunkRenderTypeSet.of(RenderType.solid());
-
-    // --------------------------------------------------------------------- //
-
+    BlockStateModel proxy,
+    BlockModelPart[] straightModelByAxis,
+    BlockModelPart[] supportModelByFace
+) implements DynamicBlockStateModel {
     @Override
-    public ChunkRenderTypeSet getRenderTypes(final BlockState state, final RandomSource rand, final ModelData data) {
-        if (data.has(BUS_CABLE_FACADE_PROPERTY)) {
-            final BusCableFacade facade = data.get(BUS_CABLE_FACADE_PROPERTY);
-            return facade != null
-                ? facade.model.getRenderTypes(facade.blockState, rand, facade.data)
-                : ChunkRenderTypeSet.none();
+    public void collectParts(final BlockAndTintGetter level, final BlockPos pos, final BlockState state,
+                             final RandomSource random, final List<BlockModelPart> parts) {
+        if (state.hasProperty(BusCableBlock.HAS_FACADE) && state.getValue(BusCableBlock.HAS_FACADE)) {
+            collectFacadeParts(level, pos, random, parts);
+            return;
         }
 
-        return CABLE_RENDER_TYPES;
-    }
-
-    @Override
-    public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final RandomSource rand, final ModelData extraData, @Nullable final RenderType layer) {
-        if (extraData.has(BUS_CABLE_FACADE_PROPERTY)) {
-            final BusCableFacade facade = extraData.get(BUS_CABLE_FACADE_PROPERTY);
-            if (facade != null && (layer == null || facade.model.getRenderTypes(facade.blockState, rand, facade.data).contains(layer))) {
-                return facade.model.getQuads(facade.blockState, side, rand, facade.data, layer);
-            } else {
-                return Collections.emptyList();
-            }
-        }
-
-        if (state == null || !state.getValue(BusCableBlock.HAS_CABLE) || layer == null || !layer.equals(RenderType.solid())) {
-            return Collections.emptyList();
+        if (!state.hasProperty(BusCableBlock.HAS_CABLE) || !state.getValue(BusCableBlock.HAS_CABLE)) {
+            return;
         }
 
         for (int i = 0; i < Constants.AXES.length; i++) {
-            final Direction.Axis axis = Constants.AXES[i];
-            if (isStraightAlongAxis(state, axis)) {
-                return straightModelByAxis[i].getQuads(state, side, rand, extraData, layer);
+            if (isStraightAlongAxis(state, Constants.AXES[i])) {
+                parts.add(straightModelByAxis[i]);
+                return;
             }
         }
 
-        final ArrayList<BakedQuad> quads = new ArrayList<>(proxy.getQuads(state, side, rand, extraData, layer));
+        proxy.collectParts(level, pos, state, random, parts);
 
-        final BusCableSupportSide supportSide = extraData.get(BUS_CABLE_SUPPORT_PROPERTY);
+        final Direction supportSide = getSupportSide(level, pos, state);
         if (supportSide != null) {
-            quads.addAll(supportModelByFace[supportSide.value.get3DDataValue()].getQuads(state, side, rand, extraData, layer));
+            parts.add(supportModelByFace[supportSide.get3DDataValue()]);
         }
-
-        return quads;
-    }
-
-    @Override
-    public boolean useAmbientOcclusion() {
-        return proxy.useAmbientOcclusion();
-    }
-
-    @Override
-    public boolean isGui3d() {
-        return proxy.isGui3d();
-    }
-
-    @Override
-    public boolean usesBlockLight() {
-        return proxy.usesBlockLight();
-    }
-
-    @Override
-    public boolean isCustomRenderer() {
-        return proxy.isCustomRenderer();
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public TextureAtlasSprite getParticleIcon() {
-        return proxy.getParticleIcon();
+    public TextureAtlasSprite particleIcon() {
+        return proxy.particleIcon();
     }
 
-    @Override
-    public ItemOverrides getOverrides() {
-        return proxy.getOverrides();
-    }
+    // --------------------------------------------------------------------- //
 
-    @Override
-    public ModelData getModelData(final BlockAndTintGetter level, final BlockPos pos, final BlockState state, final ModelData blockEntityData) {
-        if (state.hasProperty(BusCableBlock.HAS_FACADE) && state.getValue(BusCableBlock.HAS_FACADE)) {
-            final BlockEntity blockEntity = level.getBlockEntity(pos);
+    private static void collectFacadeParts(final BlockAndTintGetter level, final BlockPos pos,
+                                           final RandomSource random, final List<BlockModelPart> parts) {
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
 
-            BlockState facadeState = null;
-            if (blockEntity instanceof final BusCableBlockEntity busCable) {
-                final ItemStack facadeItem = busCable.getFacade();
-                facadeState = ItemStackUtils.getBlockState(facadeItem);
-            }
-            if (facadeState == null) {
-                facadeState = Blocks.IRON_BLOCK.defaultBlockState();
-            }
-
-            final BlockModelShaper shapes = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper();
-            final BakedModel model = shapes.getBlockModel(facadeState);
-            final ModelData data = model.getModelData(level, pos, facadeState, blockEntityData);
-
-            return ModelData.of(BUS_CABLE_FACADE_PROPERTY, new BusCableFacade(facadeState, model, data));
+        BlockState facadeState = null;
+        if (blockEntity instanceof final BusCableBlockEntity busCable) {
+            final ItemStack facadeItem = busCable.getFacade();
+            facadeState = ItemStackUtils.getBlockState(facadeItem);
+        }
+        if (facadeState == null) {
+            facadeState = Blocks.IRON_BLOCK.defaultBlockState();
         }
 
+        final BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getBlockModel(facadeState);
+        final List<BlockModelPart> facadeParts = new ArrayList<>();
+        model.collectParts(level, pos, facadeState, random, facadeParts);
+        for (final BlockModelPart part : facadeParts) {
+            parts.add(new FacadePart(part, part.getRenderType(facadeState)));
+        }
+    }
+
+    @Nullable
+    private static Direction getSupportSide(final BlockAndTintGetter level, final BlockPos pos, final BlockState state) {
         Direction supportSide = null;
         for (final Direction direction : Constants.DIRECTIONS) {
             if (isNeighborInDirectionSolid(level, pos, direction)) {
                 final EnumProperty<BusCableBlock.ConnectionType> property = BusCableBlock.FACING_TO_CONNECTION_MAP.get(direction);
                 if (state.hasProperty(property) && state.getValue(property) == BusCableBlock.ConnectionType.INTERFACE) {
-                    return blockEntityData; // Plug is already supporting us, bail.
+                    return null; // Plug is already supporting us, bail.
                 }
 
                 if (supportSide == null) { // Prefer vertical supports.
@@ -153,14 +105,8 @@ public record BusCableBakedModel(
             }
         }
 
-        if (supportSide != null) {
-            return ModelData.of(BUS_CABLE_SUPPORT_PROPERTY, new BusCableSupportSide(supportSide));
-        }
-
-        return blockEntityData;
+        return supportSide;
     }
-
-    // --------------------------------------------------------------------- //
 
     private static boolean isNeighborInDirectionSolid(final BlockAndTintGetter level, final BlockPos pos, final Direction direction) {
         final BlockPos neighborPos = pos.relative(direction);
@@ -184,11 +130,30 @@ public record BusCableBakedModel(
         return true;
     }
 
-    // --------------------------------------------------------------------- //
+    private record FacadePart(BlockModelPart part, ChunkSectionLayer layer) implements BlockModelPart {
+        @Override
+        public List<BakedQuad> getQuads(@Nullable final Direction side) {
+            return part.getQuads(side);
+        }
 
-    private record BusCableSupportSide(Direction value) {
-    }
+        @Override
+        public boolean useAmbientOcclusion() {
+            return part.useAmbientOcclusion();
+        }
 
-    private record BusCableFacade(BlockState blockState, BakedModel model, ModelData data) {
+        @Override
+        public TextureAtlasSprite particleIcon() {
+            return part.particleIcon();
+        }
+
+        @Override
+        public ChunkSectionLayer getRenderType(final BlockState state) {
+            return layer;
+        }
+
+        @Override
+        public TriState ambientOcclusion() {
+            return part.ambientOcclusion();
+        }
     }
 }

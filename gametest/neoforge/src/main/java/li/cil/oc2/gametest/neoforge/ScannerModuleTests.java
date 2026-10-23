@@ -8,14 +8,16 @@ import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.bus.device.item.ScannerModuleDevice;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.util.SerializationUtils;
 import li.cil.oc2.gametest.device.GuestTestDevices;
 import li.cil.oc2.gametest.fixture.GuestTests;
 import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -25,17 +27,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import java.util.Arrays;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static li.cil.oc2.gametest.util.DeviceCalls.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "scanner_module")
 public final class ScannerModuleTests {
     private static final String GUEST_BATCH = "oc2_scanner_guest";
     private static final String GUEST_SUITE = "robot_scanner";
@@ -50,7 +53,8 @@ public final class ScannerModuleTests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void robotWithModuleProvidesTheScanner(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -67,7 +71,8 @@ public final class ScannerModuleTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void inspectIdentifiesBlockFluidAndEntities(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -82,9 +87,9 @@ public final class ScannerModuleTests {
                 assertEquals(helper, "nothing is in front", 0, inspection.entities().length);
 
                 helper.getLevel().setBlockAndUpdate(robot.frontPos(),
-                    Blocks.CHAIN.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, true));
+                    Blocks.IRON_CHAIN.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, true));
                 inspection = scanner.inspect(RobotOperationSide.FRONT);
-                assertTrue(helper, "a waterlogged chain is a chain, got " + inspection.block(), "minecraft:chain".equals(inspection.block()));
+                assertTrue(helper, "a waterlogged chain is a chain, got " + inspection.block(), "minecraft:iron_chain".equals(inspection.block()));
                 assertTrue(helper, "and holds water, got " + inspection.fluid(), "minecraft:water".equals(inspection.fluid()));
 
                 helper.getLevel().setBlockAndUpdate(robot.frontPos(),
@@ -101,7 +106,8 @@ public final class ScannerModuleTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void scanReportsHardnessInCompassOrder(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -132,7 +138,8 @@ public final class ScannerModuleTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void scanListsTheClosestEntitiesFirstAndCapsThem(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -155,7 +162,8 @@ public final class ScannerModuleTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 400)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 400)
+    @TestHolder
     public static void scanRechargesAcrossSaving(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final ScannerModuleDevice scanner = scannerFor(robot);
@@ -166,14 +174,17 @@ public final class ScannerModuleTests {
                 assertRecharging(helper, scanner, "a second scan right away");
 
                 final ScannerModuleDevice reloaded = scannerFor(robot);
-                reloaded.deserializeNBT(scanner.serializeNBT());
+                final HolderLookup.Provider registries = helper.getLevel().registryAccess();
+                SerializationUtils.loadFromTag(ProblemReporter.Collector.EMPTY_ROOT, registries,
+                    SerializationUtils.saveToTag(ProblemReporter.Collector.EMPTY_ROOT, registries, scanner::serialize), reloaded::deserialize);
                 assertRecharging(helper, reloaded, "a reloaded scanner");
             })
             .thenExecuteAfter(COOLDOWN_TICKS, scanner::scan)
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void skyVisibilityFollowsTheBlocksAbove(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final ScannerModuleDevice scanner = scannerFor(robot);
@@ -187,7 +198,8 @@ public final class ScannerModuleTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void ioReadsInspectionsAndScanLayers(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -196,10 +208,10 @@ public final class ScannerModuleTests {
                 final ScannerModuleDevice scanner = scannerFor(robot);
 
                 helper.getLevel().setBlockAndUpdate(robot.frontPos(),
-                    Blocks.CHAIN.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, true));
+                    Blocks.IRON_CHAIN.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, true));
                 final byte[] inspection = invokeIo(scanner, INSPECT_CODE, SIDE_FRONT);
                 assertEquals(helper, "an inspection is five bytes", 5, inspection.length);
-                assertEquals(helper, "the block id", BuiltInRegistries.BLOCK.getId(Blocks.CHAIN), u16(inspection, 0));
+                assertEquals(helper, "the block id", BuiltInRegistries.BLOCK.getId(Blocks.IRON_CHAIN), u16(inspection, 0));
                 assertEquals(helper, "the fluid id", BuiltInRegistries.FLUID.getId(Fluids.WATER), u16(inspection, 2));
                 assertEquals(helper, "the entity count", 0, inspection[4]);
 
@@ -211,7 +223,7 @@ public final class ScannerModuleTests {
                 }
                 assertThrows(helper, "a layer past the cube", () -> invokeIo(scanner, GET_SCAN_LAYER_CODE, 7));
 
-                assertTrue(helper, "SYSTEM names the inspected block", "minecraft:chain".equals(new String(
+                assertTrue(helper, "SYSTEM names the inspected block", "minecraft:iron_chain".equals(new String(
                     invokeIo(robot.ioDevice("SYSTEM"), SYSTEM_GET_BLOCK_NAME_CODE, inspection[0] & 0xFF, inspection[1] & 0xFF), US_ASCII)));
 
                 assertEquals(helper, "the sky reads as one byte", scanner.canSeeSky() ? 1 : 0, invokeIo(scanner, CAN_SEE_SKY_CODE)[0]);
@@ -222,7 +234,8 @@ public final class ScannerModuleTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = GUEST_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = GUEST_BATCH)
+    @TestHolder
     public static void guestReadsScanResults(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final GuestTests tests = robot.guestTests();

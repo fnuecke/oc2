@@ -2,9 +2,8 @@
 
 package li.cil.oc2.common.fluid;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public final class FluidTank implements FluidHandler {
     private final int capacity;
@@ -18,17 +17,14 @@ public final class FluidTank implements FluidHandler {
 
     // --------------------------------------------------------------------- //
 
-    public CompoundTag serializeNBT(final HolderLookup.Provider provider) {
-        if (fluid.isEmpty()) {
-            return new CompoundTag();
+    public void serialize(final ValueOutput output, final String key) {
+        if (!fluid.isEmpty()) {
+            output.store(key, FluidStack.CODEC, fluid);
         }
-        return (CompoundTag) FluidStack.CODEC.encodeStart(provider.createSerializationContext(NbtOps.INSTANCE), fluid).getOrThrow();
     }
 
-    public void deserializeNBT(final HolderLookup.Provider provider, final CompoundTag tag) {
-        fluid = tag.isEmpty()
-            ? FluidStack.EMPTY
-            : FluidStack.CODEC.parse(provider.createSerializationContext(NbtOps.INSTANCE), tag).result().orElse(FluidStack.EMPTY);
+    public void deserialize(final ValueInput input, final String key) {
+        fluid = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
     }
 
     // --------------------------------------------------------------------- //

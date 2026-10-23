@@ -6,6 +6,7 @@ import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -24,7 +25,7 @@ public final class RobotCrushTests {
         helper.startSequence()
             .thenExecuteAfter(ROBOT_CHECK_GRACE_PERIOD, () -> {
                 if (!helper.getLevel().getBlockState(target).isAir()) {
-                    throw new GameTestAssertException("the robot did not clear the dirt it was inside of");
+                    throw new GameTestAssertException(Component.literal("the robot did not clear the dirt it was inside of"), 0);
                 }
             })
             .thenSucceed();

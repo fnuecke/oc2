@@ -6,15 +6,29 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
-public final class NetworkConnectorRenderer implements BlockEntityRenderer<NetworkConnectorBlockEntity> {
+import javax.annotation.Nullable;
+
+public final class NetworkConnectorRenderer implements BlockEntityRenderer<NetworkConnectorBlockEntity, NetworkConnectorRenderer.State> {
+    public static final class State extends BlockEntityRenderState {
+        private boolean hasAdjacentInterface;
+        private long gameTime;
+        private float partialTicks;
+    }
+
+    // --------------------------------------------------------------------- //
+
     private static final Vector3f INDICATOR_COLOR = new Vector3f(0.35f, 0.95f, 1f);
     private static final Vector3f INDICATOR_COLOR_BRIGHT = new Vector3f(0.6f, 1f, 1f);
 
@@ -33,16 +47,30 @@ public final class NetworkConnectorRenderer implements BlockEntityRenderer<Netwo
     // --------------------------------------------------------------------- //
 
     @Override
-    public void render(final NetworkConnectorBlockEntity connector, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
-        if (!connector.hasAdjacentInterface()) {
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(final NetworkConnectorBlockEntity connector, final State state, final float partialTicks, final Vec3 cameraPosition,
+                                   @Nullable final ModelFeatureRenderer.CrumblingOverlay crumbling) {
+        BlockEntityRenderer.super.extractRenderState(connector, state, partialTicks, cameraPosition, crumbling);
+
+        final Level level = connector.getLevel();
+        state.hasAdjacentInterface = connector.hasAdjacentInterface();
+        state.gameTime = level != null ? level.getGameTime() : 0;
+        state.partialTicks = partialTicks;
+    }
+
+    @Override
+    public void submit(final State state, final PoseStack stack, final SubmitNodeCollector collector, final CameraRenderState camera) {
+        if (!state.hasAdjacentInterface) {
             return;
         }
 
-        final Level level = connector.getLevel();
-        final long gameTime = level != null ? level.getGameTime() : 0;
-        final AABB bounds = INDICATOR_BOUNDS[NetworkConnectorBlock.getFacing(connector.getBlockState()).ordinal()];
+        final AABB bounds = INDICATOR_BOUNDS[NetworkConnectorBlock.getFacing(state.blockState).ordinal()];
 
-        Overlays.renderBox(stack, bufferSource, bounds, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, gameTime, partialTicks);
+        Overlays.renderBox(stack, collector, bounds, INDICATOR_COLOR, INDICATOR_COLOR_BRIGHT, state.gameTime, state.partialTicks);
     }
 
     // --------------------------------------------------------------------- //

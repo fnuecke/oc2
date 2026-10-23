@@ -9,8 +9,8 @@ import li.cil.oc2.api.bus.device.provider.BlockDeviceProvider;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
 import li.cil.oc2.api.bus.device.rpc.RPCTypeAdapter;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 
 /**
  * {@link ResourceKey}s for registries created by the mod.
@@ -44,6 +44,6 @@ public final class Registries {
     // --------------------------------------------------------------------- //
 
     private static <T> ResourceKey<Registry<T>> key(final String name) {
-        return ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name));
+        return ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(API.MOD_ID, name));
     }
 }

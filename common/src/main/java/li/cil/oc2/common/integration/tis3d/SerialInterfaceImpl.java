@@ -4,7 +4,8 @@ package li.cil.oc2.common.integration.tis3d;
 
 import li.cil.oc2.common.serial.SerialPort;
 import li.cil.tis3d.api.serial.SerialInterface;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 
@@ -56,12 +57,12 @@ public final class SerialInterfaceImpl implements SerialInterface {
     }
 
     @Override
-    public void save(final CompoundTag tag) {
-        port.saveConfiguration(tag);
+    public void save(final ValueOutput output) {
+        port.saveConfiguration(output);
     }
 
     @Override
-    public void load(final CompoundTag tag) {
-        port.loadConfiguration(tag);
+    public void load(final ValueInput input) {
+        port.loadConfiguration(input);
     }
 }

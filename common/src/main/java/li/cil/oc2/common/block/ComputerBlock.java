@@ -6,26 +6,18 @@ import com.mojang.serialization.MapCodec;
 import li.cil.oc2.api.capabilities.RedstoneEmitter;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.ComputerBlockEntity;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.integration.Wrenches;
 import li.cil.oc2.common.item.Items;
-import li.cil.oc2.common.item.TooltipUtils;
 import li.cil.oc2.common.util.VoxelShapeUtils;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -39,6 +31,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
@@ -51,7 +44,7 @@ import java.util.List;
 
 
 public final class ComputerBlock extends HorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<ComputerBlock> CODEC = MapCodec.unit(ComputerBlock::new);
+    public static final MapCodec<ComputerBlock> CODEC = simpleCodec(ComputerBlock::new);
 
     @Override
     protected MapCodec<? extends ComputerBlock> codec() {
@@ -73,9 +66,8 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
 
     // --------------------------------------------------------------------- //
 
-    public ComputerBlock() {
-        super(Properties
-            .of()
+    public ComputerBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .strength(1.5f, 6.0f)
@@ -84,13 +76,6 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     }
 
     // --------------------------------------------------------------------- //
-
-    @Environment(EnvType.CLIENT)
-    @Override
-    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag advanced) {
-        super.appendHoverText(stack, context, tooltip, advanced);
-        TooltipUtils.addBlockEntityInventoryInformation(stack, tooltip);
-    }
 
     @Override
     protected boolean isSignalSource(final BlockState state) {
@@ -118,17 +103,11 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     }
 
     @Override
-    protected void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, final BlockPos changedBlockPos, final boolean isMoving) {
+    protected void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block changedBlock, @Nullable final Orientation orientation, final boolean isMoving) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final ComputerBlockEntity computer) {
             computer.handleNeighborChanged();
         }
-    }
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
@@ -142,7 +121,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
+    protected InteractionResult useItemOn(final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof final ComputerBlockEntity computer)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hit);
@@ -151,7 +130,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
         if (Wrenches.isWrench(stack)) {
             if (player.isShiftKeyDown()) {
                 // Let the wrench itself handle this (dismantle).
-                return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+                return InteractionResult.PASS;
             }
 
             if (!level.isClientSide() && player instanceof final ServerPlayer serverPlayer) {
@@ -165,7 +144,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
             }
         }
 
-        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -183,7 +162,7 @@ public final class ComputerBlock extends HorizontalDirectionalBlock implements E
             }
         }
 
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override

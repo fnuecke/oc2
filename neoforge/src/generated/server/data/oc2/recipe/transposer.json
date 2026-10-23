@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "H": "minecraft:hopper",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "IHI",
+    "XTX",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:transposer"
+  }
+}

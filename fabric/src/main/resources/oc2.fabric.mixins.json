@@ -7,8 +7,6 @@
         "ServerPlayerGameModeMixin"
     ],
     "client": [
-        "EntityRendererMixin",
-        "FogRendererMixin",
         "GuiMixin",
         "MultiPlayerGameModeMixin"
     ],

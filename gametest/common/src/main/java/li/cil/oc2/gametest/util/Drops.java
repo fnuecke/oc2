@@ -4,6 +4,7 @@ package li.cil.oc2.gametest.util;
 
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +15,7 @@ public final class Drops {
     public static ItemStack single(final GameTestHelper helper) {
         final List<ItemStack> stacks = all(helper);
         if (stacks.size() != 1) {
-            throw new GameTestAssertException("expected exactly one dropped stack, found " + stacks.size());
+            throw new GameTestAssertException(Component.literal("expected exactly one dropped stack, found " + stacks.size()), 0);
         }
         return stacks.getFirst();
     }
@@ -22,7 +23,7 @@ public final class Drops {
     public static void assertDropped(final GameTestHelper helper, final Item item, final String what) {
         final List<ItemStack> stacks = all(helper);
         if (stacks.stream().noneMatch(stack -> stack.is(item))) {
-            throw new GameTestAssertException(what + " did not drop, got " + stacks);
+            throw new GameTestAssertException(Component.literal(what + " did not drop, got " + stacks), 0);
         }
     }
 

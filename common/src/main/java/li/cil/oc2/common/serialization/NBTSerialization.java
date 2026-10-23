@@ -7,7 +7,7 @@ import li.cil.ceres.Ceres;
 import li.cil.ceres.api.DeserializationVisitor;
 import li.cil.ceres.api.SerializationException;
 import li.cil.ceres.api.SerializationVisitor;
-import li.cil.oc2.common.util.NBTTagIds;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Contract;
 
@@ -128,7 +128,7 @@ public final class NBTSerialization {
                 tag.putString(name, (String) value);
             } else if (type == UUID.class) {
                 final CompoundTag uuidTag = new CompoundTag();
-                uuidTag.putUUID(name, (UUID) value);
+                uuidTag.store(name, UUIDUtil.CODEC, (UUID) value);
                 tag.put(name, uuidTag);
             } else {
                 final CompoundTag valueTag = new CompoundTag();
@@ -185,7 +185,7 @@ public final class NBTSerialization {
                 } else {
                     final CompoundTag arrayTag = new CompoundTag();
                     arrayTag.put("value", listTag);
-                    arrayTag.putIntArray("nulls", nullIndices);
+                    arrayTag.putIntArray("nulls", nullIndices.toIntArray());
 
                     return arrayTag;
                 }
@@ -207,42 +207,42 @@ public final class NBTSerialization {
     private record Deserializer(CompoundTag tag) implements DeserializationVisitor {
         @Override
         public boolean getBoolean(final String name) {
-            return tag.getBoolean(name);
+            return tag.getBooleanOr(name, false);
         }
 
         @Override
         public byte getByte(final String name) {
-            return tag.getByte(name);
+            return tag.getByteOr(name, (byte) 0);
         }
 
         @Override
         public char getChar(final String name) {
-            return (char) tag.getInt(name);
+            return (char) tag.getIntOr(name, 0);
         }
 
         @Override
         public short getShort(final String name) {
-            return tag.getShort(name);
+            return tag.getShortOr(name, (short) 0);
         }
 
         @Override
         public int getInt(final String name) {
-            return tag.getInt(name);
+            return tag.getIntOr(name, 0);
         }
 
         @Override
         public long getLong(final String name) {
-            return tag.getLong(name);
+            return tag.getLongOr(name, 0L);
         }
 
         @Override
         public float getFloat(final String name) {
-            return tag.getFloat(name);
+            return tag.getFloatOr(name, 0f);
         }
 
         @Override
         public double getDouble(final String name) {
-            return tag.getDouble(name);
+            return tag.getDoubleOr(name, 0.0);
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -263,13 +263,13 @@ public final class NBTSerialization {
                 assert arrayTag != null;
                 return getArray(arrayTag, type, into);
             } else if (type.isEnum()) {
-                return Enum.valueOf((Class) type, tag.getString(name));
+                return Enum.valueOf((Class) type, tag.getStringOr(name, ""));
             } else if (type == String.class) {
-                return tag.getString(name);
+                return tag.getStringOr(name, "");
             } else if (type == UUID.class) {
-                return tag.getCompound(name).getUUID(name);
+                return tag.getCompoundOrEmpty(name).read(name, UUIDUtil.CODEC).orElseThrow();
             } else {
-                final CompoundTag valueTag = tag.getCompound(name);
+                final CompoundTag valueTag = tag.getCompoundOrEmpty(name);
                 return Ceres.getSerializer(type).deserialize(new Deserializer(valueTag), (Class) type, into);
             }
         }
@@ -306,7 +306,7 @@ public final class NBTSerialization {
                     nulls = new int[0];
                 } else if (tag instanceof final CompoundTag compoundTag) {
                     listTag = (ListTag) compoundTag.get("value");
-                    nulls = compoundTag.getIntArray("nulls");
+                    nulls = compoundTag.getIntArray("nulls").orElse(new int[0]);
                 } else {
                     return data;
                 }
@@ -344,7 +344,7 @@ public final class NBTSerialization {
         }
 
         private boolean isNull(final String name) {
-            return tag.getCompound(name).getBoolean(IS_NULL_KEY);
+            return tag.getCompoundOrEmpty(name).getBooleanOr(IS_NULL_KEY, false);
         }
     }
 
@@ -598,12 +598,12 @@ public final class NBTSerialization {
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             String[] data = (String[]) into;
             if (tag instanceof final ListTag serializedData) {
-                if (serializedData.isEmpty() || serializedData.getElementType() == NBTTagIds.TAG_STRING) {
+                if (serializedData.isEmpty() || serializedData.stream().allMatch(StringTag.class::isInstance)) {
                     if (data == null || data.length != serializedData.size()) {
                         data = new String[serializedData.size()];
                     }
                     for (int i = 0; i < serializedData.size(); i++) {
-                        data[i] = serializedData.getString(i);
+                        data[i] = serializedData.getStringOr(i, "");
                     }
                 }
             }
@@ -626,12 +626,12 @@ public final class NBTSerialization {
         public Object deserialize(final Tag tag, final Class<?> type, @Nullable final Object into) {
             UUID[] data = (UUID[]) into;
             if (tag instanceof final ListTag serializedData) {
-                if (serializedData.isEmpty() || serializedData.getElementType() == NBTTagIds.TAG_STRING) {
+                if (serializedData.isEmpty() || serializedData.stream().allMatch(StringTag.class::isInstance)) {
                     if (data == null || data.length != serializedData.size()) {
                         data = new UUID[serializedData.size()];
                     }
                     for (int i = 0; i < serializedData.size(); i++) {
-                        data[i] = UUID.fromString(serializedData.getString(i));
+                        data[i] = UUID.fromString(serializedData.getStringOr(i, ""));
                     }
                 }
             }

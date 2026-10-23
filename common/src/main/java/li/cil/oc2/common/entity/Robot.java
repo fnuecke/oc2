@@ -46,8 +46,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.*;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -55,14 +53,15 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.InterpolationHandler;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -70,6 +69,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityInLevelCallback;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -144,6 +145,21 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     private final RobotVirtualMachine virtualMachine = new RobotVirtualMachine(new CommonDeviceBusController(busElement, this::cpuEnergyPerTick, deviceItems::getArchitectureType));
     private final ItemStackHandler inventory = new FixedSizeItemStackHandler(INVENTORY_SIZE);
     private final FluidTank tank = new FluidTank(TANK_CAPACITY);
+    // Applying server position and rotation while animating (which also runs on client) causes jitter, so
+    // only snap to the authoritative values when actually relevant.
+    private final InterpolationHandler interpolation = new InterpolationHandler(this, 0) {
+        @Override
+        public void interpolateTo(final Vec3 pos, final float yRot, final float xRot) {
+            if (RobotMovementAction.isComplete(Robot.this) ||
+                position().distanceToSqr(pos) > MOVING_POSITION_SYNC_THRESHOLD * MOVING_POSITION_SYNC_THRESHOLD) {
+                setPos(pos);
+            }
+            if (RobotRotationAction.isComplete(Robot.this) ||
+                Mth.degreesDifferenceAbs(getYRot(), yRot) > TURNING_ROTATION_SYNC_THRESHOLD) {
+                setRot(yRot, xRot);
+            }
+        }
+    };
     private final Set<Player> terminalUsers = Collections.newSetFromMap(new WeakHashMap<>());
     private final List<CapabilityProvider> capabilityProviders = new ArrayList<>();
     private volatile List<ServerPlayer> terminalRecipients = List.of(); // Copy for threaded send.
@@ -320,7 +336,9 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         final ItemStack stack = new ItemStack(Items.ROBOT.get());
         exportToItemStack(stack);
-        spawnAtLocation(stack);
+        if (level() instanceof final ServerLevel serverLevel) {
+            spawnAtLocation(serverLevel, stack);
+        }
 
         discard();
         LevelUtils.playSound(level(), blockPosition(), SoundType.METAL, SoundType::getBreakSound);
@@ -346,6 +364,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
         if (isClient && terminal.consumePendingBell()) {
             TerminalBell.play();
+        }
+
+        if (isClient) {
+            animationState.tick();
         }
 
         if (!isClient) {
@@ -393,7 +415,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             }
         }
 
-        return InteractionResult.sidedSuccess(level().isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -413,17 +435,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
-    public void lerpTo(final double x, final double y, final double z, final float yRot, final float xRot, final int steps) {
-        // Applying server position and rotation while animating (which also runs on client) causes jitter, so
-        // only snap to the authoritative values when actually relevant.
-        if (RobotMovementAction.isComplete(this) ||
-            position().distanceToSqr(x, y, z) > MOVING_POSITION_SYNC_THRESHOLD * MOVING_POSITION_SYNC_THRESHOLD) {
-            setPos(x, y, z);
-        }
-        if (RobotRotationAction.isComplete(this) ||
-            Mth.degreesDifferenceAbs(getYRot(), yRot) > TURNING_ROTATION_SYNC_THRESHOLD) {
-            setRot(yRot, xRot);
-        }
+    public InterpolationHandler getInterpolation() {
+        return interpolation;
     }
 
     @Override
@@ -433,12 +446,17 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
 
     @Override
     public boolean canCollideWith(final Entity entity) {
-        return !ignoredColliders.contains(entity) && Boat.canVehicleCollide(this, entity);
+        return !ignoredColliders.contains(entity) && AbstractBoat.canVehicleCollide(this, entity);
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    public boolean canBeCollidedWith(@Nullable final Entity entity) {
         return true;
+    }
+
+    @Override
+    public boolean hurtServer(final ServerLevel level, final DamageSource damageSource, final float amount) {
+        return false;
     }
 
     @Override
@@ -447,27 +465,25 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     public void exportToItemStack(final ItemStack stack) {
-        final HolderLookup.Provider registries = level().registryAccess();
-        ItemStackUtils.modifyModDataTag(stack, modTag -> {
-            final CompoundTag itemsTag = NBTUtils.getOrCreateChildTag(modTag, ITEMS_TAG_NAME);
-            deviceItems.saveItems(registries, itemsTag); // One tag per device type, as TooltipUtils expects.
-            itemsTag.put(INVENTORY_TAG_NAME, inventory.serializeNBT(registries)); // Won't show up in tooltip.
+        ItemStackUtils.modifyModDataTag(stack, modTag -> modTag.merge(SerializationUtils.saveToTag(problemPath(), level().registryAccess(), output -> {
+            final ValueOutput itemsOutput = output.child(ITEMS_TAG_NAME);
+            deviceItems.saveItems(itemsOutput); // One tag per device type, as TooltipUtils expects.
+            inventory.save(itemsOutput.child(INVENTORY_TAG_NAME)); // Won't show up in tooltip.
 
-            modTag.put(TANK_TAG_NAME, tank.serializeNBT(registries));
-            modTag.put(ENERGY_TAG_NAME, energy.serializeNBT());
-        });
+            tank.serialize(output, TANK_TAG_NAME);
+            energy.serialize(output.child(ENERGY_TAG_NAME));
+        })));
     }
 
     public void importFromItemStack(final ItemStack stack) {
-        final HolderLookup.Provider registries = level().registryAccess();
-        final CompoundTag modTag = ItemStackUtils.getModDataTag(stack);
+        SerializationUtils.loadFromTag(problemPath(), level().registryAccess(), ItemStackUtils.getModDataTag(stack), input -> {
+            final ValueInput itemsInput = input.childOrEmpty(ITEMS_TAG_NAME);
+            deviceItems.loadItems(itemsInput);
+            inventory.load(itemsInput.childOrEmpty(INVENTORY_TAG_NAME));
 
-        final CompoundTag itemsTag = NBTUtils.getChildTag(modTag, ITEMS_TAG_NAME);
-        deviceItems.loadItems(registries, itemsTag);
-        inventory.deserializeNBT(registries, itemsTag.getCompound(INVENTORY_TAG_NAME));
-
-        tank.deserializeNBT(registries, NBTUtils.getChildTag(modTag, TANK_TAG_NAME));
-        energy.deserializeNBT(NBTUtils.getChildTag(modTag, ENERGY_TAG_NAME));
+            tank.deserialize(input, TANK_TAG_NAME);
+            energy.deserialize(input.childOrEmpty(ENERGY_TAG_NAME));
+        });
     }
 
     // --------------------------------------------------------------------- //
@@ -482,46 +498,43 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
-    protected void addAdditionalSaveData(final CompoundTag tag) {
+    protected void addAdditionalSaveData(final ValueOutput output) {
         if (virtualMachine.getRunState() != VMRunState.STOPPED) {
-            tag.put(STATE_TAG_NAME, virtualMachine.serialize());
+            virtualMachine.serialize(output.child(STATE_TAG_NAME));
             synchronized (terminal) {
-                tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+                output.store(TERMINAL_TAG_NAME, CompoundTag.CODEC, NBTSerialization.serialize(terminal));
             }
         }
 
-        tag.put(COMMAND_PROCESSOR_TAG_NAME, actionProcessor.serialize());
-        tag.put(BUS_ELEMENT_TAG_NAME, busElement.serialize());
-        final HolderLookup.Provider registries = level().registryAccess();
-        tag.put(ITEMS_TAG_NAME, deviceItems.saveItems(registries));
-        tag.put(DEVICES_TAG_NAME, deviceItems.saveDevices());
-        tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
-        tag.put(INVENTORY_TAG_NAME, inventory.serializeNBT(registries));
-        tag.put(TANK_TAG_NAME, tank.serializeNBT(registries));
-        tag.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
-        tag.putInt(STATUS_COLOR_TAG_NAME, getStatusColor());
-        tag.putFloat(STATUS_VALUE_TAG_NAME, getStatusValue());
-        if (origin != null) {
-            GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, origin).result().ifPresent(value -> tag.put(ORIGIN_TAG_NAME, value));
-        }
+        actionProcessor.serialize(output.child(COMMAND_PROCESSOR_TAG_NAME));
+        busElement.serialize(output.child(BUS_ELEMENT_TAG_NAME));
+        deviceItems.saveItems(output.child(ITEMS_TAG_NAME));
+        deviceItems.saveDevices(output.child(DEVICES_TAG_NAME));
+        energy.serialize(output.child(ENERGY_TAG_NAME));
+        inventory.save(output.child(INVENTORY_TAG_NAME));
+        tank.serialize(output, TANK_TAG_NAME);
+        output.putByte(SELECTED_SLOT_TAG_NAME, getEntityData().get(SELECTED_SLOT));
+        output.putInt(STATUS_COLOR_TAG_NAME, getStatusColor());
+        output.putFloat(STATUS_VALUE_TAG_NAME, getStatusValue());
+        output.storeNullable(ORIGIN_TAG_NAME, GlobalPos.CODEC, origin);
     }
 
     @Override
-    protected void readAdditionalSaveData(final CompoundTag tag) {
-        virtualMachine.deserialize(tag.getCompound(STATE_TAG_NAME));
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-        actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
-        busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
-        final HolderLookup.Provider registries = level().registryAccess();
-        deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
-        deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
-        energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
-        inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG_NAME));
-        tank.deserializeNBT(registries, tag.getCompound(TANK_TAG_NAME));
-        setSelectedSlot(tag.getByte(SELECTED_SLOT_TAG_NAME));
-        setStatusColor(tag.contains(STATUS_COLOR_TAG_NAME) ? tag.getInt(STATUS_COLOR_TAG_NAME) : DEFAULT_STATUS_COLOR);
-        setStatusValue(tag.contains(STATUS_VALUE_TAG_NAME) ? tag.getFloat(STATUS_VALUE_TAG_NAME) : DEFAULT_STATUS_VALUE);
-        origin = tag.contains(ORIGIN_TAG_NAME) ? GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get(ORIGIN_TAG_NAME)).result().orElse(null) : null;
+    protected void readAdditionalSaveData(final ValueInput input) {
+        virtualMachine.deserialize(input.childOrEmpty(STATE_TAG_NAME));
+        NBTSerialization.deserialize(SerializationUtils.getCompoundOrEmpty(input, TERMINAL_TAG_NAME), terminal);
+        actionProcessor.deserialize(input.childOrEmpty(COMMAND_PROCESSOR_TAG_NAME));
+        busElement.deserialize(input.childOrEmpty(BUS_ELEMENT_TAG_NAME));
+        deviceItems.resetDevices();
+        deviceItems.loadItems(input.childOrEmpty(ITEMS_TAG_NAME));
+        deviceItems.loadDevices(input.childOrEmpty(DEVICES_TAG_NAME));
+        energy.deserialize(input.childOrEmpty(ENERGY_TAG_NAME));
+        inventory.load(input.childOrEmpty(INVENTORY_TAG_NAME));
+        tank.deserialize(input, TANK_TAG_NAME);
+        setSelectedSlot(input.getByteOr(SELECTED_SLOT_TAG_NAME, (byte) 0));
+        setStatusColor(input.getIntOr(STATUS_COLOR_TAG_NAME, DEFAULT_STATUS_COLOR));
+        setStatusValue(input.getFloatOr(STATUS_VALUE_TAG_NAME, DEFAULT_STATUS_VALUE));
+        origin = input.read(ORIGIN_TAG_NAME, GlobalPos.CODEC).orElse(null);
 
         RobotActions.initializeData(this);
         final AbstractRobotAction currentAction = actionProcessor.action;
@@ -536,7 +549,8 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
-    protected void checkInsideBlocks() {
+    protected boolean isAffectedByBlocks() {
+        return false;
     }
 
     @Override
@@ -683,30 +697,49 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final float MAX_ROTATION_SPEED = 0.180f;
         private static final float HOVER_ANIMATION_SPEED = 0.03f;
 
-        public float topRenderOffsetY = TOP_IDLE_Y;
-        public float baseRenderOffsetY = BASE_IDLE_Y;
-        public float topRenderRotationY;
-        public float topRenderTargetRotationY;
-        public float topRenderRotationSpeed;
+        private float topRenderOffsetY = TOP_IDLE_Y;
+        private float baseRenderOffsetY = BASE_IDLE_Y;
+        private float topRenderRotationY;
+        private float topRenderOffsetYO = TOP_IDLE_Y;
+        private float baseRenderOffsetYO = BASE_IDLE_Y;
+        private float topRenderRotationYO;
+        private float topRenderTargetRotationY;
+        private float topRenderRotationSpeed;
         private final float hoverPhase = hashCode() & 0xFFFF;
 
-        public void update(final double time, final float deltaTime, final RandomSource random) {
+        public float getTopRenderOffsetY(final float partialTicks) {
+            return Mth.lerp(partialTicks, topRenderOffsetYO, topRenderOffsetY);
+        }
+
+        public float getBaseRenderOffsetY(final float partialTicks) {
+            return Mth.lerp(partialTicks, baseRenderOffsetYO, baseRenderOffsetY);
+        }
+
+        public float getTopRenderRotationY(final float partialTicks) {
+            return Mth.lerp(partialTicks, topRenderRotationYO, topRenderRotationY);
+        }
+
+        private void tick() {
+            topRenderOffsetYO = topRenderOffsetY;
+            baseRenderOffsetYO = baseRenderOffsetY;
+            topRenderRotationYO = topRenderRotationY;
+
             if (getVirtualMachine().isRunning() || actionProcessor.hasQueuedActions()) {
-                final float topOffsetY = (float) Math.sin(time * HOVER_ANIMATION_SPEED + hoverPhase) / 32f;
+                final float topOffsetY = (float) Math.sin(level().getGameTime() * HOVER_ANIMATION_SPEED + hoverPhase) / 32f;
 
-                topRenderOffsetY = lerpClamped(topRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
-                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
+                topRenderOffsetY = lerpClamped(topRenderOffsetY, topOffsetY, TRANSLATION_SPEED);
+                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, topOffsetY, TRANSLATION_SPEED);
 
-                topRenderRotationY = lerpClamped(topRenderRotationY, topRenderTargetRotationY, deltaTime * topRenderRotationSpeed);
+                topRenderRotationY = lerpClamped(topRenderRotationY, topRenderTargetRotationY, topRenderRotationSpeed);
                 if (topRenderRotationY == topRenderTargetRotationY) {
                     topRenderTargetRotationY = remapFrom01To(random.nextFloat(), -MAX_ROTATION, MAX_ROTATION);
                     topRenderRotationSpeed = remapFrom01To(random.nextFloat(), MIN_ROTATION_SPEED, MAX_ROTATION_SPEED);
                 }
             } else {
-                topRenderOffsetY = lerpClamped(topRenderOffsetY, TOP_IDLE_Y, deltaTime * TRANSLATION_SPEED * 2);
-                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, BASE_IDLE_Y, deltaTime * TRANSLATION_SPEED);
+                topRenderOffsetY = lerpClamped(topRenderOffsetY, TOP_IDLE_Y, TRANSLATION_SPEED * 2);
+                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, BASE_IDLE_Y, TRANSLATION_SPEED);
 
-                topRenderRotationY = lerpClamped(topRenderRotationY, 0, deltaTime * ROTATION_SPEED);
+                topRenderRotationY = lerpClamped(topRenderRotationY, 0, ROTATION_SPEED);
             }
         }
     }
@@ -723,22 +756,18 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             this.result = result;
         }
 
-        public RobotActionProcessorResult(final CompoundTag tag) {
-            deserialize(tag);
+        public RobotActionProcessorResult(final ValueInput input) {
+            deserialize(input);
         }
 
-        public CompoundTag serialize() {
-            final CompoundTag tag = new CompoundTag();
-
-            tag.putInt(ACTION_ID_TAG_NAME, actionId);
-            NBTUtils.putEnum(tag, RESULT_TAG_NAME, result);
-
-            return tag;
+        public void serialize(final ValueOutput output) {
+            output.putInt(ACTION_ID_TAG_NAME, actionId);
+            SerializationUtils.putEnum(output, RESULT_TAG_NAME, result);
         }
 
-        public void deserialize(final CompoundTag tag) {
-            actionId = tag.getInt(ACTION_ID_TAG_NAME);
-            result = NBTUtils.getEnum(tag, RESULT_TAG_NAME, RobotActionResult.class);
+        public void deserialize(final ValueInput input) {
+            actionId = input.getIntOr(ACTION_ID_TAG_NAME, 0);
+            result = SerializationUtils.getEnum(input, RESULT_TAG_NAME, RobotActionResult.class);
         }
     }
 
@@ -819,61 +848,51 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             }
         }
 
-        public CompoundTag serialize() {
-            final CompoundTag tag = new CompoundTag();
-
-            final ListTag queueTag = new ListTag();
+        public void serialize(final ValueOutput output) {
+            final ValueOutput.ValueOutputList queueOutput = output.childrenList(QUEUE_TAG_NAME);
             synchronized (queue) {
                 for (final AbstractRobotAction action : queue) {
-                    queueTag.add(RobotActions.serialize(action));
+                    RobotActions.serialize(action, queueOutput.addChild());
                 }
             }
-            tag.put(QUEUE_TAG_NAME, queueTag);
 
             final AbstractRobotAction currentAction = action;
             if (currentAction != null) {
-                tag.put(ACTION_TAG_NAME, RobotActions.serialize(currentAction));
+                RobotActions.serialize(currentAction, output.child(ACTION_TAG_NAME));
             }
 
-            final ListTag resultsTag = new ListTag();
+            final ValueOutput.ValueOutputList resultsOutput = output.childrenList(RESULTS_TAG_NAME);
             synchronized (results) {
                 for (final RobotActionProcessorResult result : results) {
-                    resultsTag.add(result.serialize());
+                    result.serialize(resultsOutput.addChild());
                 }
             }
-            tag.put(RESULTS_TAG_NAME, resultsTag);
 
             synchronized (queue) {
-                tag.putInt(LAST_ACTION_ID_TAG_NAME, lastActionId);
+                output.putInt(LAST_ACTION_ID_TAG_NAME, lastActionId);
             }
-
-            return tag;
         }
 
-        public void deserialize(final CompoundTag tag) {
-            final ListTag queueTag = tag.getList(QUEUE_TAG_NAME, NBTTagIds.TAG_COMPOUND);
+        public void deserialize(final ValueInput input) {
             synchronized (queue) {
                 queue.clear();
-                for (int i = 0; i < Math.min(queueTag.size(), MAX_QUEUED_ACTIONS - 1); i++) {
-                    final AbstractRobotAction action = RobotActions.deserialize(queueTag.getCompound(i));
-                    if (action != null) {
-                        queue.add(action);
-                    }
-                }
-                lastActionId = tag.getInt(LAST_ACTION_ID_TAG_NAME);
+                input.childrenListOrEmpty(QUEUE_TAG_NAME).stream()
+                    .limit(MAX_QUEUED_ACTIONS - 1)
+                    .map(RobotActions::deserialize)
+                    .filter(Objects::nonNull)
+                    .forEach(queue::add);
+                lastActionId = input.getIntOr(LAST_ACTION_ID_TAG_NAME, 0);
             }
 
-            action = RobotActions.deserialize(tag.getCompound(ACTION_TAG_NAME));
+            action = RobotActions.deserialize(input.childOrEmpty(ACTION_TAG_NAME));
 
-            final ListTag resultsTag = tag.getList(RESULTS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
             synchronized (results) {
                 results.clear();
-                for (int i = 0; i < Math.min(resultsTag.size(), MAX_QUEUED_RESULTS); i++) {
-                    final RobotActionProcessorResult result = new RobotActionProcessorResult(resultsTag.getCompound(i));
-                    if (result.actionId != 0) {
-                        results.add(result);
-                    }
-                }
+                input.childrenListOrEmpty(RESULTS_TAG_NAME).stream()
+                    .limit(MAX_QUEUED_RESULTS)
+                    .map(RobotActionProcessorResult::new)
+                    .filter(result -> result.actionId != 0)
+                    .forEach(results::add);
             }
         }
 
@@ -917,6 +936,11 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @Override
+        protected HolderLookup.Provider getRegistries() {
+            return level().registryAccess();
+        }
+
+        @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return Devices.makeQuery(deviceItems.getArchitectureType().orElse(null), Robot.this, stack);
         }
@@ -954,16 +978,12 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             return super.getDeviceIdentifier(device);
         }
 
-        public CompoundTag serialize() {
-            final CompoundTag tag = new CompoundTag();
-            tag.putUUID(DEVICE_ID_TAG_NAME, deviceId);
-            return tag;
+        public void serialize(final ValueOutput output) {
+            output.store(DEVICE_ID_TAG_NAME, UUIDUtil.CODEC, deviceId);
         }
 
-        public void deserialize(final CompoundTag tag) {
-            if (tag.hasUUID(DEVICE_ID_TAG_NAME)) {
-                deviceId = tag.getUUID(DEVICE_ID_TAG_NAME);
-            }
+        public void deserialize(final ValueInput input) {
+            deviceId = input.read(DEVICE_ID_TAG_NAME, UUIDUtil.CODEC).orElse(deviceId);
         }
     }
 

@@ -48,7 +48,7 @@ side = "BOTH"
 [[dependencies.oc2]]
 modId = "tis3d"
 type = "optional"
-versionRange = "[0,)"
+versionRange = "[${tis3dVersion},)"
 ordering = "AFTER"
 side = "BOTH"
 

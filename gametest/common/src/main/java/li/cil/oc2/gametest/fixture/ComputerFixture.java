@@ -20,8 +20,10 @@ import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.TagValueInput;
 
 import javax.annotation.Nullable;
 
@@ -90,7 +92,7 @@ public final class ComputerFixture implements MachineFixture {
     @Override
     public ItemHandler handler(final DeviceType type) {
         return blockEntity().getItemStackHandlers().getItemHandler(type)
-            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
+            .orElseThrow(() -> new GameTestAssertException(Component.literal("no item handler for " + type), 0));
     }
 
     @Override
@@ -118,9 +120,9 @@ public final class ComputerFixture implements MachineFixture {
     }
 
     public ComputerBlockEntity blockEntity() {
-        final ComputerBlockEntity blockEntity = helper.getBlockEntity(pos);
+        final ComputerBlockEntity blockEntity = helper.getBlockEntity(pos, ComputerBlockEntity.class);
         if (blockEntity == null) {
-            throw new GameTestAssertException("no computer at " + pos);
+            throw new GameTestAssertException(Component.literal("no computer at " + pos), 0);
         }
         return blockEntity;
     }
@@ -140,14 +142,14 @@ public final class ComputerFixture implements MachineFixture {
     public void assertBootError(final String key, final String what) {
         final Component expected = Component.translatable(key);
         if (!expected.equals(virtualMachine().getBootError())) {
-            throw new GameTestAssertException(what + ": computer reports boot error "
-                + virtualMachine().getBootError() + ", expected " + expected);
+            throw new GameTestAssertException(Component.literal(what + ": computer reports boot error "
+                + virtualMachine().getBootError() + ", expected " + expected), 0);
         }
     }
 
     public void assertNoBootError() {
         if (virtualMachine().getBootError() != null) {
-            throw new GameTestAssertException("computer reports boot error " + virtualMachine().getBootError());
+            throw new GameTestAssertException(Component.literal("computer reports boot error " + virtualMachine().getBootError()), 0);
         }
     }
 
@@ -160,7 +162,7 @@ public final class ComputerFixture implements MachineFixture {
     public ItemStack uninstall(final DeviceType type) {
         final ItemStack removed = handler(type).extractItem(0, 1, false);
         if (removed.isEmpty()) {
-            throw new GameTestAssertException("nothing to remove from the " + type + " slot");
+            throw new GameTestAssertException(Component.literal("nothing to remove from the " + type + " slot"), 0);
         }
         return removed;
     }
@@ -177,7 +179,7 @@ public final class ComputerFixture implements MachineFixture {
     public long energy() {
         final var storage = Capabilities.get(blockEntity(), Capabilities.ENERGY_STORAGE, null);
         if (storage == null) {
-            throw new GameTestAssertException("computer exposes no energy storage capability");
+            throw new GameTestAssertException(Component.literal("computer exposes no energy storage capability"), 0);
         }
         return storage.getEnergyStored();
     }
@@ -193,7 +195,7 @@ public final class ComputerFixture implements MachineFixture {
     }
 
     public void load(final CompoundTag tag) {
-        blockEntity().loadWithComponents(tag, registries());
+        blockEntity().loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registries(), tag));
     }
 
     // --------------------------------------------------------------------- //

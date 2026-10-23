@@ -12,7 +12,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.network.Filterable;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -20,6 +22,7 @@ import net.minecraft.world.item.component.WritableBookContent;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.*;
 import net.minecraft.world.level.block.state.properties.ComparatorMode;
+import net.minecraft.world.level.storage.TagValueInput;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -44,7 +47,7 @@ public final class VanillaDeviceTests {
                 final boolean hasIoDevice = computer.devices().stream().anyMatch(device ->
                     device instanceof final IODevice io && "SIGN".equals(io.getIOName()));
                 if (!hasRpcDevice || !hasIoDevice) {
-                    throw new GameTestAssertException("the sign is not on the bus: " + computer.describe());
+                    throw new GameTestAssertException(Component.literal("the sign is not on the bus: " + computer.describe()), 0);
                 }
             })
             .thenSucceed();
@@ -59,7 +62,7 @@ public final class VanillaDeviceTests {
             .thenWaitUntil(() -> device[0] = computer.devices().stream()
                 .filter(d -> d instanceof final RPCDevice rpc && "note_block".equals(rpc.getTypeName()))
                 .findFirst()
-                .orElseThrow(() -> new GameTestAssertException("the note block is not on the bus: " + computer.describe())))
+                .orElseThrow(() -> new GameTestAssertException(Component.literal("the note block is not on the bus: " + computer.describe()), 0)))
             .thenExecute(() -> invokeRpc((RPCDevice) device[0], "setNote", 5))
             .thenIdle(10)
             .thenExecute(() -> assertTrue(helper, "the note block device was replaced after a write: " + computer.describe(),
@@ -95,7 +98,7 @@ public final class VanillaDeviceTests {
         assertIoFails(helper, "a line over 12 characters through io", () -> invokeIo(io, 2, concat(new int[]{0, 0}, "0123456789abc")));
         assertIoFails(helper, "a fifth line through io", () -> invokeIo(io, 2, concat(new int[]{0, 4}, "x")));
 
-        final SignBlockEntity sign = helper.getBlockEntity(POS);
+        final SignBlockEntity sign = helper.getBlockEntity(POS, SignBlockEntity.class);
         sign.setWaxed(true);
         assertValue(helper, "read-only", true, invokeRpc(devices, "isReadonly"));
         assertEquals(helper, "read-only through io", 1, invokeIo(io, 5)[0]);
@@ -112,7 +115,7 @@ public final class VanillaDeviceTests {
 
     public static void furnaceReportsProgress(final GameTestHelper helper) {
         helper.setBlock(POS, Blocks.FURNACE);
-        final AbstractFurnaceBlockEntity furnace = helper.getBlockEntity(POS);
+        final AbstractFurnaceBlockEntity furnace = helper.getBlockEntity(POS, AbstractFurnaceBlockEntity.class);
         final List<Device> devices = devicesAt(helper, POS);
         final IODevice io = ioDevice(devices, "FRNACE");
 
@@ -135,7 +138,7 @@ public final class VanillaDeviceTests {
 
     public static void brewingStandReportsFuel(final GameTestHelper helper) {
         helper.setBlock(POS, Blocks.BREWING_STAND);
-        final BrewingStandBlockEntity stand = helper.getBlockEntity(POS);
+        final BrewingStandBlockEntity stand = helper.getBlockEntity(POS, BrewingStandBlockEntity.class);
         final List<Device> devices = devicesAt(helper, POS);
         stand.setItem(4, new ItemStack(Items.BLAZE_POWDER));
 
@@ -157,10 +160,10 @@ public final class VanillaDeviceTests {
         assertValue(helper, "primary effect when unset", null, invokeRpc(devices, "getPrimaryEffect"));
         assertEquals(helper, "primary effect through io when unset", 0, invokeIo(io, 2).length);
 
-        final BeaconBlockEntity beacon = helper.getBlockEntity(POS);
+        final BeaconBlockEntity beacon = helper.getBlockEntity(POS, BeaconBlockEntity.class);
         final CompoundTag tag = new CompoundTag();
         tag.putString("primary_effect", "minecraft:speed");
-        beacon.loadWithComponents(tag, helper.getLevel().registryAccess());
+        beacon.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), tag));
         assertValue(helper, "primary effect", "minecraft:speed", invokeRpc(devices, "getPrimaryEffect"));
         assertValue(helper, "primary effect through io", "minecraft:speed", new String(invokeIo(io, 2), StandardCharsets.US_ASCII));
         assertValue(helper, "secondary effect when unset", null, invokeRpc(devices, "getSecondaryEffect"));
@@ -170,7 +173,7 @@ public final class VanillaDeviceTests {
 
     public static void spawnerReportsEntityType(final GameTestHelper helper) {
         helper.setBlock(POS, Blocks.SPAWNER);
-        final SpawnerBlockEntity spawner = helper.getBlockEntity(POS);
+        final SpawnerBlockEntity spawner = helper.getBlockEntity(POS, SpawnerBlockEntity.class);
         spawner.setEntityId(EntityType.ZOMBIE, helper.getLevel().getRandom());
         final List<Device> devices = devicesAt(helper, POS);
 
@@ -211,7 +214,7 @@ public final class VanillaDeviceTests {
         assertValue(helper, "playing while empty", false, invokeRpc(devices, "isPlaying"));
         assertValue(helper, "song while empty", null, invokeRpc(devices, "getSong"));
 
-        final JukeboxBlockEntity jukebox = helper.getBlockEntity(POS);
+        final JukeboxBlockEntity jukebox = helper.getBlockEntity(POS, JukeboxBlockEntity.class);
         jukebox.setTheItem(new ItemStack(Items.MUSIC_DISC_CAT));
 
         helper.startSequence()
@@ -236,7 +239,7 @@ public final class VanillaDeviceTests {
         final ItemStack book = new ItemStack(Items.WRITABLE_BOOK);
         book.set(DataComponents.WRITABLE_BOOK_CONTENT, new WritableBookContent(
             List.of(Filterable.passThrough("a"), Filterable.passThrough("b"), Filterable.passThrough("c"))));
-        final LecternBlockEntity lectern = helper.getBlockEntity(POS);
+        final LecternBlockEntity lectern = helper.getBlockEntity(POS, LecternBlockEntity.class);
         lectern.setBook(book);
 
         assertEquals(helper, "page count", 3, (int) invokeRpc(devices, "getPageCount"));
@@ -249,7 +252,7 @@ public final class VanillaDeviceTests {
 
     public static void crafterTogglesSlotsAndPredictsResult(final GameTestHelper helper) {
         helper.setBlock(POS, Blocks.CRAFTER);
-        final CrafterBlockEntity crafter = helper.getBlockEntity(POS);
+        final CrafterBlockEntity crafter = helper.getBlockEntity(POS, CrafterBlockEntity.class);
         final List<Device> devices = devicesAt(helper, POS);
         final IODevice io = ioDevice(devices, "CRAFTR");
 

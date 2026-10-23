@@ -11,8 +11,10 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.TerminalConfigurationMessage;
 import li.cil.oc2.common.network.message.TerminalKeepAliveMessage;
 import li.cil.oc2.common.serial.SerialFrame;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
@@ -26,7 +28,7 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
     private static final int BAUD_RATE_TOP = ADDRESS_TOP + LINE_HEIGHT + 2;
     private static final int HEIGHT = BAUD_RATE_TOP + BUTTON_HEIGHT + MARGIN;
     private static final int LABEL_OFFSET = 10;
-    private static final int TITLE_COLOR = 0x404040;
+    private static final int TITLE_COLOR = 0xFF404040;
     private static final int LABEL_COLOR = 0xFFAAAAAA;
 
     private static final Component ADDRESS_LABEL = text("gui.{mod}.terminal.address");
@@ -43,8 +45,14 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
 
     // --------------------------------------------------------------------- //
 
+    public static void open(final TerminalBlockEntity terminal) {
+        Minecraft.getInstance().setScreen(new TerminalConfigurationScreen(terminal));
+    }
+
+    // --------------------------------------------------------------------- //
+
     public TerminalConfigurationScreen(final TerminalBlockEntity terminal) {
-        super(Items.TERMINAL.get().getDescription(), terminal);
+        super(Items.TERMINAL.get().getName(), terminal);
         imageHeight = HEIGHT;
     }
 
@@ -86,7 +94,7 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
             Sprites.CONFIG_BUTTON_INACTIVE
         ) {
             @Override
-            public void onPress() {
+            public void onPress(final InputWithModifiers input) {
                 minecraft.setScreen(new TerminalScreen(blockEntity));
             }
         }).withTooltip(Component.translatable(Constants.MACHINE_OPEN_TERMINAL_CAPTION));
@@ -151,8 +159,8 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
         }
 
         @Override
-        public void onPress() {
-            super.onPress();
+        public void onPress(final InputWithModifiers input) {
+            super.onPress(input);
             cycle(1);
         }
 

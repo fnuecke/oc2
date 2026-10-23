@@ -15,6 +15,7 @@ import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.ServerScheduler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
@@ -136,6 +137,11 @@ public abstract class AbstractBlockDeviceBusElement extends AbstractGroupingDevi
     }
 
     // --------------------------------------------------------------------- //
+
+    @Override
+    protected HolderLookup.Provider getRegistries() {
+        return getLevel().registryAccess();
+    }
 
     protected boolean canScanContinueTowards(@Nullable final Direction direction) {
         return true;

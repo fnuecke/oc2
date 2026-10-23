@@ -3,23 +3,23 @@
 package li.cil.oc2.gametest.fabric;
 
 import li.cil.oc2.gametest.RPCTypeAdapterTests;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
-import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
 public final class RPCTypeAdapterTestsFabric {
-    @GameTest(template = TEMPLATE)
+    @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
     public void directionAdapterIsApplied(final GameTestHelper helper) {
         RPCTypeAdapterTests.directionAdapterIsApplied(helper);
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
     public void itemStackAdapterIsApplied(final GameTestHelper helper) {
         RPCTypeAdapterTests.itemStackAdapterIsApplied(helper);
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
     public void itemStackCarriesFilteredComponents(final GameTestHelper helper) {
         RPCTypeAdapterTests.itemStackCarriesFilteredComponents(helper);
     }

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "minecraft:comparator",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "ICI",
+    "XTX",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:redstone_interface"
+  }
+}

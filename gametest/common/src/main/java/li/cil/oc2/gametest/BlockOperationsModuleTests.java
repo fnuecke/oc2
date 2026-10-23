@@ -9,6 +9,7 @@ import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
@@ -22,15 +23,15 @@ public final class BlockOperationsModuleTests {
         final BlockPos target = robot.putBlockInFront(Blocks.STONE);
 
         if (!module.excavate(RobotOperationSide.FRONT)) {
-            throw new GameTestAssertException("excavating stone with a diamond pickaxe failed");
+            throw new GameTestAssertException(Component.literal("excavating stone with a diamond pickaxe failed"), 0);
         }
 
         if (!helper.getLevel().getBlockState(target).isAir()) {
-            throw new GameTestAssertException("excavate reported success but the block is still there");
+            throw new GameTestAssertException(Component.literal("excavate reported success but the block is still there"), 0);
         }
 
         if (!robot.has(net.minecraft.world.item.Items.COBBLESTONE)) {
-            throw new GameTestAssertException("the block was broken but nothing was collected");
+            throw new GameTestAssertException(Component.literal("the block was broken but nothing was collected"), 0);
         }
 
         helper.succeed();
@@ -44,16 +45,16 @@ public final class BlockOperationsModuleTests {
         final BlockPos target = robot.putBlockInFront(Blocks.AIR);
 
         if (!module.place(RobotOperationSide.FRONT)) {
-            throw new GameTestAssertException("placing a stone block failed");
+            throw new GameTestAssertException(Component.literal("placing a stone block failed"), 0);
         }
 
         if (!helper.getLevel().getBlockState(target).is(Blocks.STONE)) {
-            throw new GameTestAssertException("place reported success but there is no stone at " + target);
+            throw new GameTestAssertException(Component.literal("place reported success but there is no stone at " + target), 0);
         }
 
         final ItemStack remaining = robot.selected();
         if (remaining.getCount() != 1) {
-            throw new GameTestAssertException("expected exactly one stone to be consumed, slot holds " + remaining);
+            throw new GameTestAssertException(Component.literal("expected exactly one stone to be consumed, slot holds " + remaining), 0);
         }
 
         helper.succeed();

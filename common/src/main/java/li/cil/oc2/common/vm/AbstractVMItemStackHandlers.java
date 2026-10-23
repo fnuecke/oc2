@@ -16,11 +16,13 @@ import li.cil.oc2.common.bus.device.SystemDevice;
 import li.cil.oc2.common.container.AbstractDeviceItemStackHandler;
 import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
 import li.cil.oc2.common.container.CombinedItemHandler;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.CpuItem;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +57,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
             itemHandlers.put(group.deviceType, new VMItemHandler(group.count, group.deviceType));
         }
 
-        combinedItemHandlers = new CombinedItemHandler(itemHandlers.values().toArray(new ItemHandler[0]));
+        combinedItemHandlers = new CombinedItemHandler(itemHandlers.values().toArray(new DeferredNotifyItemHandler[0]));
     }
 
     // --------------------------------------------------------------------- //
@@ -124,39 +126,31 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         }
     }
 
-    public void saveItems(final HolderLookup.Provider registries, final CompoundTag tag) {
+    public void saveItems(final ValueOutput output) {
         itemHandlers.forEach((deviceType, handler) -> {
             if (!handler.isEmpty()) {
-                tag.put(key(deviceType), handler.saveItems(registries));
+                handler.saveItems(output.child(key(deviceType)));
             }
         });
     }
 
-    public CompoundTag saveItems(final HolderLookup.Provider registries) {
-        final CompoundTag tag = new CompoundTag();
-        saveItems(registries, tag);
-        return tag;
-    }
-
-    public void loadItems(final HolderLookup.Provider registries, final CompoundTag tag) {
+    public void loadItems(final ValueInput input) {
         itemHandlers.forEach((deviceType, handler) ->
-            handler.loadItems(registries, tag.getCompound(key(deviceType))));
+            handler.loadItems(input.childOrEmpty(key(deviceType))));
     }
 
-    public void saveDevices(final CompoundTag tag) {
+    public void saveDevices(final ValueOutput output) {
         itemHandlers.forEach((deviceType, handler) ->
-            tag.put(key(deviceType), handler.saveDevices()));
+            handler.saveDevices(output.child(key(deviceType))));
     }
 
-    public CompoundTag saveDevices() {
-        final CompoundTag tag = new CompoundTag();
-        saveDevices(tag);
-        return tag;
-    }
-
-    public void loadDevices(final CompoundTag tag) {
+    public void loadDevices(final ValueInput input) {
         itemHandlers.forEach((deviceType, handler) ->
-            handler.loadDevices(tag.getCompound(key(deviceType))));
+            handler.loadDevices(input.childOrEmpty(key(deviceType))));
+    }
+
+    public void resetDevices() {
+        itemHandlers.values().forEach(handler -> handler.getBusElement().reset());
     }
 
     public void updateDevices() {
@@ -166,6 +160,8 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
     // --------------------------------------------------------------------- //
 
     protected abstract boolean isClientSide();
+
+    protected abstract HolderLookup.Provider getRegistries();
 
     protected abstract ItemDeviceQuery makeQuery(final ItemStack stack);
 
@@ -207,6 +203,11 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
         @Override
         protected ItemDeviceQuery makeQuery(final ItemStack stack) {
             return AbstractVMItemStackHandlers.this.makeQuery(stack);
+        }
+
+        @Override
+        protected HolderLookup.Provider getRegistries() {
+            return AbstractVMItemStackHandlers.this.getRegistries();
         }
 
         @Override

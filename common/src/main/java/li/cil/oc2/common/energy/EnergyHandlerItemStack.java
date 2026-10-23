@@ -37,7 +37,7 @@ public final class EnergyHandlerItemStack implements EnergyHandler {
 
     @Override
     public long getEnergyStored() {
-        return NBTUtils.getChildTag(ItemStackUtils.getModDataTag(stack), tagPath).getInt(FixedEnergyHandler.STORED_TAG_NAME);
+        return NBTUtils.getChildTag(ItemStackUtils.getModDataTag(stack), tagPath).getIntOr(FixedEnergyHandler.STORED_TAG_NAME, 0);
     }
 
     @Override

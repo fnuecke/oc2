@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public final class Wrenches {
     public static boolean isWrench(@Nullable final ItemStack stack) {
@@ -19,7 +20,7 @@ public final class Wrenches {
             return false;
         }
 
-        for (final ItemStack stack : livingEntity.getHandSlots()) {
+        for (final ItemStack stack : List.of(livingEntity.getMainHandItem(), livingEntity.getOffhandItem())) {
             if (isWrench(stack)) {
                 return true;
             }

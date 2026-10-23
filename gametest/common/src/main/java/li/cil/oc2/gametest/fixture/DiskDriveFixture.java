@@ -8,6 +8,7 @@ import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -36,12 +37,12 @@ public final class DiskDriveFixture {
     }
 
     public DiskDriveBlockEntity blockEntity() {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, DiskDriveBlockEntity.class);
     }
 
     public DiskDriveFixture insert(final ItemStack stack) {
         if (!blockEntity().insert(stack, null).isEmpty()) {
-            throw new GameTestAssertException("could not insert " + stack + " into the disk drive");
+            throw new GameTestAssertException(Component.literal("could not insert " + stack + " into the disk drive"), 0);
         }
         return this;
     }

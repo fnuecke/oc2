@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "#c:ingots/copper",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "III",
+    "CTC",
+    "III"
+  ],
+  "result": {
+    "count": 16,
+    "id": "oc2:bus_cable"
+  }
+}

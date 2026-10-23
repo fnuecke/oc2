@@ -6,11 +6,10 @@ import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
-import net.minecraft.ResourceLocationException;
-import net.minecraft.Util;
+import net.minecraft.IdentifierException;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
@@ -24,11 +23,8 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
 
     // --------------------------------------------------------------------- //
 
-    @Nullable
-    private String descriptionId;
-
-    public FlashMemoryItem(final int defaultCapacity) {
-        super(createProperties().stacksTo(1), () -> defaultCapacity);
+    public FlashMemoryItem(final Properties properties, final int defaultCapacity) {
+        super(properties.stacksTo(1), () -> defaultCapacity);
     }
 
     // --------------------------------------------------------------------- //
@@ -39,19 +35,19 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
             return null;
         }
 
-        final String registryName = ItemStackUtils.getModDataTag(stack).getString(StorageItemUtils.IMAGE_TAG_NAME);
+        final String registryName = ItemStackUtils.getModDataTag(stack).getStringOr(StorageItemUtils.IMAGE_TAG_NAME, "");
         if (StringUtil.isNullOrEmpty(registryName)) {
             return null;
         }
 
         try {
-            return BlockDeviceDataRegistry.getValue(ResourceLocation.parse(registryName));
-        } catch (final ResourceLocationException ignored) {
+            return BlockDeviceDataRegistry.getValue(Identifier.parse(registryName));
+        } catch (final IdentifierException ignored) {
             return null;
         }
     }
 
-    public ItemStack withData(final ItemStack stack, final ResourceLocation key) {
+    public ItemStack withData(final ItemStack stack, final Identifier key) {
         if (stack.isEmpty() || stack.getItem() != this) {
             return ItemStack.EMPTY;
         }
@@ -61,7 +57,7 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
         return stack;
     }
 
-    public ItemStack withData(final ResourceLocation key) {
+    public ItemStack withData(final Identifier key) {
         return withData(new ItemStack(this), key);
     }
 
@@ -72,7 +68,7 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
         output.accept(new ItemStack(this));
 
         BlockDeviceDataRegistry.firmwareValues().forEach(data -> {
-            final ResourceLocation key = BlockDeviceDataRegistry.getKey(data);
+            final Identifier key = BlockDeviceDataRegistry.getKey(data);
             if (key == null) {
                 return;
             }
@@ -80,7 +76,7 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
             final ItemStack stack = withData(key);
             final DyeColor color = data.getColor();
             if (color != null) {
-                stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color.getTextureDiffuseColor(), true));
+                stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color.getTextureDiffuseColor()));
             }
             output.accept(stack);
         });
@@ -103,15 +99,5 @@ public final class FlashMemoryItem extends AbstractStorageItem implements Colore
             .append(" (")
             .append(data.getDisplayName())
             .append(")");
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Override
-    protected String getOrCreateDescriptionId() {
-        if (descriptionId == null) {
-            descriptionId = Util.makeDescriptionId("item", Items.FLASH_MEMORY.getId());
-        }
-        return descriptionId;
     }
 }

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "E": "#c:ender_pearls",
+    "G": "oc2:network_connector",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "IGI",
+    "ETE",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:internet_gateway"
+  }
+}

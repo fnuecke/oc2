@@ -4,7 +4,6 @@ package li.cil.oc2.common.item;
 
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.TextFormatUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -13,8 +12,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 
-import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 
 public abstract class AbstractStorageItem extends ModItem {
@@ -31,16 +31,12 @@ public abstract class AbstractStorageItem extends ModItem {
         this.defaultCapacity = defaultCapacity;
     }
 
-    protected AbstractStorageItem(final IntSupplier defaultCapacity) {
-        this(createProperties(), defaultCapacity);
-    }
-
     // --------------------------------------------------------------------- //
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         TooltipUtils.addDataCorrupted(stack, tooltip);
     }
 
@@ -58,11 +54,11 @@ public abstract class AbstractStorageItem extends ModItem {
 
     public int getCapacity(final ItemStack stack) {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
-        if (!tag.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
+        if (!tag.getInt(CAPACITY_TAG_NAME).isPresent()) {
             return defaultCapacity.getAsInt();
         }
 
-        final int capacity = tag.getInt(CAPACITY_TAG_NAME);
+        final int capacity = tag.getIntOr(CAPACITY_TAG_NAME, 0);
         if (Config.maxBlobCapacity <= 0) {
             return Math.max(capacity, 0);
         }

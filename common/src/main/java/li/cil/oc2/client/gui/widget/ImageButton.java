@@ -2,13 +2,13 @@
 
 package li.cil.oc2.client.gui.widget;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.client.gui.util.TooltipRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -67,12 +67,12 @@ public abstract class ImageButton extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(final InputWithModifiers input) {
         lastPressedAt = System.currentTimeMillis();
     }
 
     @Override
-    protected void renderWidget(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+    protected void renderContents(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         renderBackground(graphics, mouseX, mouseY, partialTicks);
 
         renderTooltipIfHovered(graphics, mouseX, mouseY);
@@ -109,8 +109,6 @@ public abstract class ImageButton extends AbstractButton {
     }
 
     protected void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        RenderSystem.enableDepthTest();
-
         final boolean isPressed = (System.currentTimeMillis() - lastPressedAt) < PRESS_DURATION;
         (isPressed ? pressedImage : baseImage).draw(graphics, getX(), getY(), width, height);
 

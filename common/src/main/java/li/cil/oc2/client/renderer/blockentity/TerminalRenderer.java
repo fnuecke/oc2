@@ -8,26 +8,55 @@ import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.client.renderer.TerminalOverlayRenderer;
 import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.blockentity.TerminalBlockEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
+import li.cil.oc2.common.vm.device.Terminal;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlockEntity> {
-    public TerminalRenderer(final BlockEntityRendererProvider.Context context) {
+import javax.annotation.Nullable;
+
+public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlockEntity, TerminalRenderer.State> {
+    public static final class State extends BlockEntityRenderState {
+        private Terminal terminal;
+        private boolean isConnected;
+        private boolean hasRecentFrameError;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    public TerminalRenderer(final BlockEntityRendererProvider.Context ignoredContext) {
     }
 
     // --------------------------------------------------------------------- //
 
     @Override
-    public void render(final TerminalBlockEntity terminal, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
-        final BlockState state = terminal.getBlockState();
-        final Direction blockFacing = state.getValue(OrientableBlock.FACING);
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(final TerminalBlockEntity terminal, final State state, final float partialTicks, final Vec3 cameraPosition,
+                                   @Nullable final ModelFeatureRenderer.CrumblingOverlay crumbling) {
+        BlockEntityRenderer.super.extractRenderState(terminal, state, partialTicks, cameraPosition, crumbling);
+
+        state.terminal = terminal.getTerminal();
+        state.isConnected = terminal.isConnected();
+        state.hasRecentFrameError = terminal.hasRecentFrameError();
+    }
+
+    @Override
+    public void submit(final State state, final PoseStack stack, final SubmitNodeCollector collector, final CameraRenderState camera) {
+        final BlockState blockState = state.blockState;
+        final Direction blockFacing = blockState.getValue(OrientableBlock.FACING);
         final Vec3 cameraOffset = TerminalOverlayRenderer.getCameraOffset(stack);
 
-        final double projectedCameraPosition = cameraOffset.dot(Vec3.atLowerCornerOf(blockFacing.getNormal()));
+        final double projectedCameraPosition = cameraOffset.dot(Vec3.atLowerCornerOf(blockFacing.getUnitVec3i()));
         if (projectedCameraPosition <= 0) {
             return;
         }
@@ -36,8 +65,8 @@ public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlock
 
         // Align with front face of block.
         stack.translate(0.5f, 0.5f, 0.5f);
-        stack.mulPose(Axis.YN.rotationDegrees(OrientableBlock.getRotationY(state)));
-        stack.mulPose(Axis.XN.rotationDegrees(OrientableBlock.getRotationX(state)));
+        stack.mulPose(Axis.YN.rotationDegrees(OrientableBlock.getRotationY(blockState)));
+        stack.mulPose(Axis.XN.rotationDegrees(OrientableBlock.getRotationX(blockState)));
         stack.translate(-0.5f, -0.5f, -0.5f);
 
         // Flip and align with top left corner.
@@ -49,16 +78,16 @@ public final class TerminalRenderer implements BlockEntityRenderer<TerminalBlock
         stack.scale(pixelScale, pixelScale, pixelScale);
 
         stack.translate(0, 0, -10f);
-        TerminalOverlayRenderer.renderTerminal(terminal.getTerminal(), stack, bufferSource, cameraOffset);
+        TerminalOverlayRenderer.renderTerminal(state.terminal, stack, collector, cameraOffset);
 
         stack.translate(0, 0, -0.1f);
 
-        if (terminal.isConnected()) {
-            Overlays.renderPower(stack.last().pose(), bufferSource);
+        if (state.isConnected) {
+            Overlays.renderPower(stack, collector);
         }
 
-        if (terminal.hasRecentFrameError()) {
-            Overlays.renderStatus(stack.last().pose(), bufferSource);
+        if (state.hasRecentFrameError) {
+            Overlays.renderStatus(stack, collector);
         }
 
         stack.popPose();

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:comparator",
+    "I": "#c:ingots/iron",
+    "R": "#c:dusts/redstone"
+  },
+  "pattern": [
+    "RCR",
+    "III"
+  ],
+  "result": {
+    "count": 12,
+    "id": "oc2:transistor"
+  }
+}

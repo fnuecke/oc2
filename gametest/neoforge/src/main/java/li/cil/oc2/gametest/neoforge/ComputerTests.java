@@ -7,20 +7,22 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.util.Drops;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "computer")
 public final class ComputerTests {
-    @GameTest(template = TEMPLATE, timeoutTicks = 200)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 200)
+    @TestHolder
     public static void updateTagRoundTripsWithoutError(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.place(helper);
         helper.startSequence()
@@ -28,7 +30,8 @@ public final class ComputerTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 300)
+    @TestHolder
     public static void breakingComputerKeepsContents(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
@@ -39,7 +42,7 @@ public final class ComputerTests {
             .thenExecuteAfter(10, () -> {
                 final ItemStack dropped = Drops.single(helper);
                 if (!dropped.is(Items.COMPUTER.get())) {
-                    throw new GameTestAssertException("expected a computer item, got " + dropped);
+                    throw new GameTestAssertException(Component.literal("expected a computer item, got " + dropped), 0);
                 }
 
                 helper.killAllEntities();
@@ -52,7 +55,8 @@ public final class ComputerTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 300)
+    @TestHolder
     public static void normalInteractionDoesNotStart(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
@@ -65,7 +69,8 @@ public final class ComputerTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 300)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 300)
+    @TestHolder
     public static void sneakInteractStarts(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.place(helper, player);
@@ -75,7 +80,7 @@ public final class ComputerTests {
                 helper.useBlock(computer.pos(), player);
 
                 if (computer.runState() == VMRunState.STOPPED) {
-                    throw new GameTestAssertException("sneak interaction should start the computer");
+                    throw new GameTestAssertException(Component.literal("sneak interaction should start the computer"), 0);
                 }
             })
             .thenSucceed();

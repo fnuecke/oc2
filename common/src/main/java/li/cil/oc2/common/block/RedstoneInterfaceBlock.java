@@ -4,7 +4,6 @@ package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.RedstoneInterfaceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,20 +18,20 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.redstone.Orientation;
 
 import javax.annotation.Nullable;
 
 public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<RedstoneInterfaceBlock> CODEC = MapCodec.unit(RedstoneInterfaceBlock::new);
+    public static final MapCodec<RedstoneInterfaceBlock> CODEC = simpleCodec(RedstoneInterfaceBlock::new);
 
     @Override
     protected MapCodec<? extends RedstoneInterfaceBlock> codec() {
         return CODEC;
     }
 
-    public RedstoneInterfaceBlock() {
-        super(Properties
-            .of()
+    public RedstoneInterfaceBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .strength(1.5f, 6.0f));
@@ -69,17 +68,11 @@ public final class RedstoneInterfaceBlock extends HorizontalDirectionalBlock imp
     }
 
     @Override
-    protected void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block neighborBlock, final BlockPos neighborPos, final boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(final BlockState state, final Level level, final BlockPos pos, final Block neighborBlock, @Nullable final Orientation orientation, final boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         if (level.getBlockEntity(pos) instanceof final RedstoneInterfaceBlockEntity redstoneInterface) {
             redstoneInterface.handleNeighborChanged();
         }
-    }
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     // --------------------------------------------------------------------- //

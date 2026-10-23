@@ -8,10 +8,10 @@ import li.cil.oc2.api.bus.device.object.Callback;
 import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.common.doc.DeviceDocumentation;
 import li.cil.oc2.common.doc.DevicePage;
-import net.minecraft.Util;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
+import net.minecraft.util.Util;
 import net.neoforged.fml.ModList;
 import org.objectweb.asm.Type;
 

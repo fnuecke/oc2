@@ -3,10 +3,7 @@
 package li.cil.oc2.client.renderer.entity.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import li.cil.oc2.api.API;
-import li.cil.oc2.common.entity.Robot;
-import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -15,26 +12,35 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
+import org.joml.Vector3fc;
 
-public final class RobotModel extends EntityModel<Robot> {
-    public static final ModelLayerLocation ROBOT_MODEL_LAYER = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "robot"), "main");
-    public static final ResourceLocation ROBOT_ENTITY_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/entity/robot/robot.png");
+import java.util.function.Consumer;
+
+public final class RobotModel {
+    public static final ModelLayerLocation ROBOT_MODEL_LAYER = new ModelLayerLocation(Identifier.fromNamespaceAndPath(API.MOD_ID, "robot"), "main");
+    public static final Identifier ROBOT_ENTITY_TEXTURE = Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/entity/robot/robot.png");
+
+    private static final RenderType RENDER_TYPE = RenderTypes.entityCutoutNoCull(ROBOT_ENTITY_TEXTURE);
 
     // --------------------------------------------------------------------- //
 
+    private final ModelPart root;
     private final ModelPart topRenderer;
     private final ModelPart baseRenderer;
     private final ModelPart coreRenderer;
-    private float baseY, topY;
-    private final float[] topRotation = new float[3];
     private final Quaternionf topRotationQuaternion = new Quaternionf();
 
     // --------------------------------------------------------------------- //
 
     public RobotModel(final ModelPart modelPart) {
+        root = modelPart;
         topRenderer = modelPart.getChild("top");
         baseRenderer = modelPart.getChild("base");
         coreRenderer = modelPart.getChild("core");
@@ -60,31 +66,26 @@ public final class RobotModel extends EntityModel<Robot> {
 
     // --------------------------------------------------------------------- //
 
-    public void applyTopTransform(final PoseStack stack) {
+    public void applyTopTransform(final PoseStack stack, final float topY, final float topRotationY) {
         stack.translate(0, topY, 0);
-        stack.mulPose(topRotationQuaternion.rotationXYZ(
-            topRotation[0] * Mth.DEG_TO_RAD, topRotation[1] * Mth.DEG_TO_RAD, topRotation[2] * Mth.DEG_TO_RAD));
+        stack.mulPose(topRotationQuaternion.rotationXYZ(0, topRotationY * Mth.DEG_TO_RAD, 0));
     }
 
-    @Override
-    public void setupAnim(final Robot entity, final float limbSwing, final float limbSwingAmount, final float ageInTicks, final float netHeadYaw, final float headPitch) {
-        final Robot.AnimationState state = entity.getAnimationState();
-        baseY = state.baseRenderOffsetY;
-        topY = state.topRenderOffsetY;
-        topRotation[1] = state.topRenderRotationY;
+    public void getExtents(final PoseStack stack, final Consumer<Vector3fc> output) {
+        root.getExtentsForGui(stack, output);
     }
 
-    @Override
-    public void renderToBuffer(final PoseStack stack, final VertexConsumer consumer, final int packedLight, final int packedOverlay, final int color) {
+    public void submit(final PoseStack stack, final SubmitNodeCollector collector, final int packedLight,
+                       final float baseY, final float topY, final float topRotationY) {
         stack.pushPose();
-        applyTopTransform(stack);
-        topRenderer.render(stack, consumer, packedLight, packedOverlay, color);
+        applyTopTransform(stack, topY, topRotationY);
+        collector.submitModelPart(topRenderer, stack, RENDER_TYPE, packedLight, OverlayTexture.NO_OVERLAY, null);
         stack.popPose();
 
         stack.pushPose();
         stack.translate(0, baseY, 0);
-        baseRenderer.render(stack, consumer, packedLight, packedOverlay, color);
-        coreRenderer.render(stack, consumer, LightTexture.pack(15, 15), packedOverlay, color);
+        collector.submitModelPart(baseRenderer, stack, RENDER_TYPE, packedLight, OverlayTexture.NO_OVERLAY, null);
+        collector.submitModelPart(coreRenderer, stack, RENDER_TYPE, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, null);
         stack.popPose();
     }
 }

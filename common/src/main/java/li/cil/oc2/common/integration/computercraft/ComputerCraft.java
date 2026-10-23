@@ -13,7 +13,7 @@ import li.cil.oc2.common.serial.SerialPort;
 import li.cil.oc2.common.serial.SerialPorts;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class ComputerCraft {
-    private static final Set<ResourceLocation> COMPUTER_TYPE_IDS = Stream.of("computer_normal", "computer_advanced", "computer_command")
-        .map(name -> ResourceLocation.fromNamespaceAndPath(ModIntegration.COMPUTERCRAFT.modId(), name))
+    private static final Set<Identifier> COMPUTER_TYPE_IDS = Stream.of("computer_normal", "computer_advanced", "computer_command")
+        .map(name -> Identifier.fromNamespaceAndPath(ModIntegration.COMPUTERCRAFT.modId(), name))
         .collect(Collectors.toUnmodifiableSet());
     private static final SerialPorts PORTS = new SerialPorts(SerialEndpoint.DEFAULT_BAUD_RATE);
 
@@ -37,7 +37,7 @@ public final class ComputerCraft {
     public static Set<BlockEntityType<?>> computerTypes() {
         if (computerTypes == null) {
             computerTypes = COMPUTER_TYPE_IDS.stream()
-                .<BlockEntityType<?>>map(BuiltInRegistries.BLOCK_ENTITY_TYPE::get)
+                .<BlockEntityType<?>>map(BuiltInRegistries.BLOCK_ENTITY_TYPE::getValue)
                 .collect(Collectors.toUnmodifiableSet());
         }
         return computerTypes;

@@ -8,6 +8,7 @@ import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -37,7 +38,7 @@ public final class HubFixture {
     }
 
     public NetworkHubBlockEntity blockEntity() {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, NetworkHubBlockEntity.class);
     }
 
     public int framesReceived() {
@@ -46,7 +47,7 @@ public final class HubFixture {
             field.setAccessible(true);
             return (Integer) field.get(blockEntity());
         } catch (final ReflectiveOperationException e) {
-            throw new GameTestAssertException("could not read the hub's frame counter: " + e);
+            throw new GameTestAssertException(Component.literal("could not read the hub's frame counter: " + e), 0);
         }
     }
 

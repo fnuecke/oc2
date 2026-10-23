@@ -15,7 +15,7 @@ import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -122,7 +122,7 @@ public final class Capabilities {
     // --------------------------------------------------------------------- //
 
     private static <T> CapabilityType<T> type(final String name, final Class<T> type) {
-        return new CapabilityType<>(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, name), type);
+        return new CapabilityType<>(Identifier.fromNamespaceAndPath(API.MOD_ID, name), type);
     }
 
     private Capabilities() {

@@ -8,13 +8,13 @@ import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.minecraft.core.NonNullList;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.Level;
 
 import java.io.IOException;
 import java.util.List;
@@ -55,12 +55,12 @@ public final class CraftingModuleDevice extends AbstractItemDevice {
         description = CRAFT_DESCRIPTION,
         returnValueDescription = "the number of items crafted, or `0` if crafting failed.")
     public int craft() {
-        final Level level = entity.level();
+        final ServerLevel level = (ServerLevel) entity.level();
         final ItemHandler inventory = inventory();
 
         final CraftingInput.Positioned positioned = CraftingInput.ofPositioned(GRID_SIZE, GRID_SIZE, gridItems(inventory));
         final CraftingInput input = positioned.input();
-        final Optional<RecipeHolder<CraftingRecipe>> recipe = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level);
+        final Optional<RecipeHolder<CraftingRecipe>> recipe = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level);
         if (recipe.isEmpty()) {
             return 0;
         }
@@ -109,7 +109,7 @@ public final class CraftingModuleDevice extends AbstractItemDevice {
 
                 final ItemStack rejected = insertIntoOutput(inventory, inventory.insertItem(slot, remainder, false), false);
                 if (!rejected.isEmpty()) {
-                    entity.spawnAtLocation(rejected);
+                    entity.spawnAtLocation((ServerLevel) entity.level(), rejected);
                 }
             }
         }

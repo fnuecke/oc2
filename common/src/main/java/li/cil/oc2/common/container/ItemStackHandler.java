@@ -2,22 +2,15 @@
 
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.common.inventory.ItemHandler;
-import net.minecraft.core.HolderLookup;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
-/**
- * oc2's own slotted item container, replacing Forge's {@code ItemStackHandler}.
- * <p>
- * Kept deliberately close to the original's shape so the many subclasses did not have to change,
- * but the NBT methods now take a {@link HolderLookup.Provider}: from 1.20.5 on, item stacks cannot
- * be serialized without registry access.
- */
-public class ItemStackHandler implements ItemHandler {
+public class ItemStackHandler implements DeferredNotifyItemHandler {
     private static final String SIZE_TAG_NAME = "Size";
 
     protected NonNullList<ItemStack> stacks;
@@ -48,6 +41,17 @@ public class ItemStackHandler implements ItemHandler {
     public void setStackInSlot(final int slot, final ItemStack stack) {
         validateSlot(slot);
         stacks.set(slot, stack);
+        onContentsChanged(slot);
+    }
+
+    @Override
+    public void setStackInSlotSilently(final int slot, final ItemStack stack) {
+        validateSlot(slot);
+        stacks.set(slot, stack);
+    }
+
+    @Override
+    public void notifySlotChanged(final int slot) {
         onContentsChanged(slot);
     }
 
@@ -131,16 +135,14 @@ public class ItemStackHandler implements ItemHandler {
 
     // --------------------------------------------------------------------- //
 
-    public CompoundTag serializeNBT(final HolderLookup.Provider provider) {
-        final CompoundTag tag = new CompoundTag();
-        tag.putInt(SIZE_TAG_NAME, stacks.size());
-        ContainerHelper.saveAllItems(tag, stacks, provider);
-        return tag;
+    public void save(final ValueOutput output) {
+        output.putInt(SIZE_TAG_NAME, stacks.size());
+        ContainerHelper.saveAllItems(output, stacks);
     }
 
-    public void deserializeNBT(final HolderLookup.Provider provider, final CompoundTag tag) {
-        setSize(tag.contains(SIZE_TAG_NAME) ? tag.getInt(SIZE_TAG_NAME) : stacks.size());
-        ContainerHelper.loadAllItems(tag, stacks, provider);
+    public void load(final ValueInput input) {
+        setSize(readSize(input));
+        ContainerHelper.loadAllItems(input, stacks);
         onLoad();
     }
 
@@ -148,6 +150,10 @@ public class ItemStackHandler implements ItemHandler {
 
     protected void setSize(final int size) {
         stacks = NonNullList.withSize(size, ItemStack.EMPTY);
+    }
+
+    protected int readSize(final ValueInput input) {
+        return input.getIntOr(SIZE_TAG_NAME, stacks.size());
     }
 
     protected int getStackLimit(final int slot, final ItemStack stack) {

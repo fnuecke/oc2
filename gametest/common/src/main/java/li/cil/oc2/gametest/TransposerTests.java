@@ -12,6 +12,7 @@ import li.cil.oc2.gametest.fixture.ComputerFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -49,7 +50,7 @@ public final class TransposerTests {
                 final boolean hasIoDevice = computer.devices().stream().anyMatch(device ->
                     device instanceof final IODevice io && "TRANSP".equals(io.getIOName()));
                 if (!hasRpcDevice || !hasIoDevice) {
-                    throw new GameTestAssertException("the transposer is not on the bus: " + computer.describe());
+                    throw new GameTestAssertException(Component.literal("the transposer is not on the bus: " + computer.describe()), 0);
                 }
             })
             .thenSucceed();
@@ -57,8 +58,8 @@ public final class TransposerTests {
 
     public static void transposerMovesItemsBetweenInventories(final GameTestHelper helper) {
         final TransposerBlockEntity transposer = placeTransposerBetweenChests(helper);
-        final ChestBlockEntity source = helper.getBlockEntity(SOURCE_POS);
-        final ChestBlockEntity target = helper.getBlockEntity(TARGET_POS);
+        final ChestBlockEntity source = helper.getBlockEntity(SOURCE_POS, ChestBlockEntity.class);
+        final ChestBlockEntity target = helper.getBlockEntity(TARGET_POS, ChestBlockEntity.class);
         source.setItem(0, new ItemStack(REDSTONE, 42));
         target.setItem(0, new ItemStack(REDSTONE, 60));
 
@@ -96,8 +97,8 @@ public final class TransposerTests {
 
     public static void transposerMovesItemsViaMidLevelApi(final GameTestHelper helper) {
         final TransposerBlockEntity transposer = placeTransposerBetweenChests(helper);
-        final ChestBlockEntity source = helper.getBlockEntity(SOURCE_POS);
-        final ChestBlockEntity target = helper.getBlockEntity(TARGET_POS);
+        final ChestBlockEntity source = helper.getBlockEntity(SOURCE_POS, ChestBlockEntity.class);
+        final ChestBlockEntity target = helper.getBlockEntity(TARGET_POS, ChestBlockEntity.class);
         source.setItem(0, new ItemStack(REDSTONE, 42));
 
         final ObjectDevice device = new ObjectDevice(transposer);
@@ -125,7 +126,7 @@ public final class TransposerTests {
         helper.setBlock(SOURCE_POS, Blocks.CHEST);
         helper.setBlock(TARGET_POS, Blocks.CHEST);
         helper.setBlock(TRANSPOSER_POS.above(), Blocks.STONE);
-        return helper.getBlockEntity(TRANSPOSER_POS);
+        return helper.getBlockEntity(TRANSPOSER_POS, TransposerBlockEntity.class);
     }
 
     // --------------------------------------------------------------------- //

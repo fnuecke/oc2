@@ -8,21 +8,22 @@ import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.gametest.fixture.Z80Fixture;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static li.cil.oc2.gametest.util.DeviceCalls.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "z80")
 public final class Z80Tests {
     private static final String DEVS_BATCH = "oc2_z80_devs";
     private static final String EVENTS_BATCH = "oc2_z80_events";
@@ -34,7 +35,8 @@ public final class Z80Tests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
+    @TestHolder
     public static void z80EnumeratesSerialCard(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -47,7 +49,7 @@ public final class Z80Tests {
             .thenExecute(() -> {
                 final ItemStack card = z80.computer().slot(DeviceTypes.CARD.get());
                 if (!SerialInterfaceCardItem.hasAddress(card)) {
-                    throw new GameTestAssertException("a card without an address should get one when it mounts");
+                    throw new GameTestAssertException(Component.literal("a card without an address should get one when it mounts"), 0);
                 }
             })
             .thenExecute(() -> z80.command("DEVS"))
@@ -60,7 +62,8 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = SERIAL_BATCH)
+    @TestHolder
     public static void serchatUsesCardAddress(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -88,7 +91,8 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = DEVS_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = DEVS_BATCH)
+    @TestHolder
     public static void devsListsTheMidLevelApiDevice(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -104,7 +108,8 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = EVENTS_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = EVENTS_BATCH)
+    @TestHolder
     public static void redwaitWakesOnRedstoneChange(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -131,7 +136,8 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
+    @TestHolder
     public static void devsListsItemsDevice(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -147,7 +153,8 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = ITEMS_BATCH)
+    @TestHolder
     public static void itemsDeviceReadsChest(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -161,7 +168,8 @@ public final class Z80Tests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = NAMES_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = NAMES_BATCH)
+    @TestHolder
     public static void devsListsTheLabelOfAnInterface(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final Z80Fixture z80 = Z80Fixture.place(helper, player);
@@ -196,18 +204,18 @@ public final class Z80Tests {
 
             final String name = new String(invokeIo(z80.computer().ioDevice("SYSTEM"), SYSTEM_GET_ITEM_NAME_CODE, id & 0xFF, id >>> 8), US_ASCII);
             if (!"minecraft:redstone".equals(name)) {
-                throw new GameTestAssertException("slot 0 of the chest resolved to [" + name + "]");
+                throw new GameTestAssertException(Component.literal("slot 0 of the chest resolved to [" + name + "]"), 0);
             }
             return;
         }
 
-        throw new GameTestAssertException("no ITEMS device on the bus reported the chest's contents;"
-            + " saw" + (seen.isEmpty() ? " none" : seen));
+        throw new GameTestAssertException(Component.literal("no ITEMS device on the bus reported the chest's contents;"
+            + " saw" + (seen.isEmpty() ? " none" : seen)), 0);
     }
 
     private static void assertBackAtPrompt(final Z80Fixture z80) {
         if (!z80.screen().stripTrailing().endsWith("A>")) {
-            throw new GameTestAssertException("CP/M should be back at its prompt");
+            throw new GameTestAssertException(Component.literal("CP/M should be back at its prompt"), 0);
         }
     }
 

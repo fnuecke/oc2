@@ -4,7 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -20,7 +20,7 @@ public final class ExampleMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        final ResourceLocation id = ResourceLocation.fromNamespaceAndPath(MOD_ID, "counter");
+        final Identifier id = Identifier.fromNamespaceAndPath(MOD_ID, "counter");
         Registry.register(BuiltInRegistries.BLOCK, id, COUNTER);
         Registry.register(BuiltInRegistries.ITEM, id, new BlockItem(COUNTER, new Item.Properties()));
         Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, COUNTER_BLOCK_ENTITY);

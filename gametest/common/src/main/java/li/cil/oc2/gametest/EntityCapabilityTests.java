@@ -13,8 +13,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.vehicle.MinecartChest;
+import net.minecraft.world.entity.vehicle.minecart.MinecartChest;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
@@ -33,7 +34,7 @@ public final class EntityCapabilityTests {
 
         final TerminalUserProvider provider = Capabilities.get(robot, Capabilities.TERMINAL_USER_PROVIDER, null);
         if (provider == null) {
-            throw new GameTestAssertException("robot exposes no terminal user provider");
+            throw new GameTestAssertException(Component.literal("robot exposes no terminal user provider"), 0);
         }
 
         helper.succeed();
@@ -44,13 +45,13 @@ public final class EntityCapabilityTests {
 
         final ItemHandler inventory = Capabilities.get(robot, Capabilities.ITEM_HANDLER, Direction.DOWN);
         if (inventory == null || inventory.getSlots() == 0) {
-            throw new GameTestAssertException("robot inventory is not reachable through the capability: " + inventory);
+            throw new GameTestAssertException(Component.literal("robot inventory is not reachable through the capability: " + inventory), 0);
         }
 
         if (Config.robotsUseEnergy()) {
             final EnergyHandler energy = Capabilities.get(robot, Capabilities.ENERGY_STORAGE, Direction.DOWN);
             if (energy == null) {
-                throw new GameTestAssertException("robot energy is not reachable through the capability");
+                throw new GameTestAssertException(Component.literal("robot energy is not reachable through the capability"), 0);
             }
         }
 
@@ -63,11 +64,11 @@ public final class EntityCapabilityTests {
         final Robot robot = RobotFixture.place(helper, ROBOT_POS).entity();
 
         if (!hasItemHandler.test(robot)) {
-            throw new GameTestAssertException("robot inventory is invisible to the platform's item handler capability");
+            throw new GameTestAssertException(Component.literal("robot inventory is invisible to the platform's item handler capability"), 0);
         }
 
         if (Config.robotsUseEnergy() && !hasEnergyStorage.test(robot)) {
-            throw new GameTestAssertException("robot energy is invisible to the platform's energy capability");
+            throw new GameTestAssertException(Component.literal("robot energy is invisible to the platform's energy capability"), 0);
         }
 
         helper.succeed();
@@ -79,11 +80,11 @@ public final class EntityCapabilityTests {
 
         final ItemHandler inventory = Capabilities.get(minecart, Capabilities.ITEM_HANDLER, Direction.DOWN);
         if (inventory == null) {
-            throw new GameTestAssertException("inventory of a non-oc2 entity is not reachable");
+            throw new GameTestAssertException(Component.literal("inventory of a non-oc2 entity is not reachable"), 0);
         }
 
         if (inventory.getStackInSlot(0).getCount() != 3) {
-            throw new GameTestAssertException("reached an item handler, but it does not see the minecart's contents");
+            throw new GameTestAssertException(Component.literal("reached an item handler, but it does not see the minecart's contents"), 0);
         }
 
         helper.succeed();

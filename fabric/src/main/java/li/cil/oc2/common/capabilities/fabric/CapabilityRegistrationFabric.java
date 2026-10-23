@@ -11,6 +11,7 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.entity.Robot;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -72,7 +73,7 @@ public final class CapabilityRegistrationFabric {
                 return null;
             }
             final var items = modBlockEntity.getCapability(Capabilities.ITEM_HANDLER, side);
-            return items != null ? FabricCapabilityAdapters.toFabric(items) : null;
+            return items != null ? FabricCapabilityAdapters.toFabric((DeferredNotifyItemHandler) items) : null;
         }, types);
     }
 
@@ -90,7 +91,7 @@ public final class CapabilityRegistrationFabric {
 
         ItemStorage.ENTITY.registerForType((final Robot robot, final Direction side) -> {
             final var items = robot.getCapability(Capabilities.ITEM_HANDLER, side);
-            return items != null ? FabricCapabilityAdapters.toFabric(items) : null;
+            return items != null ? FabricCapabilityAdapters.toFabric((DeferredNotifyItemHandler) items) : null;
         }, Entities.ROBOT.get());
 
         FluidStorage.ENTITY.registerForType((final Robot robot, final Direction side) -> {

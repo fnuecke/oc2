@@ -20,12 +20,11 @@ import li.cil.oc2.common.util.RegistryUtils;
 import li.cil.oc2.common.vm.fs.CpmSystemDisk;
 import li.cil.sedna.buildroot.Buildroot;
 import li.cil.sedna.cpm.Cpm;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.DyeColor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,8 +54,8 @@ public final class BlockDeviceDataRegistry {
     private static final Registrar<BlockDeviceData> REGISTRY = RegistryUtils.builder(Registries.BLOCK_DEVICE_DATA).build();
     private static final DeferredRegister<BlockDeviceData> INITIALIZER = RegistryUtils.getInitializerFor(Registries.BLOCK_DEVICE_DATA);
 
-    private static volatile Map<ResourceLocation, DatapackBlockDeviceData> datapackData = Map.of();
-    private static volatile Map<ResourceLocation, BlockDeviceDataClientView> clientViews = Map.of();
+    private static volatile Map<Identifier, DatapackBlockDeviceData> datapackData = Map.of();
+    private static volatile Map<Identifier, BlockDeviceDataClientView> clientViews = Map.of();
 
     // --------------------------------------------------------------------- //
 
@@ -85,14 +84,14 @@ public final class BlockDeviceDataRegistry {
         }
 
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
+            Identifier.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
         LifecycleEvent.SERVER_STOPPED.register(server -> reset());
         PlayerEvent.PLAYER_JOIN.register(player ->
             Network.sendToClientIfSupported(new BlockDeviceDataMessage(datapackData.values()), player));
     }
 
     @Nullable
-    public static ResourceLocation getKey(final BlockDeviceData data) {
+    public static Identifier getKey(final BlockDeviceData data) {
         if (data instanceof final BlockDeviceDataResource resource) {
             return resource.getLocation();
         }
@@ -101,7 +100,7 @@ public final class BlockDeviceDataRegistry {
     }
 
     @Nullable
-    public static BlockDeviceData getValue(final ResourceLocation location) {
+    public static BlockDeviceData getValue(final Identifier location) {
         final BlockDeviceData data = datapackData.get(location);
         if (data != null) {
             return data;
@@ -112,7 +111,7 @@ public final class BlockDeviceDataRegistry {
     }
 
     public static void setClientViews(final List<BlockDeviceDataClientView> views) {
-        final Map<ResourceLocation, BlockDeviceDataClientView> values = new LinkedHashMap<>();
+        final Map<Identifier, BlockDeviceDataClientView> values = new LinkedHashMap<>();
         for (final BlockDeviceDataClientView view : views) {
             values.put(view.getLocation(), view);
         }
@@ -137,7 +136,7 @@ public final class BlockDeviceDataRegistry {
         return DIRECTORY + "/" + medium + "/" + name + IMAGE_EXTENSION;
     }
 
-    private static String getMedium(final ResourceLocation location) {
+    private static String getMedium(final Identifier location) {
         final String path = location.getPath();
         if (!path.startsWith(DIRECTORY + "/")) {
             return "";
@@ -149,9 +148,9 @@ public final class BlockDeviceDataRegistry {
     }
 
     private static Stream<BlockDeviceData> values(final String medium) {
-        final Map<ResourceLocation, BlockDeviceData> values = new LinkedHashMap<>();
+        final Map<Identifier, BlockDeviceData> values = new LinkedHashMap<>();
         for (final BlockDeviceData data : REGISTRY) {
-            final ResourceLocation id = REGISTRY.getId(data);
+            final Identifier id = REGISTRY.getId(data);
             if (id != null && medium.equals(getMedium(id))) {
                 values.put(id, data);
             }
@@ -161,7 +160,7 @@ public final class BlockDeviceDataRegistry {
         return values.values().stream();
     }
 
-    private static void putValues(final Map<ResourceLocation, BlockDeviceData> values, final Map<ResourceLocation, ? extends BlockDeviceData> data, final String medium) {
+    private static void putValues(final Map<Identifier, BlockDeviceData> values, final Map<Identifier, ? extends BlockDeviceData> data, final String medium) {
         data.forEach((location, value) -> {
             if (medium.equals(getMedium(location))) {
                 values.put(location, value);
@@ -178,14 +177,14 @@ public final class BlockDeviceDataRegistry {
     }
 
     private static void reload(final ResourceManager resourceManager) {
-        final Map<ResourceLocation, DatapackBlockDeviceData> values = new LinkedHashMap<>();
+        final Map<Identifier, DatapackBlockDeviceData> values = new LinkedHashMap<>();
 
         LOGGER.info("Searching for datapack block devices...");
-        final Map<ResourceLocation, Resource> descriptors = resourceManager
+        final Map<Identifier, Resource> descriptors = resourceManager
             .listResources(DIRECTORY, location -> location.getPath().endsWith(DESCRIPTOR_EXTENSION));
 
-        for (final Map.Entry<ResourceLocation, Resource> entry : descriptors.entrySet()) {
-            final ResourceLocation descriptorLocation = entry.getKey();
+        for (final Map.Entry<Identifier, Resource> entry : descriptors.entrySet()) {
+            final Identifier descriptorLocation = entry.getKey();
             LOGGER.info("Found [{}]", descriptorLocation);
             try {
                 final String medium = getMedium(descriptorLocation);
@@ -205,7 +204,7 @@ public final class BlockDeviceDataRegistry {
                     ? DyeColor.byName(json.getAsJsonPrimitive("color").getAsString(), null)
                     : null;
 
-                final ResourceLocation location = getImageLocation(descriptorLocation);
+                final Identifier location = getImageLocation(descriptorLocation);
                 final DatapackBlockDeviceData data = new DatapackBlockDeviceData(resourceManager, location, name, color);
 
                 LOGGER.info("  Adding [{}] with id [{}] and a size of [{}].",
@@ -219,7 +218,7 @@ public final class BlockDeviceDataRegistry {
         setDatapackData(values);
     }
 
-    private static void setDatapackData(Map<ResourceLocation, DatapackBlockDeviceData> values) {
+    private static void setDatapackData(Map<Identifier, DatapackBlockDeviceData> values) {
         final var previous = datapackData;
         datapackData = Collections.unmodifiableMap(values);
 
@@ -232,7 +231,7 @@ public final class BlockDeviceDataRegistry {
         }
     }
 
-    private static ResourceLocation getImageLocation(final ResourceLocation descriptorLocation) {
+    private static Identifier getImageLocation(final Identifier descriptorLocation) {
         final String path = descriptorLocation.getPath();
         return descriptorLocation.withPath(path.substring(0, path.length() - DESCRIPTOR_EXTENSION.length()) + IMAGE_EXTENSION);
     }
@@ -243,9 +242,9 @@ public final class BlockDeviceDataRegistry {
         public static final ReloadListener INSTANCE = new ReloadListener();
 
         @Override
-        public CompletableFuture<Void> reload(final PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
+        public CompletableFuture<Void> reload(final SharedState sharedState, final Executor backgroundExecutor, final PreparationBarrier stage, final Executor gameExecutor) {
             return CompletableFuture
-                .runAsync(() -> BlockDeviceDataRegistry.reload(resourceManager), backgroundExecutor)
+                .runAsync(() -> BlockDeviceDataRegistry.reload(sharedState.resourceManager()), backgroundExecutor)
                 .thenCompose(stage::wait)
                 .thenRun(BlockDeviceDataRegistry::sendToPlayers);
         }

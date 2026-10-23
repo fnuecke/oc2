@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "S": "minecraft:note_block",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "CSX",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:sound_card"
+  }
+}

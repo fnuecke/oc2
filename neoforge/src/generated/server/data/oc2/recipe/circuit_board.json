@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "#c:ingots/copper",
+    "minecraft:clay_ball",
+    "oc2:transistor"
+  ],
+  "result": {
+    "count": 6,
+    "id": "oc2:circuit_board"
+  }
+}

@@ -4,14 +4,13 @@
     "package": "li.cil.oc2.common.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
+        "ChunkMapMixin",
         "LevelChunkMixin",
         "MinecraftServerMixin",
         "ServerChunkCacheMixin",
         "ServerGamePacketListenerImplMixin"
     ],
     "client": [
-        "FogRendererMixin",
-        "FrustumMixin",
         "GameRendererMixin",
         "LevelRendererMixin",
         "LevelRendererVanillaTerrainMixin",

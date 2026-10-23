@@ -2,17 +2,18 @@
 
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.client.gui.terminal.TerminalInput;
-import li.cil.oc2.client.renderer.TerminalRenderer;
+import li.cil.oc2.client.renderer.TerminalTextures;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
@@ -53,7 +54,6 @@ public final class TerminalWidget {
     private final Terminal terminal;
     private int leftPos, topPos;
     private boolean isMouseOverTerminal;
-    private TerminalRenderer terminalRenderer;
 
     // --------------------------------------------------------------------- //
 
@@ -74,16 +74,7 @@ public final class TerminalWidget {
 
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, @Nullable final Component error) {
         if (parent.shouldRenderTerminal()) {
-            final PoseStack terminalStack = new PoseStack();
-            terminalStack.translate(leftPos + TERMINAL_X, topPos + TERMINAL_Y, 0);
-            terminalStack.scale(TERMINAL_WIDTH / (float) terminal.getWidth(), TERMINAL_HEIGHT / (float) terminal.getHeight(), 1f);
-
-            if (terminalRenderer == null) {
-                terminalRenderer = new TerminalRenderer(terminal);
-            }
-
-            final Matrix4f projectionMatrix = new Matrix4f().setOrtho(0, parent.getWidth(), parent.getHeight(), 0, -10, 10f);
-            terminalRenderer.render(terminalStack, new Matrix4f(), projectionMatrix);
+            TerminalTextures.get(terminal).drawGui(graphics, leftPos + TERMINAL_X, topPos + TERMINAL_Y, TERMINAL_WIDTH, TERMINAL_HEIGHT);
         } else {
             final Font font = getClient().font;
             if (error != null) {
@@ -94,7 +85,7 @@ public final class TerminalWidget {
                     error,
                     leftPos + TERMINAL_X + textOffsetX,
                     topPos + TERMINAL_Y + textOffsetY,
-                    0xEE3322);
+                    0xFFEE3322);
             }
         }
     }
@@ -106,12 +97,12 @@ public final class TerminalWidget {
         }
     }
 
-    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
-        return putMouseEvent(mouseX, mouseY, toReportedButton(button), true);
+    public boolean mouseClicked(final MouseButtonEvent event) {
+        return putMouseEvent(event.x(), event.y(), toReportedButton(event.button()), true);
     }
 
-    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
-        return putMouseEvent(mouseX, mouseY, toReportedButton(button), false);
+    public boolean mouseReleased(final MouseButtonEvent event) {
+        return putMouseEvent(event.x(), event.y(), toReportedButton(event.button()), false);
     }
 
     public boolean mouseScrolled(final double mouseX, final double mouseY, final double delta) {
@@ -126,16 +117,18 @@ public final class TerminalWidget {
         return shouldCaptureInput() && terminal.putScroll(delta > 0, WHEEL_SCROLL_LINES);
     }
 
-    public boolean charTyped(final char ch, final int modifier) {
-        final boolean isControlChord = (modifier & GLFW.GLFW_MOD_CONTROL) != 0
-            && (modifier & GLFW.GLFW_MOD_ALT) == 0;
+    public boolean charTyped(final CharacterEvent event) {
+        final boolean isControlChord = (event.modifiers() & GLFW.GLFW_MOD_CONTROL) != 0
+            && (event.modifiers() & GLFW.GLFW_MOD_ALT) == 0;
         if (!isControlChord) {
-            putInput(String.valueOf(ch));
+            putInput(event.codepointAsString());
         }
         return true;
     }
 
-    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
+    public boolean keyPressed(final KeyEvent event) {
+        final int keyCode = event.key();
+        final int modifiers = event.modifiers();
         if (!shouldCaptureInput() && keyCode == GLFW.GLFW_KEY_ESCAPE) {
             return false;
         }
@@ -157,13 +150,6 @@ public final class TerminalWidget {
     public void init() {
         this.leftPos = (parent.getWidth() - WIDTH) / 2;
         this.topPos = (parent.getHeight() - HEIGHT) / 2;
-    }
-
-    public void onClose() {
-        if (terminalRenderer != null) {
-            terminalRenderer.close();
-            terminalRenderer = null;
-        }
     }
 
     // --------------------------------------------------------------------- //

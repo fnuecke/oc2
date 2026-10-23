@@ -10,15 +10,15 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
 @JeiPlugin
 public class ExtraGuiAreasJEIPlugin implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "extra_gui_areas");
+    public Identifier getPluginUid() {
+        return Identifier.fromNamespaceAndPath(API.MOD_ID, "extra_gui_areas");
     }
 
     @Override

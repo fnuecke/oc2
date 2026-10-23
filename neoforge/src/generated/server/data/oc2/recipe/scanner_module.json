@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "S": "minecraft:spyglass",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "TSC",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:scanner_module"
+  }
+}

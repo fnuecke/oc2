@@ -9,7 +9,7 @@ import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import li.cil.oc2.api.bus.device.object.RPCDeviceDescription;
 import li.cil.oc2.common.util.BlockLocation;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.JukeboxSongPlayer;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
@@ -51,7 +51,7 @@ public final class JukeboxDevice extends AbstractBlockDevice {
             return null;
         }
 
-        final ResourceLocation key = getServerLevel().registryAccess().registryOrThrow(Registries.JUKEBOX_SONG).getKey(song);
+        final Identifier key = getServerLevel().registryAccess().lookupOrThrow(Registries.JUKEBOX_SONG).getKey(song);
         return key == null ? null : key.toString();
     }
 

@@ -8,6 +8,7 @@ import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.SerialInterfaceCardConfigurationMessage;
 import li.cil.oc2.common.serial.SerialFrame;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.core.Direction;
@@ -26,12 +27,18 @@ public final class SerialInterfaceCardScreen extends AbstractSideConfigurationSc
     private static final int CONTROLS_TOP = 121;
     private static final int CONTROLS_HEIGHT = 16;
     private static final int LABEL_GAP = 5;
-    private static final int LABEL_COLOR = 0xAAAAAA;
+    private static final int LABEL_COLOR = 0xFFAAAAAA;
     private static final int ADDRESS_WIDTH = 38;
 
     // --------------------------------------------------------------------- //
 
     private EditBox addressBox;
+
+    // --------------------------------------------------------------------- //
+
+    public static void open(final Player player, final InteractionHand hand) {
+        Minecraft.getInstance().setScreen(new SerialInterfaceCardScreen(player, hand));
+    }
 
     // --------------------------------------------------------------------- //
 

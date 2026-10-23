@@ -13,28 +13,29 @@ import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.network.connection.ConnectionType;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "item_sync_size")
 public final class ItemSyncSizeTests {
     private static final int MAX_DEVICE_STACK_BYTES = 256;
     private static final int MAX_COMPUTER_STACK_BYTES = 2048;
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 900)
+    @TestHolder
     public static void storageItemsSyncByHandle(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
@@ -82,13 +83,13 @@ public final class ItemSyncSizeTests {
 
         final int size = buf.readableBytes();
         if (size > limit) {
-            throw new GameTestAssertException(what + " syncs " + size + " bytes to clients");
+            throw new GameTestAssertException(Component.literal(what + " syncs " + size + " bytes to clients"), 0);
         }
     }
 
     private static void assertBlobHandle(final String what, final ItemStack stack) {
         if (!containsKey(ItemStackUtils.getModDataTag(stack), "blob")) {
-            throw new GameTestAssertException(what + " has no blob handle");
+            throw new GameTestAssertException(Component.literal(what + " has no blob handle"), 0);
         }
     }
 
@@ -96,7 +97,7 @@ public final class ItemSyncSizeTests {
         if (tag.contains(key)) {
             return true;
         }
-        for (final String child : tag.getAllKeys()) {
+        for (final String child : tag.keySet()) {
             if (tag.get(child) instanceof final CompoundTag childTag && containsKey(childTag, key)) {
                 return true;
             }

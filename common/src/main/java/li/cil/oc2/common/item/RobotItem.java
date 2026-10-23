@@ -17,17 +17,19 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 import static li.cil.oc2.common.Constants.ITEMS_TAG_NAME;
 import static li.cil.oc2.common.bus.device.DeviceTypeRegistry.key;
@@ -36,6 +38,12 @@ import static li.cil.oc2.common.util.TranslationUtils.text;
 
 
 public final class RobotItem extends ModItem implements CreativeTabItemProvider {
+    public RobotItem(final Properties properties) {
+        super(properties);
+    }
+
+    // --------------------------------------------------------------------- //
+
     @Override
     public void addCreativeTabItems(final CreativeModeTab.ItemDisplayParameters parameters, final CreativeModeTab.Output output) {
         output.accept(new ItemStack(this));
@@ -43,8 +51,8 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
     }
 
     @Override
-    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display, final Consumer<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         TooltipUtils.addEntityEnergyInformation(stack, tooltip);
         TooltipUtils.addEntityInventoryInformation(stack, tooltip);
     }
@@ -61,12 +69,12 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
             position = Vec3.atCenterOf(pos.relative(context.getClickedFace()));
         }
 
-        final Robot robot = Entities.ROBOT.get().create(context.getLevel());
+        final Robot robot = Entities.ROBOT.get().create(context.getLevel(), EntitySpawnReason.SPAWN_ITEM_USE);
         if (robot == null) {
             return InteractionResult.FAIL;
         }
 
-        robot.moveTo(position.x, position.y - robot.getBbHeight() * 0.5f, position.z,
+        robot.snapTo(position.x, position.y - robot.getBbHeight() * 0.5f, position.z,
             Direction.fromYRot(context.getRotation()).getOpposite().toYRot(), 0);
         if (!level.noCollision(robot)) {
             return super.useOn(context);
@@ -88,7 +96,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
             context.getPlayer().awardStat(Stats.ITEM_USED.get(this));
         }
 
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override

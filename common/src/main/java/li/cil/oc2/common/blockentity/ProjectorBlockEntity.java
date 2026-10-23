@@ -25,6 +25,8 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -138,7 +140,7 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
         }
 
         final BlockState neighborBlockState = level.getBlockState(neighborPos);
-        return !neighborBlockState.isSolidRender(level, neighborPos);
+        return !neighborBlockState.isSolidRender();
     }
 
     public boolean hasEnergy() {
@@ -210,27 +212,22 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
 
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        tag.put(ENERGY_TAG_NAME, energy.serializeNBT());
+        energy.serialize(output.child(ENERGY_TAG_NAME));
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
 
-        energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
+        energy.deserialize(input.childOrEmpty(ENERGY_TAG_NAME));
 
-        if (tag.contains(IS_PROJECTING_TAG_NAME)) {
-            isMounted = tag.getBoolean(IS_PROJECTING_TAG_NAME);
-        }
-        if (tag.contains(HAS_ENERGY_TAG_NAME)) {
-            hasEnergy = tag.getBoolean(HAS_ENERGY_TAG_NAME);
-        }
+        isMounted = input.getBooleanOr(IS_PROJECTING_TAG_NAME, isMounted);
+        hasEnergy = input.getBooleanOr(HAS_ENERGY_TAG_NAME, hasEnergy);
     }
 
-    @Nullable
     @Override
     public AABB getExpandedRenderBoundingBox() {
         return renderBounds;

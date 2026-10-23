@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device;
 
+import com.mojang.serialization.Codec;
 import li.cil.oc2.api.bus.device.DeviceContext;
 import li.cil.oc2.api.bus.device.io.IOBusContext;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
@@ -13,14 +14,16 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 @RPCDeviceDescription(typeName = "redstone", description = """
@@ -88,12 +91,12 @@ public final class RedstoneInterfaceDevice implements LifecycleAwareDevice {
 
     // --------------------------------------------------------------------- //
 
-    public void save(final CompoundTag tag) {
-        tag.putByteArray(OUTPUT_TAG_NAME, output);
+    public void save(final ValueOutput valueOutput) {
+        valueOutput.store(OUTPUT_TAG_NAME, Codec.BYTE_BUFFER, ByteBuffer.wrap(output));
     }
 
-    public void load(final CompoundTag tag) {
-        final byte[] serializedOutput = tag.getByteArray(OUTPUT_TAG_NAME);
+    public void load(final ValueInput input) {
+        final byte[] serializedOutput = input.read(OUTPUT_TAG_NAME, Codec.BYTE_BUFFER).map(ByteBuffer::array).orElse(new byte[0]);
         System.arraycopy(serializedOutput, 0, output, 0, Math.min(serializedOutput.length, output.length));
     }
 

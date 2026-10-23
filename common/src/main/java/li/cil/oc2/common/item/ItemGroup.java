@@ -27,7 +27,7 @@ public final class ItemGroup {
             builder.title(Component.translatable("itemGroup." + API.MOD_ID + ".common"));
             builder.displayItems((parameters, output) -> BuiltInRegistries.ITEM.stream()
                 .filter(item -> API.MOD_ID.equals(BuiltInRegistries.ITEM.getKey(item).getNamespace()))
-                .sorted(Comparator.comparing(item -> item.getDescription().getString(), String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(item -> item.getName().getString(), String.CASE_INSENSITIVE_ORDER))
                 .forEach(item -> addItem(item, parameters, output)));
         }));
 

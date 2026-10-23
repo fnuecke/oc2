@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.item.ItemApiLookup;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The Fabric lookups OpenComputers II provides.
@@ -20,7 +20,7 @@ public final class Lookups {
          * Register a block with this to expose it as a device to an adjacent device bus.
          */
         public static final BlockApiLookup<li.cil.oc2.api.bus.device.Device, Direction> BLOCK =
-            BlockApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "device"),
+            BlockApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "device"),
                 li.cil.oc2.api.bus.device.Device.class, Direction.class);
 
         /**
@@ -29,7 +29,7 @@ public final class Lookups {
          * Register an item with this to expose it as a device while it is installed in a device slot.
          */
         public static final ItemApiLookup<li.cil.oc2.api.bus.device.Device, Void> ITEM =
-            ItemApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "device"),
+            ItemApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "device"),
                 li.cil.oc2.api.bus.device.Device.class, Void.class);
 
         private Device() {
@@ -43,7 +43,7 @@ public final class Lookups {
          * Register a block with this to make it part of a device bus, e.g. to provide a custom cable.
          */
         public static final BlockApiLookup<li.cil.oc2.api.bus.DeviceBusElement, Direction> BLOCK =
-            BlockApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "device_bus_element"),
+            BlockApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "device_bus_element"),
                 li.cil.oc2.api.bus.DeviceBusElement.class, Direction.class);
 
         private DeviceBusElement() {
@@ -57,7 +57,7 @@ public final class Lookups {
          * Register a block with this to have it emit a redstone signal on behalf of a device.
          */
         public static final BlockApiLookup<li.cil.oc2.api.capabilities.RedstoneEmitter, Direction> BLOCK =
-            BlockApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "redstone_emitter"),
+            BlockApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "redstone_emitter"),
                 li.cil.oc2.api.capabilities.RedstoneEmitter.class, Direction.class);
 
         private RedstoneEmitter() {
@@ -72,7 +72,7 @@ public final class Lookups {
          * with it.
          */
         public static final BlockApiLookup<li.cil.oc2.api.capabilities.NetworkInterface, Direction> BLOCK =
-            BlockApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "network_interface"),
+            BlockApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "network_interface"),
                 li.cil.oc2.api.capabilities.NetworkInterface.class, Direction.class);
 
         private NetworkInterface() {
@@ -86,7 +86,7 @@ public final class Lookups {
          * Register a block with this to report the players currently using its terminal.
          */
         public static final BlockApiLookup<li.cil.oc2.api.capabilities.TerminalUserProvider, Direction> BLOCK =
-            BlockApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
+            BlockApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
                 li.cil.oc2.api.capabilities.TerminalUserProvider.class, Direction.class);
 
         /**
@@ -95,7 +95,7 @@ public final class Lookups {
          * Register an entity with this to report the players currently using its terminal.
          */
         public static final EntityApiLookup<li.cil.oc2.api.capabilities.TerminalUserProvider, Direction> ENTITY =
-            EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
+            EntityApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
                 li.cil.oc2.api.capabilities.TerminalUserProvider.class, Direction.class);
 
         private TerminalUserProvider() {
@@ -109,7 +109,7 @@ public final class Lookups {
          * Register an entity with this to let the modules installed in it interact with it.
          */
         public static final EntityApiLookup<li.cil.oc2.api.capabilities.Robot, Direction> ENTITY =
-            EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "robot"),
+            EntityApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "robot"),
                 li.cil.oc2.api.capabilities.Robot.class, Direction.class);
 
         private Robot() {

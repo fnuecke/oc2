@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestSequence;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.ChunkPos;
 
 import java.util.regex.Matcher;
@@ -54,6 +55,7 @@ public final class ChunkUnloadTests {
                 Chunks.release(helper, chunkPos);
             })
             .thenWaitUntil(() -> Chunks.assertUnloaded(helper, chunkPos))
+            .thenWaitUntil(() -> assertTrue(helper, "block entity was unloaded", before[0].isRemoved()))
             .thenExecute(() -> Chunks.hold(helper, chunkPos))
             .thenWaitUntil(() -> Chunks.assertTicking(helper, COMPUTER_SCENE))
             .thenWaitUntil(() -> computer.assertRunState(VMRunState.RUNNING, "after the chunk came back"))
@@ -62,8 +64,8 @@ public final class ChunkUnloadTests {
                 assertTrue(helper, "chunk came back without a reload; same block entity",
                     computer.blockEntity() != before[0]);
                 if (computer.guestInstructions() < instructions[0]) {
-                    throw new GameTestAssertException("machine started cold instead of resuming: retired "
-                        + computer.guestInstructions() + " instructions, had " + instructions[0] + " before");
+                    throw new GameTestAssertException(Component.literal("machine started cold instead of resuming: retired "
+                        + computer.guestInstructions() + " instructions, had " + instructions[0] + " before"), 0);
                 }
             })
             .thenSucceed();
@@ -74,6 +76,7 @@ public final class ChunkUnloadTests {
         final ComputerFixture computer = ComputerFixture.at(helper, WRITING_COMPUTER_SCENE);
 
         final int[] writes = new int[1];
+        final ComputerBlockEntity[] unloaded = new ComputerBlockEntity[1];
         final GameTestSequence sequence = helper.startSequence()
             .thenWaitUntil(() -> Chunks.assertTicking(helper, WRITING_COMPUTER_SCENE))
             .thenExecute(() -> placeMachine(helper, WRITING_COMPUTER_SCENE))
@@ -100,8 +103,12 @@ public final class ChunkUnloadTests {
         for (int cycle = 0; cycle < UNLOAD_CYCLES; cycle++) {
             sequence
                 .thenWaitUntil(() -> awaitWrites(computer, writes))
-                .thenExecute(() -> Chunks.release(helper, chunkPos))
+                .thenExecute(() -> {
+                    unloaded[0] = computer.blockEntity();
+                    Chunks.release(helper, chunkPos);
+                })
                 .thenWaitUntil(() -> Chunks.assertUnloaded(helper, chunkPos))
+                .thenWaitUntil(() -> assertTrue(helper, "block entity was unloaded", unloaded[0].isRemoved()))
                 .thenExecute(() -> Chunks.hold(helper, chunkPos))
                 .thenWaitUntil(() -> Chunks.assertTicking(helper, WRITING_COMPUTER_SCENE))
                 .thenWaitUntil(() -> computer.assertRunState(VMRunState.RUNNING, "after the chunk came back"));
@@ -123,8 +130,8 @@ public final class ChunkUnloadTests {
                 computer.assertNoGuestPanic();
                 final Matcher result = computer.assertScreenMatches(VERIFY_RESULT, "the verification should report back");
                 if (Integer.parseInt(result.group(1)) != 0 || Integer.parseInt(result.group(2)) != 0) {
-                    throw new GameTestAssertException("disk diverged from the guest across " + UNLOAD_CYCLES
-                        + " unloads (" + writes[0] + " writes): " + result.group() + "\n" + computer.screen());
+                    throw new GameTestAssertException(Component.literal("disk diverged from the guest across " + UNLOAD_CYCLES
+                        + " unloads (" + writes[0] + " writes): " + result.group() + "\n" + computer.screen()), 0);
                 }
             })
             .thenSucceed();
@@ -169,8 +176,8 @@ public final class ChunkUnloadTests {
                 final RobotFixture restored = RobotFixture.of(helper, reloaded[0]);
                 restored.assertNoError();
                 if (restored.guestInstructions() < instructions[0]) {
-                    throw new GameTestAssertException("robot started cold instead of resuming: retired "
-                        + restored.guestInstructions() + " instructions, had " + instructions[0] + " before");
+                    throw new GameTestAssertException(Component.literal("robot started cold instead of resuming: retired "
+                        + restored.guestInstructions() + " instructions, had " + instructions[0] + " before"), 0);
                 }
             })
             .thenSucceed();
@@ -181,7 +188,7 @@ public final class ChunkUnloadTests {
     private static Robot reloadedRobot(final GameTestHelper helper, final Robot unloaded) {
         final Robot robot = RobotFixture.find(helper, ROBOT_SCENE, 4).entity();
         if (robot == unloaded) {
-            throw new GameTestAssertException("chunk came back without a reload; same robot instance");
+            throw new GameTestAssertException(Component.literal("chunk came back without a reload; same robot instance"), 0);
         }
         return robot;
     }
@@ -198,8 +205,8 @@ public final class ChunkUnloadTests {
             latest = Integer.parseInt(matcher.group(1));
         }
         if (latest < writes[0] + WRITES_PER_CYCLE) {
-            throw new GameTestAssertException("guest has written " + latest + " time(s), waiting for "
-                + (writes[0] + WRITES_PER_CYCLE));
+            throw new GameTestAssertException(Component.literal("guest has written " + latest + " time(s), waiting for "
+                + (writes[0] + WRITES_PER_CYCLE)), 0);
         }
         writes[0] = latest;
     }

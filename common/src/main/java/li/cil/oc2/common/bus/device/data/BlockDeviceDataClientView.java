@@ -4,19 +4,19 @@ package li.cil.oc2.common.bus.device.data;
 
 import li.cil.sedna.api.device.BlockDevice;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 
 import javax.annotation.Nullable;
 
 public final class BlockDeviceDataClientView implements BlockDeviceDataResource {
-    private final ResourceLocation location;
+    private final Identifier location;
     private final long capacity;
     private final Component displayName;
     @Nullable
     private final DyeColor color;
 
-    public BlockDeviceDataClientView(final ResourceLocation location, final long capacity, final Component displayName, @Nullable final DyeColor color) {
+    public BlockDeviceDataClientView(final Identifier location, final long capacity, final Component displayName, @Nullable final DyeColor color) {
         this.location = location;
         this.capacity = capacity;
         this.displayName = displayName;
@@ -24,7 +24,7 @@ public final class BlockDeviceDataClientView implements BlockDeviceDataResource 
     }
 
     @Override
-    public ResourceLocation getLocation() {
+    public Identifier getLocation() {
         return location;
     }
 

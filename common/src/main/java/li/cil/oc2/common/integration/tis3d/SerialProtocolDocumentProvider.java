@@ -21,7 +21,7 @@ public final class SerialProtocolDocumentProvider extends NamespaceDocumentProvi
     @Override
     public MatchResult matches(final ManualModel manual) {
         final var manualRegistry = RegistrarManager.get(Constants.MOD_ID).get(Constants.MANUAL_REGISTRY);
-        final var manualNamespace = manualRegistry.getKey(manual).map(key -> key.location().getNamespace());
+        final var manualNamespace = manualRegistry.getKey(manual).map(key -> key.identifier().getNamespace());
         final var isRightManual = manualNamespace.map(namespace -> namespace.equals(ModIntegration.TIS3D.modId()));
         return isRightManual.orElse(false) ? MatchResult.MATCH : MatchResult.MISMATCH;
     }

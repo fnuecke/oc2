@@ -2,7 +2,7 @@
 
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import dev.architectury.hooks.client.fluid.ClientFluidStackHooks;
 import dev.architectury.hooks.fluid.FluidStackHooks;
 import li.cil.oc2.client.gui.util.TooltipRenderer;
 import li.cil.oc2.common.Constants;
@@ -12,7 +12,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -35,9 +35,6 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
     // --------------------------------------------------------------------- //
 
     public static void renderSelection(final GuiGraphics graphics, final int selectedSlot, final int x, final int y, final int columns) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-
         final int slotX = selectedSlot % columns * SLOT_SIZE;
         final int slotY = selectedSlot / columns * SLOT_SIZE;
         final int offset = SLOT_SIZE * (int) (15 * (System.currentTimeMillis() % 1000) / 1000);
@@ -88,15 +85,12 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
         }
 
         final var stack = toArchitectury(fluid);
-        final var sprite = FluidStackHooks.getStillTexture(stack);
+        final var sprite = ClientFluidStackHooks.getStillTexture(stack);
         if (sprite == null) {
             return;
         }
 
-        final int color = FluidStackHooks.getColor(stack);
-        final float r = ((color >> 16) & 0xFF) / 255f;
-        final float g = ((color >> 8) & 0xFF) / 255f;
-        final float b = (color & 0xFF) / 255f;
+        final int color = 0xFF000000 | ClientFluidStackHooks.getColor(stack);
 
         final int x = leftPos + TANK_X;
         final int y = topPos + TANK_Y;
@@ -105,7 +99,7 @@ public final class RobotContainerScreen extends AbstractMachineInventoryScreen<R
         // Animated atlas sprites don't do tiling, so we hack around it like this, oh well.
         graphics.enableScissor(x, y, x + width, y + TANK_HEIGHT);
         for (int offset = 0; offset < width; offset += FLUID_SPRITE_SIZE) {
-            graphics.blit(x + offset, y, 0, FLUID_SPRITE_SIZE, FLUID_SPRITE_SIZE, sprite, r, g, b, 1);
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x + offset, y, FLUID_SPRITE_SIZE, FLUID_SPRITE_SIZE, color);
         }
         graphics.disableScissor();
     }

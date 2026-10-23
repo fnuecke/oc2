@@ -1,31 +1,28 @@
 /* SPDX-License-Identifier: MIT */
 
-#version 150
-
-uniform int Count;
-uniform float EmissiveStrength;
+#version 330
 
 // Main camera depth buffer.
 uniform sampler2D MainCameraDepth;
-// Inverse matrix of main camera view rotation and projection. Not that this
-// explicitly does *not* include the camera's actual position. All projector
-// matrices are computed relative to the main camera position, for precision.
-uniform mat4 InverseMainCamera;
 
-// Projector 1
 uniform sampler2D ProjectorColor0;
 uniform sampler2D ProjectorDepth0;
-uniform mat4 ProjectorCamera0;
-
-// Projector 2
 uniform sampler2D ProjectorColor1;
 uniform sampler2D ProjectorDepth1;
-uniform mat4 ProjectorCamera1;
-
-// Projector 3
 uniform sampler2D ProjectorColor2;
 uniform sampler2D ProjectorDepth2;
-uniform mat4 ProjectorCamera2;
+
+layout(std140) uniform ProjectorsConfig {
+    // Inverse matrix of main camera view rotation and projection. Note that this
+    // explicitly does *not* include the camera's actual position. All projector
+    // matrices are computed relative to the main camera position, for precision.
+    mat4 InverseMainCamera;
+    mat4 ProjectorCamera0;
+    mat4 ProjectorCamera1;
+    mat4 ProjectorCamera2;
+    int Count;
+    float EmissiveStrength;
+};
 
 const float PROJECTOR_NEAR = 1.0/16.0;
 const float PROJECTOR_FAR = 32.0;

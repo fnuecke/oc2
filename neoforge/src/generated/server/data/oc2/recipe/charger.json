@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "#c:ingots/iron",
+    "P": "minecraft:copper_trapdoor",
+    "R": "#c:storage_blocks/redstone",
+    "T": "oc2:transistor",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "IPI",
+    "XTX",
+    "IRI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:charger"
+  }
+}

@@ -10,7 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
@@ -65,15 +64,14 @@ public enum BusInterfaceNameRenderer {
 
         stack.pushPose();
 
-        final Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();
+        final Vec3 camera = mc.gameRenderer.getMainCamera().position();
         stack.translate(
             blockPos.getX() + 0.5 + side.getStepX() * 0.5 - camera.x,
             blockPos.getY() + 0.5 + side.getStepY() * 0.5 - camera.y
                 + (side == Direction.DOWN ? -LABEL_HOVER : LABEL_HOVER),
             blockPos.getZ() + 0.5 + side.getStepZ() * 0.5 - camera.z);
 
-        final EntityRenderDispatcher renderManager = mc.getEntityRenderDispatcher();
-        stack.mulPose(renderManager.cameraOrientation());
+        stack.mulPose(mc.gameRenderer.getMainCamera().rotation());
 
         stack.scale(0.025f, -0.025f, 0.025f);
 

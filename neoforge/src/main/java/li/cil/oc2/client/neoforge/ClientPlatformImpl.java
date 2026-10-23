@@ -2,15 +2,11 @@
 
 package li.cil.oc2.client.neoforge;
 
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.client.ClientHooks;
+import org.jetbrains.annotations.Nullable;
 
 public final class ClientPlatformImpl {
     private static boolean isHotbarVisible = true;
@@ -23,20 +19,9 @@ public final class ClientPlatformImpl {
         return isHotbarVisible;
     }
 
-    public static boolean isStencilEnabled(final RenderTarget target) {
-        return target.isStencilEnabled();
-    }
-
-    public static void enableStencil(final RenderTarget target) {
-        target.enableStencil();
-    }
-
-    public static boolean isBlockEntityVisible(final BlockEntityRenderDispatcher dispatcher, final BlockEntity blockEntity, final Frustum frustum) {
-        return ClientHooks.isBlockEntityRendererVisible(dispatcher, blockEntity, frustum);
-    }
-
-    public static void registerItemProperty(final Item item, final ResourceLocation name, final ClampedItemPropertyFunction property) {
-        ItemProperties.register(item, name, property);
+    @Nullable
+    public static BlockEntityRenderState tryExtractBlockEntityRenderState(final BlockEntityRenderDispatcher dispatcher, final BlockEntity blockEntity, final float partialTicks, final Frustum frustum) {
+        return dispatcher.tryExtractRenderState(blockEntity, partialTicks, null, frustum);
     }
 
     private ClientPlatformImpl() {

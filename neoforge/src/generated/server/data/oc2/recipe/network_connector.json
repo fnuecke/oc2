@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "#c:glass_blocks",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    " G ",
+    "ITI"
+  ],
+  "result": {
+    "count": 4,
+    "id": "oc2:network_connector"
+  }
+}

@@ -7,12 +7,13 @@ import li.cil.oc2.common.bus.device.item.SoundCardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.Hardware;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import java.util.regex.Pattern;
 
@@ -20,8 +21,7 @@ import static li.cil.oc2.gametest.fixture.MachineFixture.LOGIN_PROMPT;
 import static li.cil.oc2.gametest.fixture.MachineFixture.SHELL_PROMPT;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "guest_tooling")
 public final class GuestToolingTests {
     private static final String GEOMETRY_BATCH = "oc2_guest_tooling_geometry";
     private static final String SWAP_BATCH = "oc2_guest_tooling_swap";
@@ -29,7 +29,8 @@ public final class GuestToolingTests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = GEOMETRY_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = GEOMETRY_BATCH)
+    @TestHolder
     public static void guestReportsUsableDriveGeometry(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
@@ -47,14 +48,15 @@ public final class GuestToolingTests {
                 requireContains(screen, "63 sectors/track", "guest did not get the advertised sector count");
                 requireContains(screen, "cylinders", "fdisk printed no cylinder count");
                 if (screen.contains(" 0 cylinders")) {
-                    throw new GameTestAssertException(
-                        "drive reports zero cylinders, so it cannot be partitioned:\n" + screen);
+                    throw new GameTestAssertException(Component.literal(
+                        "drive reports zero cylinders, so it cannot be partitioned:\n" + screen), 0);
                 }
             })
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SWAP_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SWAP_BATCH)
+    @TestHolder
     public static void guestCanUseASecondDriveAsSwap(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
@@ -74,7 +76,8 @@ public final class GuestToolingTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SOUND_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SOUND_BATCH)
+    @TestHolder
     public static void guestPlaysThroughTheSoundCard(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
@@ -87,7 +90,7 @@ public final class GuestToolingTests {
             .thenWaitUntil(() -> requireScreen(computer, LOGIN_PROMPT))
             .thenExecute(() -> {
                 if (computer.devices().stream().noneMatch(SoundCardDevice.class::isInstance)) {
-                    throw new GameTestAssertException("the sound card was not detected by a RISC-V machine");
+                    throw new GameTestAssertException(Component.literal("the sound card was not detected by a RISC-V machine"), 0);
                 }
                 computer.loginAsRoot();
             })
@@ -120,8 +123,8 @@ public final class GuestToolingTests {
                 return;
             }
         }
-        throw new GameTestAssertException("waiting for " + String.join(" or ", anyOf)
-            + "; " + computer.describe() + "\n" + screen);
+        throw new GameTestAssertException(Component.literal("waiting for " + String.join(" or ", anyOf)
+            + "; " + computer.describe() + "\n" + screen), 0);
     }
 
     private static void requireAudioReachedTheCard(final ComputerFixture computer) {
@@ -129,17 +132,17 @@ public final class GuestToolingTests {
             .filter(SoundCardDevice.class::isInstance)
             .map(SoundCardDevice.class::cast)
             .findFirst()
-            .orElseThrow(() -> new GameTestAssertException("the sound card is no longer on the bus"));
+            .orElseThrow(() -> new GameTestAssertException(Component.literal("the sound card is no longer on the bus"), 0));
 
         final SoundCardDevice.Chunk chunk = card.getStream().poll();
         if (chunk == null || chunk.samples().length == 0) {
-            throw new GameTestAssertException("the guest played audio, but none of it reached the sound card");
+            throw new GameTestAssertException(Component.literal("the guest played audio, but none of it reached the sound card"), 0);
         }
     }
 
     private static void requireContains(final String screen, final String marker, final String what) {
         if (!screen.contains(marker)) {
-            throw new GameTestAssertException(what + "; screen:\n" + screen);
+            throw new GameTestAssertException(Component.literal(what + "; screen:\n" + screen), 0);
         }
     }
 

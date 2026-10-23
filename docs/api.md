@@ -165,7 +165,7 @@ This can be useful for various things. For example:
 
 ### Persistence
 
-Devices may store state with the computer by implementing `serializeNBT()` and `deserializeNBT()` of [Device]. Item
+Devices may store state with the computer by implementing `serialize()` and `deserialize()` of [Device]. Item
 devices may additionally store state on their item, via `exportToItemStack()` and `importFromItemStack()` of
 [ItemDevice].
 

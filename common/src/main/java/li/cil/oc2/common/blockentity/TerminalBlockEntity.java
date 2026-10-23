@@ -12,6 +12,7 @@ import li.cil.oc2.common.network.message.TerminalStateMessage;
 import li.cil.oc2.common.serial.BufferedSerialDevice;
 import li.cil.oc2.common.serial.SerialEndpoint;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.util.SerializationUtils;
 import li.cil.oc2.common.util.TickUtils;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.minecraft.core.BlockPos;
@@ -23,6 +24,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -133,29 +136,29 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
         synchronized (terminal) {
             tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
         }
-        endpoint.saveConfiguration(tag);
+        tag.merge(SerializationUtils.saveToTag(problemPath(), registries, endpoint::saveConfiguration));
         tag.putBoolean(IS_CONNECTED_TAG_NAME, isConnected);
 
         return tag;
     }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
         synchronized (terminal) {
-            tag.put(TERMINAL_TAG_NAME, NBTSerialization.serialize(terminal));
+            output.store(TERMINAL_TAG_NAME, CompoundTag.CODEC, NBTSerialization.serialize(terminal));
         }
-        endpoint.save(tag);
+        endpoint.save(output);
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
 
-        NBTSerialization.deserialize(tag.getCompound(TERMINAL_TAG_NAME), terminal);
-        endpoint.load(tag);
-        isConnected = tag.getBoolean(IS_CONNECTED_TAG_NAME);
+        NBTSerialization.deserialize(SerializationUtils.getCompoundOrEmpty(input, TERMINAL_TAG_NAME), terminal);
+        endpoint.load(input);
+        isConnected = input.getBooleanOr(IS_CONNECTED_TAG_NAME, false);
     }
 
     // --------------------------------------------------------------------- //

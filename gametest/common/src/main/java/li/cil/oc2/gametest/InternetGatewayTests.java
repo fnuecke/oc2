@@ -13,8 +13,10 @@ import li.cil.oc2.common.item.Items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.TagValueInput;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
@@ -67,7 +69,7 @@ public final class InternetGatewayTests {
         final var reloaded = BlockEntities.INTERNET_GATEWAY.get()
             .create(absolute, helper.getBlockState(GATEWAY_POS));
         assertNotNull(helper, reloaded, "reloaded gateway block entity");
-        reloaded.loadWithComponents(tag, registries);
+        reloaded.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registries, tag));
 
         final EnergyHandler reloadedEnergy =
             reloaded.getCapability(Capabilities.ENERGY_STORAGE, Direction.NORTH);
@@ -150,7 +152,7 @@ public final class InternetGatewayTests {
 
     private static BlockEntity placeGateway(final GameTestHelper helper) {
         place(helper, fakePlayer(helper), new ItemStack(Items.INTERNET_GATEWAY.get()), GATEWAY_POS);
-        return assertNotNull(helper, helper.getBlockEntity(GATEWAY_POS), "gateway block entity");
+        return assertNotNull(helper, helper.getBlockEntity(GATEWAY_POS, BlockEntity.class), "gateway block entity");
     }
 
     private static EnergyHandler energy(final GameTestHelper helper, final BlockEntity blockEntity) {

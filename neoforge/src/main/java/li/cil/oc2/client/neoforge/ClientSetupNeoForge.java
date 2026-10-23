@@ -6,9 +6,8 @@ import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.audio.SoundCardAudio;
 import li.cil.oc2.client.gui.*;
-import li.cil.oc2.client.item.CustomItemColors;
-import li.cil.oc2.client.item.CustomItemModelProperties;
 import li.cil.oc2.client.model.neoforge.BusCableModelLoader;
+import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import li.cil.oc2.client.renderer.TerminalTextures;
 import li.cil.oc2.client.renderer.blockentity.*;
@@ -16,39 +15,33 @@ import li.cil.oc2.client.renderer.blockentity.neoforge.ChargerRendererNeoForge;
 import li.cil.oc2.client.renderer.blockentity.neoforge.ProjectorRendererNeoForge;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
-import li.cil.oc2.client.renderer.entity.RobotWithoutLevelRenderer;
+import li.cil.oc2.client.renderer.entity.RobotSpecialRenderer;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
-import li.cil.oc2.common.item.Items;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
-import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
-
-import javax.annotation.Nullable;
+import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
 
 @EventBusSubscriber(modid = API.MOD_ID, value = Dist.CLIENT)
 public final class ClientSetupNeoForge {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
         TerminalTextures.initialize();
-        ProjectorDepthRenderer.initialize();
         SoundCardAudio.initialize();
 
         event.enqueueWork(() -> {
-            CustomItemModelProperties.initialize();
-            CustomItemColors.initialize();
-
+            ModRenderType.initialize();
+            ProjectorDepthRenderer.initialize();
             ColorHandlerRegistry.registerBlockColors(new BusCableBlockColor(), Blocks.BUS_CABLE);
         });
     }
@@ -77,8 +70,8 @@ public final class ClientSetupNeoForge {
     }
 
     @SubscribeEvent
-    public static void handleRegisterGeometryLoaders(final ModelEvent.RegisterGeometryLoaders event) {
-        event.register(Blocks.BUS_CABLE.getId(), new BusCableModelLoader());
+    public static void handleRegisterBlockStateModels(final RegisterBlockStateModels event) {
+        BusCableModelLoader.register(event);
     }
 
     @SubscribeEvent
@@ -87,21 +80,13 @@ public final class ClientSetupNeoForge {
     }
 
     @SubscribeEvent
-    public static void handleRegisterClientExtensions(final RegisterClientExtensionsEvent event) {
-        event.registerItem(new IClientItemExtensions() {
-            @Nullable
-            private BlockEntityWithoutLevelRenderer renderer;
+    public static void handleRegisterSpecialModelRenderers(final RegisterSpecialModelRendererEvent event) {
+        event.register(Identifier.fromNamespaceAndPath(API.MOD_ID, "robot"), RobotSpecialRenderer.Unbaked.MAP_CODEC);
+    }
 
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    final Minecraft minecraft = Minecraft.getInstance();
-                    renderer = new RobotWithoutLevelRenderer(
-                        minecraft.getBlockEntityRenderDispatcher(), minecraft.getEntityModels());
-                }
-                return renderer;
-            }
-        }, Items.ROBOT.get());
+    @SubscribeEvent
+    public static void handleRegisterPictureInPictureRenderers(final RegisterPictureInPictureRenderersEvent event) {
+        event.register(SideConfigurationBlockRenderer.State.class, SideConfigurationBlockRenderer::new);
     }
 
     private ClientSetupNeoForge() {

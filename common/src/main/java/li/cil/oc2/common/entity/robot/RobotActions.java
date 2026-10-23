@@ -3,7 +3,8 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.Robot;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -39,21 +40,20 @@ public final class RobotActions {
         }
     }
 
-    public static CompoundTag serialize(final AbstractRobotAction action) {
-        final CompoundTag actionTag = action.serialize();
-        actionTag.putInt(ACTION_TYPE_TAG_NAME, action.getType().getId());
-        return actionTag;
+    public static void serialize(final AbstractRobotAction action, final ValueOutput output) {
+        action.serialize(output);
+        output.putInt(ACTION_TYPE_TAG_NAME, action.getType().getId());
     }
 
     @Nullable
-    public static AbstractRobotAction deserialize(final CompoundTag tag) {
-        final int type = tag.getInt(ACTION_TYPE_TAG_NAME);
+    public static AbstractRobotAction deserialize(final ValueInput input) {
+        final int type = input.getIntOr(ACTION_TYPE_TAG_NAME, 0);
         if (type < 1 || type > ACTIONS.size()) {
             return null;
         }
 
         final AbstractRobotActionType actionType = ACTIONS.get(type - 1);
-        return actionType.deserialize(tag);
+        return actionType.deserialize(input);
     }
 
     // --------------------------------------------------------------------- //

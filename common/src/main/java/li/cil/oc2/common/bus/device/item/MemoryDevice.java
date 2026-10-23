@@ -11,12 +11,12 @@ import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
-import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.PhysicalMemory;
 import li.cil.sedna.device.memory.ByteBufferMemory;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -83,23 +83,17 @@ public final class MemoryDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        final CompoundTag tag = new CompoundTag();
-
-        blob.writeTo(tag);
+    public void serialize(final ValueOutput output) {
+        blob.writeTo(output);
         if (address.isPresent()) {
-            tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
+            output.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
-
-        return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag tag) {
-        blob.readFrom(tag);
-        if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(tag.getLong(ADDRESS_TAG_NAME));
-        }
+    public void deserialize(final ValueInput input) {
+        blob.readFrom(input);
+        input.getLong(ADDRESS_TAG_NAME).ifPresent(address::set);
     }
 
     // --------------------------------------------------------------------- //

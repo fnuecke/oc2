@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.bus.device.item;
 
+import com.mojang.serialization.Codec;
 import li.cil.oc2.api.bus.device.io.IOInputStream;
 import li.cil.oc2.api.bus.device.io.IOOutputStream;
 import li.cil.oc2.api.bus.device.object.*;
@@ -11,7 +12,6 @@ import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.item.ItemStack;
@@ -22,10 +22,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Comparator;
 
@@ -103,19 +106,17 @@ public final class ScannerModuleDevice extends AbstractItemDevice {
     // --------------------------------------------------------------------- //
 
     @Override
-    public CompoundTag serializeNBT() {
-        final CompoundTag tag = new CompoundTag();
-        tag.putLong(READY_AT_TAG_NAME, readyAt);
+    public void serialize(final ValueOutput output) {
+        output.putLong(READY_AT_TAG_NAME, readyAt);
         if (lastScan != null) {
-            tag.putByteArray(LAST_SCAN_TAG_NAME, lastScan);
+            output.store(LAST_SCAN_TAG_NAME, Codec.BYTE_BUFFER, ByteBuffer.wrap(lastScan));
         }
-        return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag tag) {
-        readyAt = tag.getLong(READY_AT_TAG_NAME);
-        lastScan = tag.contains(LAST_SCAN_TAG_NAME) ? tag.getByteArray(LAST_SCAN_TAG_NAME) : null;
+    public void deserialize(final ValueInput input) {
+        readyAt = input.getLongOr(READY_AT_TAG_NAME, 0L);
+        lastScan = input.read(LAST_SCAN_TAG_NAME, Codec.BYTE_BUFFER).map(ByteBuffer::array).orElse(null);
     }
 
     // --------------------------------------------------------------------- //

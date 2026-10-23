@@ -1,9 +1,9 @@
 [versions]
-minecraft = "1.21.1"
-parchment-minecraft = "1.21.1"
-parchment-mappings = "2024.11.17"
+minecraft = "1.21.11"
+parchment-minecraft = "1.21.11"
+parchment-mappings = "2025.12.20"
 
-architectury = "13.0.11"
+architectury = "19.0.1"
 injectables = "1.0.10"
 manual = "1.2.7"
 
@@ -14,18 +14,18 @@ sedna-cpm = "0.4.0"
 vox2mc = "1.0.1"
 
 fabric-loader = "0.19.3"
-fabric-api = "0.116.15+1.21.1"
+fabric-api = "0.141.6+1.21.11"
 
-jei = "19.43.0.395"
+jei = "27.30.0.76"
 
-cc-tweaked = "1.120.2"
-tis3d = "2.0.0"
+cc-tweaked = "1.117.1"
+tis3d = "3.0.0"
 
-fabric-energy = "4.1.0"
-fabric-forgeConfigPort = "21.1.6"
+fabric-energy = "4.2.0"
+fabric-forgeConfigPort = "21.11.1"
 
-neoforge-platform = "21.1.248"
-neoforge-loader = "4"
+neoforge-platform = "21.11.45"
+neoforge-loader = "1"
 
 [plugins]
 loom = { id = "dev.architectury.loom", version = "1.17-SNAPSHOT" }
@@ -48,18 +48,18 @@ fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = 
 fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
 fabric-architectury = { group = "dev.architectury", name = "architectury-fabric", version.ref = "architectury" }
 
-common-manual-api = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21.1-api", version.ref = "manual" }
-fabric-manual = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21.1-fabric", version.ref = "manual" }
+common-manual-api = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21.11-api", version.ref = "manual" }
+fabric-manual = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21.11-fabric", version.ref = "manual" }
 
-jei-common-api = { group = "mezz.jei", name = "jei-1.21.1-common-api", version.ref = "jei" }
-jei-neoforge = { group = "mezz.jei", name = "jei-1.21.1-neoforge", version.ref = "jei" }
-jei-fabric = { group = "mezz.jei", name = "jei-1.21.1-fabric", version.ref = "jei" }
+jei-common-api = { group = "mezz.jei", name = "jei-1.21.11-common-api", version.ref = "jei" }
+jei-neoforge = { group = "mezz.jei", name = "jei-1.21.11-neoforge", version.ref = "jei" }
+jei-fabric = { group = "mezz.jei", name = "jei-1.21.11-fabric", version.ref = "jei" }
 
-cc-core-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.1-core-api", version.ref = "cc-tweaked" }
-cc-fabric-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.1-fabric-api", version.ref = "cc-tweaked" }
-cc-neoforge-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.1-forge-api", version.ref = "cc-tweaked" }
+cc-core-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.11-core-api", version.ref = "cc-tweaked" }
+cc-fabric-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.11-fabric-api", version.ref = "cc-tweaked" }
+cc-neoforge-api = { group = "cc.tweaked", name = "cc-tweaked-1.21.11-forge-api", version.ref = "cc-tweaked" }
 
-tis3d-api = { group = "li.cil.tis3d", name = "tis3d-1.21.1-api", version.ref = "tis3d" }
+tis3d-api = { group = "li.cil.tis3d", name = "tis3d-1.21.11-api", version.ref = "tis3d" }
 
 fabric-energy = { group = "teamreborn", name = "energy", version.ref = "fabric-energy" }
 fabric-forgeConfigPort = { group = "fuzs.forgeconfigapiport", name = "forgeconfigapiport-fabric", version.ref = "fabric-forgeConfigPort" }
@@ -67,4 +67,4 @@ fabric-forgeConfigPort = { group = "fuzs.forgeconfigapiport", name = "forgeconfi
 neoforge-platform = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-platform" }
 neoforge-architectury = { group = "dev.architectury", name = "architectury-neoforge", version.ref = "architectury" }
 
-neoforge-manual = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21.1-neoforge", version.ref = "manual" }
+neoforge-manual = { group = "li.cil.markdown_manual", name = "markdown_manual-1.21.11-neoforge", version.ref = "manual" }

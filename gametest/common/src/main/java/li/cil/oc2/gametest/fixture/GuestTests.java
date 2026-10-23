@@ -8,6 +8,7 @@ import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.gametest.device.GuestTestChannel;
 import li.cil.oc2.gametest.device.GuestTestPortDevice;
 import net.minecraft.gametest.framework.GameTestAssertException;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public final class GuestTests {
     public void requireReady() {
         poll();
         if (!ready) {
-            throw new GameTestAssertException("guest test runner has not reported in yet");
+            throw new GameTestAssertException(Component.literal("guest test runner has not reported in yet"), 0);
         }
     }
 
@@ -48,15 +49,15 @@ public final class GuestTests {
     public void requireSuccess() {
         poll();
         if (!finished) {
-            throw new GameTestAssertException("guest suite has not finished; " + describe());
+            throw new GameTestAssertException(Component.literal("guest suite has not finished; " + describe()), 0);
         }
 
         if (failed > 0) {
-            throw new GameTestAssertException(failed + " guest test(s) failed:\n" + describe());
+            throw new GameTestAssertException(Component.literal(failed + " guest test(s) failed:\n" + describe()), 0);
         }
 
         if (cases.isEmpty()) {
-            throw new GameTestAssertException("guest suite ran no tests at all");
+            throw new GameTestAssertException(Component.literal("guest suite ran no tests at all"), 0);
         }
     }
 
@@ -87,8 +88,8 @@ public final class GuestTests {
     private GuestTestChannel requireChannel() {
         final GuestTestChannel channel = channel();
         if (channel == null) {
-            throw new GameTestAssertException("no guest test port on the bus; " +
-                "the machine needs a " + GuestTestPortDevice.PORT_NAME + " item installed");
+            throw new GameTestAssertException(Component.literal("no guest test port on the bus; " +
+                "the machine needs a " + GuestTestPortDevice.PORT_NAME + " item installed"), 0);
         }
         return channel;
     }

@@ -2,7 +2,6 @@
 
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.util.GuiUtils;
 import li.cil.oc2.client.gui.util.TooltipRenderer;
@@ -14,7 +13,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
@@ -71,7 +70,7 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
             Sprites.INVENTORY_BUTTON_INACTIVE
         ) {
             @Override
-            public void onPress() {
+            public void onPress(final InputWithModifiers input) {
                 menu.switchToTerminal();
             }
         }.withTooltip(Component.translatable(Constants.MACHINE_OPEN_TERMINAL_CAPTION)));
@@ -79,9 +78,6 @@ public abstract class AbstractMachineInventoryScreen<T extends AbstractMachineTe
 
     @Override
     protected void renderBg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-
         Sprites.SIDEBAR_2.draw(graphics, leftPos - Sprites.SIDEBAR_2.width, topPos + CONTROLS_TOP);
 
         if (shouldRenderEnergyBar()) {

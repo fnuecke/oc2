@@ -12,6 +12,7 @@ import li.cil.oc2.common.network.message.AbstractMessage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LocationSupplierUtils;
+import li.cil.oc2.common.util.SerializationUtils;
 import li.cil.oc2.common.util.ThrottledSoundEmitter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -23,13 +24,14 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
@@ -118,24 +120,30 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
         }
     }
 
-    public ItemInteractionResult useWith(final Level level, final ItemStack heldStack, final Player player, final InteractionHand hand) {
+    @Override
+    public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        dropMedia();
+    }
+
+    public InteractionResult useWith(final Level level, final ItemStack heldStack, final Player player, final InteractionHand hand) {
         if (player.isShiftKeyDown()) {
             if (canEject()) {
                 if (!level.isClientSide()) {
                     eject(player);
                 }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide());
+                return InteractionResult.SUCCESS;
             }
         } else {
             if (canInsert(heldStack)) {
                 if (!level.isClientSide()) {
                     player.setItemInHand(hand, insert(heldStack, player));
                 }
-                return ItemInteractionResult.sidedSuccess(level.isClientSide());
+                return InteractionResult.SUCCESS;
             }
         }
 
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     public InteractionResult useWithoutItem(final Level level, final Player player) {
@@ -143,7 +151,7 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
             if (!level.isClientSide()) {
                 eject(player);
             }
-            return InteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
 
         return InteractionResult.PASS;
@@ -180,7 +188,7 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
     @Override
     public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT(registries));
+        tag.put(Constants.ITEMS_TAG_NAME, SerializationUtils.saveToTag(problemPath(), registries, itemHandler::save));
         return tag;
     }
 
@@ -192,17 +200,17 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
     }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        tag.put(Constants.ITEMS_TAG_NAME, itemHandler.serializeNBT(registries));
+        itemHandler.save(output.child(Constants.ITEMS_TAG_NAME));
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
 
-        itemHandler.deserializeNBT(registries, tag.getCompound(Constants.ITEMS_TAG_NAME));
+        itemHandler.load(input.childOrEmpty(Constants.ITEMS_TAG_NAME));
     }
 
     // --------------------------------------------------------------------- //
@@ -238,9 +246,9 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
         }
 
         @Override
-        public CompoundTag serializeNBT(final HolderLookup.Provider provider) {
+        public void save(final ValueOutput output) {
             exportDeviceDataToItemStack(getStackInSlotRaw(0));
-            return super.serializeNBT(provider);
+            super.save(output);
         }
 
         @Override

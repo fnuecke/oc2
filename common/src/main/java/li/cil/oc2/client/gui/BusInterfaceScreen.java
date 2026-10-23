@@ -2,7 +2,6 @@
 
 package li.cil.oc2.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
@@ -10,9 +9,12 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import li.cil.sedna.api.device.bus.DeviceDescription;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
@@ -37,8 +39,14 @@ public final class BusInterfaceScreen extends Screen {
 
     // --------------------------------------------------------------------- //
 
+    public static void open(final BusCableBlockEntity busCable, final Direction side) {
+        Minecraft.getInstance().setScreen(new BusInterfaceScreen(busCable, side));
+    }
+
+    // --------------------------------------------------------------------- //
+
     public BusInterfaceScreen(final BusCableBlockEntity busCable, final Direction side) {
-        super(Items.BUS_INTERFACE.get().getDescription());
+        super(Items.BUS_INTERFACE.get().getName());
         this.busCable = busCable;
         this.side = side;
     }
@@ -69,8 +77,8 @@ public final class BusInterfaceScreen extends Screen {
             Sprites.CONFIRM_PRESSED
         ) {
             @Override
-            public void onPress() {
-                super.onPress();
+            public void onPress(final InputWithModifiers input) {
+                super.onPress(input);
                 setInterfaceName(nameField.getValue());
                 onClose();
             }
@@ -83,8 +91,8 @@ public final class BusInterfaceScreen extends Screen {
             Sprites.CANCEL_PRESSED
         ) {
             @Override
-            public void onPress() {
-                super.onPress();
+            public void onPress(final InputWithModifiers input) {
+                super.onPress(input);
                 onClose();
             }
         }).withTooltip(Component.translatable(Constants.TOOLTIP_CANCEL));
@@ -103,15 +111,15 @@ public final class BusInterfaceScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_ENTER ||
-            keyCode == GLFW.GLFW_KEY_KP_ENTER) {
+    public boolean keyPressed(final KeyEvent event) {
+        if (event.key() == GLFW.GLFW_KEY_ENTER ||
+            event.key() == GLFW.GLFW_KEY_KP_ENTER) {
             setInterfaceName(nameField.getValue());
             onClose();
             return true;
         }
 
-        return nameField.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+        return nameField.keyPressed(event) || super.keyPressed(event);
     }
 
     @Override
@@ -124,7 +132,6 @@ public final class BusInterfaceScreen extends Screen {
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         super.render(graphics, mouseX, mouseY, partialTicks);
 
-        RenderSystem.disableBlend();
         nameField.render(graphics, mouseX, mouseY, partialTicks);
     }
 

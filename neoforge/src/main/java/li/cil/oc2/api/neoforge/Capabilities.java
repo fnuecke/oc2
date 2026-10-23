@@ -4,7 +4,7 @@ package li.cil.oc2.api.neoforge;
 
 import li.cil.oc2.api.API;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.ItemCapability;
@@ -20,7 +20,7 @@ public final class Capabilities {
          * Register a block with this to expose it as a device to an adjacent device bus.
          */
         public static final BlockCapability<li.cil.oc2.api.bus.device.Device, Direction> BLOCK =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "device"),
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(API.MOD_ID, "device"),
                 li.cil.oc2.api.bus.device.Device.class);
 
         /**
@@ -29,7 +29,7 @@ public final class Capabilities {
          * Register an item with this to expose it as a device while it is installed in a device slot.
          */
         public static final ItemCapability<li.cil.oc2.api.bus.device.Device, Void> ITEM =
-            ItemCapability.createVoid(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "device"),
+            ItemCapability.createVoid(Identifier.fromNamespaceAndPath(API.MOD_ID, "device"),
                 li.cil.oc2.api.bus.device.Device.class);
 
         private Device() {
@@ -43,7 +43,7 @@ public final class Capabilities {
          * Register a block with this to make it part of a device bus, e.g. to provide a custom cable.
          */
         public static final BlockCapability<li.cil.oc2.api.bus.DeviceBusElement, Direction> BLOCK =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "device_bus_element"),
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(API.MOD_ID, "device_bus_element"),
                 li.cil.oc2.api.bus.DeviceBusElement.class);
 
         private DeviceBusElement() {
@@ -57,7 +57,7 @@ public final class Capabilities {
          * Register a block with this to have it emit a redstone signal on behalf of a device.
          */
         public static final BlockCapability<li.cil.oc2.api.capabilities.RedstoneEmitter, Direction> BLOCK =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "redstone_emitter"),
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(API.MOD_ID, "redstone_emitter"),
                 li.cil.oc2.api.capabilities.RedstoneEmitter.class);
 
         private RedstoneEmitter() {
@@ -72,7 +72,7 @@ public final class Capabilities {
          * with it.
          */
         public static final BlockCapability<li.cil.oc2.api.capabilities.NetworkInterface, Direction> BLOCK =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "network_interface"),
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(API.MOD_ID, "network_interface"),
                 li.cil.oc2.api.capabilities.NetworkInterface.class);
 
         private NetworkInterface() {
@@ -86,7 +86,7 @@ public final class Capabilities {
          * Register a block with this to report the players currently using its terminal.
          */
         public static final BlockCapability<li.cil.oc2.api.capabilities.TerminalUserProvider, Direction> BLOCK =
-            BlockCapability.createSided(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
+            BlockCapability.createSided(Identifier.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
                 li.cil.oc2.api.capabilities.TerminalUserProvider.class);
 
         /**
@@ -95,7 +95,7 @@ public final class Capabilities {
          * Register an entity with this to report the players currently using its terminal.
          */
         public static final EntityCapability<li.cil.oc2.api.capabilities.TerminalUserProvider, Direction> ENTITY =
-            EntityCapability.createSided(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
+            EntityCapability.createSided(Identifier.fromNamespaceAndPath(API.MOD_ID, "terminal_user_provider"),
                 li.cil.oc2.api.capabilities.TerminalUserProvider.class);
 
         private TerminalUserProvider() {
@@ -109,7 +109,7 @@ public final class Capabilities {
          * Register an entity with this to let the modules installed in it interact with it.
          */
         public static final EntityCapability<li.cil.oc2.api.capabilities.Robot, Direction> ENTITY =
-            EntityCapability.createSided(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "robot"),
+            EntityCapability.createSided(Identifier.fromNamespaceAndPath(API.MOD_ID, "robot"),
                 li.cil.oc2.api.capabilities.Robot.class);
 
         private Robot() {

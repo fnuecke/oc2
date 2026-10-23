@@ -5,6 +5,7 @@ package li.cil.oc2.gametest.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
@@ -28,13 +29,13 @@ public final class Chunks {
 
     public static void assertTicking(final GameTestHelper helper, final BlockPos relativePos) {
         if (!helper.getLevel().isPositionEntityTicking(helper.absolutePos(relativePos))) {
-            throw new GameTestAssertException("chunk of " + relativePos + " is not ticking yet");
+            throw new GameTestAssertException(Component.literal("chunk of " + relativePos + " is not ticking yet"), 0);
         }
     }
 
     public static void assertUnloaded(final GameTestHelper helper, final ChunkPos chunkPos) {
         if (helper.getLevel().hasChunk(chunkPos.x, chunkPos.z)) {
-            throw new GameTestAssertException("chunk " + chunkPos + " is still loaded");
+            throw new GameTestAssertException(Component.literal("chunk " + chunkPos + " is still loaded"), 0);
         }
     }
 

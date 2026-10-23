@@ -54,7 +54,7 @@ public final class Z80Fixture {
         BusCables.placeInterface(helper, player, CABLE_POS, Direction.UP);
         helper.setBlock(pos, Blocks.CHEST);
 
-        final ChestBlockEntity chest = helper.getBlockEntity(pos);
+        final ChestBlockEntity chest = helper.getBlockEntity(pos, ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(REDSTONE, 42));
         chest.setItem(2, new ItemStack(IRON_PICKAXE));
         return this;
@@ -64,7 +64,7 @@ public final class Z80Fixture {
         BusCables.placeInterface(helper, player, CABLE_POS, Direction.UP);
         TestSupport.place(helper, player, new ItemStack(Items.REDSTONE_INTERFACE.get()), CABLE_POS.above());
 
-        final BusCableBlockEntity cable = helper.getBlockEntity(CABLE_POS);
+        final BusCableBlockEntity cable = helper.getBlockEntity(CABLE_POS, BusCableBlockEntity.class);
         cable.setInterfaceName(Direction.UP, label);
         return this;
     }

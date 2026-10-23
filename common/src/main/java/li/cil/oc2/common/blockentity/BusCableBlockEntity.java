@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.blockentity;
 
+import com.mojang.serialization.Codec;
 import li.cil.oc2.api.bus.DeviceBusElement;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
@@ -15,15 +16,13 @@ import li.cil.oc2.common.network.message.BusCableFacadeMessage;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LevelUtils;
-import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.sedna.api.device.bus.DeviceDescription;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.item.ItemStack;
@@ -36,9 +35,13 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
@@ -53,6 +56,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     private static final String BUS_ELEMENT_TAG_NAME = "busElement";
     private static final String INTERFACE_NAMES_TAG_NAME = "interfaceNames";
     private static final String FACADE_TAG_NAME = "facade";
+    private static final Codec<List<String>> INTERFACE_NAMES_CODEC = Codec.STRING.listOf();
 
     // --------------------------------------------------------------------- //
 
@@ -109,7 +113,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
         if (level == null ||
             state.getRenderShape() != RenderShape.MODEL ||
-            !state.isSolidRender(level, getBlockPos()) ||
+            !state.isSolidRender() ||
             state.getBlock() instanceof EntityBlock) {
             return FacadeType.INVALID_BLOCK;
         }
@@ -168,12 +172,8 @@ public final class BusCableBlockEntity extends ModBlockEntity {
         }
     }
 
-    public void handleNeighborChanged(final BlockPos pos) {
-        final BlockPos toPos = pos.subtract(getBlockPos());
-        final Direction side = Direction.fromDelta(toPos.getX(), toPos.getY(), toPos.getZ());
-        if (side != null) {
-            busElement.updateDevicesForNeighbor(side);
-        }
+    public void handleNeighborChanged(final Direction side) {
+        busElement.updateDevicesForNeighbor(side);
     }
 
     public void handleConfigurationChanged(@Nullable final Direction side, final boolean neighborConnectivityChanged) {
@@ -201,28 +201,28 @@ public final class BusCableBlockEntity extends ModBlockEntity {
     public CompoundTag getUpdateTag(final HolderLookup.Provider registries) {
         final CompoundTag tag = super.getUpdateTag(registries);
 
-        tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
-        tag.put(FACADE_TAG_NAME, facade.saveOptional(registries));
+        tag.store(INTERFACE_NAMES_TAG_NAME, INTERFACE_NAMES_CODEC, serializeInterfaceNames());
+        tag.store(FACADE_TAG_NAME, ItemStack.OPTIONAL_CODEC, registries.createSerializationContext(NbtOps.INSTANCE), facade);
 
         return tag;
     }
 
 
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        tag.put(BUS_ELEMENT_TAG_NAME, busElement.save());
-        tag.put(INTERFACE_NAMES_TAG_NAME, serializeInterfaceNames());
-        tag.put(FACADE_TAG_NAME, facade.saveOptional(registries));
+        busElement.save(output.child(BUS_ELEMENT_TAG_NAME));
+        output.store(INTERFACE_NAMES_TAG_NAME, INTERFACE_NAMES_CODEC, serializeInterfaceNames());
+        output.store(FACADE_TAG_NAME, ItemStack.OPTIONAL_CODEC, facade);
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
-        deserializeInterfaceNames(tag.getList(INTERFACE_NAMES_TAG_NAME, NBTTagIds.TAG_STRING));
-        facade = ItemStack.parseOptional(registries, tag.getCompound(FACADE_TAG_NAME));
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
+        busElement.load(input.childOrEmpty(BUS_ELEMENT_TAG_NAME));
+        deserializeInterfaceNames(input.read(INTERFACE_NAMES_TAG_NAME, INTERFACE_NAMES_CODEC).orElse(List.of()));
+        facade = input.read(FACADE_TAG_NAME, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 
     // --------------------------------------------------------------------- //
@@ -268,17 +268,17 @@ public final class BusCableBlockEntity extends ModBlockEntity {
 
     // --------------------------------------------------------------------- //
 
-    private ListTag serializeInterfaceNames() {
-        final ListTag tag = new ListTag();
+    private List<String> serializeInterfaceNames() {
+        final List<String> names = new ArrayList<>();
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
-            tag.add(StringTag.valueOf(getInterfaceName(Direction.from3DDataValue(i))));
+            names.add(getInterfaceName(Direction.from3DDataValue(i)));
         }
-        return tag;
+        return names;
     }
 
-    private void deserializeInterfaceNames(final ListTag tag) {
+    private void deserializeInterfaceNames(final List<String> names) {
         for (int i = 0; i < Constants.BLOCK_FACE_COUNT; i++) {
-            interfaceNames[i] = validateName(tag.getString(i));
+            interfaceNames[i] = validateName(i < names.size() ? names.get(i) : "");
         }
     }
 
@@ -361,7 +361,7 @@ public final class BusCableBlockEntity extends ModBlockEntity {
      * track their presence and state. There are to major cases:
      * <ul>
      * <li>The neighboring block is in the same chunk as the cable. In this case, we only need to
-     * listen to neighbor block changes (via {@link #handleNeighborChanged(BlockPos)}).</li>
+     * listen to neighbor block changes (via {@link #handleNeighborChanged(Direction)}).</li>
      * <li>The neighboring block is in another chunk as the cable. In this case, we also need to
      * track chunk load status, since we won't get any other event in case the block gets
      * loaded or unloaded.</li>

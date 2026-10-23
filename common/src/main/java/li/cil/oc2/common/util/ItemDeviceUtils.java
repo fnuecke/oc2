@@ -11,7 +11,7 @@ public final class ItemDeviceUtils {
     // --------------------------------------------------------------------- //
 
     public static CompoundTag getItemDeviceData(final ItemStack stack) {
-        return ItemStackUtils.getModDataTag(stack).getCompound(ITEM_DEVICE_DATA_TAG_NAME);
+        return ItemStackUtils.getModDataTag(stack).getCompoundOrEmpty(ITEM_DEVICE_DATA_TAG_NAME);
     }
 
     public static void setItemDeviceData(final ItemStack stack, final CompoundTag data) {
@@ -19,7 +19,7 @@ public final class ItemDeviceUtils {
     }
 
     public static CompoundTag getDeviceData(final ItemStack stack, final String key) {
-        return getItemDeviceData(stack).getCompound(key);
+        return getItemDeviceData(stack).getCompoundOrEmpty(key);
     }
 
     public static void setDeviceData(final ItemStack stack, final String key, final CompoundTag data) {

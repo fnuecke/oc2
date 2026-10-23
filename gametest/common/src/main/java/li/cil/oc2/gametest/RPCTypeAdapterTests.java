@@ -59,8 +59,8 @@ public final class RPCTypeAdapterTests {
         tool.set(DataComponents.REPAIR_COST, 5);
         tool.setDamageValue(10);
         tool.set(DataComponents.RARITY, Rarity.EPIC);
-        tool.enchant(helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-            .getHolderOrThrow(Enchantments.EFFICIENCY), 3);
+        tool.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+            .getOrThrow(Enchantments.EFFICIENCY), 3);
 
         final JsonObject components = componentsOf(helper, gson.toJsonTree(tool));
         assertTrue(helper, "custom name survives", components.has("minecraft:custom_name"));
@@ -71,7 +71,7 @@ public final class RPCTypeAdapterTests {
         assertTrue(helper, "unlisted components stay filtered out", !components.has("minecraft:rarity"));
 
         final ItemStack armor = new ItemStack(Items.LEATHER_HELMET);
-        armor.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF0000, true));
+        armor.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF0000));
         assertTrue(helper, "dye color survives",
             componentsOf(helper, gson.toJsonTree(armor)).has("minecraft:dyed_color"));
 

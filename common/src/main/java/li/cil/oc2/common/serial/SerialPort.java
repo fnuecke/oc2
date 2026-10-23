@@ -4,7 +4,8 @@ package li.cil.oc2.common.serial;
 
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import li.cil.oc2.api.capabilities.NetworkInterface;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.util.function.LongSupplier;
@@ -42,12 +43,16 @@ public final class SerialPort implements NetworkInterface {
         endpoint.setConfiguration(address, baudRate);
     }
 
-    public void saveConfiguration(final CompoundTag tag) {
-        endpoint.saveConfiguration(tag);
+    public void saveConfiguration(final ValueOutput output) {
+        endpoint.saveConfiguration(output);
     }
 
-    public void loadConfiguration(final CompoundTag tag) {
-        endpoint.loadConfiguration(tag);
+    public void loadConfiguration(final ValueInput input) {
+        final var address = input.getInt(SerialEndpoint.ADDRESS_TAG_NAME);
+        final var baudRate = input.getInt(SerialEndpoint.BAUD_RATE_TAG_NAME);
+        if (address.isPresent() && baudRate.isPresent()) {
+            endpoint.setConfiguration(address.get(), baudRate.get());
+        }
     }
 
     public int getOverrunCount() {

@@ -3,12 +3,12 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.Robot;
-import li.cil.oc2.common.util.NBTTagIds;
-import li.cil.oc2.common.util.NBTUtils;
+import li.cil.oc2.common.util.SerializationUtils;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
@@ -37,8 +37,8 @@ public final class RobotRotationAction extends AbstractRobotAction {
         this.direction = direction.resolve();
     }
 
-    RobotRotationAction(final CompoundTag tag) {
-        super(RobotActions.ROTATION, tag);
+    RobotRotationAction(final ValueInput input) {
+        super(RobotActions.ROTATION, input);
     }
 
     // --------------------------------------------------------------------- //
@@ -84,26 +84,22 @@ public final class RobotRotationAction extends AbstractRobotAction {
     }
 
     @Override
-    public CompoundTag serialize() {
-        final CompoundTag tag = super.serialize();
+    public void serialize(final ValueOutput output) {
+        super.serialize(output);
 
-        NBTUtils.putEnum(tag, DIRECTION_TAG_NAME, direction);
-        if (target != null) {
-            NBTUtils.putEnum(tag, TARGET_TAG_NAME, target);
-        }
-
-        return tag;
+        SerializationUtils.putEnum(output, DIRECTION_TAG_NAME, direction);
+        SerializationUtils.putEnum(output, TARGET_TAG_NAME, target);
     }
 
     @Override
-    public void deserialize(final CompoundTag tag) {
-        super.deserialize(tag);
+    public void deserialize(final ValueInput input) {
+        super.deserialize(input);
 
-        direction = NBTUtils.getEnum(tag, DIRECTION_TAG_NAME, RotationDirection.class);
+        direction = SerializationUtils.getEnum(input, DIRECTION_TAG_NAME, RotationDirection.class);
         if (direction == null) direction = RotationDirection.LEFT;
         direction = direction.resolve();
-        if (tag.contains(TARGET_TAG_NAME, NBTTagIds.TAG_INT)) {
-            target = NBTUtils.getEnum(tag, TARGET_TAG_NAME, Direction.class);
+        if (input.getInt(TARGET_TAG_NAME).isPresent()) {
+            target = SerializationUtils.getEnum(input, TARGET_TAG_NAME, Direction.class);
         }
     }
 }

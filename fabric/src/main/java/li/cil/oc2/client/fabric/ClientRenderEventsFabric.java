@@ -4,19 +4,34 @@ package li.cil.oc2.client.fabric;
 
 import li.cil.oc2.client.renderer.BusInterfaceNameRenderer;
 import li.cil.oc2.client.renderer.NetworkCableRenderer;
-import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.culling.Frustum;
+
+import javax.annotation.Nullable;
 
 public final class ClientRenderEventsFabric {
+    @Nullable
+    private static Camera camera;
+    @Nullable
+    private static Frustum frustum;
+
+    // --------------------------------------------------------------------- //
+
     public static void initialize() {
-        WorldRenderEvents.BEFORE_ENTITIES.register(context ->
-            NetworkCableRenderer.render(context.camera(), context.positionMatrix(), context.frustum()));
+        WorldRenderEvents.END_EXTRACTION.register(context -> {
+            camera = context.camera();
+            frustum = context.frustum();
+        });
 
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context ->
-            BusInterfaceNameRenderer.INSTANCE.render(context.matrixStack()));
+        WorldRenderEvents.BEFORE_ENTITIES.register(context -> {
+            if (camera != null && frustum != null) {
+                NetworkCableRenderer.render(camera, context.matrices().last().pose(), frustum);
+            }
+        });
 
-        WorldRenderEvents.LAST.register(context ->
-            ProjectorDepthRenderer.onAfterParticles(context.positionMatrix(), context.projectionMatrix()));
+        WorldRenderEvents.END_MAIN.register(context ->
+            BusInterfaceNameRenderer.INSTANCE.render(context.matrices()));
     }
 
     private ClientRenderEventsFabric() {

@@ -13,6 +13,7 @@ import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import java.nio.charset.StandardCharsets;
@@ -41,14 +42,14 @@ public interface MachineFixture {
     default void assertRunState(final VMRunState expected, final String what) {
         final VirtualMachine vm = virtualMachine();
         if (vm.getRunState() != expected) {
-            throw new GameTestAssertException(what + ": run state is " + vm.getRunState()
-                + ", expected " + expected + "; " + describe());
+            throw new GameTestAssertException(Component.literal(what + ": run state is " + vm.getRunState()
+                + ", expected " + expected + "; " + describe()), 0);
         }
     }
 
     default void assertNoError() {
         if (virtualMachine().getError() != null) {
-            throw new GameTestAssertException("VM reported an error: " + virtualMachine().getError());
+            throw new GameTestAssertException(Component.literal("VM reported an error: " + virtualMachine().getError()), 0);
         }
     }
 
@@ -62,7 +63,7 @@ public interface MachineFixture {
             .map(IODevice.class::cast)
             .toList();
         if (matches.size() != 1) {
-            throw new GameTestAssertException("expected one device providing the " + name + " mid-level API, found " + matches.size());
+            throw new GameTestAssertException(Component.literal("expected one device providing the " + name + " mid-level API, found " + matches.size()), 0);
         }
         return matches.getFirst();
     }
@@ -81,7 +82,7 @@ public interface MachineFixture {
             tag = NBTSerialization.serialize(terminal);
         }
 
-        final byte[] buffer = tag.getByteArray("buffer");
+        final byte[] buffer = tag.getByteArray("buffer").orElseThrow();
         final StringBuilder text = new StringBuilder();
         for (int row = 0; row < Terminal.HEIGHT; row++) {
             for (int column = 0; column < Terminal.WIDTH; column++) {
@@ -112,8 +113,8 @@ public interface MachineFixture {
     default void assertScreenContains(final String expected, final String what) {
         final String text = screen();
         if (!text.contains(expected)) {
-            throw new GameTestAssertException(what + ": screen does not hold [" + expected + "]; "
-                + describe() + "\n" + text);
+            throw new GameTestAssertException(Component.literal(what + ": screen does not hold [" + expected + "]; "
+                + describe() + "\n" + text), 0);
         }
     }
 
@@ -121,8 +122,8 @@ public interface MachineFixture {
         final String text = screen();
         final Matcher matcher = pattern.matcher(text);
         if (!matcher.find()) {
-            throw new GameTestAssertException(what + ": screen does not match [" + pattern + "]; "
-                + describe() + "\n" + text);
+            throw new GameTestAssertException(Component.literal(what + ": screen does not match [" + pattern + "]; "
+                + describe() + "\n" + text), 0);
         }
         return matcher;
     }
@@ -131,7 +132,7 @@ public interface MachineFixture {
         final String text = screen();
         for (final String marker : GUEST_PANIC_MARKERS) {
             if (text.contains(marker)) {
-                throw new GameTestAssertException("guest reported '" + marker + "':\n" + text);
+                throw new GameTestAssertException(Component.literal("guest reported '" + marker + "':\n" + text), 0);
             }
         }
     }
@@ -145,7 +146,7 @@ public interface MachineFixture {
                 return;
             }
         }
-        throw new GameTestAssertException("could not install " + stack + " as " + type
-            + "; all " + handler.getSlots() + " slot(s) rejected it");
+        throw new GameTestAssertException(Component.literal("could not install " + stack + " as " + type
+            + "; all " + handler.getSlots() + " slot(s) rejected it"), 0);
     }
 }

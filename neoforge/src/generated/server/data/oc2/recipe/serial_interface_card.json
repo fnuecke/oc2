@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "N": "oc2:network_cable",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "CNX",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:serial_interface_card"
+  }
+}

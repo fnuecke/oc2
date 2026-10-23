@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "D": "#c:gems/diamond",
+    "I": "#c:ingots/iron",
+    "L": "minecraft:redstone_lamp",
+    "T": "oc2:transistor",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "ILI",
+    "XTD",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:projector"
+  }
+}

@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The lookups we do fluid storage interop through on Fabric.
@@ -25,7 +25,7 @@ public abstract class FluidStorage {
      * Entity access to fluid storages, {@code oc2:entity_fluid_storage}.
      */
     public static final EntityApiLookup<Storage<FluidVariant>, Direction> ENTITY =
-        EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "entity_fluid_storage"),
+        EntityApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "entity_fluid_storage"),
             Storage.asClass(), Direction.class);
 
     /**

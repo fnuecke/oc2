@@ -24,7 +24,7 @@ public class RPCItemStackTagFilterTests {
         final CompoundTag result = filter.apply(new ItemStack(Items.STONE), source);
 
         assertNotNull(result);
-        assertEquals(42, result.getInt("kept"));
+        assertEquals(42, result.getInt("kept").orElseThrow());
         assertFalse(result.contains("dropped"));
     }
 
@@ -40,7 +40,7 @@ public class RPCItemStackTagFilterTests {
         final CompoundTag result = filter.apply(new ItemStack(Items.STONE), source);
 
         assertNotNull(result);
-        assertEquals(42, result.getCompound("outer").getInt("inner"));
+        assertEquals(42, result.getCompoundOrEmpty("outer").getInt("inner").orElseThrow());
     }
 
     @Test
@@ -53,7 +53,7 @@ public class RPCItemStackTagFilterTests {
         final CompoundTag result = assertDoesNotThrow(() -> filter.apply(new ItemStack(Items.STONE), source));
 
         assertNotNull(result);
-        assertEquals(42, result.getInt("kept"));
+        assertEquals(42, result.getInt("kept").orElseThrow());
     }
 
     @Test

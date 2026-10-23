@@ -24,13 +24,16 @@ import li.cil.oc2.common.util.LevelUtils;
 import li.cil.sedna.api.device.serial.SerialDevice;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +47,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 public class BlockDeviceBusControllerTests {
-    private static final ResourceLocation TEST_PROVIDER_REGISTRY_NAME = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "test");
+    private static final Identifier TEST_PROVIDER_REGISTRY_NAME = Identifier.fromNamespaceAndPath(API.MOD_ID, "test");
 
     private MockedStatic<Capabilities> capabilitiesMock;
     private MockedStatic<Providers> providersMock;
@@ -190,7 +193,7 @@ public class BlockDeviceBusControllerTests {
         fakeLevel.setChunkLoaded(new ChunkPos(devicePos), false);
         busElement.updateDevicesForNeighbor(Direction.WEST);
 
-        verify(objectDevice, times(1)).serializeNBT();
+        verify(objectDevice, times(1)).serialize(any());
 
         fakeLevel.setChunkLoaded(new ChunkPos(devicePos), true);
         final TestDeviceBlockEntity reloadedDeviceBlockEntity = new TestDeviceBlockEntity(devicePos);
@@ -200,7 +203,7 @@ public class BlockDeviceBusControllerTests {
         busElementInfo.attachController();
 
         assertTrue(busElement.getLocalDevices().contains(reloadedObjectDevice));
-        verify(reloadedObjectDevice, times(1)).deserializeNBT(any());
+        verify(reloadedObjectDevice, times(1)).deserialize(any());
     }
 
     @Test
@@ -302,8 +305,8 @@ public class BlockDeviceBusControllerTests {
         assertTrue(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
         assertLifecycle(objectDevice, 0, 0, 0, 0, 0);
 
-        final CompoundTag data = busElementInfo.getBusElement().save();
-        verify(objectDevice, times(1)).serializeNBT();
+        final CompoundTag data = save(busElementInfo.getBusElement());
+        verify(objectDevice, times(1)).serialize(any());
         assertTrue(westGroupData(data).contains(TEST_PROVIDER_REGISTRY_NAME.toString()));
 
         fakeLevel.setChunkLoaded(new ChunkPos(elementPos), false);
@@ -313,13 +316,13 @@ public class BlockDeviceBusControllerTests {
 
         fakeLevel.setChunkLoaded(new ChunkPos(elementPos), true);
         busElementInfo = new TestBusElementBlockEntity(elementPos);
-        busElementInfo.getBusElement().load(data);
+        busElementInfo.getBusElement().load(TagValueInput.create(ProblemReporter.DISCARDING, RegistryAccess.EMPTY, data));
 
         busElementInfo.attachController();
 
         busElementInfo.getBusElement().updateDevicesForNeighbor(Direction.WEST);
 
-        assertTrue(westGroupData(busElementInfo.getBusElement().save()).isEmpty());
+        assertTrue(westGroupData(save(busElementInfo.getBusElement())).isEmpty());
     }
 
     @Test
@@ -347,12 +350,12 @@ public class BlockDeviceBusControllerTests {
         assertFalse(busElementInfo.getBusElement().getLocalDevices().contains(deviceBlockEntity.getObjectDevice()));
         assertLifecycle(objectDevice, 0, 0, 0, 1, 0);
 
-        assertTrue(westGroupData(busElementInfo.getBusElement().save()).contains(TEST_PROVIDER_REGISTRY_NAME.toString()));
+        assertTrue(westGroupData(save(busElementInfo.getBusElement())).contains(TEST_PROVIDER_REGISTRY_NAME.toString()));
 
         fakeLevel.removeBlockEntity(elementPos);
         busElementInfo.getBusElement().setRemoved();
 
-        assertTrue(westGroupData(busElementInfo.getBusElement().save()).isEmpty());
+        assertTrue(westGroupData(save(busElementInfo.getBusElement())).isEmpty());
     }
 
     @Test
@@ -413,10 +416,16 @@ public class BlockDeviceBusControllerTests {
 
     // --------------------------------------------------------------------- //
 
+    private static CompoundTag save(final AbstractGroupingDeviceBusElement<?> busElement) {
+        final TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, RegistryAccess.EMPTY);
+        busElement.save(output);
+        return output.buildResult();
+    }
+
     private static CompoundTag westGroupData(final CompoundTag busElementData) {
-        return busElementData.getList("groups", Tag.TAG_COMPOUND)
-            .getCompound(Direction.WEST.get3DDataValue())
-            .getCompound("groupData");
+        return busElementData.getListOrEmpty("groups")
+            .getCompoundOrEmpty(Direction.WEST.get3DDataValue())
+            .getCompoundOrEmpty("groupData");
     }
 
     private static void assertLifecycle(final ObjectDevice device, final int mounts, final int unmounts,
@@ -424,15 +433,15 @@ public class BlockDeviceBusControllerTests {
         verify(device, times(mounts)).mount(any());
         verify(device, times(unmounts)).unmount(any());
         verify(device, times(disposes)).dispose();
-        verify(device, times(serializes)).serializeNBT();
-        verify(device, times(deserializes)).deserializeNBT(any());
+        verify(device, times(serializes)).serialize(any());
+        verify(device, times(deserializes)).deserialize(any());
     }
 
     @SuppressWarnings("unchecked")
     private static Registrar<BlockDeviceProvider> createBlockDeviceProviderRegistry() {
         final Registrar<BlockDeviceProvider> registry = mock(Registrar.class);
 
-        final Map<ResourceLocation, BlockDeviceProvider> blockDeviceProviders = new HashMap<>();
+        final Map<Identifier, BlockDeviceProvider> blockDeviceProviders = new HashMap<>();
         blockDeviceProviders.put(TEST_PROVIDER_REGISTRY_NAME, new TestBlockDeviceProvider());
 
         when(registry.iterator()).then(a -> blockDeviceProviders.values().iterator());
@@ -445,7 +454,7 @@ public class BlockDeviceBusControllerTests {
     private static Registrar<ItemDeviceProvider> createItemDeviceProviderRegistry() {
         final Registrar<ItemDeviceProvider> registry = mock(Registrar.class);
 
-        final Map<ResourceLocation, ItemDeviceProvider> itemDeviceProviders = new HashMap<>();
+        final Map<Identifier, ItemDeviceProvider> itemDeviceProviders = new HashMap<>();
         itemDeviceProviders.put(TEST_PROVIDER_REGISTRY_NAME, new TestItemDeviceProvider());
 
         when(registry.iterator()).then(a -> itemDeviceProviders.values().iterator());
@@ -463,6 +472,7 @@ public class BlockDeviceBusControllerTests {
 
         public FakeLevel() {
             when(level.getBlockEntity(any())).then(a -> blockEntities.get(a.<BlockPos>getArgument(0)));
+            when(level.registryAccess()).thenReturn(RegistryAccess.EMPTY);
 
             when(level.hasChunk(anyInt(), anyInt())).then(a -> {
                 final int chunkX = a.getArgument(0);

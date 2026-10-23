@@ -48,36 +48,13 @@ public class ModBlockEntityUnloadTests {
     }
 
     @Test
-    public void removalAfterReplacementDestroys() {
+    public void removalAfterRemoveSideEffectsDestroys() {
         withBlockEntity(blockEntity -> {
-            replace(blockEntity, false);
+            blockEntity.preRemoveSideEffects(BlockPos.ZERO, blockEntity.getBlockState());
             blockEntity.setRemoved();
 
             assertEquals(1, blockEntity.unloadCount);
             assertTrue(blockEntity.lastWasDestroyed);
-        });
-    }
-
-    @Test
-    public void stateChangeOfSameBlockDoesNotDestroy() {
-        withBlockEntity(blockEntity -> {
-            final ServerLevel level = (ServerLevel) blockEntity.getLevel();
-            when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(blockEntity);
-            ModBlockEntity.markDestroyed(level, BlockPos.ZERO, blockEntity.getBlockState(), blockEntity.getBlockState(), false);
-            blockEntity.setRemoved();
-
-            assertFalse(blockEntity.lastWasDestroyed);
-        });
-    }
-
-    @Test
-    public void removalAfterMoveDoesNotDestroy() {
-        withBlockEntity(blockEntity -> {
-            replace(blockEntity, true);
-            blockEntity.setRemoved();
-
-            assertEquals(1, blockEntity.unloadCount);
-            assertFalse(blockEntity.lastWasDestroyed);
         });
     }
 
@@ -94,12 +71,6 @@ public class ModBlockEntityUnloadTests {
 
             test.accept(blockEntity);
         }
-    }
-
-    private static void replace(final CountingBlockEntity blockEntity, final boolean movedByPiston) {
-        final ServerLevel level = (ServerLevel) blockEntity.getLevel();
-        when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(blockEntity);
-        ModBlockEntity.markDestroyed(level, BlockPos.ZERO, blockEntity.getBlockState(), Blocks.AIR.defaultBlockState(), movedByPiston);
     }
 
     private static BlockEntityType<?> anyBlockEntityType() {

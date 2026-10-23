@@ -5,6 +5,8 @@ package li.cil.oc2.gametest.device;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceProvider;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 
 import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
@@ -18,7 +20,8 @@ public final class GuestTestDevices {
         DeferredRegister.create(MOD_ID, li.cil.oc2.api.util.Registries.ITEM_DEVICE_PROVIDER);
 
     public static final RegistrySupplier<Item> GUEST_TEST_PORT =
-        ITEMS.register(NAME, () -> new Item(new Item.Properties()));
+        ITEMS.register(NAME, () -> new Item(new Item.Properties()
+            .setId(ResourceKey.create(net.minecraft.core.registries.Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, NAME)))));
 
     // --------------------------------------------------------------------- //
 

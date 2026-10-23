@@ -34,7 +34,7 @@ public final class TooltipRenderer {
         final List<? extends FormattedText> lines = needsWrapping
             ? tooltip.stream().flatMap(line -> splitter.splitLines(line, targetWidth, Style.EMPTY).stream()).toList()
             : tooltip;
-        graphics.renderTooltip(font, lines.stream().map(Language.getInstance()::getVisualOrder).toList(), x, y);
+        graphics.setTooltipForNextFrame(font, lines.stream().map(Language.getInstance()::getVisualOrder).toList(), x, y);
     }
 
     // --------------------------------------------------------------------- //

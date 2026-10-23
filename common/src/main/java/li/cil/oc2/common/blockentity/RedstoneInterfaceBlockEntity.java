@@ -8,9 +8,9 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 
@@ -35,17 +35,17 @@ public final class RedstoneInterfaceBlockEntity extends ModBlockEntity {
     // --------------------------------------------------------------------- //
 
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        redstoneInterface.save(tag);
+        redstoneInterface.save(output);
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
 
-        redstoneInterface.load(tag);
+        redstoneInterface.load(input);
     }
 
     @Override

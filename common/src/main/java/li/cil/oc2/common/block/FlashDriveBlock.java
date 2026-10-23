@@ -5,13 +5,11 @@ package li.cil.oc2.common.block;
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.FlashDriveBlockEntity;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.util.BlockPlacement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -26,13 +24,12 @@ import net.minecraft.world.phys.BlockHitResult;
 import javax.annotation.Nullable;
 
 public final class FlashDriveBlock extends OrientableBlock implements EntityBlock {
-    public static final MapCodec<FlashDriveBlock> CODEC = MapCodec.unit(FlashDriveBlock::new);
+    public static final MapCodec<FlashDriveBlock> CODEC = simpleCodec(FlashDriveBlock::new);
 
     // --------------------------------------------------------------------- //
 
-    public FlashDriveBlock() {
-        super(Properties
-            .of()
+    public FlashDriveBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .strength(1.5f, 6.0f), Direction.UP, 8);
@@ -46,24 +43,11 @@ public final class FlashDriveBlock extends OrientableBlock implements EntityBloc
     }
 
     @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            final BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof final FlashDriveBlockEntity drive) {
-                drive.dropMedia();
-            }
-        }
-
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    @Override
-    protected ItemInteractionResult useItemOn(final ItemStack heldStack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
+    protected InteractionResult useItemOn(final ItemStack heldStack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final FlashDriveBlockEntity drive) {
-            final ItemInteractionResult result = drive.useWith(level, heldStack, player, hand);
-            if (result != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+            final InteractionResult result = drive.useWith(level, heldStack, player, hand);
+            if (result != InteractionResult.TRY_WITH_EMPTY_HAND) {
                 return result;
             }
         }

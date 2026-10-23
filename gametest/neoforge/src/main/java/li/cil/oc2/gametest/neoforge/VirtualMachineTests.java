@@ -5,27 +5,36 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
+import li.cil.oc2.common.bus.device.item.MemoryDevice;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.util.SerializationUtils;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.Hardware;
-import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "virtual_machine")
 public final class VirtualMachineTests {
     private static final String BOOT_RELOAD_BATCH = "oc2_boot_reload";
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 900)
+    @TestHolder
     public static void computerNeedsAProcessorToRun(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
@@ -38,7 +47,7 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(60, () -> {
                 computer.assertRunState(VMRunState.STOPPED, "without a processor");
                 if (computer.virtualMachine().getBootError() == null) {
-                    throw new GameTestAssertException("a machine with no processor must say so, not fail silently");
+                    throw new GameTestAssertException(Component.literal("a machine with no processor must say so, not fail silently"), 0);
                 }
             })
             .thenExecute(() -> computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_RISCV.get())))
@@ -49,7 +58,8 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 900)
+    @TestHolder
     public static void removingProcessorStopsComputer(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
@@ -67,7 +77,8 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 900)
+    @TestHolder
     public static void swappingProcessorStopsComputer(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
@@ -86,7 +97,8 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 900)
+    @TestHolder
     public static void runningComputerConsumesEnergy(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
@@ -97,30 +109,33 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(200, () -> {
                 charged[0] = computer.energy();
                 if (charged[0] <= 0) {
-                    throw new GameTestAssertException("computer never charged from the creative source");
+                    throw new GameTestAssertException(Component.literal("computer never charged from the creative source"), 0);
                 }
                 breakBlock(helper, POWER_POS);
             })
             .thenExecuteAfter(120, () -> {
                 final long drained = computer.energy();
                 if (drained >= charged[0]) {
-                    throw new GameTestAssertException("energy did not drain once the source was removed: "
-                        + charged[0] + " -> " + drained);
+                    throw new GameTestAssertException(Component.literal("energy did not drain once the source was removed: "
+                        + charged[0] + " -> " + drained), 0);
                 }
             })
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_RELOAD_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_RELOAD_BATCH)
+    @TestHolder
     public static void bootedGuestSurvivesSaveAndLoad(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 
         final long[] instructionsAtReload = new long[1];
+        final List<String> memoryAtReload = new ArrayList<>();
         helper.startSequence()
             .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
             .thenWaitUntil(() -> requireBooted(computer))
             .thenExecute(() -> {
+                memoryAtReload.addAll(memory(computer));
                 computer.load(computer.save());
                 instructionsAtReload[0] = computer.guestInstructions();
             })
@@ -128,7 +143,11 @@ public final class VirtualMachineTests {
                 computer.assertNoGuestPanic();
                 computer.assertRunState(VMRunState.RUNNING, "after reload");
                 if (computer.guestInstructions() <= instructionsAtReload[0]) {
-                    throw new GameTestAssertException("guest is not retiring instructions after reload");
+                    throw new GameTestAssertException(Component.literal("guest is not retiring instructions after reload"), 0);
+                }
+                if (!memory(computer).equals(memoryAtReload)) {
+                    throw new GameTestAssertException(Component.literal("memory did not survive reload: "
+                        + memoryAtReload + " -> " + memory(computer)), 0);
                 }
             })
             .thenSucceed();
@@ -136,11 +155,19 @@ public final class VirtualMachineTests {
 
     // --------------------------------------------------------------------- //
 
+    private static List<String> memory(final ComputerFixture computer) {
+        return computer.devices().stream()
+            .filter(device -> device instanceof MemoryDevice)
+            .map(device -> SerializationUtils.saveToTag(ProblemReporter.Collector.EMPTY_ROOT, RegistryAccess.EMPTY, device::serialize).toString())
+            .sorted()
+            .toList();
+    }
+
     private static void requireBooted(final ComputerFixture computer) {
         computer.assertNoGuestPanic();
         final String text = computer.screen();
         if (!text.contains("Mounted root") || !text.contains("Run /sbin/init")) {
-            throw new GameTestAssertException("guest has not handed off to userspace; screen:\n" + text);
+            throw new GameTestAssertException(Component.literal("guest has not handed off to userspace; screen:\n" + text), 0);
         }
     }
 

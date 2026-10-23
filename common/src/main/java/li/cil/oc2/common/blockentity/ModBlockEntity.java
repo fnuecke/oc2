@@ -11,7 +11,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -32,12 +31,6 @@ public abstract class ModBlockEntity extends BlockEntity {
     }
 
     // --------------------------------------------------------------------- //
-
-    public static void markDestroyed(final Level level, final BlockPos pos, final BlockState state, final BlockState newState, final boolean movedByPiston) {
-        if (!movedByPiston && !state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof final ModBlockEntity blockEntity) {
-            blockEntity.isDestroyed = true;
-        }
-    }
 
     @Nullable
     public <T> T getCapability(final CapabilityType<T> capability, @Nullable final Direction side) {
@@ -85,6 +78,12 @@ public abstract class ModBlockEntity extends BlockEntity {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void preRemoveSideEffects(final BlockPos pos, final BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        isDestroyed = true;
     }
 
     @Override

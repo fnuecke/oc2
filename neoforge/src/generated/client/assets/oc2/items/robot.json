@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "minecraft:item/template_shulker_box",
+    "model": {
+      "type": "oc2:robot"
+    }
+  }
+}

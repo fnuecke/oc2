@@ -2,322 +2,647 @@
 
 package li.cil.oc2.common.capabilities.neoforge;
 
+import com.google.common.collect.MapMaker;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
-import net.minecraft.core.registries.BuiltInRegistries;
+import li.cil.oc2.common.util.ItemStackUtils;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
 public final class NeoForgeCapabilityAdapters {
+    private static final Map<DeferredNotifyItemHandler, ReverseItemHandlerAdapter> ITEM_ADAPTERS = new MapMaker().weakKeys().weakValues().makeMap();
+    private static final Map<FluidHandler, ReverseFluidHandlerAdapter> FLUID_ADAPTERS = new MapMaker().weakKeys().weakValues().makeMap();
+
+    // --------------------------------------------------------------------- //
+
     @Nullable
-    public static EnergyHandler energy(@Nullable final IEnergyStorage storage) {
-        return storage == null ? null : new EnergyHandlerAdapter(storage);
+    public static EnergyHandler energy(@Nullable final net.neoforged.neoforge.transfer.energy.EnergyHandler handler) {
+        if (handler instanceof final ReverseEnergyHandlerAdapter reverse) {
+            return reverse.inner;
+        }
+        return handler == null ? null : new EnergyHandlerAdapter(handler);
     }
 
     @Nullable
-    public static ItemHandler items(@Nullable final IItemHandler handler) {
+    public static ItemHandler items(@Nullable final ResourceHandler<ItemResource> handler) {
+        if (handler instanceof final ReverseItemHandlerAdapter reverse) {
+            return reverse.inner;
+        }
         return handler == null ? null : new ItemHandlerAdapter(handler);
     }
 
     @Nullable
-    public static FluidHandler fluids(@Nullable final IFluidHandler handler) {
+    public static FluidHandler fluids(@Nullable final ResourceHandler<FluidResource> handler) {
+        if (handler instanceof final ReverseFluidHandlerAdapter reverse) {
+            return reverse.inner;
+        }
         return handler == null ? null : new FluidHandlerAdapter(handler);
     }
 
-    @Nullable
-    public static FluidHandler fluids(@Nullable final IFluidHandlerItem handler, final ItemHandler inventory, final int slot) {
-        return handler == null ? null : new ItemFluidHandlerAdapter(handler, inventory, slot);
+    public static ResourceHandler<ItemResource> toNeoForge(final DeferredNotifyItemHandler handler) {
+        return adapter(handler);
     }
 
-    public static IItemHandler toNeoForge(final ItemHandler handler) {
-        return new ReverseItemHandlerAdapter(handler);
+    public static net.neoforged.neoforge.transfer.energy.EnergyHandler toNeoForge(final EnergyHandler storage) {
+        return new ReverseEnergyHandlerAdapter(storage);
     }
 
-    public static IEnergyStorage toNeoForge(final EnergyHandler storage) {
-        return new ReverseEnergyStorageAdapter(storage);
+    public static ResourceHandler<FluidResource> toNeoForge(final FluidHandler handler) {
+        return FLUID_ADAPTERS.computeIfAbsent(handler, ReverseFluidHandlerAdapter::new);
     }
 
-    public static IFluidHandler toNeoForge(final FluidHandler handler) {
-        return new ReverseFluidHandlerAdapter(handler);
+    public static ItemAccess slot(final ItemHandler handler, final int slot) {
+        if (handler instanceof ItemHandlerAdapter(ResourceHandler<ItemResource> inner)) {
+            return ItemAccess.forHandlerIndexStrict(inner, slot);
+        }
+        return adapter((DeferredNotifyItemHandler) handler).access(slot);
+    }
+
+    public static ItemAccess stack(final ItemStack stack) {
+        return new StackItemAccess(stack);
+    }
+
+    private static ReverseItemHandlerAdapter adapter(final DeferredNotifyItemHandler handler) {
+        return ITEM_ADAPTERS.computeIfAbsent(handler, ReverseItemHandlerAdapter::new);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static Transaction open() {
+        return Transaction.open(Transaction.getCurrentOpenedTransaction());
+    }
+
+    private static int clamp(final long value) {
+        return Math.clamp(value, 0, Integer.MAX_VALUE);
     }
 
     // --------------------------------------------------------------------- //
 
-    private record EnergyHandlerAdapter(IEnergyStorage inner) implements EnergyHandler {
+    private record EnergyHandlerAdapter(net.neoforged.neoforge.transfer.energy.EnergyHandler inner) implements EnergyHandler {
         @Override
         public long receiveEnergy(final long maxReceive, final boolean simulate) {
-            return inner.receiveEnergy(clamp(maxReceive), simulate);
+            try (Transaction transaction = open()) {
+                final int inserted = inner.insert(clamp(maxReceive), transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+                return inserted;
+            }
         }
 
         @Override
         public long extractEnergy(final long maxExtract, final boolean simulate) {
-            return inner.extractEnergy(clamp(maxExtract), simulate);
+            try (Transaction transaction = open()) {
+                final int extracted = inner.extract(clamp(maxExtract), transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+                return extracted;
+            }
         }
 
         @Override
         public long getEnergyStored() {
-            return inner.getEnergyStored();
+            return inner.getAmountAsLong();
         }
 
         @Override
         public long getMaxEnergyStored() {
+            return inner.getCapacityAsLong();
+        }
+
+        @Override
+        public boolean canExtract() {
+            try (Transaction transaction = open()) {
+                return inner.extract(1, transaction) > 0;
+            }
+        }
+
+        @Override
+        public boolean canReceive() {
+            try (Transaction transaction = open()) {
+                return inner.insert(1, transaction) > 0;
+            }
+        }
+    }
+
+    private static final class ReverseEnergyHandlerAdapter extends SnapshotJournal<Long>
+        implements net.neoforged.neoforge.transfer.energy.EnergyHandler {
+        private final EnergyHandler inner;
+        private long moved;
+
+        private ReverseEnergyHandlerAdapter(final EnergyHandler inner) {
+            this.inner = inner;
+        }
+
+        @Override
+        public long getAmountAsLong() {
+            return inner.getEnergyStored();
+        }
+
+        @Override
+        public long getCapacityAsLong() {
             return inner.getMaxEnergyStored();
         }
 
         @Override
-        public boolean canExtract() {
-            return inner.canExtract();
+        public int insert(final int amount, final TransactionContext transaction) {
+            if (amount <= 0 || !inner.canReceive()) {
+                return 0;
+            }
+            updateSnapshots(transaction);
+            final int inserted = clamp(inner.receiveEnergy(amount, false));
+            moved += inserted;
+            return inserted;
         }
 
         @Override
-        public boolean canReceive() {
-            return inner.canReceive();
+        public int extract(final int amount, final TransactionContext transaction) {
+            if (amount <= 0 || !inner.canExtract()) {
+                return 0;
+            }
+            updateSnapshots(transaction);
+            final int extracted = clamp(inner.extractEnergy(amount, false));
+            moved -= extracted;
+            return extracted;
+        }
+
+        @Override
+        protected Long createSnapshot() {
+            return moved;
+        }
+
+        @Override
+        protected void revertToSnapshot(final Long snapshot) {
+            final long delta = moved - snapshot;
+            if (delta > 0) {
+                inner.extractEnergy(delta, false);
+            } else if (delta < 0) {
+                inner.receiveEnergy(-delta, false);
+            }
+            moved = snapshot;
         }
     }
 
-    private record ReverseEnergyStorageAdapter(EnergyHandler inner) implements IEnergyStorage {
-        @Override
-        public int receiveEnergy(final int maxReceive, final boolean simulate) {
-            return clamp(inner.receiveEnergy(maxReceive, simulate));
-        }
+    // --------------------------------------------------------------------- //
 
-        @Override
-        public int extractEnergy(final int maxExtract, final boolean simulate) {
-            return clamp(inner.extractEnergy(maxExtract, simulate));
-        }
-
-        @Override
-        public int getEnergyStored() {
-            return clamp(inner.getEnergyStored());
-        }
-
-        @Override
-        public int getMaxEnergyStored() {
-            return clamp(inner.getMaxEnergyStored());
-        }
-
-        @Override
-        public boolean canExtract() {
-            return inner.canExtract();
-        }
-
-        @Override
-        public boolean canReceive() {
-            return inner.canReceive();
-        }
-    }
-
-    private record ItemHandlerAdapter(IItemHandler inner) implements ItemHandler {
+    private record ItemHandlerAdapter(ResourceHandler<ItemResource> inner) implements ItemHandler {
         @Override
         public int getSlots() {
-            return inner.getSlots();
+            return inner.size();
         }
 
         @Override
         public ItemStack getStackInSlot(final int slot) {
-            return inner.getStackInSlot(slot);
+            if (slot < 0 || slot >= inner.size()) {
+                return ItemStack.EMPTY;
+            }
+
+            final ItemResource resource = inner.getResource(slot);
+            if (resource.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+
+            return resource.toStack(inner.getAmountAsInt(slot));
         }
 
         @Override
         public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
-            return inner.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-            return inner.extractItem(slot, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(final int slot) {
-            return inner.getSlotLimit(slot);
-        }
-    }
-
-    private record ReverseItemHandlerAdapter(ItemHandler inner) implements IItemHandler {
-        @Override
-        public int getSlots() {
-            return inner.getSlots();
-        }
-
-        @Override
-        public ItemStack getStackInSlot(final int slot) {
-            return inner.getStackInSlot(slot);
-        }
-
-        @Override
-        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
-            return inner.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-            return inner.extractItem(slot, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(final int slot) {
-            return inner.getSlotLimit(slot);
-        }
-
-        @Override
-        public boolean isItemValid(final int slot, final ItemStack stack) {
             if (stack.isEmpty()) {
-                return false;
+                return ItemStack.EMPTY;
             }
 
-            return inner.insertItem(slot, stack, true).getCount() < stack.getCount();
+            if (slot < 0 || slot >= inner.size()) {
+                return stack;
+            }
+
+            try (Transaction transaction = open()) {
+                final int inserted = inner.insert(slot, ItemResource.of(stack), stack.getCount(), transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+
+                if (inserted >= stack.getCount()) {
+                    return ItemStack.EMPTY;
+                }
+
+                return stack.copyWithCount(stack.getCount() - inserted);
+            }
+        }
+
+        @Override
+        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+            if (slot < 0 || slot >= inner.size() || amount <= 0) {
+                return ItemStack.EMPTY;
+            }
+
+            final ItemResource resource = inner.getResource(slot);
+            if (resource.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+
+            try (Transaction transaction = open()) {
+                final int extracted = inner.extract(slot, resource, Math.min(amount, resource.getMaxStackSize()), transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+
+                return extracted <= 0 ? ItemStack.EMPTY : resource.toStack(extracted);
+            }
+        }
+
+        @Override
+        public int getSlotLimit(final int slot) {
+            if (slot < 0 || slot >= inner.size()) {
+                return 0;
+            }
+
+            return inner.getCapacityAsInt(slot, inner.getResource(slot));
         }
     }
 
-    private record FluidHandlerAdapter(IFluidHandler inner) implements FluidHandler {
+    private static final class ReverseItemHandlerAdapter implements ResourceHandler<ItemResource> {
+        private final DeferredNotifyItemHandler inner;
+        private final SlotJournal[] slots;
+        private final ItemAccess[] accesses;
+
+        private ReverseItemHandlerAdapter(final DeferredNotifyItemHandler inner) {
+            this.inner = inner;
+            this.slots = new SlotJournal[inner.getSlots()];
+            this.accesses = new ItemAccess[inner.getSlots()];
+        }
+
+        @Override
+        public int size() {
+            return slots.length;
+        }
+
+        @Override
+        public ItemResource getResource(final int index) {
+            return ItemResource.of(inner.getStackInSlot(index));
+        }
+
+        @Override
+        public long getAmountAsLong(final int index) {
+            return inner.getStackInSlot(index).getCount();
+        }
+
+        @Override
+        public long getCapacityAsLong(final int index, final ItemResource resource) {
+            final int limit = inner.getSlotLimit(index);
+            return resource.isEmpty() ? limit : Math.min(limit, resource.getMaxStackSize());
+        }
+
+        @Override
+        public boolean isValid(final int index, final ItemResource resource) {
+            return !resource.isEmpty() && inner.insertItem(index, resource.toStack(), true).isEmpty();
+        }
+
+        @Override
+        public int insert(final int index, final ItemResource resource, final int amount, final TransactionContext transaction) {
+            if (resource.isEmpty() || amount <= 0) {
+                return 0;
+            }
+
+            final int count = Math.min(amount, resource.getMaxStackSize());
+            final int inserted = count - inner.insertItem(index, resource.toStack(count), true).getCount();
+            if (inserted <= 0) {
+                return 0;
+            }
+
+            journal(index).updateSnapshots(transaction);
+            final ItemStack existing = inner.getStackInSlot(index);
+            inner.setStackInSlotSilently(index, existing.isEmpty()
+                ? resource.toStack(inserted)
+                : existing.copyWithCount(existing.getCount() + inserted));
+            return inserted;
+        }
+
+        @Override
+        public int extract(final int index, final ItemResource resource, final int amount, final TransactionContext transaction) {
+            if (resource.isEmpty() || amount <= 0) {
+                return 0;
+            }
+
+            final ItemStack existing = inner.getStackInSlot(index);
+            if (existing.isEmpty() || !resource.matches(existing)) {
+                return 0;
+            }
+
+            final int extracted = inner.extractItem(index, amount, true).getCount();
+            if (extracted <= 0) {
+                return 0;
+            }
+
+            journal(index).updateSnapshots(transaction);
+            inner.setStackInSlotSilently(index, existing.getCount() > extracted
+                ? existing.copyWithCount(existing.getCount() - extracted)
+                : ItemStack.EMPTY);
+            return extracted;
+        }
+
+        @Override
+        public String toString() {
+            return "ItemHandlerResourceHandler[" + inner + "]";
+        }
+
+        private ItemAccess access(final int index) {
+            if (accesses[index] == null) {
+                accesses[index] = ItemAccess.forHandlerIndexStrict(this, index);
+            }
+            return accesses[index];
+        }
+
+        private SlotJournal journal(final int index) {
+            if (slots[index] == null) {
+                slots[index] = new SlotJournal(index);
+            }
+            return slots[index];
+        }
+
+        private final class SlotJournal extends SnapshotJournal<ItemStack> {
+            private final int slot;
+
+            private SlotJournal(final int slot) {
+                this.slot = slot;
+            }
+
+            @Override
+            protected ItemStack createSnapshot() {
+                return inner.getStackInSlot(slot);
+            }
+
+            @Override
+            protected void revertToSnapshot(final ItemStack snapshot) {
+                inner.setStackInSlotSilently(slot, snapshot);
+            }
+
+            @Override
+            protected void onRootCommit(final ItemStack originalState) {
+                inner.notifySlotChanged(slot);
+            }
+        }
+    }
+
+    private static final class StackItemAccess extends SnapshotJournal<ItemStack> implements ItemAccess {
+        private final ItemStack stack;
+        private final Item item;
+        private ItemStack current;
+
+        private StackItemAccess(final ItemStack stack) {
+            this.stack = stack;
+            this.item = stack.getItem();
+            this.current = stack;
+        }
+
+        @Override
+        public ItemResource getResource() {
+            return ItemResource.of(current);
+        }
+
+        @Override
+        public int getAmount() {
+            return current.getCount();
+        }
+
+        @Override
+        public int insert(final ItemResource resource, final int amount, final TransactionContext transaction) {
+            if (!resource.is(item) || (!current.isEmpty() && !resource.matches(current))) {
+                return 0;
+            }
+
+            final int inserted = Math.min(amount, stack.getCount() - current.getCount());
+            if (inserted <= 0) {
+                return 0;
+            }
+
+            updateSnapshots(transaction);
+            current = resource.toStack(current.getCount() + inserted);
+            return inserted;
+        }
+
+        @Override
+        public int extract(final ItemResource resource, final int amount, final TransactionContext transaction) {
+            if (current.isEmpty() || !resource.matches(current)) {
+                return 0;
+            }
+
+            final int extracted = Math.min(amount, current.getCount());
+            if (extracted <= 0) {
+                return 0;
+            }
+
+            updateSnapshots(transaction);
+            current = current.copyWithCount(current.getCount() - extracted);
+            return extracted;
+        }
+
+        @Override
+        protected ItemStack createSnapshot() {
+            return current;
+        }
+
+        @Override
+        protected void revertToSnapshot(final ItemStack snapshot) {
+            current = snapshot;
+        }
+
+        @Override
+        protected void onRootCommit(final ItemStack originalState) {
+            ItemStackUtils.setContents(stack, current);
+            current = stack;
+        }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private record FluidHandlerAdapter(ResourceHandler<FluidResource> inner) implements FluidHandler {
         @Override
         public int getTanks() {
-            return inner.getTanks();
+            return inner.size();
         }
 
         @Override
         public FluidStack getFluidInTank(final int tank) {
-            return fromNeoForge(inner.getFluidInTank(tank));
+            if (tank < 0 || tank >= inner.size()) {
+                return FluidStack.EMPTY;
+            }
+
+            final FluidResource resource = inner.getResource(tank);
+            final int amount = inner.getAmountAsInt(tank);
+            if (resource.isEmpty() || amount <= 0) {
+                return FluidStack.EMPTY;
+            }
+
+            return fromNeoForge(resource, amount);
         }
 
         @Override
         public int getTankCapacity(final int tank) {
-            return inner.getTankCapacity(tank);
+            if (tank < 0 || tank >= inner.size()) {
+                return 0;
+            }
+
+            return inner.getCapacityAsInt(tank, inner.getResource(tank));
         }
 
         @Override
         public int fill(final FluidStack stack, final boolean simulate) {
-            return inner.fill(toNeoForge(stack), action(simulate));
-        }
+            if (stack.isEmpty()) {
+                return 0;
+            }
 
-        @Override
-        public FluidStack drain(final FluidStack stack, final boolean simulate) {
-            return fromNeoForge(inner.drain(toNeoForge(stack), action(simulate)));
-        }
-
-        @Override
-        public FluidStack drain(final int amount, final boolean simulate) {
-            return fromNeoForge(inner.drain(amount, action(simulate)));
-        }
-
-        private static IFluidHandler.FluidAction action(final boolean simulate) {
-            return simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
-        }
-    }
-
-    private record ItemFluidHandlerAdapter(IFluidHandlerItem inner, ItemHandler inventory, int slot) implements FluidHandler {
-        @Override
-        public int getTanks() {
-            return inner.getTanks();
-        }
-
-        @Override
-        public FluidStack getFluidInTank(final int tank) {
-            return fromNeoForge(inner.getFluidInTank(tank));
-        }
-
-        @Override
-        public int getTankCapacity(final int tank) {
-            return inner.getTankCapacity(tank);
-        }
-
-        @Override
-        public int fill(final FluidStack stack, final boolean simulate) {
-            final ItemStack container = inner.getContainer();
-            final int filled = inner.fill(toNeoForge(stack), FluidHandlerAdapter.action(simulate));
-            updateContainer(container);
-            return filled;
-        }
-
-        @Override
-        public FluidStack drain(final FluidStack stack, final boolean simulate) {
-            final ItemStack container = inner.getContainer();
-            final FluidStack drained = fromNeoForge(inner.drain(toNeoForge(stack), FluidHandlerAdapter.action(simulate)));
-            updateContainer(container);
-            return drained;
-        }
-
-        @Override
-        public FluidStack drain(final int amount, final boolean simulate) {
-            final ItemStack container = inner.getContainer();
-            final FluidStack drained = fromNeoForge(inner.drain(amount, FluidHandlerAdapter.action(simulate)));
-            updateContainer(container);
-            return drained;
-        }
-
-        private void updateContainer(final ItemStack previous) {
-            final ItemStack container = inner.getContainer();
-            if (container != previous) {
-                inventory.extractItem(slot, previous.getCount(), false);
-                inventory.insertItem(slot, container, false);
+            try (Transaction transaction = open()) {
+                final int filled = inner.insert(toNeoForge(stack), stack.amount(), transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+                return filled;
             }
         }
-    }
 
-    private record ReverseFluidHandlerAdapter(FluidHandler inner) implements IFluidHandler {
         @Override
-        public int getTanks() {
-            return inner.getTanks();
+        public FluidStack drain(final FluidStack stack, final boolean simulate) {
+            if (stack.isEmpty()) {
+                return FluidStack.EMPTY;
+            }
+
+            return drain(toNeoForge(stack), stack.amount(), simulate);
         }
 
         @Override
-        public net.neoforged.neoforge.fluids.FluidStack getFluidInTank(final int tank) {
-            return toNeoForge(inner.getFluidInTank(tank));
-        }
+        public FluidStack drain(final int amount, final boolean simulate) {
+            if (amount <= 0) {
+                return FluidStack.EMPTY;
+            }
 
-        @Override
-        public int getTankCapacity(final int tank) {
-            return inner.getTankCapacity(tank);
-        }
+            for (int tank = 0; tank < inner.size(); tank++) {
+                final FluidResource resource = inner.getResource(tank);
+                if (!resource.isEmpty() && inner.getAmountAsLong(tank) > 0) {
+                    return drain(resource, amount, simulate);
+                }
+            }
 
-        @Override
-        public boolean isFluidValid(final int tank, final net.neoforged.neoforge.fluids.FluidStack stack) {
-            return true;
-        }
-
-        @Override
-        public int fill(final net.neoforged.neoforge.fluids.FluidStack stack, final FluidAction action) {
-            return inner.fill(fromNeoForge(stack), action.simulate());
-        }
-
-        @Override
-        public net.neoforged.neoforge.fluids.FluidStack drain(final net.neoforged.neoforge.fluids.FluidStack stack, final FluidAction action) {
-            return toNeoForge(inner.drain(fromNeoForge(stack), action.simulate()));
-        }
-
-        @Override
-        public net.neoforged.neoforge.fluids.FluidStack drain(final int amount, final FluidAction action) {
-            return toNeoForge(inner.drain(amount, action.simulate()));
-        }
-    }
-
-    private static FluidStack fromNeoForge(final net.neoforged.neoforge.fluids.FluidStack stack) {
-        if (stack.isEmpty()) {
             return FluidStack.EMPTY;
         }
 
-        return new FluidStack(stack.getFluid(), stack.getComponentsPatch(), stack.getAmount());
-    }
-
-    private static net.neoforged.neoforge.fluids.FluidStack toNeoForge(final FluidStack stack) {
-        if (stack.isEmpty()) {
-            return net.neoforged.neoforge.fluids.FluidStack.EMPTY;
+        private FluidStack drain(final FluidResource resource, final int amount, final boolean simulate) {
+            try (Transaction transaction = open()) {
+                final int drained = inner.extract(resource, amount, transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+                return drained > 0 ? fromNeoForge(resource, drained) : FluidStack.EMPTY;
+            }
         }
 
-        return new net.neoforged.neoforge.fluids.FluidStack(
-            BuiltInRegistries.FLUID.wrapAsHolder(stack.fluid()), stack.amount(), stack.components());
+        private static FluidStack fromNeoForge(final FluidResource resource, final int amount) {
+            return new FluidStack(resource.getFluid(), resource.getComponentsPatch(), amount);
+        }
+
+        private static FluidResource toNeoForge(final FluidStack stack) {
+            return FluidResource.of(stack.fluid(), stack.components());
+        }
     }
 
-    private static int clamp(final long value) {
-        return (int) Math.min(value, Integer.MAX_VALUE);
+    private static final class ReverseFluidHandlerAdapter extends SnapshotJournal<FluidStack[]> implements ResourceHandler<FluidResource> {
+        private final FluidHandler inner;
+
+        private ReverseFluidHandlerAdapter(final FluidHandler inner) {
+            this.inner = inner;
+        }
+
+        @Override
+        public int size() {
+            return inner.getTanks();
+        }
+
+        @Override
+        public FluidResource getResource(final int index) {
+            final FluidStack stack = inner.getFluidInTank(index);
+            return stack.isEmpty() ? FluidResource.EMPTY : FluidResource.of(stack.fluid(), stack.components());
+        }
+
+        @Override
+        public long getAmountAsLong(final int index) {
+            return inner.getFluidInTank(index).amount();
+        }
+
+        @Override
+        public long getCapacityAsLong(final int index, final FluidResource resource) {
+            return inner.getTankCapacity(index);
+        }
+
+        @Override
+        public boolean isValid(final int index, final FluidResource resource) {
+            return !resource.isEmpty();
+        }
+
+        @Override
+        public int insert(final int index, final FluidResource resource, final int amount, final TransactionContext transaction) {
+            if (resource.isEmpty() || amount <= 0) {
+                return 0;
+            }
+
+            final FluidStack stack = new FluidStack(resource.getFluid(), resource.getComponentsPatch(), amount);
+            if (inner.fill(stack, true) <= 0) {
+                return 0;
+            }
+
+            updateSnapshots(transaction);
+            return inner.fill(stack, false);
+        }
+
+        @Override
+        public int extract(final int index, final FluidResource resource, final int amount, final TransactionContext transaction) {
+            if (resource.isEmpty() || amount <= 0) {
+                return 0;
+            }
+
+            final FluidStack stack = new FluidStack(resource.getFluid(), resource.getComponentsPatch(), amount);
+            if (inner.drain(stack, true).isEmpty()) {
+                return 0;
+            }
+
+            updateSnapshots(transaction);
+            return inner.drain(stack, false).amount();
+        }
+
+        @Override
+        protected FluidStack[] createSnapshot() {
+            final FluidStack[] tanks = new FluidStack[inner.getTanks()];
+            for (int tank = 0; tank < tanks.length; tank++) {
+                tanks[tank] = inner.getFluidInTank(tank);
+            }
+            return tanks;
+        }
+
+        @Override
+        protected void revertToSnapshot(final FluidStack[] snapshot) {
+            for (int tank = 0; tank < inner.getTanks(); tank++) {
+                final FluidStack current = inner.getFluidInTank(tank);
+                if (!current.isEmpty()) {
+                    inner.drain(current, false);
+                }
+            }
+            for (final FluidStack stack : snapshot) {
+                if (!stack.isEmpty()) {
+                    inner.fill(stack, false);
+                }
+            }
+        }
     }
 
     private NeoForgeCapabilityAdapters() {

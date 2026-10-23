@@ -21,9 +21,9 @@ import java.util.List;
  * <p>
  * The lifecycle for {@link RPCDevice}s is as follows:
  * <pre>
- * ┌──────────────┐ ┌────────────────┐
- * │serializeNBT()│ │deserializeNBT()◄───────┐
- * └──────────────┘ └───────┬────────┘       │
+ * ┌───────────┐    ┌─────────────┐
+ * │serialize()│    │deserialize()◄──────────┐
+ * └───────────┘    └───────┬─────┘          │
  *   May be called          │VM starts or    │
  *   at any time,    ┌──────┤resumes after   │
  *   except while    │      │load            │

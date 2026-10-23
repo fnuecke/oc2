@@ -3,27 +3,14 @@
 package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
-import li.cil.oc2.common.Config;
-import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
-import li.cil.oc2.common.inet.InternetConnection;
-import li.cil.oc2.common.item.TooltipUtils;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -38,18 +25,16 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public final class InternetGatewayBlock extends HorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<InternetGatewayBlock> CODEC = MapCodec.unit(InternetGatewayBlock::new);
+    public static final MapCodec<InternetGatewayBlock> CODEC = simpleCodec(InternetGatewayBlock::new);
     private static final double PARTICLES_MIN = 3 / 16.0;
     private static final double PARTICLES_MAX = 13 / 16.0;
 
     // --------------------------------------------------------------------- //
 
-    public InternetGatewayBlock() {
-        super(Properties
-            .of()
+    public InternetGatewayBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .strength(1.5f, 6.0f));
@@ -66,25 +51,6 @@ public final class InternetGatewayBlock extends HorizontalDirectionalBlock imple
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-    }
-
-    @Environment(EnvType.CLIENT)
-    @Override
-    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        if (Config.internetGatewaysUseEnergy()) {
-            TooltipUtils.addEnergyConsumption(0, InternetConnection.FRAME_QUEUE_SIZE * Config.internetGatewayEnergyPerPacket, tooltip);
-        }
-        if (!Config.internetEnabled) {
-            tooltip.add(Component.translatable(Constants.TOOLTIP_INTERNET_DISABLED)
-                .withStyle(s -> s.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED))));
-        }
-    }
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

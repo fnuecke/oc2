@@ -3,7 +3,6 @@
 package li.cil.oc2.common.block;
 
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -19,21 +18,12 @@ import net.minecraft.world.level.material.MapColor;
 import javax.annotation.Nullable;
 
 public final class CreativeEnergyBlock extends Block implements EntityBlock {
-    public CreativeEnergyBlock() {
-        super(Properties
-            .of()
+    public CreativeEnergyBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .strength(-1, 3600000)
             .noLootTable());
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     // --------------------------------------------------------------------- //

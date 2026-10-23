@@ -21,6 +21,9 @@
         "client": [
             "li.cil.oc2.client.fabric.ClientSetupFabric"
         ],
+        "fabric-datagen": [
+            "li.cil.oc2.data.fabric.DataGenerators"
+        ],
         "markdown_manual:registration": [
             "li.cil.oc2.client.fabric.ManualInitializer"
         ],

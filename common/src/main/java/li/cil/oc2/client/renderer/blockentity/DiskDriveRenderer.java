@@ -6,34 +6,56 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import li.cil.oc2.common.block.DiskDriveBlock;
 import li.cil.oc2.common.blockentity.DiskDriveBlockEntity;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
-public final class DiskDriveRenderer implements BlockEntityRenderer<DiskDriveBlockEntity> {
-    private final BlockEntityRenderDispatcher renderer;
+import javax.annotation.Nullable;
+
+public final class DiskDriveRenderer implements BlockEntityRenderer<DiskDriveBlockEntity, MediaRenderState> {
+    private final ItemModelResolver itemModelResolver;
 
     // --------------------------------------------------------------------- //
 
     public DiskDriveRenderer(final BlockEntityRendererProvider.Context context) {
-        this.renderer = context.getBlockEntityRenderDispatcher();
+        this.itemModelResolver = context.itemModelResolver();
     }
 
     // --------------------------------------------------------------------- //
 
     @Override
-    public void render(final DiskDriveBlockEntity diskDrive, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int light, final int overlay) {
-        final ItemStack floppy = diskDrive.getMedia();
-        final Direction blockFacing = diskDrive.getBlockState().getValue(DiskDriveBlock.FACING);
-        final int neighborLight = LevelRenderer.getLightColor(renderer.level, diskDrive.getBlockPos().relative(blockFacing));
-        final ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
+    public MediaRenderState createRenderState() {
+        return new MediaRenderState();
+    }
+
+    @Override
+    public void extractRenderState(final DiskDriveBlockEntity diskDrive, final MediaRenderState state, final float partialTicks,
+                                   final Vec3 cameraPosition, @Nullable final ModelFeatureRenderer.CrumblingOverlay crumbling) {
+        BlockEntityRenderer.super.extractRenderState(diskDrive, state, partialTicks, cameraPosition, crumbling);
+
+        final Direction blockFacing = state.blockState.getValue(DiskDriveBlock.FACING);
+        state.neighborLight = diskDrive.getLevel() != null
+            ? LevelRenderer.getLightColor(diskDrive.getLevel(), diskDrive.getBlockPos().relative(blockFacing))
+            : state.lightCoords;
+        itemModelResolver.updateForTopItem(state.media, diskDrive.getMedia(), ItemDisplayContext.FIXED,
+            diskDrive.getLevel(), null, (int) diskDrive.getBlockPos().asLong());
+    }
+
+    @Override
+    public void submit(final MediaRenderState state, final PoseStack stack, final SubmitNodeCollector collector, final CameraRenderState camera) {
+        if (state.media.isEmpty()) {
+            return;
+        }
+
+        final Direction blockFacing = state.blockState.getValue(DiskDriveBlock.FACING);
 
         stack.pushPose();
 
@@ -44,8 +66,7 @@ public final class DiskDriveRenderer implements BlockEntityRenderer<DiskDriveBlo
         stack.translate(0.0f, 0.2375f, 2.5f / 16f);
         stack.scale(0.55f, 0.55f, 0.55f);
 
-        itemRenderer.renderStatic(floppy, ItemDisplayContext.FIXED, neighborLight, overlay, stack, bufferSource,
-            diskDrive.getLevel(), (int) diskDrive.getBlockPos().asLong());
+        state.media.submit(stack, collector, state.neighborLight, OverlayTexture.NO_OVERLAY, 0);
 
         stack.popPose();
     }

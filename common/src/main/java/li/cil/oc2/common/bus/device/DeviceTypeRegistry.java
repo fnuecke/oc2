@@ -10,7 +10,7 @@ import li.cil.oc2.api.util.Registries;
 import li.cil.oc2.common.bus.device.util.DeviceTypeImpl;
 import li.cil.oc2.common.tags.ItemTags;
 import li.cil.oc2.common.util.RegistryUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
@@ -45,7 +45,7 @@ public final class DeviceTypeRegistry {
         final String id = tag.location().getPath().replaceFirst("^devices/", "");
         DEVICE_TYPES.register(id, () -> (DeviceType) new DeviceTypeImpl(
             tag,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "gui/icon/" + id),
+            Identifier.fromNamespaceAndPath(API.MOD_ID, "gui/icon/" + id),
             text("gui.{mod}.device_type." + id)
         ));
     }

@@ -2,89 +2,63 @@
 
 package li.cil.oc2.client.model.neoforge;
 
+import com.mojang.math.Quadrant;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import li.cil.oc2.api.API;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockElement;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.*;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.client.RenderTypeGroup;
-import net.neoforged.neoforge.client.model.IModelBuilder;
-import net.neoforged.neoforge.client.model.SimpleModelState;
-import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
-import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
-import net.neoforged.neoforge.client.model.geometry.UnbakedGeometryHelper;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.model.Variant;
+import net.minecraft.client.resources.model.ModelBaker;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
 
-import java.util.List;
-import java.util.function.Function;
+public record BusCableModel(BlockStateModel.Unbaked proxy) implements CustomUnbakedBlockStateModel {
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(API.MOD_ID, "bus_cable");
+    public static final Identifier BUS_CABLE_STRAIGHT_MODEL = Identifier.fromNamespaceAndPath(API.MOD_ID, "block/cable_straight");
+    public static final Identifier BUS_CABLE_SUPPORT_MODEL = Identifier.fromNamespaceAndPath(API.MOD_ID, "block/cable_support");
 
-import static java.util.Objects.requireNonNull;
-
-public record BusCableModel(List<BlockElement> elements) implements IUnbakedGeometry<BusCableModel> {
-    private static final ResourceLocation BUS_CABLE_STRAIGHT_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_straight");
-    private static final ResourceLocation BUS_CABLE_SUPPORT_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/cable_support");
+    public static final MapCodec<BusCableModel> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+        BlockStateModel.Unbaked.CODEC.fieldOf("proxy").forGetter(BusCableModel::proxy)
+    ).apply(instance, BusCableModel::new));
 
     // --------------------------------------------------------------------- //
+    // CustomUnbakedBlockStateModel
 
     @Override
-    public BakedModel bake(final IGeometryBakingContext context, final ModelBaker baker,
-                           final Function<Material, TextureAtlasSprite> spriteGetter,
-                           final ModelState modelState, final ItemOverrides overrides) {
-        final IModelBuilder<?> builder = IModelBuilder.of(
-            context.useAmbientOcclusion(), context.useBlockLight(), context.isGui3d(),
-            context.getTransforms(), overrides,
-            spriteGetter.apply(context.getMaterial("particle")), RenderTypeGroup.EMPTY);
-        bakeElementsResolvingTextureRefs(builder, spriteGetter, modelState, context);
-        final BakedModel bakedBaseModel = builder.build();
-
-        final BakedModel[] straightModelByAxis = {
-            bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, BlockModelRotation.X0_Y90),
-            bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, BlockModelRotation.X90_Y0),
-            bake(baker, BUS_CABLE_STRAIGHT_MODEL, modelState, null)
-        };
-        final BakedModel[] supportModelByFace = {
-            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X270_Y0), // -y
-            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X90_Y0), // +y
-            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y180), // -z
-            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, null), // +z
-            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y90), // -x
-            bake(baker, BUS_CABLE_SUPPORT_MODEL, modelState, BlockModelRotation.X0_Y270) // +x
-        };
-
-        return new BusCableBakedModel(bakedBaseModel, straightModelByAxis, supportModelByFace);
+    public MapCodec<? extends CustomUnbakedBlockStateModel> codec() {
+        return CODEC;
     }
 
     @Override
-    public void resolveParents(final Function<ResourceLocation, UnbakedModel> modelGetter, final IGeometryBakingContext context) {
-        modelGetter.apply(BUS_CABLE_STRAIGHT_MODEL).resolveParents(modelGetter);
-        modelGetter.apply(BUS_CABLE_SUPPORT_MODEL).resolveParents(modelGetter);
+    public BlockStateModel bake(final ModelBaker baker) {
+        final BlockModelPart[] straightModelByAxis = {
+            bake(baker, BUS_CABLE_STRAIGHT_MODEL, Quadrant.R0, Quadrant.R90),
+            bake(baker, BUS_CABLE_STRAIGHT_MODEL, Quadrant.R90, Quadrant.R0),
+            bake(baker, BUS_CABLE_STRAIGHT_MODEL, Quadrant.R0, Quadrant.R0)
+        };
+        final BlockModelPart[] supportModelByFace = {
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, Quadrant.R270, Quadrant.R0), // -y
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, Quadrant.R90, Quadrant.R0), // +y
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, Quadrant.R0, Quadrant.R180), // -z
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, Quadrant.R0, Quadrant.R0), // +z
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, Quadrant.R0, Quadrant.R90), // -x
+            bake(baker, BUS_CABLE_SUPPORT_MODEL, Quadrant.R0, Quadrant.R270) // +x
+        };
+
+        return new BusCableBakedModel(proxy.bake(baker), straightModelByAxis, supportModelByFace);
+    }
+
+    @Override
+    public void resolveDependencies(final Resolver resolver) {
+        proxy.resolveDependencies(resolver);
+        resolver.markDependency(BUS_CABLE_STRAIGHT_MODEL);
+        resolver.markDependency(BUS_CABLE_SUPPORT_MODEL);
     }
 
     // --------------------------------------------------------------------- //
 
-    private void bakeElementsResolvingTextureRefs(final IModelBuilder<?> builder,
-                                                  final Function<Material, TextureAtlasSprite> spriteGetter,
-                                                  final ModelState modelState,
-                                                  final IGeometryBakingContext context) {
-        for (final BlockElement element : elements) {
-            element.faces.forEach((side, face) -> {
-                final TextureAtlasSprite sprite = spriteGetter.apply(context.getMaterial(face.texture()));
-                final BakedQuad quad = UnbakedGeometryHelper.bakeElementFace(element, face, sprite, side, modelState);
-                if (face.cullForDirection() == null) {
-                    builder.addUnculledFace(quad);
-                } else {
-                    builder.addCulledFace(Direction.rotate(modelState.getRotation().getMatrix(), face.cullForDirection()), quad);
-                }
-            });
-        }
-    }
-
-    private static BakedModel bake(final ModelBaker baker, final ResourceLocation model,
-                                   final ModelState modelState, final BlockModelRotation rotation) {
-        final ModelState state = rotation == null ? modelState : new SimpleModelState(
-            modelState.getRotation().compose(rotation.getRotation()), modelState.isUvLocked());
-        return requireNonNull(baker.bake(model, state, baker.getModelTextureGetter()));
+    private static BlockModelPart bake(final ModelBaker baker, final Identifier model, final Quadrant x, final Quadrant y) {
+        return new Variant(model).withXRot(x).withYRot(y).bake(baker);
     }
 }

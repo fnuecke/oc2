@@ -46,7 +46,7 @@ public final class ReflectCommand {
     public static void register() {
         CommandRegistrationEvent.EVENT.register((dispatcher, context, selection) ->
             dispatcher.register(Commands.literal("oc2reflect")
-                .requires(source -> source.hasPermission(2))
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("block").then(
                     ops(Commands.argument("pos", BlockPosArgument.blockPos()), ReflectCommand::blocks)))
                 .then(Commands.literal("entity").then(

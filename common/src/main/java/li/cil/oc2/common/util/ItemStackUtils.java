@@ -5,12 +5,12 @@ package li.cil.oc2.common.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static java.util.Objects.requireNonNull;
 import static li.cil.oc2.common.Constants.MOD_TAG_NAME;
 
 public final class ItemStackUtils {
@@ -31,7 +30,7 @@ public final class ItemStackUtils {
     }
 
     public static boolean hasModDataTag(final ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).contains(MOD_TAG_NAME);
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(MOD_TAG_NAME);
     }
 
     public static void modifyModDataTag(final ItemStack stack, final Consumer<CompoundTag> modifier) {
@@ -55,14 +54,30 @@ public final class ItemStackUtils {
     }
 
     public static CompoundTag getBlockEntityDataTag(final ItemStack stack) {
-        return stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY).copyTag();
+        final TypedEntityData<BlockEntityType<?>> data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
+        return data != null ? data.copyTagWithoutId() : new CompoundTag();
     }
 
     public static void modifyBlockEntityDataTag(final ItemStack stack, final BlockEntityType<?> type, final Consumer<CompoundTag> modifier) {
-        CustomData.update(DataComponents.BLOCK_ENTITY_DATA, stack, tag -> {
-            tag.putString("id", requireNonNull(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(type)).toString());
-            modifier.accept(tag);
-        });
+        final CompoundTag tag = getBlockEntityDataTag(stack);
+        modifier.accept(tag);
+        if (tag.isEmpty()) {
+            stack.remove(DataComponents.BLOCK_ENTITY_DATA);
+        } else {
+            stack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(type, tag));
+        }
+    }
+
+    public static void setContents(final ItemStack target, final ItemStack source) {
+        if (!source.isEmpty()) {
+            for (final var entry : target.getComponentsPatch().entrySet()) {
+                target.copyFrom(entry.getKey(), source);
+            }
+            for (final var entry : source.getComponentsPatch().entrySet()) {
+                target.copyFrom(entry.getKey(), source);
+            }
+        }
+        target.setCount(source.getCount());
     }
 
     @Nullable
@@ -114,7 +129,7 @@ public final class ItemStackUtils {
             return spawnAsEntity(level, pos, stack);
         }
 
-        if (level.isClientSide || stack.isEmpty()) {
+        if (level.isClientSide() || stack.isEmpty()) {
             return Optional.empty();
         }
 
@@ -145,7 +160,7 @@ public final class ItemStackUtils {
     }
 
     private static void removeEmptyChildTags(final CompoundTag tag) {
-        for (final String key : new ArrayList<>(tag.getAllKeys())) {
+        for (final String key : new ArrayList<>(tag.keySet())) {
             if (tag.get(key) instanceof final CompoundTag childTag) {
                 removeEmptyChildTags(childTag);
                 if (childTag.isEmpty()) {

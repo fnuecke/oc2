@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "H": "#c:chests/wooden",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "THC",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:inventory_operations_module"
+  }
+}

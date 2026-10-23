@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: MIT */
 
-#version 150
+#version 330
+
+#moj_import <minecraft:dynamictransforms.glsl>
 
 uniform sampler2D Sampler0;
-
-uniform vec4 ColorModulator;
 
 in vec2 texCoord0;
 in vec4 vertexColor;

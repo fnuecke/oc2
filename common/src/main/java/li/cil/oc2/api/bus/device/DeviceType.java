@@ -3,7 +3,7 @@
 package li.cil.oc2.api.bus.device;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
@@ -28,7 +28,7 @@ public interface DeviceType {
      *
      * @return the background icon for this device type.
      */
-    ResourceLocation getBackgroundIcon();
+    Identifier getBackgroundIcon();
 
     /**
      * The display name of this device type, may be shown as tooltip for slots

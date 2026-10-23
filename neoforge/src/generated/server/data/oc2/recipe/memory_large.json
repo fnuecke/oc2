@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "D": "#c:gems/diamond",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "DTD",
+    "BBB"
+  ],
+  "result": {
+    "count": 2,
+    "id": "oc2:memory_large"
+  }
+}

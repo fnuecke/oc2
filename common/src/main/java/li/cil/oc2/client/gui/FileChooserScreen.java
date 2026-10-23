@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -115,7 +116,7 @@ public final class FileChooserScreen extends Screen {
         }
 
         if (previousScreen != null) {
-            minecraft.tell(() -> minecraft.setScreen(previousScreen));
+            minecraft.schedule(() -> minecraft.setScreen(previousScreen));
         }
     }
 
@@ -372,31 +373,25 @@ public final class FileChooserScreen extends Screen {
             private final Path file;
             private final Component displayName;
 
-            private long lastEntryClickTime;
-
             public FileEntry(@Nullable final Path file, final Component displayName) {
                 this.file = file;
                 this.displayName = displayName;
             }
 
             @Override
-            public void render(final GuiGraphics graphics, final int index, final int top, final int left, final int width, final int height,
-                               final int mouseX, final int mouseY, final boolean isHovered, final float deltaTime) {
-                graphics.drawString(font, displayName, left, top, 0xFFFFFFFF, true);
+            public void renderContent(final GuiGraphics graphics, final int mouseX, final int mouseY, final boolean isHovered, final float deltaTime) {
+                graphics.drawString(font, displayName, getContentX(), getContentY(), 0xFFFFFFFF, true);
             }
 
             @Override
-            public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
-                final boolean isLeftClick = button == 0;
+            public boolean mouseClicked(final MouseButtonEvent event, final boolean isDoubleClick) {
+                final boolean isLeftClick = event.button() == 0;
                 if (isLeftClick) {
                     select();
 
-                    final boolean isDoubleClick = System.currentTimeMillis() - lastEntryClickTime < 250;
                     if (isDoubleClick && okButton.active) {
                         confirm();
                     }
-
-                    lastEntryClickTime = System.currentTimeMillis();
                 }
 
                 return false;

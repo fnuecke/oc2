@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "T": "oc2:transistor",
+    "U": "#c:buckets/empty"
+  },
+  "pattern": [
+    "TUC",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:tank_operations_module"
+  }
+}

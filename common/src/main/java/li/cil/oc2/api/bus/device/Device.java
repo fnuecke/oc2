@@ -4,9 +4,10 @@ package li.cil.oc2.api.bus.device;
 
 import li.cil.oc2.api.bus.DeviceBus;
 import li.cil.oc2.api.bus.DeviceBusController;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Base interface for objects that can be registered as devices on a {@link DeviceBus}.
@@ -36,19 +37,18 @@ public interface Device {
     /**
      * Called to serialize this device into its container's persistent storage.
      *
-     * @return the serialized state of this device.
+     * @param output the output to write the state of this device to.
      */
-    default CompoundTag serializeNBT() {
-        return new CompoundTag();
+    default void serialize(final ValueOutput output) {
     }
 
     /**
      * Called to deserialize this device from its container's persistent storage.
      * <p>
-     * The passed tag will be what was last returned by {@link #serializeNBT()}.
+     * The passed input contains what was last written by {@link #serialize(ValueOutput)}.
      *
-     * @param tag the serialized state of this device.
+     * @param input the input to read the state of this device from.
      */
-    default void deserializeNBT(final CompoundTag tag) {
+    default void deserialize(final ValueInput input) {
     }
 }

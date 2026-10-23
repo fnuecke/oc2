@@ -8,6 +8,7 @@ import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.entity.Entities;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -53,25 +54,25 @@ public final class CapabilityRegistrationNeoForge {
     }
 
     private static void registerInteropEntity(final RegisterCapabilitiesEvent event) {
-        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ENTITY, Entities.ROBOT.get(),
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.Energy.ENTITY, Entities.ROBOT.get(),
             (robot, side) -> {
                 final var energy = robot.getCapability(Capabilities.ENERGY_STORAGE, side);
                 return energy != null ? NeoForgeCapabilityAdapters.toNeoForge(energy) : null;
             });
 
-        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ENTITY_AUTOMATION, Entities.ROBOT.get(),
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.Item.ENTITY_AUTOMATION, Entities.ROBOT.get(),
             (robot, side) -> {
                 final var items = robot.getCapability(Capabilities.ITEM_HANDLER, side);
-                return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
+                return items != null ? NeoForgeCapabilityAdapters.toNeoForge((DeferredNotifyItemHandler) items) : null;
             });
 
-        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ENTITY, Entities.ROBOT.get(),
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.Item.ENTITY, Entities.ROBOT.get(),
             (robot, context) -> {
                 final var items = robot.getCapability(Capabilities.ITEM_HANDLER, null);
-                return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
+                return items != null ? NeoForgeCapabilityAdapters.toNeoForge((DeferredNotifyItemHandler) items) : null;
             });
 
-        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ENTITY, Entities.ROBOT.get(),
+        event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.Fluid.ENTITY, Entities.ROBOT.get(),
             (robot, side) -> {
                 final var fluids = robot.getCapability(Capabilities.FLUID_HANDLER, side);
                 return fluids != null ? NeoForgeCapabilityAdapters.toNeoForge(fluids) : null;
@@ -80,7 +81,7 @@ public final class CapabilityRegistrationNeoForge {
 
     private static <B extends net.minecraft.world.level.block.entity.BlockEntity> void registerInteropBlockEntity(
         final RegisterCapabilitiesEvent event, final BlockEntityType<B> type) {
-        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK, type,
+        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.Energy.BLOCK, type,
             (blockEntity, side) -> {
                 if (!(blockEntity instanceof final ModBlockEntity modBlockEntity)) {
                     return null;
@@ -89,13 +90,13 @@ public final class CapabilityRegistrationNeoForge {
                 return energy != null ? NeoForgeCapabilityAdapters.toNeoForge(energy) : null;
             });
 
-        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK, type,
+        event.registerBlockEntity(net.neoforged.neoforge.capabilities.Capabilities.Item.BLOCK, type,
             (blockEntity, side) -> {
                 if (!(blockEntity instanceof final ModBlockEntity modBlockEntity)) {
                     return null;
                 }
                 final var items = modBlockEntity.getCapability(Capabilities.ITEM_HANDLER, side);
-                return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
+                return items != null ? NeoForgeCapabilityAdapters.toNeoForge((DeferredNotifyItemHandler) items) : null;
             });
     }
 

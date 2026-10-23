@@ -5,10 +5,13 @@ package li.cil.oc2.common.capabilities.fabric;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.util.ItemStackUtils;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
@@ -17,6 +20,8 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -24,14 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Bridges our loader-agnostic capability interfaces and Fabric's transaction-based ones.
- * <p>
- * Our model originates from Forge and (like now NeoForge) simulates operations and then repeats them
- * for real, while Fabric performs the operation inside a transaction that is committed or rolled back.
- * Adapting to Fabric is therefore a transaction per call; adapting from Fabric mutates and undoes the
- * change with the inverse operation if the transaction is aborted. It is what it is.
- */
 public final class FabricCapabilityAdapters {
     private static final long DROPLETS_PER_MILLIBUCKET = FluidConstants.BUCKET / FluidHandler.BUCKET;
 
@@ -56,7 +53,7 @@ public final class FabricCapabilityAdapters {
         return new ReverseEnergyStorageAdapter(storage);
     }
 
-    public static Storage<ItemVariant> toFabric(final ItemHandler handler) {
+    public static Storage<ItemVariant> toFabric(final DeferredNotifyItemHandler handler) {
         return new ReverseItemHandlerAdapter(handler);
     }
 
@@ -65,26 +62,16 @@ public final class FabricCapabilityAdapters {
     }
 
     public static SingleSlotStorage<ItemVariant> slot(final ItemHandler handler, final int slot) {
-        return handler instanceof final ItemHandlerAdapter adapter ? Objects.requireNonNull(adapter.slot(slot)) : new SlotView(handler, slot);
+        return handler instanceof final ItemHandlerAdapter adapter ? Objects.requireNonNull(adapter.slot(slot)) : new SlotView((DeferredNotifyItemHandler) handler, slot);
+    }
+
+    public static SingleSlotStorage<ItemVariant> stack(final ItemStack stack) {
+        return new StackStorage(stack);
     }
 
     @SuppressWarnings("deprecation")
     private static Transaction open() {
         return Transaction.openNested(Transaction.getCurrentUnsafe());
-    }
-
-    // Fabric's ContainerComponentStorage reports a capacity of one for empty slots, so it accepts only
-    // one item per call there. Apparently introduced in https://github.com/FabricMC/fabric-api/pull/5220
-    // Not sure if this should be considered a bug, so we'll just work around it.
-    private static long insertForFabricQuirk(final SingleSlotStorage<ItemVariant> view, final ItemVariant resource,
-                                             final long maxAmount, final TransactionContext transaction) {
-        long inserted = 0;
-        long moved;
-        do {
-            moved = view.insert(resource, maxAmount - inserted, transaction);
-            inserted += moved;
-        } while (moved > 0 && inserted < maxAmount);
-        return inserted;
     }
 
     // --------------------------------------------------------------------- //
@@ -239,7 +226,7 @@ public final class FabricCapabilityAdapters {
             }
 
             try (Transaction transaction = open()) {
-                final long inserted = insertForFabricQuirk(view, ItemVariant.of(stack), stack.getCount(), transaction);
+                final long inserted = view.insert(ItemVariant.of(stack), stack.getCount(), transaction);
                 if (!simulate) {
                     transaction.commit();
                 }
@@ -265,7 +252,7 @@ public final class FabricCapabilityAdapters {
             }
 
             try (Transaction transaction = open()) {
-                final long extracted = view.extract(resource, amount, transaction);
+                final long extracted = view.extract(resource, Math.min(amount, maxStackSize(resource)), transaction);
                 if (!simulate) {
                     transaction.commit();
                 }
@@ -306,10 +293,10 @@ public final class FabricCapabilityAdapters {
     }
 
     private static final class ReverseItemHandlerAdapter implements SlottedStorage<ItemVariant> {
-        private final ItemHandler inner;
+        private final DeferredNotifyItemHandler inner;
         private final List<SingleSlotStorage<ItemVariant>> slots = new ArrayList<>();
 
-        private ReverseItemHandlerAdapter(final ItemHandler inner) {
+        private ReverseItemHandlerAdapter(final DeferredNotifyItemHandler inner) {
             this.inner = inner;
             for (int slot = 0; slot < inner.getSlots(); slot++) {
                 slots.add(new SlotView(inner, slot));
@@ -362,10 +349,10 @@ public final class FabricCapabilityAdapters {
     }
 
     private static final class SlotView extends SnapshotParticipant<ItemStack> implements SingleSlotStorage<ItemVariant> {
-        private final ItemHandler handler;
+        private final DeferredNotifyItemHandler handler;
         private final int slot;
 
-        private SlotView(final ItemHandler handler, final int slot) {
+        private SlotView(final DeferredNotifyItemHandler handler, final int slot) {
             this.handler = handler;
             this.slot = slot;
         }
@@ -376,15 +363,18 @@ public final class FabricCapabilityAdapters {
                 return 0;
             }
 
-            final int count = (int) Math.min(maxAmount, resource.getItem().getDefaultMaxStackSize());
-            final ItemStack stack = resource.toStack(count);
-            if (handler.insertItem(slot, stack, true).getCount() >= count) {
+            final int count = (int) Math.min(maxAmount, maxStackSize(resource));
+            final int inserted = count - handler.insertItem(slot, resource.toStack(count), true).getCount();
+            if (inserted <= 0) {
                 return 0;
             }
 
             updateSnapshots(transaction);
-            final ItemStack remainder = handler.insertItem(slot, stack, false);
-            return count - remainder.getCount();
+            final ItemStack existing = handler.getStackInSlot(slot);
+            handler.setStackInSlotSilently(slot, existing.isEmpty()
+                ? resource.toStack(inserted)
+                : existing.copyWithCount(existing.getCount() + inserted));
+            return inserted;
         }
 
         @Override
@@ -398,13 +388,16 @@ public final class FabricCapabilityAdapters {
                 return 0;
             }
 
-            final int count = (int) Math.min(maxAmount, Integer.MAX_VALUE);
-            if (handler.extractItem(slot, count, true).isEmpty()) {
+            final int extracted = handler.extractItem(slot, (int) Math.min(maxAmount, Integer.MAX_VALUE), true).getCount();
+            if (extracted <= 0) {
                 return 0;
             }
 
             updateSnapshots(transaction);
-            return handler.extractItem(slot, count, false).getCount();
+            handler.setStackInSlotSilently(slot, existing.getCount() > extracted
+                ? existing.copyWithCount(existing.getCount() - extracted)
+                : ItemStack.EMPTY);
+            return extracted;
         }
 
         @Override
@@ -424,20 +417,62 @@ public final class FabricCapabilityAdapters {
 
         @Override
         public long getCapacity() {
-            return handler.getSlotLimit(slot);
+            final ItemStack stack = handler.getStackInSlot(slot);
+            final int limit = handler.getSlotLimit(slot);
+            return stack.isEmpty() ? limit : Math.min(limit, stack.getMaxStackSize());
         }
 
         @Override
         protected ItemStack createSnapshot() {
-            return handler.getStackInSlot(slot).copy();
+            return handler.getStackInSlot(slot);
         }
 
         @Override
         protected void readSnapshot(final ItemStack snapshot) {
-            handler.extractItem(slot, Integer.MAX_VALUE, false);
-            if (!snapshot.isEmpty()) {
-                handler.insertItem(slot, snapshot, false);
-            }
+            handler.setStackInSlotSilently(slot, snapshot);
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            handler.notifySlotChanged(slot);
+        }
+    }
+
+    private static final class StackStorage extends SingleStackStorage {
+        private final ItemStack stack;
+        private final Item item;
+        private ItemStack current;
+
+        private StackStorage(final ItemStack stack) {
+            this.stack = stack;
+            this.item = stack.getItem();
+            this.current = stack;
+        }
+
+        @Override
+        protected ItemStack getStack() {
+            return current;
+        }
+
+        @Override
+        protected void setStack(final ItemStack stack) {
+            current = stack;
+        }
+
+        @Override
+        protected boolean canInsert(final ItemVariant variant) {
+            return variant.isOf(item);
+        }
+
+        @Override
+        protected int getCapacity(final ItemVariant variant) {
+            return stack.getCount();
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            ItemStackUtils.setContents(stack, current);
+            current = stack;
         }
     }
 
@@ -647,6 +682,10 @@ public final class FabricCapabilityAdapters {
             }
             moved = snapshot;
         }
+    }
+
+    private static int maxStackSize(final ItemVariant resource) {
+        return resource.getComponentMap().getOrDefault(DataComponents.MAX_STACK_SIZE, 1);
     }
 
     private static FluidStack fromFabric(final FluidVariant variant, final int millibuckets) {

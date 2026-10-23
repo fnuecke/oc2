@@ -2,19 +2,10 @@
 
 package li.cil.oc2.common.block;
 
-import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
-import li.cil.oc2.common.item.TooltipUtils;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
@@ -26,12 +17,10 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public final class ChargerBlock extends HalfTransparentBlock implements EntityBlock {
-    public ChargerBlock() {
-        super(Properties
-            .of()
+    public ChargerBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .strength(1.5f, 6.0f));
@@ -39,21 +28,6 @@ public final class ChargerBlock extends HalfTransparentBlock implements EntityBl
     }
 
     // --------------------------------------------------------------------- //
-
-    @Environment(EnvType.CLIENT)
-    @Override
-    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag advanced) {
-        super.appendHoverText(stack, context, tooltip, advanced);
-        if (Config.chargersUseEnergy()) {
-            TooltipUtils.addEnergyConsumption(0, Config.chargerEnergyPerTick, tooltip);
-        }
-    }
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 
     @Override
     public BlockState rotate(final BlockState state, final Rotation rot) {

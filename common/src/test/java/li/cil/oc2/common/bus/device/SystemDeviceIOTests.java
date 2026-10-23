@@ -14,6 +14,7 @@ import li.cil.oc2.common.bus.TestIOInvocation;
 import li.cil.oc2.common.vm.AbstractVMItemStackHandlers;
 import li.cil.sedna.api.Sizes;
 import li.cil.sedna.api.device.bus.DeviceDescription;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -59,6 +60,11 @@ public final class SystemDeviceIOTests {
             @Override
             protected boolean isClientSide() {
                 return false;
+            }
+
+            @Override
+            protected HolderLookup.Provider getRegistries() {
+                throw new UnsupportedOperationException();
             }
 
             @Override

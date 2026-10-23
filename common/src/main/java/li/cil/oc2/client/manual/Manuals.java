@@ -22,7 +22,7 @@ import li.cil.oc2.common.item.Items;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
@@ -47,7 +47,7 @@ public final class Manuals {
         tabs.register("home", () -> new TextureTab(
             ManualModel.LANGUAGE_KEY + "/index.md",
             Component.translatable("manual." + API.MOD_ID + ".home"),
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/home.png")));
+            Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/home.png")));
         tabs.register("blocks", () -> new ItemStackTab(
             ManualModel.LANGUAGE_KEY + "/block/index.md",
             Component.translatable("manual." + API.MOD_ID + ".blocks"),
@@ -59,7 +59,7 @@ public final class Manuals {
         tabs.register("api", () -> new TextureTab(
             ManualModel.LANGUAGE_KEY + "/device/index.md",
             Component.translatable("manual." + API.MOD_ID + ".api"),
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/api.png")));
+            Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/api.png")));
 
         MANUALS.register();
         pathProviders.register();

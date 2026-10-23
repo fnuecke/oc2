@@ -19,6 +19,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -131,18 +133,18 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     }
 
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
+        energy.serialize(output.child(Constants.ENERGY_TAG_NAME));
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
 
-        energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
-        isOperational = tag.getBoolean(OPERATIONAL_TAG_NAME);
+        energy.deserialize(input.childOrEmpty(Constants.ENERGY_TAG_NAME));
+        isOperational = input.getBooleanOr(OPERATIONAL_TAG_NAME, false);
     }
 
     // --------------------------------------------------------------------- //
@@ -162,7 +164,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
     private String describeOrigin() {
         final Level level = getLevel();
-        final String dimension = level != null ? level.dimension().location().toString() : "?";
+        final String dimension = level != null ? level.dimension().identifier().toString() : "?";
         final BlockPos pos = getBlockPos();
         return dimension + " " + pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }

@@ -40,10 +40,6 @@ private val renderTypeOverrides = mapOf(
     "cable_plug" to "minecraft:solid",
 )
 
-private val loaderOverrides = mapOf(
-    "cable_base" to "oc2:bus_cable",
-)
-
 abstract class GenerateBlockModels : DefaultTask() {
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
@@ -57,9 +53,6 @@ abstract class GenerateBlockModels : DefaultTask() {
 
     @get:Input
     abstract val renderTypes: MapProperty<String, String>
-
-    @get:Input
-    abstract val loaders: MapProperty<String, String>
 
     @get:Nested
     abstract val launcher: Property<JavaLauncher>
@@ -79,13 +72,6 @@ abstract class GenerateBlockModels : DefaultTask() {
         sources.files
             .groupBy { renderTypes.get()[it.nameWithoutExtension] }
             .forEach { (renderType, files) -> convert(assets, renderType, files) }
-
-        loaders.get().forEach { (model, loader) ->
-            val file = File(assets, "${modId.get()}/models/block/${model}.json")
-            val json = file.readText()
-            require(json.startsWith("{")) { "[$file] does not hold a JSON object." }
-            file.writeText("""{"loader":"${loader}",""" + json.removePrefix("{"))
-        }
     }
 
     private fun convert(assets: File, renderType: String?, sources: List<File>) {
@@ -103,7 +89,7 @@ abstract class GenerateBlockModels : DefaultTask() {
 }
 
 fun Project.registerBlockModelsTask() {
-    val unknownOverrides = (renderTypeOverrides.keys + loaderOverrides.keys) - blockModels.toSet()
+    val unknownOverrides = renderTypeOverrides.keys - blockModels.toSet()
     require(unknownOverrides.isEmpty()) {
         "Block model overrides for models that are not shipped: ${unknownOverrides.joinToString()}."
     }
@@ -125,7 +111,6 @@ fun Project.registerBlockModelsTask() {
         sources.setFrom(blockModels.map { sourceDirectory.file("${it}.vox") })
         this.converter.setFrom(converter)
         renderTypes.set(renderTypeOverrides)
-        loaders.set(loaderOverrides)
         launcher.set(toolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
         assetsDirectory.set(assets)
         generatedFiles.setFrom(

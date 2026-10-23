@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.item.ItemApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The lookups we do energy interop through on Fabric.
@@ -23,7 +23,7 @@ public abstract class EnergyStorage {
      * Entity access to energy storages, {@code oc2:entity_energy_storage}.
      */
     public static final EntityApiLookup<team.reborn.energy.api.EnergyStorage, Direction> ENTITY =
-        EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "entity_energy_storage"),
+        EntityApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "entity_energy_storage"),
             team.reborn.energy.api.EnergyStorage.class, Direction.class);
 
     /**

@@ -6,25 +6,22 @@ import com.google.common.annotations.VisibleForTesting;
 import li.cil.oc2.client.gui.NetworkInterfaceCardScreen;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.List;
+import java.util.function.Consumer;
 
 import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 import static li.cil.oc2.common.util.TranslationUtils.text;
@@ -35,14 +32,20 @@ public final class NetworkInterfaceCardItem extends ModItem {
 
     // --------------------------------------------------------------------- //
 
+    public NetworkInterfaceCardItem(final Properties properties) {
+        super(properties);
+    }
+
+    // --------------------------------------------------------------------- //
+
     public static void setSideConfiguration(final ItemStack stack, final Direction side, final boolean enabled) {
         final int index = side.get3DDataValue();
 
         ItemStackUtils.modifyModDataTag(stack, tag -> {
+            final byte[] existing = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).orElse(null);
             final byte[] values;
-            if (tag.contains(SIDE_CONFIGURATION_TAG_NAME, NBTTagIds.TAG_BYTE_ARRAY) &&
-                tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).length == Constants.BLOCK_FACE_COUNT) {
-                values = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME);
+            if (existing != null && existing.length == Constants.BLOCK_FACE_COUNT) {
+                values = existing;
             } else {
                 values = new byte[Constants.BLOCK_FACE_COUNT];
                 Arrays.fill(values, (byte) 1);
@@ -74,8 +77,8 @@ public final class NetworkInterfaceCardItem extends ModItem {
         final int index = side.get3DDataValue();
 
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
-        if (tag.contains(SIDE_CONFIGURATION_TAG_NAME, NBTTagIds.TAG_BYTE_ARRAY)) {
-            final byte[] values = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME);
+        if (tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).isPresent()) {
+            final byte[] values = tag.getByteArray(SIDE_CONFIGURATION_TAG_NAME).orElse(new byte[0]);
             if (index < values.length) {
                 return values[index] != 0;
             }
@@ -91,32 +94,24 @@ public final class NetworkInterfaceCardItem extends ModItem {
 
     // --------------------------------------------------------------------- //
 
-
     @Override
-    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final Item.TooltipContext context, final TooltipDisplay display, final Consumer<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         if (NetworkInterfaceCardItem.hasConfiguration(stack)) {
-            tooltip.add(IS_CONFIGURED_TEXT);
+            tooltip.accept(IS_CONFIGURED_TEXT);
         }
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(final Level level, final Player player, final InteractionHand hand) {
+    public InteractionResult use(final Level level, final Player player, final InteractionHand hand) {
         final ItemStack itemStack = player.getItemInHand(hand);
 
         if (player.level().isClientSide()) {
             if (itemStack.is(Items.NETWORK_INTERFACE_CARD.get())) {
-                openConfigurationScreen(player, hand);
+                NetworkInterfaceCardScreen.open(player, hand);
             }
         }
 
-        return InteractionResultHolder.sidedSuccess(itemStack, player.level().isClientSide());
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Environment(EnvType.CLIENT)
-    private void openConfigurationScreen(final Player player, final InteractionHand hand) {
-        Minecraft.getInstance().setScreen(new NetworkInterfaceCardScreen(player, hand));
+        return InteractionResult.SUCCESS;
     }
 }

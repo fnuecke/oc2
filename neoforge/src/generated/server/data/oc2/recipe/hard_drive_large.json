@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "D": "#c:gems/diamond",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor"
+  },
+  "pattern": [
+    "ITI",
+    "DBD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:hard_drive_large"
+  }
+}

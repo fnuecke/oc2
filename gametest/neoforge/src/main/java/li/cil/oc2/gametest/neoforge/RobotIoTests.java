@@ -12,21 +12,22 @@ import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static li.cil.oc2.gametest.util.DeviceCalls.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "robot_io")
 public final class RobotIoTests {
     private static final int SETTLE_TICKS = 60;
     private static final String MOVE_BATCH = "oc2_robot_io_move";
@@ -54,7 +55,8 @@ public final class RobotIoTests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void detectReportsOccupancyAsCodes(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -68,7 +70,8 @@ public final class RobotIoTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void energyReadsBackAsFourBytes(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -89,7 +92,8 @@ public final class RobotIoTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void selectedSlotRoundTripsAndClamps(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -108,7 +112,8 @@ public final class RobotIoTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void stackInSlotReadsAsASlotRecord(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -133,13 +138,14 @@ public final class RobotIoTests {
                 final String name = new String(
                     invokeIo(system, SYSTEM_GET_ITEM_NAME_CODE, itemId & 0xFF, itemId >>> 8), US_ASCII);
                 if (!"minecraft:redstone".equals(name)) {
-                    throw new GameTestAssertException("getItemName reported [" + name + "]");
+                    throw new GameTestAssertException(Component.literal("getItemName reported [" + name + "]"), 0);
                 }
             })
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void invalidArgumentsAreRejected(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -158,7 +164,8 @@ public final class RobotIoTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MOVE_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MOVE_BATCH)
+    @TestHolder
     public static void moveEnqueuesAndReportsItsResult(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
         final BlockPos[] origin = new BlockPos[1];
@@ -203,7 +210,8 @@ public final class RobotIoTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = CPM_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = CPM_BOOT_TIMEOUT_TICKS, batch = CPM_BATCH)
+    @TestHolder
     public static void cpmRobotEnumeratesTheRobotDevice(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -234,8 +242,8 @@ public final class RobotIoTests {
 
         final int actual = invokeIo(device, DETECT_CODE, SIDE_FRONT)[0] & 0xFF;
         if (actual != expected) {
-            throw new GameTestAssertException("detect reported " + actual + " for "
-                + helper.getLevel().getBlockState(target) + ", expected " + expected);
+            throw new GameTestAssertException(Component.literal("detect reported " + actual + " for "
+                + helper.getLevel().getBlockState(target) + ", expected " + expected), 0);
         }
     }
 

@@ -34,19 +34,19 @@ public final class FurnaceDevice extends AbstractBlockDevice {
     @Callback(description = "Gets how much longer the current fuel burns.",
         returnValueDescription = "the remaining burn time.")
     public int getBurnTime() {
-        return getFurnace().litTime;
+        return getFurnace().litTimeRemaining;
     }
 
     @Callback(description = "Gets how long the current fuel burns in total.",
         returnValueDescription = "the burn time of the last consumed fuel.")
     public int getBurnDuration() {
-        return getFurnace().litDuration;
+        return getFurnace().litTotalTime;
     }
 
     @Callback(description = "Gets how long the current item has been cooking.",
         returnValueDescription = "the cooking progress.")
     public int getCookTime() {
-        return getFurnace().cookingProgress;
+        return getFurnace().cookingTimer;
     }
 
     @Callback(description = "Gets how long the current item needs to cook.",
@@ -58,7 +58,7 @@ public final class FurnaceDevice extends AbstractBlockDevice {
     @Callback(description = "Gets whether the furnace is burning fuel.",
         returnValueDescription = "whether fuel is currently burning.")
     public boolean isBurning() {
-        return getFurnace().litTime > 0;
+        return getFurnace().litTimeRemaining > 0;
     }
 
     // --------------------------------------------------------------------- //

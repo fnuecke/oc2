@@ -10,15 +10,11 @@ accessible	field	net/minecraft/world/item/crafting/ShapelessRecipe	result	Lnet/m
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	leftPos	I
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	topPos	I
 accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	hoveredSlot	Lnet/minecraft/world/inventory/Slot;
-accessible	method	net/minecraft/client/renderer/LevelRenderer	setupRender	(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZZ)V
-accessible	method	net/minecraft/client/renderer/LevelRenderer	renderSectionLayer	(Lnet/minecraft/client/renderer/RenderType;DDDLorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V
-accessible	method	net/minecraft/client/renderer/LevelRenderer	renderEntity	(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V
-accessible	method	net/minecraft/client/renderer/LevelRenderer	renderSnowAndRain	(Lnet/minecraft/client/renderer/LightTexture;FDDD)V
 accessible	field	net/minecraft/client/renderer/RenderBuffers	bufferSource	Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;
 accessible	field	net/minecraft/client/renderer/MultiBufferSource$BufferSource	fixedBuffers	Ljava/util/SequencedMap;
-accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	litTime	I
-accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	litDuration	I
-accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	cookingProgress	I
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	litTimeRemaining	I
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	litTotalTime	I
+accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	cookingTimer	I
 accessible	field	net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity	cookingTotalTime	I
 accessible	field	net/minecraft/world/level/block/entity/BrewingStandBlockEntity	brewTime	I
 accessible	field	net/minecraft/world/level/block/entity/BrewingStandBlockEntity	fuel	I
@@ -27,3 +23,10 @@ accessible	field	net/minecraft/world/level/block/entity/BeaconBlockEntity	primar
 accessible	field	net/minecraft/world/level/block/entity/BeaconBlockEntity	secondaryPower	Lnet/minecraft/core/Holder;
 accessible	field	net/minecraft/world/level/BaseSpawner	nextSpawnData	Lnet/minecraft/world/level/SpawnData;
 accessible	field	net/minecraft/world/level/block/entity/LecternBlockEntity	pageCount	I
+accessible	method	net/minecraft/world/level/block/entity/BlockEntityType	<init>	(Lnet/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier;Ljava/util/Set;)V
+accessible	method	net/minecraft/client/renderer/rendertype/RenderType	create	(Ljava/lang/String;Lnet/minecraft/client/renderer/rendertype/RenderSetup;)Lnet/minecraft/client/renderer/rendertype/RenderType;
+accessible	method	net/minecraft/client/gui/screens/MenuScreens	register	(Lnet/minecraft/world/inventory/MenuType;Lnet/minecraft/client/gui/screens/MenuScreens$ScreenConstructor;)V
+accessible	class	net/minecraft/client/gui/screens/MenuScreens$ScreenConstructor
+accessible	field	net/minecraft/world/item/crafting/ShapelessRecipe	ingredients	Ljava/util/List;
+accessible	method	net/minecraft/server/level/ServerPlayerGameMode	setGameModeForPlayer	(Lnet/minecraft/world/level/GameType;Lnet/minecraft/world/level/GameType;)V
+accessible	field	net/minecraft/client/gui/GuiGraphics	guiRenderState	Lnet/minecraft/client/gui/render/state/GuiRenderState;

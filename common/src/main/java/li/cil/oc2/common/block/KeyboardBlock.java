@@ -6,17 +6,12 @@ import com.mojang.serialization.MapCodec;
 import li.cil.oc2.client.gui.KeyboardScreen;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.KeyboardBlockEntity;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.entity.CatBehaviorGoal;
 import li.cil.oc2.common.util.VoxelShapeUtils;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -38,7 +33,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public final class KeyboardBlock extends HorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<KeyboardBlock> CODEC = MapCodec.unit(KeyboardBlock::new);
+    public static final MapCodec<KeyboardBlock> CODEC = simpleCodec(KeyboardBlock::new);
 
     @Override
     protected MapCodec<? extends KeyboardBlock> codec() {
@@ -55,8 +50,8 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
 
     // --------------------------------------------------------------------- //
 
-    public KeyboardBlock() {
-        super(Properties.of()
+    public KeyboardBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL).sound(SoundType.METAL).strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
     }
@@ -66,12 +61,6 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
@@ -90,17 +79,17 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
+    protected InteractionResult useItemOn(final ItemStack stack, final BlockState state, final Level level, final BlockPos pos, final Player player, final InteractionHand hand, final BlockHitResult hit) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof final KeyboardBlockEntity keyboard)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hit);
         }
 
         if (level.isClientSide() && !CatBehaviorGoal.isCatSittingAt(level, pos)) {
-            openKeyboardScreen(keyboard);
+            KeyboardScreen.open(keyboard);
         }
 
-        return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -111,10 +100,10 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
         }
 
         if (level.isClientSide() && !CatBehaviorGoal.isCatSittingAt(level, pos)) {
-            openKeyboardScreen(keyboard);
+            KeyboardScreen.open(keyboard);
         }
 
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     // --------------------------------------------------------------------- //
@@ -132,13 +121,5 @@ public final class KeyboardBlock extends HorizontalDirectionalBlock implements E
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
-    }
-
-    // --------------------------------------------------------------------- //
-
-    @Environment(EnvType.CLIENT)
-    private static void openKeyboardScreen(final KeyboardBlockEntity keyboard) {
-        final KeyboardScreen screen = new KeyboardScreen(keyboard);
-        Minecraft.getInstance().setScreen(screen);
     }
 }

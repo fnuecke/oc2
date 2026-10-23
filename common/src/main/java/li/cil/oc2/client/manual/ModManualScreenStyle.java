@@ -7,25 +7,25 @@ import li.cil.oc2.api.API;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 @Environment(EnvType.CLIENT)
 public final class ModManualScreenStyle implements ManualScreenStyle {
     public static final ManualScreenStyle INSTANCE = new ModManualScreenStyle();
 
     @Override
-    public ResourceLocation getWindowBackground() {
-        return ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/manual.png");
+    public Identifier getWindowBackground() {
+        return Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/manual.png");
     }
 
     @Override
-    public ResourceLocation getScrollButtonTexture() {
-        return ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/scroll_button.png");
+    public Identifier getScrollButtonTexture() {
+        return Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/scroll_button.png");
     }
 
     @Override
-    public ResourceLocation getTabButtonTexture() {
-        return ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/tab_button.png");
+    public Identifier getTabButtonTexture() {
+        return Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/gui/manual/tab_button.png");
     }
 
     @Override

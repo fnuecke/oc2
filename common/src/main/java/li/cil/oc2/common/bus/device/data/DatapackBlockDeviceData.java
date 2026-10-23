@@ -5,7 +5,7 @@ package li.cil.oc2.common.bus.device.data;
 import li.cil.sedna.api.device.BlockDevice;
 import li.cil.sedna.device.block.ByteBufferBlockDevice;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.DyeColor;
 
@@ -14,13 +14,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public final class DatapackBlockDeviceData implements BlockDeviceDataResource, AutoCloseable {
-    private final ResourceLocation location;
+    private final Identifier location;
     private final String name;
     @Nullable
     private final DyeColor color;
     private final BlockDevice blockDevice;
 
-    public DatapackBlockDeviceData(final ResourceManager resourceManager, final ResourceLocation location, final String name, @Nullable final DyeColor color) throws IOException {
+    public DatapackBlockDeviceData(final ResourceManager resourceManager, final Identifier location, final String name, @Nullable final DyeColor color) throws IOException {
         this.location = location;
         this.name = name;
         this.color = color;
@@ -29,7 +29,7 @@ public final class DatapackBlockDeviceData implements BlockDeviceDataResource, A
     }
 
     @Override
-    public ResourceLocation getLocation() {
+    public Identifier getLocation() {
         return location;
     }
 

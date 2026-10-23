@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "C": "#c:ingots/copper",
+    "E": "minecraft:paper",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "CEX",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:file_import_export_card"
+  }
+}

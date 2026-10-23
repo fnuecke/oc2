@@ -22,15 +22,15 @@ import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.context.global.GlobalVMContext;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.sedna.riscv.R5Board;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,29 +43,30 @@ import java.util.function.Function;
 
 import static li.cil.oc2.gametest.util.Blobs.*;
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "mount_failure")
 public final class MountFailureTests {
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void missingMemoryBlobReleasesHandle(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final VMDeviceRegistry registry = registry();
         final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
 
-        device.deserializeNBT(tagReferencing(handle));
+        device.deserialize(inputReferencing(handle));
         registry.rebuild(bus(device));
 
         final VMDeviceLoadResult first = registry.mountDevices();
         if (first.wasSuccessful()) {
-            throw new GameTestAssertException("Mounting memory whose blob is gone should fail");
+            throw new GameTestAssertException(Component.literal("Mounting memory whose blob is gone should fail"), 0);
         }
         if (!first.isPermanent()) {
-            throw new GameTestAssertException("missing blob should fail permanently");
+            throw new GameTestAssertException(Component.literal("missing blob should fail permanently"), 0);
         }
 
         if (!registry.mountDevices().wasSuccessful()) {
-            throw new GameTestAssertException("memory should release a handle it cannot open");
+            throw new GameTestAssertException(Component.literal("memory should release a handle it cannot open"), 0);
         }
 
         registry.unmountDevices();
@@ -75,7 +76,8 @@ public final class MountFailureTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void memoryBlobInUseIsPermanent(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -83,18 +85,18 @@ public final class MountFailureTests {
 
             final VMDeviceRegistry registry = registry();
             final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
-            device.deserializeNBT(tagReferencing(handle));
+            device.deserialize(inputReferencing(handle));
             registry.rebuild(bus(device));
 
             final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent()) {
-                throw new GameTestAssertException("memory blob in use should fail permanently");
+                throw new GameTestAssertException(Component.literal("memory blob in use should fail permanently"), 0);
             }
 
             registry.unmountDevices();
             device.dispose();
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -102,22 +104,23 @@ public final class MountFailureTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void missingDriveBlobKeepsHandle(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
         final VMDeviceRegistry registry = registry();
         final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
 
-        device.deserializeNBT(tagReferencing(handle));
+        device.deserialize(inputReferencing(handle));
         registry.rebuild(bus(device));
 
         final VMDeviceLoadResult result = registry.mountDevices();
         if (result.wasSuccessful() || !result.isPermanent()) {
-            throw new GameTestAssertException("missing drive blob should fail permanently");
+            throw new GameTestAssertException(Component.literal("missing drive blob should fail permanently"), 0);
         }
         if (!isCorrupted(stack)) {
-            throw new GameTestAssertException("drive should keep its handle and be flagged");
+            throw new GameTestAssertException(Component.literal("drive should keep its handle and be flagged"), 0);
         }
 
         registry.unmountDevices();
@@ -128,7 +131,8 @@ public final class MountFailureTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void driveBlobInUseStaysWithItsHolder(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
@@ -137,21 +141,21 @@ public final class MountFailureTests {
 
             final VMDeviceRegistry registry = registry();
             final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
-            device.deserializeNBT(tagReferencing(handle));
+            device.deserialize(inputReferencing(handle));
             registry.rebuild(bus(device));
 
             final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent() || !isCorrupted(stack)) {
-                throw new GameTestAssertException("A drive whose blob another device holds is a duplicate");
+                throw new GameTestAssertException(Component.literal("A drive whose blob another device holds is a duplicate"), 0);
             }
 
             registry.unmountDevices();
             device.dispose();
             if (!BlobStorage.isOpen(handle)) {
-                throw new GameTestAssertException("failed mount released the blob of the device holding it");
+                throw new GameTestAssertException(Component.literal("failed mount released the blob of the device holding it"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             StorageItemUtils.clearBlobData(stack);
             release(blob);
@@ -160,14 +164,18 @@ public final class MountFailureTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void fullStorageIsRetryable(final GameTestHelper helper) {
         final int maxBlobCount = Config.maxBlobCount;
         final int graceHours = Config.blobEvictionGraceHours;
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
+        final BlobReference blob = new BlobReference();
         try {
+            // Without any blob in storage there is no limit to hit.
+            createBlob(blob);
             Config.blobEvictionGraceHours = 24 * 365;
-            Config.maxBlobCount = Math.max(1, BlobStorage.getBlobCount());
+            Config.maxBlobCount = BlobStorage.getBlobCount();
 
             final VMDeviceRegistry registry = registry();
             final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
@@ -175,27 +183,31 @@ public final class MountFailureTests {
 
             final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful()) {
-                throw new GameTestAssertException("Mounting should fail while blob storage is full");
+                throw new GameTestAssertException(Component.literal("Mounting should fail while blob storage is full"), 0);
             }
             if (result.isPermanent()) {
-                throw new GameTestAssertException("full storage should be retryable");
+                throw new GameTestAssertException(Component.literal("full storage should be retryable"), 0);
             }
             if (isCorrupted(stack)) {
-                throw new GameTestAssertException("full storage should not flag the drive");
+                throw new GameTestAssertException(Component.literal("full storage should not flag the drive"), 0);
             }
 
             registry.unmountDevices();
             device.dispose();
+        } catch (final IOException e) {
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             Config.maxBlobCount = maxBlobCount;
             Config.blobEvictionGraceHours = graceHours;
             StorageItemUtils.clearBlobData(stack);
+            release(blob);
         }
 
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void staleStorageNeedsAcknowledgement(final GameTestHelper helper) {
         assertStaleStorageNeedsAcknowledgement(new ItemStack(Items.FLASH_MEMORY.get()),
             stack -> new FlashStorageDevice(stack, 4096));
@@ -205,7 +217,8 @@ public final class MountFailureTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void staleMemoryIsDiscarded(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         try {
@@ -213,25 +226,25 @@ public final class MountFailureTests {
 
             final VMDeviceRegistry registry = registry();
             final MemoryDevice device = new MemoryDevice(new ItemStack(Items.MEMORY_SMALL.get()), 4096);
-            device.deserializeNBT(tagReferencing(handle));
+            device.deserialize(inputReferencing(handle));
             registry.rebuild(bus(device));
 
             final VMDeviceLoadResult result = registry.mountDevices();
             if (result.wasSuccessful() || !result.isPermanent()) {
-                throw new GameTestAssertException("stale memory should stop the machine");
+                throw new GameTestAssertException(Component.literal("stale memory should stop the machine"), 0);
             }
             if (BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("discarded memory should not keep its blob");
+                throw new GameTestAssertException(Component.literal("discarded memory should not keep its blob"), 0);
             }
 
             if (!registry.mountDevices().wasSuccessful()) {
-                throw new GameTestAssertException("The machine has to be startable again afterwards");
+                throw new GameTestAssertException(Component.literal("The machine has to be startable again afterwards"), 0);
             }
 
             registry.unmountDevices();
             device.dispose();
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(handle);
         }
@@ -239,7 +252,8 @@ public final class MountFailureTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 900)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 900)
+    @TestHolder
     public static void permanentMountFailureStopsComputer(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
@@ -265,10 +279,10 @@ public final class MountFailureTests {
     private static void assertBootError(final ComputerFixture computer, final String key) {
         final Component error = computer.virtualMachine().getBootError();
         if (error == null) {
-            throw new GameTestAssertException("Expected boot error [" + key + "], got none");
+            throw new GameTestAssertException(Component.literal("Expected boot error [" + key + "], got none"), 0);
         }
         if (!(error.getContents() instanceof final TranslatableContents contents) || !key.equals(contents.getKey())) {
-            throw new GameTestAssertException("Expected boot error [" + key + "], got [" + error.getString() + "]");
+            throw new GameTestAssertException(Component.literal("Expected boot error [" + key + "], got [" + error.getString() + "]"), 0);
         }
     }
 
@@ -279,42 +293,42 @@ public final class MountFailureTests {
             markStale(handle);
 
             final Device device = factory.apply(stack);
-            device.deserializeNBT(tagReferencing(handle));
+            device.deserialize(inputReferencing(handle));
 
             final VMDeviceRegistry refusing = registry();
             refusing.rebuild(bus(device));
 
             final VMDeviceLoadResult refused = refusing.mountDevices();
             if (refused.wasSuccessful() || !refused.isPermanent()) {
-                throw new GameTestAssertException("stale " + stack + " should not mount unacknowledged");
+                throw new GameTestAssertException(Component.literal("stale " + stack + " should not mount unacknowledged"), 0);
             }
             if (StorageItemUtils.getState(stack) != State.INCONSISTENT) {
-                throw new GameTestAssertException("The item carries the warning, so it survives the player "
-                    + "taking it out; got " + StorageItemUtils.getState(stack));
+                throw new GameTestAssertException(Component.literal("The item carries the warning, so it survives the player "
+                    + "taking it out; got " + StorageItemUtils.getState(stack)), 0);
             }
             if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("The data is kept: it is what the guest actually wrote");
+                throw new GameTestAssertException(Component.literal("The data is kept: it is what the guest actually wrote"), 0);
             }
 
             StorageItemUtils.setState(stack, State.ACKNOWLEDGED);
 
             final VMDeviceRegistry accepting = registry();
             final Device retry = factory.apply(stack);
-            retry.deserializeNBT(tagReferencing(handle));
+            retry.deserialize(inputReferencing(handle));
             accepting.rebuild(bus(retry));
 
             if (!accepting.mountDevices().wasSuccessful()) {
-                throw new GameTestAssertException("Once the player has accepted it, " + stack + " mounts");
+                throw new GameTestAssertException(Component.literal("Once the player has accepted it, " + stack + " mounts"), 0);
             }
             if (StorageItemUtils.getState(stack) != State.OK) {
-                throw new GameTestAssertException("acknowledgement should be spent on the mount that uses it; got "
-                    + StorageItemUtils.getState(stack));
+                throw new GameTestAssertException(Component.literal("acknowledgement should be spent on the mount that uses it; got "
+                    + StorageItemUtils.getState(stack)), 0);
             }
 
             accepting.unmountDevices();
             retry.dispose();
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             StorageItemUtils.clearBlobData(stack);
             release(handle);
@@ -371,7 +385,7 @@ public final class MountFailureTests {
             try {
                 Files.deleteIfExists(directory.resolve(handle + ".dirty"));
             } catch (final IOException e) {
-                throw new GameTestAssertException("Failed cleaning up: " + e);
+                throw new GameTestAssertException(Component.literal("Failed cleaning up: " + e), 0);
             }
         }
     }

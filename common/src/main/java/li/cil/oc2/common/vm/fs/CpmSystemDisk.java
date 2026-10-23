@@ -6,12 +6,11 @@ import com.google.common.annotations.VisibleForTesting;
 import dev.architectury.registry.ReloadListenerRegistry;
 import li.cil.oc2.api.API;
 import li.cil.sedna.cpm.Cpm;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -47,7 +46,7 @@ public final class CpmSystemDisk {
 
     public static void initialize() {
         ReloadListenerRegistry.register(PackType.SERVER_DATA, ReloadListener.INSTANCE,
-            ResourceLocation.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
+            Identifier.fromNamespaceAndPath(API.MOD_ID, DIRECTORY));
     }
 
     // --------------------------------------------------------------------- //
@@ -84,15 +83,15 @@ public final class CpmSystemDisk {
     }
 
     private static void reload(final ResourceManager resourceManager) {
-        final Map<ResourceLocation, Resource> resources = resourceManager.listResources(
+        final Map<Identifier, Resource> resources = resourceManager.listResources(
             DIRECTORY, location -> !location.getPath().endsWith("/"));
 
-        final List<ResourceLocation> locations = new ArrayList<>(resources.keySet());
-        locations.sort(Comparator.comparing(ResourceLocation::toString));
+        final List<Identifier> locations = new ArrayList<>(resources.keySet());
+        locations.sort(Comparator.comparing(Identifier::toString));
 
         final byte[] composed = readBaseImage();
 
-        for (final ResourceLocation location : locations) {
+        for (final Identifier location : locations) {
             final String path = location.getPath();
             final String name = path.substring(path.lastIndexOf('/') + 1);
             try (InputStream stream = resources.get(location).open()) {
@@ -123,9 +122,9 @@ public final class CpmSystemDisk {
         public static final ReloadListener INSTANCE = new ReloadListener();
 
         @Override
-        public CompletableFuture<Void> reload(final PreparableReloadListener.PreparationBarrier stage, final ResourceManager resourceManager, final ProfilerFiller preparationsProfiler, final ProfilerFiller reloadProfiler, final Executor backgroundExecutor, final Executor gameExecutor) {
+        public CompletableFuture<Void> reload(final SharedState sharedState, final Executor backgroundExecutor, final PreparationBarrier stage, final Executor gameExecutor) {
             return CompletableFuture
-                .runAsync(() -> CpmSystemDisk.reload(resourceManager), backgroundExecutor)
+                .runAsync(() -> CpmSystemDisk.reload(sharedState.resourceManager()), backgroundExecutor)
                 .thenCompose(stage::wait);
         }
     }

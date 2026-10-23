@@ -5,7 +5,6 @@ package li.cil.oc2.common.block;
 import com.mojang.serialization.MapCodec;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.BlockEntities;
-import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -26,7 +25,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import javax.annotation.Nullable;
 
 public final class ProjectorBlock extends FlippableOrientableBlock implements EntityBlock, EnergyConsumingBlock {
-    public static final MapCodec<ProjectorBlock> CODEC = MapCodec.unit(ProjectorBlock::new);
+    public static final MapCodec<ProjectorBlock> CODEC = simpleCodec(ProjectorBlock::new);
 
     @Override
     protected MapCodec<? extends ProjectorBlock> codec() {
@@ -43,9 +42,8 @@ public final class ProjectorBlock extends FlippableOrientableBlock implements En
         Shapes.box(4 / 16f, 4 / 16f, 0 / 16f, 12 / 16f, 12 / 16f, 2 / 16f)
     ), (a, b) -> a && !b);
 
-    public ProjectorBlock() {
-        super(Properties
-            .of()
+    public ProjectorBlock(final Properties properties) {
+        super(properties
             .mapColor(MapColor.METAL)
             .sound(SoundType.METAL)
             .lightLevel(state -> state.getValue(LIT) ? 8 : 0)
@@ -54,12 +52,6 @@ public final class ProjectorBlock extends FlippableOrientableBlock implements En
     }
 
     // --------------------------------------------------------------------- //
-
-    @Override
-    protected void onRemove(final BlockState state, final Level level, final BlockPos pos, final BlockState newState, final boolean movedByPiston) {
-        ModBlockEntity.markDestroyed(level, pos, state, newState, movedByPiston);
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 
     @Override
     public int getEnergyConsumption() {

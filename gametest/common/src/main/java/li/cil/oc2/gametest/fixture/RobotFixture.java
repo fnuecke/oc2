@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -47,7 +48,7 @@ public final class RobotFixture implements MachineFixture {
         final AABB bounds = new AABB(helper.absolutePos(pos)).inflate(radius);
         final List<Robot> robots = helper.getLevel().getEntitiesOfClass(Robot.class, bounds);
         if (robots.size() != 1) {
-            throw new GameTestAssertException("expected exactly one robot near " + pos + ", found " + robots.size());
+            throw new GameTestAssertException(Component.literal("expected exactly one robot near " + pos + ", found " + robots.size()), 0);
         }
 
         return new RobotFixture(helper, robots.getFirst());
@@ -72,7 +73,7 @@ public final class RobotFixture implements MachineFixture {
     @Override
     public ItemHandler handler(final DeviceType type) {
         return robot.getItemStackHandlers().getItemHandler(type)
-            .orElseThrow(() -> new GameTestAssertException("no item handler for " + type));
+            .orElseThrow(() -> new GameTestAssertException(Component.literal("no item handler for " + type), 0));
     }
 
     @Override

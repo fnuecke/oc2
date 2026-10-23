@@ -8,7 +8,7 @@ import li.cil.oc2.api.bus.device.object.IOCallback;
 import li.cil.oc2.api.bus.device.object.IODeviceDescription;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 
@@ -91,15 +91,15 @@ public final class SystemDevice {
 
     private static void writeName(final Registry<?> registry, final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final int id = arguments.readU16();
-        final ResourceLocation key = registry.getHolder(id)
+        final Identifier key = registry.get(id)
             .orElseThrow(() -> new IllegalArgumentException("no " + kind(registry) + " with id: " + id))
-            .key().location();
+            .key().identifier();
         results.writeString(key.toString());
     }
 
     private static <T> void writeId(final Registry<T> registry, final IOInputStream arguments, final IOOutputStream results) throws IOException {
         final String name = arguments.readString();
-        final ResourceLocation key = ResourceLocation.tryParse(name);
+        final Identifier key = Identifier.tryParse(name);
         final T value = key != null ? registry.getOptional(key).orElse(null) : null;
         if (value == null) {
             throw new IllegalArgumentException("no such " + kind(registry) + ": " + name);
@@ -109,6 +109,6 @@ public final class SystemDevice {
     }
 
     private static String kind(final Registry<?> registry) {
-        return registry.key().location().getPath();
+        return registry.key().identifier().getPath();
     }
 }

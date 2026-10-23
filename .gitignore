@@ -31,7 +31,7 @@ classes/
 __pycache__/
 
 # generated resources
-**/src/generated/resources/.cache/
+**/src/generated/**/.cache/
 
 # minecraft
 run/

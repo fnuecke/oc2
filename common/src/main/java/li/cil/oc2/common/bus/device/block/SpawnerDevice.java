@@ -39,7 +39,7 @@ public final class SpawnerDevice extends AbstractBlockDevice {
             return null;
         }
 
-        return EntityType.by(spawnData.entityToSpawn())
+        return spawnData.entityToSpawn().read("id", EntityType.CODEC)
             .map(type -> EntityType.getKey(type).toString())
             .orElse(null);
     }

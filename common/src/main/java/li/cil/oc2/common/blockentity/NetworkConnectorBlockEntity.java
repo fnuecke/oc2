@@ -12,7 +12,6 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.NetworkConnectorAdjacentInterfaceMessage;
 import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
-import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.oc2.common.util.ServerScheduler;
 import li.cil.oc2.common.util.TickUtils;
 import net.fabricmc.api.EnvType;
@@ -22,7 +21,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -30,6 +28,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -230,7 +230,7 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         final ListTag connections = new ListTag();
         for (final BlockPos position : connectorPositions) {
             final CompoundTag connectionTag = new CompoundTag();
-            connectionTag.put(POSITION_TAG_NAME, NbtUtils.writeBlockPos(position));
+            connectionTag.store(POSITION_TAG_NAME, BlockPos.CODEC, position);
             connections.add(connectionTag);
         }
         tag.put(CONNECTIONS_TAG_NAME, connections);
@@ -240,43 +240,43 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         return tag;
     }
 
-
     @Override
-    protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-
-        final ListTag connections = new ListTag();
-        for (final BlockPos position : connectorPositions) {
-            final CompoundTag connectionTag = new CompoundTag();
-            connectionTag.put(POSITION_TAG_NAME, NbtUtils.writeBlockPos(position));
-            if (ownedCables.contains(position)) {
-                connectionTag.putBoolean(IS_OWNER_TAG_NAME, true);
-            }
-            connections.add(connectionTag);
-        }
-        tag.put(CONNECTIONS_TAG_NAME, connections);
+    public void removeComponentsFromTag(final ValueOutput output) {
+        output.discard(CONNECTIONS_TAG_NAME);
     }
 
     @Override
-    protected void loadAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void saveAdditional(final ValueOutput output) {
+        super.saveAdditional(output);
 
-        hasAdjacentInterface = tag.getBoolean(HAS_ADJACENT_INTERFACE_TAG_NAME);
+        final ValueOutput.ValueOutputList connections = output.childrenList(CONNECTIONS_TAG_NAME);
+        for (final BlockPos position : connectorPositions) {
+            final ValueOutput connection = connections.addChild();
+            connection.store(POSITION_TAG_NAME, BlockPos.CODEC, position);
+            if (ownedCables.contains(position)) {
+                connection.putBoolean(IS_OWNER_TAG_NAME, true);
+            }
+        }
+    }
 
-        final ListTag connections = tag.getList(CONNECTIONS_TAG_NAME, NBTTagIds.TAG_COMPOUND);
-        for (int i = 0; i < Math.min(connections.size(), MAX_CONNECTION_COUNT); i++) {
-            final CompoundTag connectionTag = connections.getCompound(i);
-            final BlockPos position = NbtUtils.readBlockPos(connectionTag, POSITION_TAG_NAME).orElse(null);
+    @Override
+    protected void loadAdditional(final ValueInput input) {
+        super.loadAdditional(input);
+
+        hasAdjacentInterface = input.getBooleanOr(HAS_ADJACENT_INTERFACE_TAG_NAME, false);
+
+        input.childrenListOrEmpty(CONNECTIONS_TAG_NAME).stream().limit(MAX_CONNECTION_COUNT).forEach(connection -> {
+            final BlockPos position = connection.read(POSITION_TAG_NAME, BlockPos.CODEC).orElse(null);
             if (position == null) {
-                continue;
+                return;
             }
 
             connectorPositions.add(position);
             dirtyConnectors.add(position);
-            if (connectionTag.getBoolean(IS_OWNER_TAG_NAME)) {
+            if (connection.getBooleanOr(IS_OWNER_TAG_NAME, false)) {
                 ownedCables.add(position);
             }
-        }
+        });
     }
 
     // --------------------------------------------------------------------- //

@@ -5,12 +5,12 @@ package li.cil.oc2.client.renderer.font;
 import li.cil.manual.api.prefab.renderer.BitmapFontRenderer;
 import li.cil.manual.api.render.FontRenderer;
 import li.cil.oc2.api.API;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class MonospaceFontRenderer extends BitmapFontRenderer {
     public static final FontRenderer INSTANCE = new MonospaceFontRenderer();
 
-    private static final ResourceLocation LOCATION_FONT_TEXTURE = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "textures/font/monospace.png");
+    private static final Identifier LOCATION_FONT_TEXTURE = Identifier.fromNamespaceAndPath(API.MOD_ID, "textures/font/monospace.png");
     private static final String CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
     @Override
@@ -24,7 +24,7 @@ public final class MonospaceFontRenderer extends BitmapFontRenderer {
     }
 
     @Override
-    protected ResourceLocation getTextureLocation() {
+    protected Identifier getTextureLocation() {
         return LOCATION_FONT_TEXTURE;
     }
 

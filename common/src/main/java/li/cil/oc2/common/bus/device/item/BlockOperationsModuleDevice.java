@@ -14,7 +14,6 @@ import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.TickUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -32,6 +31,8 @@ import net.minecraft.world.level.block.JigsawBlock;
 import net.minecraft.world.level.block.StructureBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -79,7 +80,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
 
     private final Entity entity;
     private final Robot robot;
-    private long lastOperation;
+    private long lastOperation = -MIN_COOLDOWN;
     private int cooldown = MIN_COOLDOWN;
 
     // --------------------------------------------------------------------- //
@@ -93,17 +94,15 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
     // --------------------------------------------------------------------- //
 
     @Override
-    public CompoundTag serializeNBT() {
-        final CompoundTag tag = new CompoundTag();
-        tag.putLong(LAST_OPERATION_TAG_NAME, lastOperation);
-        tag.putInt(COOLDOWN_TAG_NAME, cooldown);
-        return tag;
+    public void serialize(final ValueOutput output) {
+        output.putLong(LAST_OPERATION_TAG_NAME, lastOperation);
+        output.putInt(COOLDOWN_TAG_NAME, cooldown);
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag tag) {
-        lastOperation = Mth.clamp(tag.getLong(LAST_OPERATION_TAG_NAME), 0, entity.level().getGameTime());
-        cooldown = Mth.clamp(tag.getInt(COOLDOWN_TAG_NAME), MIN_COOLDOWN, MAX_COOLDOWN);
+    public void deserialize(final ValueInput input) {
+        lastOperation = Mth.clamp(input.getLongOr(LAST_OPERATION_TAG_NAME, 0L), 0, entity.level().getGameTime());
+        cooldown = Mth.clamp(input.getIntOr(COOLDOWN_TAG_NAME, 0), MIN_COOLDOWN, MAX_COOLDOWN);
     }
 
     // --------------------------------------------------------------------- //
@@ -194,7 +193,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
         final BlockPos blockPos = entity.blockPosition().relative(direction);
         final Direction oppositeDirection = direction.getOpposite();
         final BlockHitResult hit = new BlockHitResult(
-            Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getNormal()).scale(0.5)),
+            Vec3.atCenterOf(blockPos).add(Vec3.atCenterOf(oppositeDirection.getUnitVec3i()).scale(0.5)),
             oppositeDirection,
             blockPos,
             false);

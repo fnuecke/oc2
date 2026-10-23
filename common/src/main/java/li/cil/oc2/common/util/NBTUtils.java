@@ -6,6 +6,7 @@ import li.cil.oc2.common.container.ItemStackHandler;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -19,11 +20,11 @@ public final class NBTUtils {
 
     @Nullable
     public static <T extends Enum<T>> T getEnum(final CompoundTag compound, final String key, final Class<T> enumType) {
-        if (!compound.contains(key, NBTTagIds.TAG_INT)) {
+        if (!compound.getInt(key).isPresent()) {
             return null;
         }
 
-        final int ordinal = compound.getInt(key);
+        final int ordinal = compound.getIntOr(key, 0);
         try {
             return enumType.getEnumConstants()[ordinal];
         } catch (final IndexOutOfBoundsException ignored) {
@@ -38,10 +39,10 @@ public final class NBTUtils {
 
         CompoundTag childTag = tag;
         for (final String tagName : path) {
-            if (!childTag.contains(tagName, NBTTagIds.TAG_COMPOUND)) {
+            if (!childTag.getCompound(tagName).isPresent()) {
                 return new CompoundTag();
             }
-            childTag = childTag.getCompound(tagName);
+            childTag = childTag.getCompoundOrEmpty(tagName);
         }
 
         return childTag;
@@ -50,15 +51,15 @@ public final class NBTUtils {
     public static CompoundTag getOrCreateChildTag(final CompoundTag tag, final String... path) {
         CompoundTag childTag = tag;
         for (final String tagName : path) {
-            if (!childTag.contains(tagName, NBTTagIds.TAG_COMPOUND)) {
+            if (!childTag.getCompound(tagName).isPresent()) {
                 childTag.put(tagName, new CompoundTag());
             }
-            childTag = childTag.getCompound(tagName);
+            childTag = childTag.getCompoundOrEmpty(tagName);
         }
         return childTag;
     }
 
     public static CompoundTag makeInventoryTag(final HolderLookup.Provider provider, final ItemStack... items) {
-        return new ItemStackHandler(NonNullList.of(ItemStack.EMPTY, items)).serializeNBT(provider);
+        return SerializationUtils.saveToTag(ProblemReporter.Collector.EMPTY_ROOT, provider, new ItemStackHandler(NonNullList.of(ItemStack.EMPTY, items))::save);
     }
 }

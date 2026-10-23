@@ -1,0 +1,12 @@
+{
+  "type": "oc2:tool",
+  "category": "misc",
+  "ingredients": [
+    "oc2:wrench",
+    "oc2:hard_drive_large"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:hard_drive_large"
+  }
+}

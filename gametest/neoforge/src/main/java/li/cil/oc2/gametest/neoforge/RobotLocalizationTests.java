@@ -11,16 +11,20 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.RobotFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import java.util.function.Consumer;
 
@@ -28,9 +32,9 @@ import static li.cil.oc2.gametest.util.DeviceCalls.i16;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeRpc;
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "robot_localization")
 public final class RobotLocalizationTests {
     private static final int SETTLE_TICKS = 20;
     private static final BlockPos SECOND_ROBOT_POS = ROBOT_POS.offset(4, 0, 0);
@@ -41,7 +45,8 @@ public final class RobotLocalizationTests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void placedRobotStartsAtItsOrigin(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -50,7 +55,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void facingNamesEachCompassDirection(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -64,7 +70,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void positionChangesHalfwayThroughAMove(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -83,7 +90,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void changingDimensionResetsTheOrigin(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -91,26 +99,28 @@ public final class RobotLocalizationTests {
             .thenExecuteAfter(SETTLE_TICKS, () -> {
                 moveBy(robot, 1, 1, 1);
                 reload(helper, robot, saved ->
-                    saved.getCompound("origin").putString("dimension", Level.NETHER.location().toString()));
+                    saved.getCompoundOrEmpty("origin").putString("dimension", Level.NETHER.identifier().toString()));
             })
             .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, RobotFixture.find(helper, ROBOT_POS, 3), 0, 0, 0))
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void corruptOriginResetsTheOrigin(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
         helper.startSequence()
             .thenExecuteAfter(SETTLE_TICKS, () -> {
                 moveBy(robot, 1, 1, 1);
-                reload(helper, robot, saved -> saved.getCompound("origin").putString("pos", "not a position"));
+                reload(helper, robot, saved -> saved.getCompoundOrEmpty("origin").putString("pos", "not a position"));
             })
             .thenExecuteAfter(SETTLE_TICKS, () -> assertPosition(helper, RobotFixture.find(helper, ROBOT_POS, 3), 0, 0, 0))
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void positionFollowsTeleports(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -122,7 +132,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void positionFollowsPistons(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -137,7 +148,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void calibratingZeroesThePosition(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -152,7 +164,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void originSurvivesSaving(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -166,7 +179,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void pickingUpTheRobotClearsTheOrigin(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -183,7 +197,8 @@ public final class RobotLocalizationTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void ioReportsSignedPosition(final GameTestHelper helper) {
         final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
 
@@ -212,11 +227,13 @@ public final class RobotLocalizationTests {
     }
 
     private static void reload(final GameTestHelper helper, final RobotFixture robot, final Consumer<CompoundTag> edit) {
-        final CompoundTag saved = robot.entity().saveWithoutId(new CompoundTag());
+        final TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        robot.entity().saveWithoutId(output);
+        final CompoundTag saved = output.buildResult();
         edit.accept(saved);
         robot.entity().discard();
-        final Robot loaded = Entities.ROBOT.get().create(helper.getLevel());
-        loaded.load(saved);
+        final Robot loaded = Entities.ROBOT.get().create(helper.getLevel(), EntitySpawnReason.LOAD);
+        loaded.load(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
         helper.getLevel().addFreshEntity(loaded);
     }
 

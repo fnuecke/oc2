@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +23,7 @@ import java.util.Objects;
 public final class TestSupport {
     public static final String MOD_ID = "oc2_gametest";
     public static final String TEMPLATE = "empty";
+    public static final String TEMPLATE_ID = MOD_ID + ":" + TEMPLATE;
     public static final int WORK_Y = 2;
     public static final int MAX_X = 39;
 
@@ -39,7 +41,7 @@ public final class TestSupport {
     }
 
     public static GameTestAssertException failure(final GameTestHelper helper, final String message) {
-        return new GameTestAssertException(message);
+        return new GameTestAssertException(Component.literal(message), 0);
     }
 
     public static void assertTrue(final GameTestHelper helper, final String what, final boolean condition) {
@@ -68,7 +70,7 @@ public final class TestSupport {
 
     public static <T> T assertNotNull(final GameTestHelper helper, @Nullable final T value, final String what) {
         if (value == null) {
-            throw new GameTestAssertException(what + " is null");
+            throw new GameTestAssertException(Component.literal(what + " is null"), 0);
         }
         return value;
     }
@@ -91,7 +93,7 @@ public final class TestSupport {
     public static void place(final GameTestHelper helper, final Player player, final ItemStack stack, final BlockPos pos) {
         useOn(helper, player, stack, pos, Direction.UP);
         if (helper.getBlockState(pos).isAir()) {
-            throw new GameTestAssertException("nothing placed at " + pos + " from " + stack);
+            throw new GameTestAssertException(Component.literal("nothing placed at " + pos + " from " + stack), 0);
         }
     }
 

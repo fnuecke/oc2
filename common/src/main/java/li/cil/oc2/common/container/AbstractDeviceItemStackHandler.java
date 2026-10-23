@@ -3,10 +3,10 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackHandler {
     public AbstractDeviceItemStackHandler(final int size) {
@@ -28,27 +28,27 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     }
 
     @Override
-    public final CompoundTag serializeNBT(final HolderLookup.Provider registries) {
+    public final void save(final ValueOutput output) {
         throw new UnsupportedOperationException("Use saveItems and saveDevices instead.");
     }
 
     @Override
-    public final void deserializeNBT(final HolderLookup.Provider registries, final CompoundTag tag) {
+    public final void load(final ValueInput input) {
         throw new UnsupportedOperationException("Use loadItems and loadDevices instead.");
     }
 
-    public CompoundTag saveItems(final HolderLookup.Provider registries) {
+    public void saveItems(final ValueOutput output) {
         exportDeviceDataToItemStacks();
 
-        return super.serializeNBT(registries);
+        super.save(output);
     }
 
-    public CompoundTag saveDevices() {
-        return getBusElement().save();
+    public void saveDevices(final ValueOutput output) {
+        getBusElement().save(output);
     }
 
-    public void loadItems(final HolderLookup.Provider registries, final CompoundTag tag) {
-        super.deserializeNBT(registries, tag);
+    public void loadItems(final ValueInput input) {
+        super.load(input);
         updateDevices();
     }
 
@@ -58,8 +58,8 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
         }
     }
 
-    public void loadDevices(final CompoundTag tag) {
-        getBusElement().load(tag);
+    public void loadDevices(final ValueInput input) {
+        getBusElement().load(input);
     }
 
     @Override

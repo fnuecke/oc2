@@ -9,10 +9,9 @@ import li.cil.oc2.common.bus.device.TypeNameDevice;
 import li.cil.oc2.common.bus.device.util.Devices;
 import li.cil.oc2.common.bus.device.util.ItemDeviceInfo;
 import li.cil.oc2.common.util.ItemDeviceUtils;
-import li.cil.oc2.common.util.NBTTagIds;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
@@ -85,7 +84,7 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
             return;
         }
 
-        final ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(query.getItemStack().getItem());
+        final Identifier registryName = BuiltInRegistries.ITEM.getKey(query.getItemStack().getItem());
         if (registryName != null) {
             final String itemName = registryName.toString();
             entries.add(new ItemEntry(new ItemDeviceInfo(null, new TypeNameDevice(itemName), 0)));
@@ -99,8 +98,8 @@ public abstract class AbstractItemDeviceBusElement extends AbstractGroupingDevic
         if (!exportedTag.isEmpty()) {
             for (final ItemEntry entry : entries) {
                 entry.getDeviceDataKey().ifPresent(key -> {
-                    if (exportedTag.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                        entry.deviceInfo.device.importFromItemStack(exportedTag.getCompound(key));
+                    if (exportedTag.getCompound(key).isPresent()) {
+                        entry.deviceInfo.device.importFromItemStack(exportedTag.getCompoundOrEmpty(key));
                     }
                 });
             }

@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The lookups we do item storage interop through on Fabric.
@@ -25,7 +25,7 @@ public abstract class ItemStorage {
      * Entity access to item storages, {@code oc2:entity_item_storage}.
      */
     public static final EntityApiLookup<Storage<ItemVariant>, Direction> ENTITY =
-        EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "entity_item_storage"),
+        EntityApiLookup.get(Identifier.fromNamespaceAndPath(API.MOD_ID, "entity_item_storage"),
             Storage.asClass(), Direction.class);
 
     /**

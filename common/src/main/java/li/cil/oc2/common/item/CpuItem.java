@@ -9,15 +9,17 @@ import net.fabricmc.api.Environment;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public final class CpuItem extends ModItem {
     private final ArchitectureType architectureType;
 
     // --------------------------------------------------------------------- //
 
-    public CpuItem(final ArchitectureType architectureType) {
+    public CpuItem(final Properties properties, final ArchitectureType architectureType) {
+        super(properties);
         this.architectureType = architectureType;
     }
 
@@ -29,8 +31,8 @@ public final class CpuItem extends ModItem {
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendHoverText(final ItemStack stack, final TooltipContext context, final List<Component> tooltip, final TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(final ItemStack stack, final TooltipContext context, final TooltipDisplay display, final Consumer<Component> tooltip, final TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         TooltipUtils.addEnergyConsumption(Config.cpuEnergyPerTick(architectureType), tooltip);
     }
 }

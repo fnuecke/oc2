@@ -5,11 +5,17 @@ val fabricApiVersion: String = libs.versions.fabric.api.get()
 val architecturyVersion: String = libs.versions.architectury.get()
 val forgeConfigPortVersion: String = libs.versions.fabric.forgeConfigPort.get()
 val manualVersion: String = markdownManualVersion(libs.versions.manual.get())
+val tis3dVersion: String = tis3dVersion(libs.versions.tis3d.get())
 
 val gameTestRuntime = configurations.create("gameTestRuntime")
 val gameTestResultsDir = layout.buildDirectory.dir("test-results/gameTest")
 val devOnlyMods = configurations.create("devOnlyMods")
 val devOnlyModNames = provider { devOnlyMods.resolvedConfiguration.resolvedArtifacts.map { it.moduleVersion.id.name } }
+
+sourceSets.main {
+    resources.srcDir("src/generated/resources")
+    resources.exclude(".cache/**")
+}
 
 loom {
     accessWidenerPath.set(project(":common").loom.accessWidenerPath)
@@ -17,6 +23,14 @@ loom {
     runs {
         named("client") { runDirectory.set(file("run/client")) }
         named("server") { runDirectory.set(file("run/server")) }
+
+        create("data") {
+            client()
+            runDirectory.set(file("build/datagen"))
+            jvmArguments.add("-Dfabric-api.datagen")
+            jvmArguments.add("-Dfabric-api.datagen.output-dir=${file("src/generated/resources").absolutePath}")
+            jvmArguments.add("-Dfabric-api.datagen.modid=${modId}")
+        }
 
         create("gameTest") {
             server()
@@ -91,8 +105,18 @@ dependencies {
 
     runtimeOnly(project(path = ":instrumentation-fabric", configuration = "namedElements")) { isTransitive = false }
 
+    if (useLocalMarkdownManual) {
+        modImplementation(files(markdownManualJar("fabric", "fabric-*.jar")))
+    } else {
+        modImplementation(libs.fabric.manual)
+    }
+    if (useLocalTis3d) {
+        compileOnly(files(tis3dApiJar()))
+    } else {
+        compileOnly(libs.tis3d.api)
+    }
+
     modCompileOnly(libs.cc.fabric.api)
-    compileOnly(libs.tis3d.api)
 
     // Not used by mod, just for dev convenience.
     devOnlyMods(libs.jei.fabric)
@@ -100,16 +124,15 @@ dependencies {
     gameTestRuntime(project(path = ":gametest-fabric", configuration = "namedElements")) { isTransitive = false }
 
     "common"(project(path = ":instrumentation-common", configuration = "namedElements")) { isTransitive = false }
-
-    if (useLocalMarkdownManual) {
-        modImplementation(files(markdownManualJar("fabric", "fabric-*.jar")))
-    } else {
-        modImplementation(libs.fabric.manual)
-    }
 }
 
 tasks {
     processResources {
+        from(project(":neoforge").file("src/generated/server"))
+        from(project(":neoforge").file("src/generated/client")) {
+            exclude("assets/*/blockstates/bus_cable.json", "assets/*/items/bus_cable.json", "assets/*/items/bus_interface.json")
+        }
+
         val properties = mapOf(
             "version" to project.version,
             "minecraftVersion" to minecraftVersion,
@@ -117,7 +140,8 @@ tasks {
             "fabricApiVersion" to fabricApiVersion,
             "architecturyVersion" to architecturyVersion,
             "forgeConfigPortVersion" to forgeConfigPortVersion,
-            "manualVersion" to manualVersion
+            "manualVersion" to manualVersion,
+            "tis3dVersion" to tis3dVersion
         )
         inputs.properties(properties)
         filesMatching("fabric.mod.json") {

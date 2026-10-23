@@ -39,7 +39,7 @@ public final class BlockDeviceDataMessage extends AbstractMessage {
         final int count = buffer.readVarInt();
         values = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            final var location = buffer.readResourceLocation();
+            final var location = buffer.readIdentifier();
             final var capacity = buffer.readVarLong();
             final var displayName = ComponentSerialization.STREAM_CODEC.decode(buffer);
             final var color = buffer.readNullable(b -> b.readEnum(DyeColor.class));
@@ -51,7 +51,7 @@ public final class BlockDeviceDataMessage extends AbstractMessage {
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeVarInt(values.size());
         for (final BlockDeviceDataClientView value : values) {
-            buffer.writeResourceLocation(value.getLocation());
+            buffer.writeIdentifier(value.getLocation());
             buffer.writeVarLong(value.getCapacity());
             ComponentSerialization.STREAM_CODEC.encode(buffer, value.getDisplayName());
             buffer.writeNullable(value.getColor(), FriendlyByteBuf::writeEnum);

@@ -14,13 +14,14 @@ import li.cil.oc2.gametest.fixture.MachineFixture;
 import li.cil.oc2.gametest.util.TestSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -28,8 +29,7 @@ import java.nio.charset.StandardCharsets;
 import static li.cil.oc2.gametest.fixture.MachineFixture.LOGIN_PROMPT;
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "terminal")
 public final class TerminalTests {
     private static final String BATCH = "oc2_terminal";
 
@@ -38,7 +38,8 @@ public final class TerminalTests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @TestHolder
     public static void terminalRelaysGuestIo(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
         final ComputerFixture computer = ComputerFixture.placePowered(helper, player);
@@ -65,10 +66,10 @@ public final class TerminalTests {
             })
             .thenExecuteAfter(40, () -> {
                 if (ConnectorFixture.at(helper, terminalPos.west()).adjacentInterface() == null) {
-                    throw new GameTestAssertException("the connector did not find the terminal");
+                    throw new GameTestAssertException(Component.literal("the connector did not find the terminal"), 0);
                 }
                 if (ConnectorFixture.at(helper, computer.pos().east()).adjacentInterface() == null) {
-                    throw new GameTestAssertException("the connector did not find the computer's card");
+                    throw new GameTestAssertException(Component.literal("the connector did not find the computer's card"), 0);
                 }
                 computer.start();
             })
@@ -88,7 +89,8 @@ public final class TerminalTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 200, batch = BATCH)
+    @TestHolder
     public static void twoTerminalsTalkToEachOther(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
@@ -111,7 +113,8 @@ public final class TerminalTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 200, batch = BATCH)
+    @TestHolder
     public static void terminalTracksConnector(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
@@ -134,7 +137,8 @@ public final class TerminalTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 200, batch = BATCH)
+    @TestHolder
     public static void terminalAtAnotherRateHearsNoise(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
@@ -156,7 +160,8 @@ public final class TerminalTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 200, batch = BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 200, batch = BATCH)
+    @TestHolder
     public static void sameAddressTerminalsStaySilent(final GameTestHelper helper) {
         final Player player = fakePlayer(helper);
 
@@ -190,8 +195,8 @@ public final class TerminalTests {
     private static void placeTerminal(final GameTestHelper helper, final Player player, final BlockPos pos, final Direction facing) {
         player.setYRot(facing.getOpposite().toYRot());
         TestSupport.place(helper, player, new ItemStack(Items.TERMINAL.get()), pos);
-        if (!(helper.getBlockEntity(pos) instanceof TerminalBlockEntity)) {
-            throw new GameTestAssertException("no terminal at " + pos);
+        if (!(helper.getLevel().getBlockEntity(helper.absolutePos(pos)) instanceof TerminalBlockEntity)) {
+            throw new GameTestAssertException(Component.literal("no terminal at " + pos), 0);
         }
     }
 
@@ -199,32 +204,32 @@ public final class TerminalTests {
         final BlockPos connectorPos = pos.relative(face);
         TestSupport.useOn(helper, player, new ItemStack(Items.NETWORK_CONNECTOR.get()), pos, face);
         if (!helper.getBlockState(connectorPos).is(Blocks.NETWORK_CONNECTOR.get())) {
-            throw new GameTestAssertException("no connector at " + connectorPos);
+            throw new GameTestAssertException(Component.literal("no connector at " + connectorPos), 0);
         }
         return ConnectorFixture.at(helper, connectorPos);
     }
 
     private static void assertConnected(final GameTestHelper helper, final BlockPos pos, final boolean expected, final String what) {
         if (terminal(helper, pos).isConnected() != expected) {
-            throw new GameTestAssertException(what);
+            throw new GameTestAssertException(Component.literal(what), 0);
         }
     }
 
     private static TerminalBlockEntity terminal(final GameTestHelper helper, final BlockPos pos) {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, TerminalBlockEntity.class);
     }
 
     private static void assertTerminalContains(final GameTestHelper helper, final BlockPos pos, final String expected, final String what) {
         final String text = MachineFixture.screen(terminal(helper, pos).getTerminal());
         if (!text.contains(expected)) {
-            throw new GameTestAssertException(what + ": terminal does not hold [" + expected + "]\n" + text);
+            throw new GameTestAssertException(Component.literal(what + ": terminal does not hold [" + expected + "]\n" + text), 0);
         }
     }
 
     private static void assertTerminalLacks(final GameTestHelper helper, final BlockPos pos, final String unexpected, final String what) {
         final String text = MachineFixture.screen(terminal(helper, pos).getTerminal());
         if (text.contains(unexpected)) {
-            throw new GameTestAssertException(what + ": terminal holds [" + unexpected + "]\n" + text);
+            throw new GameTestAssertException(Component.literal(what + ": terminal holds [" + unexpected + "]\n" + text), 0);
         }
     }
 

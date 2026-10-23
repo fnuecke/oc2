@@ -4,7 +4,7 @@ package li.cil.oc2.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import li.cil.oc2.common.vm.device.Terminal;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -16,7 +16,7 @@ public class TerminalOverlayRenderer {
         return new Vec3(camera.x() - 0.5, camera.y() - 0.5, camera.z() - 0.5);
     }
 
-    public static void renderTerminal(final Terminal terminal, final PoseStack stack, final MultiBufferSource bufferSource, final Vec3 cameraOffset) {
+    public static void renderTerminal(final Terminal terminal, final PoseStack stack, final SubmitNodeCollector collector, final Vec3 cameraOffset) {
         // Render terminal content if close enough.
         if (cameraOffset.lengthSqr() < 6 * 6) {
             stack.pushPose();
@@ -37,14 +37,14 @@ public class TerminalOverlayRenderer {
 
             stack.scale(scale, scale, 1f);
 
-            TerminalTextures.get(terminal).draw(stack);
+            TerminalTextures.get(terminal).draw(stack, collector);
 
             stack.popPose();
         } else {
             stack.pushPose();
             stack.translate(0, 0, -0.9f);
 
-            Overlays.renderTerminal(stack.last().pose(), bufferSource);
+            Overlays.renderTerminal(stack, collector);
 
             stack.popPose();
         }

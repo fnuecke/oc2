@@ -10,7 +10,12 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.TerminalInputMessage;
 import li.cil.oc2.common.network.message.TerminalKeepAliveMessage;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import java.nio.ByteBuffer;
@@ -22,8 +27,14 @@ public final class TerminalScreen extends AbstractBlockEntityScreen<TerminalBloc
 
     // --------------------------------------------------------------------- //
 
+    public static void open(final TerminalBlockEntity terminal) {
+        Minecraft.getInstance().setScreen(new TerminalScreen(terminal));
+    }
+
+    // --------------------------------------------------------------------- //
+
     public TerminalScreen(final TerminalBlockEntity terminal) {
-        super(Items.TERMINAL.get().getDescription(), terminal);
+        super(Items.TERMINAL.get().getName(), terminal);
         this.terminalWidget = new TerminalWidget(new TerminalWidget.Parent() {
             @Override
             public int getWidth() {
@@ -61,15 +72,15 @@ public final class TerminalScreen extends AbstractBlockEntityScreen<TerminalBloc
     }
 
     @Override
-    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
-        return terminalWidget.mouseClicked(mouseX, mouseY, button) ||
-            super.mouseClicked(mouseX, mouseY, button);
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean isDoubleClick) {
+        return terminalWidget.mouseClicked(event) ||
+            super.mouseClicked(event, isDoubleClick);
     }
 
     @Override
-    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
-        return terminalWidget.mouseReleased(mouseX, mouseY, button) ||
-            super.mouseReleased(mouseX, mouseY, button);
+    public boolean mouseReleased(final MouseButtonEvent event) {
+        return terminalWidget.mouseReleased(event) ||
+            super.mouseReleased(event);
     }
 
     @Override
@@ -79,15 +90,15 @@ public final class TerminalScreen extends AbstractBlockEntityScreen<TerminalBloc
     }
 
     @Override
-    public boolean charTyped(final char ch, final int modifiers) {
-        return terminalWidget.charTyped(ch, modifiers) ||
-            super.charTyped(ch, modifiers);
+    public boolean charTyped(final CharacterEvent event) {
+        return terminalWidget.charTyped(event) ||
+            super.charTyped(event);
     }
 
     @Override
-    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-        return terminalWidget.keyPressed(keyCode, scanCode, modifiers) ||
-            super.keyPressed(keyCode, scanCode, modifiers);
+    public boolean keyPressed(final KeyEvent event) {
+        return terminalWidget.keyPressed(event) ||
+            super.keyPressed(event);
     }
 
     @Override
@@ -103,8 +114,8 @@ public final class TerminalScreen extends AbstractBlockEntityScreen<TerminalBloc
             Sprites.INPUT_BUTTON_ACTIVE
         ) {
             @Override
-            public void onPress() {
-                super.onPress();
+            public void onPress(final InputWithModifiers input) {
+                super.onPress(input);
                 InputCapture.toggle();
             }
 
@@ -124,16 +135,10 @@ public final class TerminalScreen extends AbstractBlockEntityScreen<TerminalBloc
             Sprites.CONFIG_BUTTON_ACTIVE
         ) {
             @Override
-            public void onPress() {
+            public void onPress(final InputWithModifiers input) {
                 minecraft.setScreen(new TerminalConfigurationScreen(blockEntity));
             }
         }).withTooltip(Component.translatable(Constants.OPEN_CONFIGURATION_CAPTION));
-    }
-
-    @Override
-    public void removed() {
-        super.removed();
-        terminalWidget.onClose();
     }
 
     // --------------------------------------------------------------------- //

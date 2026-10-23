@@ -13,6 +13,10 @@ import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -89,15 +93,15 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     @Override
-    public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
-        return terminalWidget.mouseClicked(mouseX, mouseY, button) ||
-            super.mouseClicked(mouseX, mouseY, button);
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean isDoubleClick) {
+        return terminalWidget.mouseClicked(event) ||
+            super.mouseClicked(event, isDoubleClick);
     }
 
     @Override
-    public boolean mouseReleased(final double mouseX, final double mouseY, final int button) {
-        return terminalWidget.mouseReleased(mouseX, mouseY, button) ||
-            super.mouseReleased(mouseX, mouseY, button);
+    public boolean mouseReleased(final MouseButtonEvent event) {
+        return terminalWidget.mouseReleased(event) ||
+            super.mouseReleased(event);
     }
 
     @Override
@@ -107,24 +111,24 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
     }
 
     @Override
-    public boolean charTyped(final char ch, final int modifiers) {
-        return terminalWidget.charTyped(ch, modifiers) ||
-            super.charTyped(ch, modifiers);
+    public boolean charTyped(final CharacterEvent event) {
+        return terminalWidget.charTyped(event) ||
+            super.charTyped(event);
     }
 
     @Override
-    public boolean keyPressed(final int keyCode, final int scanCode, final int modifiers) {
-        if (terminalWidget.keyPressed(keyCode, scanCode, modifiers)) {
+    public boolean keyPressed(final KeyEvent event) {
+        if (terminalWidget.keyPressed(event)) {
             return true;
         }
 
         // Don't close with inventory binding since we usually want to use that as terminal input
         // even without input capture enabled.
-        if (minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+        if (minecraft.options.keyInventory.matches(event)) {
             return true;
         }
 
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
@@ -146,8 +150,8 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             Sprites.INPUT_BUTTON_ACTIVE
         ) {
             @Override
-            public void onPress() {
-                super.onPress();
+            public void onPress(final InputWithModifiers input) {
+                super.onPress(input);
                 InputCapture.toggle();
             }
 
@@ -167,16 +171,10 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
             Sprites.INVENTORY_BUTTON_ACTIVE
         ) {
             @Override
-            public void onPress() {
+            public void onPress(final InputWithModifiers input) {
                 menu.switchToInventory();
             }
         }).withTooltip(Component.translatable(Constants.MACHINE_OPEN_INVENTORY_CAPTION));
-    }
-
-    @Override
-    public void removed() {
-        super.removed();
-        terminalWidget.onClose();
     }
 
     // --------------------------------------------------------------------- //

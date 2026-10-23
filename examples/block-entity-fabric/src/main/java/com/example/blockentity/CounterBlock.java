@@ -39,6 +39,6 @@ public final class CounterBlock extends BaseEntityBlock {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof final CounterBlockEntity counter) {
             counter.increment();
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

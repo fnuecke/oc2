@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class Instrumentation {
@@ -36,8 +36,8 @@ public final class Instrumentation {
             ClientCommandResultPayload.TYPE, ClientCommandResultPayload.STREAM_CODEC,
             (payload, context) -> context.queue(() -> {
                 final ServerPlayer player = (ServerPlayer) context.getPlayer();
-                player.getServer().sendSystemMessage(Component.literal(
-                    "[client:" + player.getGameProfile().getName() + "] "
+                player.level().getServer().sendSystemMessage(Component.literal(
+                    "[client:" + player.getGameProfile().name() + "] "
                         + payload.command() + " -> " + payload.result()));
             }));
 
@@ -50,7 +50,7 @@ public final class Instrumentation {
 
     public record RunClientCommandPayload(String command) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<RunClientCommandPayload> TYPE =
-            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "run_client_command"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(MOD_ID, "run_client_command"));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, RunClientCommandPayload> STREAM_CODEC =
             StreamCodec.composite(ByteBufCodecs.STRING_UTF8, RunClientCommandPayload::command, RunClientCommandPayload::new);
@@ -63,7 +63,7 @@ public final class Instrumentation {
 
     public record ClientCommandResultPayload(String command, String result) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<ClientCommandResultPayload> TYPE =
-            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "client_command_result"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(MOD_ID, "client_command_result"));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, ClientCommandResultPayload> STREAM_CODEC =
             StreamCodec.composite(

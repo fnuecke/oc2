@@ -3,6 +3,7 @@
 package li.cil.oc2.common.serialization;
 
 import li.cil.ceres.api.Serialized;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import org.junit.jupiter.api.Test;
 
@@ -30,17 +31,17 @@ public final class SerializationTests {
 
         final CompoundTag nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
 
-        assertEquals(123, nbt.getByte("byteValue"));
-        assertEquals(234, nbt.getShort("shortValue"));
-        assertEquals(456, nbt.getInt("intValue"));
-        assertEquals(567, nbt.getLong("longValue"));
-        assertEquals(678.9f, nbt.getFloat("floatValue"));
-        assertEquals(789.0, nbt.getDouble("doubleValue"));
-        assertArrayEquals(new byte[]{1, 2, 3}, nbt.getByteArray("byteArrayValue"));
-        assertArrayEquals(new int[]{4, 5, 6}, nbt.getIntArray("intArrayValue"));
-        assertArrayEquals(new long[]{7, 8, 9}, nbt.getLongArray("longArrayValue"));
-        assertEquals("test string", nbt.getString("stringValue"));
-        assertEquals(uuid, nbt.getCompound("uuidValue").getUUID("uuidValue"));
+        assertEquals((byte) 123, nbt.getByte("byteValue").orElseThrow());
+        assertEquals((short) 234, nbt.getShort("shortValue").orElseThrow());
+        assertEquals(456, nbt.getInt("intValue").orElseThrow());
+        assertEquals(567, nbt.getLong("longValue").orElseThrow());
+        assertEquals(678.9f, nbt.getFloat("floatValue").orElseThrow());
+        assertEquals(789.0, nbt.getDouble("doubleValue").orElseThrow());
+        assertArrayEquals(new byte[]{1, 2, 3}, nbt.getByteArray("byteArrayValue").orElseThrow());
+        assertArrayEquals(new int[]{4, 5, 6}, nbt.getIntArray("intArrayValue").orElseThrow());
+        assertArrayEquals(new long[]{7, 8, 9}, nbt.getLongArray("longArrayValue").orElseThrow());
+        assertEquals("test string", nbt.getString("stringValue").orElseThrow());
+        assertEquals(uuid, nbt.getCompoundOrEmpty("uuidValue").read("uuidValue", UUIDUtil.CODEC).orElseThrow());
     }
 
     @Test
@@ -58,7 +59,7 @@ public final class SerializationTests {
         nbt.putString("stringValue", "another test");
         final UUID uuid = UUID.randomUUID();
         final CompoundTag uuidNBT = new CompoundTag();
-        uuidNBT.putUUID("uuidValue", uuid);
+        uuidNBT.store("uuidValue", UUIDUtil.CODEC, uuid);
         nbt.put("uuidValue", uuidNBT);
 
         final Flat value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, new Flat()));
@@ -92,7 +93,7 @@ public final class SerializationTests {
         nbt.putString("stringValue", "another test");
         final UUID uuid = UUID.randomUUID();
         final CompoundTag uuidNBT = new CompoundTag();
-        uuidNBT.putUUID("uuidValue", uuid);
+        uuidNBT.store("uuidValue", UUIDUtil.CODEC, uuid);
         nbt.put("uuidValue", uuidNBT);
 
         final Flat value = assertDoesNotThrow(() -> NBTSerialization.deserialize(nbt, Flat.class, null));
@@ -116,7 +117,7 @@ public final class SerializationTests {
         final CompoundTag nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(value));
 
         assertTrue(nbt.contains("nonTransientInt"));
-        assertEquals(123, nbt.getInt("nonTransientInt"));
+        assertEquals(123, nbt.getInt("nonTransientInt").orElseThrow());
         assertFalse(nbt.contains("transientInt"));
         assertFalse(nbt.contains("finalInt"));
 
@@ -136,9 +137,9 @@ public final class SerializationTests {
 
         final CompoundTag nbt = assertDoesNotThrow(() -> NBTSerialization.serialize(root));
 
-        assertEquals(123, nbt.getInt("value"));
+        assertEquals(123, nbt.getInt("value").orElseThrow());
         assertTrue(nbt.contains("child"));
-        assertEquals(234, nbt.getCompound("child").getInt("value"));
+        assertEquals(234, nbt.getCompoundOrEmpty("child").getInt("value").orElseThrow());
     }
 
     @Test

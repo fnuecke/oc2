@@ -2,18 +2,18 @@
 
 package li.cil.oc2.common.capabilities;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class CapabilityType<T> {
-    private final ResourceLocation id;
+    private final Identifier id;
     private final Class<T> type;
 
-    public CapabilityType(final ResourceLocation id, final Class<T> type) {
+    public CapabilityType(final Identifier id, final Class<T> type) {
         this.id = id;
         this.type = type;
     }
 
-    public ResourceLocation id() {
+    public Identifier id() {
         return id;
     }
 

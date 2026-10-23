@@ -6,6 +6,7 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.NetworkInterfaceCardItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.NetworkInterfaceCardConfigurationMessage;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +14,12 @@ import net.minecraft.world.entity.player.Player;
 import javax.annotation.Nullable;
 
 public final class NetworkInterfaceCardScreen extends AbstractSideConfigurationScreen {
+    public static void open(final Player player, final InteractionHand hand) {
+        Minecraft.getInstance().setScreen(new NetworkInterfaceCardScreen(player, hand));
+    }
+
+    // --------------------------------------------------------------------- //
+
     public NetworkInterfaceCardScreen(final Player player, final InteractionHand hand) {
         super(player, hand, Items.NETWORK_INTERFACE_CARD.get());
     }

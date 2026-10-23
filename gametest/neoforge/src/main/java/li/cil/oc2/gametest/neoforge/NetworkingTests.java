@@ -6,17 +6,17 @@ import li.cil.oc2.gametest.fixture.ConnectorFixture;
 import li.cil.oc2.gametest.fixture.HubFixture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "networking")
 public final class NetworkingTests {
     private static final BlockPos HUB_A = new BlockPos(2, WORK_Y, 2);
     private static final BlockPos HUB_B = new BlockPos(8, WORK_Y, 2);
@@ -25,7 +25,8 @@ public final class NetworkingTests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 600)
+    @TestHolder
     public static void framesFromTheLocalInterfaceReachThePeer(final GameTestHelper helper) {
         final Link link = placeLink(helper);
 
@@ -38,14 +39,15 @@ public final class NetworkingTests {
 
                 final int after = link.hubB.framesReceived();
                 if (after <= before) {
-                    throw new GameTestAssertException(
-                        "frame from the connector's own interface did not reach the far end (hub frame count " + before + " -> " + after + ")");
+                    throw new GameTestAssertException(Component.literal(
+                        "frame from the connector's own interface did not reach the far end (hub frame count " + before + " -> " + after + ")"), 0);
                 }
             })
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 600)
+    @TestHolder
     public static void framesFromThePeerReachTheLocalInterface(final GameTestHelper helper) {
         final Link link = placeLink(helper);
 
@@ -57,14 +59,15 @@ public final class NetworkingTests {
                     .writeEthernetFrame(link.connectorB.networkInterface(Direction.DOWN), FRAME, 12);
 
                 if (link.hubA.framesReceived() <= before) {
-                    throw new GameTestAssertException(
-                        "a frame arriving over the cable was not delivered to the local block");
+                    throw new GameTestAssertException(Component.literal(
+                        "a frame arriving over the cable was not delivered to the local block"), 0);
                 }
             })
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 600)
+    @TestHolder
     public static void framesAreNotEchoedBackToTheirSource(final GameTestHelper helper) {
         final Link link = placeLink(helper);
 
@@ -76,13 +79,14 @@ public final class NetworkingTests {
                     .writeEthernetFrame(link.hubA.blockEntity(), FRAME, 12);
 
                 if (link.hubA.framesReceived() != before) {
-                    throw new GameTestAssertException("frame was echoed back to its source");
+                    throw new GameTestAssertException(Component.literal("frame was echoed back to its source"), 0);
                 }
             })
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 600)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 600)
+    @TestHolder
     public static void expiredFramesAreDropped(final GameTestHelper helper) {
         final Link link = placeLink(helper);
 
@@ -94,7 +98,7 @@ public final class NetworkingTests {
                     .writeEthernetFrame(link.hubA.blockEntity(), FRAME, 0);
 
                 if (link.hubB.framesReceived() != before) {
-                    throw new GameTestAssertException("a frame with no time to live was forwarded");
+                    throw new GameTestAssertException(Component.literal("a frame with no time to live was forwarded"), 0);
                 }
             })
             .thenSucceed();

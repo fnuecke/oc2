@@ -4,12 +4,14 @@ package li.cil.oc2.common.util;
 
 import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class StorageItemUtils {
@@ -77,11 +79,11 @@ public final class StorageItemUtils {
 
         ItemStackUtils.modifyModDataTag(stack, tag -> {
             // Hard drives and other item devices: item_device -> <device type> -> blob
-            if (tag.contains(ItemDeviceUtils.ITEM_DEVICE_DATA_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-                final CompoundTag deviceData = tag.getCompound(ItemDeviceUtils.ITEM_DEVICE_DATA_TAG_NAME);
-                for (final String key : new ArrayList<>(deviceData.getAllKeys())) {
-                    if (deviceData.contains(key, NBTTagIds.TAG_COMPOUND)) {
-                        takeHandle(deviceData.getCompound(key), handles);
+            if (tag.getCompound(ItemDeviceUtils.ITEM_DEVICE_DATA_TAG_NAME).isPresent()) {
+                final CompoundTag deviceData = tag.getCompoundOrEmpty(ItemDeviceUtils.ITEM_DEVICE_DATA_TAG_NAME);
+                for (final String key : new ArrayList<>(deviceData.keySet())) {
+                    if (deviceData.getCompound(key).isPresent()) {
+                        takeHandle(deviceData.getCompoundOrEmpty(key), handles);
                     }
                 }
             }
@@ -91,12 +93,13 @@ public final class StorageItemUtils {
     }
 
     private static void takeHandle(final CompoundTag tag, @Nullable final List<UUID> handles) {
-        if (!tag.hasUUID(BlobReference.TAG_NAME)) {
+        final Optional<UUID> handle = tag.read(BlobReference.TAG_NAME, UUIDUtil.CODEC);
+        if (handle.isEmpty()) {
             return;
         }
 
         if (handles != null) {
-            handles.add(tag.getUUID(BlobReference.TAG_NAME));
+            handles.add(handle.get());
         }
 
         tag.remove(BlobReference.TAG_NAME);

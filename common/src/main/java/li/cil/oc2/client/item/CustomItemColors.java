@@ -2,9 +2,7 @@
 
 package li.cil.oc2.client.item;
 
-import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
 import li.cil.oc2.common.item.ColoredItem;
-import li.cil.oc2.common.item.Items;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -31,19 +29,6 @@ public final class CustomItemColors {
     public static final int YELLOW = 0xFFFFFC49;
 
     // --------------------------------------------------------------------- //
-
-    private static final int NO_TINT = 0xFFFFFFFF;
-
-    // --------------------------------------------------------------------- //
-
-    public static void initialize() {
-        ColorHandlerRegistry.registerItemColors((stack, layer) -> layer == 1 ? getColor(stack) : NO_TINT,
-            Items.HARD_DRIVE_SMALL,
-            Items.HARD_DRIVE_MEDIUM,
-            Items.HARD_DRIVE_LARGE,
-            Items.FLASH_MEMORY,
-            Items.FLOPPY);
-    }
 
     public static int getColorByDye(final DyeColor dye) {
         return switch (dye) {
@@ -81,7 +66,7 @@ public final class CustomItemColors {
     public static ItemStack withColor(final ItemStack stack, final int color) {
         final Item item = stack.getItem();
         if (item instanceof ColoredItem) {
-            stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color, true));
+            stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color));
         }
         return stack;
     }

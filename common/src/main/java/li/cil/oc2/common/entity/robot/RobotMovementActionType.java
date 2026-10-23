@@ -3,7 +3,7 @@
 package li.cil.oc2.common.entity.robot;
 
 import li.cil.oc2.common.entity.Robot;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
 
 public final class RobotMovementActionType extends AbstractRobotActionType {
     public RobotMovementActionType(final int id) {
@@ -32,7 +32,7 @@ public final class RobotMovementActionType extends AbstractRobotActionType {
     }
 
     @Override
-    public AbstractRobotAction deserialize(final CompoundTag tag) {
-        return new RobotMovementAction(tag);
+    public AbstractRobotAction deserialize(final ValueInput input) {
+        return new RobotMovementAction(input);
     }
 }

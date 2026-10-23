@@ -10,6 +10,9 @@ import li.cil.oc2.common.bus.device.rpc.RPCItemStackTagFilters;
 import li.cil.oc2.common.serialization.NBTToJsonConverter;
 import li.cil.oc2.common.util.ServerUtils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Type;
@@ -22,7 +25,8 @@ public final class ItemStackJsonSerializer implements JsonSerializer<ItemStack> 
         }
 
         // The codec allows 1-99, some mod containers may have larger stacks, so work around that.
-        final CompoundTag tag = (CompoundTag) src.copyWithCount(1).save(ServerUtils.getRegistryAccess());
+        final RegistryOps<Tag> ops = ServerUtils.getRegistryAccess().createSerializationContext(NbtOps.INSTANCE);
+        final CompoundTag tag = (CompoundTag) ItemStack.CODEC.encodeStart(ops, src.copyWithCount(1)).getOrThrow();
         final JsonElement json = NBTToJsonConverter.convert(RPCItemStackTagFilters.getFilteredTag(src, tag));
         json.getAsJsonObject().addProperty("count", src.getCount());
         return json;

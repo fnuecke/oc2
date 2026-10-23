@@ -20,6 +20,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.Objects;
 
 public final class WrenchItem extends ModItem {
+    public WrenchItem(final Properties properties) {
+        super(properties);
+    }
+
+    // --------------------------------------------------------------------- //
+
     public InteractionResult tryRotate(final UseOnContext context) {
         final Level level = context.getLevel();
         final BlockPos pos = context.getClickedPos();
@@ -29,7 +35,7 @@ public final class WrenchItem extends ModItem {
             final BlockState rotatedState = blockState.rotate(face == Direction.UP ? Rotation.CLOCKWISE_90 : Rotation.COUNTERCLOCKWISE_90);
             if (!Objects.equals(blockState, rotatedState)) {
                 level.setBlockAndUpdate(pos, rotatedState);
-                return InteractionResult.sidedSuccess(level.isClientSide());
+                return InteractionResult.SUCCESS;
             }
         }
 
@@ -60,7 +66,7 @@ public final class WrenchItem extends ModItem {
             serverPlayer.gameMode.destroyBlock(pos);
         }
 
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     // --------------------------------------------------------------------- //

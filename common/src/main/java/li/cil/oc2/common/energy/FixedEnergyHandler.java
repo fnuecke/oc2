@@ -2,7 +2,8 @@
 
 package li.cil.oc2.common.energy;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public final class FixedEnergyHandler implements EnergyHandler {
     public static final String STORED_TAG_NAME = "stored";
@@ -67,14 +68,12 @@ public final class FixedEnergyHandler implements EnergyHandler {
 
     // --------------------------------------------------------------------- //
 
-    public CompoundTag serializeNBT() {
-        final CompoundTag tag = new CompoundTag();
-        tag.putInt(STORED_TAG_NAME, energy);
-        tag.putInt(CAPACITY_TAG_NAME, capacity); // Mostly for tooltips.
-        return tag;
+    public void serialize(final ValueOutput output) {
+        output.putInt(STORED_TAG_NAME, energy);
+        output.putInt(CAPACITY_TAG_NAME, capacity); // Mostly for tooltips.
     }
 
-    public void deserializeNBT(final CompoundTag tag) {
-        energy = Math.min(capacity, tag.getInt(STORED_TAG_NAME));
+    public void deserialize(final ValueInput input) {
+        energy = Math.min(capacity, input.getIntOr(STORED_TAG_NAME, 0));
     }
 }

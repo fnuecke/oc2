@@ -19,7 +19,7 @@ import java.util.function.Function;
 
 public final class ToolRecipe extends ShapelessRecipe {
     public ToolRecipe(final ShapelessRecipe recipe) {
-        super(recipe.getGroup(), recipe.category(), recipe.result, recipe.getIngredients());
+        super(recipe.group(), recipe.category(), recipe.result, recipe.ingredients);
     }
 
     // --------------------------------------------------------------------- //
@@ -46,8 +46,9 @@ public final class ToolRecipe extends ShapelessRecipe {
 
         for (int slot = 0; slot < input.size(); slot++) {
             final ItemStack stack = input.getItem(slot);
-            if (stack.getItem().hasCraftingRemainingItem()) {
-                result.set(slot, new ItemStack(stack.getItem().getCraftingRemainingItem()));
+            final ItemStack remainder = stack.getItem().getCraftingRemainder();
+            if (!remainder.isEmpty()) {
+                result.set(slot, remainder);
             } else if (isTool(stack)) {
                 final ItemStack copy = stack.copy();
                 copy.setCount(1);
@@ -63,8 +64,9 @@ public final class ToolRecipe extends ShapelessRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return RecipeSerializers.TOOL.get();
+    @SuppressWarnings("unchecked")
+    public RecipeSerializer<ShapelessRecipe> getSerializer() {
+        return (RecipeSerializer<ShapelessRecipe>) (RecipeSerializer<?>) RecipeSerializers.TOOL.get();
     }
 
     // --------------------------------------------------------------------- //

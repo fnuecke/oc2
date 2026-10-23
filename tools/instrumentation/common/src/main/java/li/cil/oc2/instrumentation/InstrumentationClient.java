@@ -63,7 +63,7 @@ public final class InstrumentationClient {
         final AtomicReference<String> outcome = new AtomicReference<>();
 
         Screenshot.grab(minecraft.gameDirectory, name != null ? name + ".png" : null,
-            minecraft.getMainRenderTarget(), message -> {
+            minecraft.getMainRenderTarget(), 1, message -> {
                 outcome.set(message.getString());
                 done.countDown();
             });

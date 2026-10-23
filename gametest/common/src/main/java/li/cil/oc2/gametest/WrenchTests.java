@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -29,8 +30,8 @@ public final class WrenchTests {
         final Direction after = helper.getBlockState(DEVICE_POS).getValue(HorizontalDirectionalBlock.FACING);
         final Direction expected = Rotation.CLOCKWISE_90.rotate(before);
         if (after != expected) {
-            throw new GameTestAssertException("wrenching the top face should rotate clockwise: expected "
-                + expected + ", got " + after);
+            throw new GameTestAssertException(Component.literal("wrenching the top face should rotate clockwise: expected "
+                + expected + ", got " + after), 0);
         }
         helper.succeed();
     }
@@ -44,8 +45,8 @@ public final class WrenchTests {
         final Direction after = helper.getBlockState(DEVICE_POS).getValue(HorizontalDirectionalBlock.FACING);
         final Direction expected = Rotation.COUNTERCLOCKWISE_90.rotate(before);
         if (after != expected) {
-            throw new GameTestAssertException("wrenching the bottom face should rotate counterclockwise: expected "
-                + expected + ", got " + after);
+            throw new GameTestAssertException(Component.literal("wrenching the bottom face should rotate counterclockwise: expected "
+                + expected + ", got " + after), 0);
         }
         helper.succeed();
     }
@@ -58,8 +59,8 @@ public final class WrenchTests {
 
         final Direction after = helper.getBlockState(DEVICE_POS).getValue(HorizontalDirectionalBlock.FACING);
         if (after != before) {
-            throw new GameTestAssertException("wrenching a side face must not rotate: was " + before
-                + ", now " + after);
+            throw new GameTestAssertException(Component.literal("wrenching a side face must not rotate: was " + before
+                + ", now " + after), 0);
         }
         helper.succeed();
     }
@@ -69,16 +70,16 @@ public final class WrenchTests {
         final BusCableBlockEntity busCable = busCable(helper, DEVICE_POS);
         busCable.setFacade(new ItemStack(net.minecraft.world.item.Items.STONE));
         if (busCable(helper, DEVICE_POS).getFacade().isEmpty()) {
-            throw new GameTestAssertException("test setup failed: facade was not applied");
+            throw new GameTestAssertException(Component.literal("test setup failed: facade was not applied"), 0);
         }
 
         useWrench(helper, DEVICE_POS, Direction.UP, true);
 
         if (helper.getBlockState(DEVICE_POS).isAir()) {
-            throw new GameTestAssertException("sneak-wrenching a facaded cable broke the block");
+            throw new GameTestAssertException(Component.literal("sneak-wrenching a facaded cable broke the block"), 0);
         }
         if (!busCable(helper, DEVICE_POS).getFacade().isEmpty()) {
-            throw new GameTestAssertException("sneak-wrenching should have removed the facade");
+            throw new GameTestAssertException(Component.literal("sneak-wrenching should have removed the facade"), 0);
         }
         helper.succeed();
     }
@@ -89,8 +90,8 @@ public final class WrenchTests {
         useWrench(helper, DEVICE_POS, Direction.NORTH, true);
 
         if (!helper.getBlockState(DEVICE_POS).isAir()) {
-            throw new GameTestAssertException("sneak-wrenching a wrench-breakable block should break it, "
-                + "found " + helper.getBlockState(DEVICE_POS));
+            throw new GameTestAssertException(Component.literal("sneak-wrenching a wrench-breakable block should break it, "
+                + "found " + helper.getBlockState(DEVICE_POS)), 0);
         }
         helper.succeed();
     }
@@ -110,9 +111,9 @@ public final class WrenchTests {
     }
 
     private static BusCableBlockEntity busCable(final GameTestHelper helper, final BlockPos pos) {
-        final BlockEntity blockEntity = helper.getBlockEntity(pos);
+        final BlockEntity blockEntity = helper.getBlockEntity(pos, BlockEntity.class);
         if (!(blockEntity instanceof final BusCableBlockEntity busCable)) {
-            throw new GameTestAssertException("expected a bus cable at " + pos + ", found " + blockEntity);
+            throw new GameTestAssertException(Component.literal("expected a bus cable at " + pos + ", found " + blockEntity), 0);
         }
         return busCable;
     }

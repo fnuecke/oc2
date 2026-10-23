@@ -9,8 +9,8 @@ import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -83,7 +83,7 @@ public final class NetworkCableRenderer {
             return;
         }
 
-        final Vec3 eye = camera.getPosition();
+        final Vec3 eye = camera.position();
 
         renderCables(level, modelViewMatrix, eye, connections, frustum::isVisible);
     }

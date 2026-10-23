@@ -15,12 +15,13 @@ import li.cil.oc2.common.network.SoundCardLoadBalancer;
 import li.cil.oc2.common.serialization.NBTSerialization;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.MuLaw;
-import li.cil.oc2.common.util.NBTTagIds;
 import li.cil.sedna.api.device.audio.AudioSink;
 import li.cil.sedna.device.virtio.VirtIOSoundDevice;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -179,35 +180,25 @@ public final class SoundCardDevice extends IdentityProxy<ItemStack> implements V
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        final CompoundTag tag = new CompoundTag();
-
+    public void serialize(final ValueOutput output) {
         if (device != null) {
             deviceTag = NBTSerialization.serialize(device);
         }
         if (deviceTag != null) {
-            tag.put(DEVICE_TAG_NAME, deviceTag);
+            output.store(DEVICE_TAG_NAME, CompoundTag.CODEC, deviceTag);
         }
         if (address.isPresent()) {
-            tag.putLong(ADDRESS_TAG_NAME, address.getAsLong());
+            output.putLong(ADDRESS_TAG_NAME, address.getAsLong());
         }
         if (interrupt.isPresent()) {
-            tag.putInt(INTERRUPT_TAG_NAME, interrupt.getAsInt());
+            output.putInt(INTERRUPT_TAG_NAME, interrupt.getAsInt());
         }
-
-        return tag;
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag tag) {
-        if (tag.contains(DEVICE_TAG_NAME, NBTTagIds.TAG_COMPOUND)) {
-            deviceTag = tag.getCompound(DEVICE_TAG_NAME);
-        }
-        if (tag.contains(ADDRESS_TAG_NAME, NBTTagIds.TAG_LONG)) {
-            address.set(tag.getLong(ADDRESS_TAG_NAME));
-        }
-        if (tag.contains(INTERRUPT_TAG_NAME, NBTTagIds.TAG_INT)) {
-            interrupt.set(tag.getInt(INTERRUPT_TAG_NAME));
-        }
+    public void deserialize(final ValueInput input) {
+        input.read(DEVICE_TAG_NAME, CompoundTag.CODEC).ifPresent(tag -> deviceTag = tag);
+        input.getLong(ADDRESS_TAG_NAME).ifPresent(address::set);
+        input.getInt(INTERRUPT_TAG_NAME).ifPresent(interrupt::set);
     }
 }

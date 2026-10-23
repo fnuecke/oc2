@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "oc2:circuit_board",
+    "I": "#c:ingots/iron",
+    "T": "oc2:transistor",
+    "U": "#minecraft:buttons",
+    "X": "oc2:bus_interface"
+  },
+  "pattern": [
+    "UUU",
+    "XTU",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "oc2:keyboard"
+  }
+}

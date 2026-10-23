@@ -21,6 +21,8 @@ import li.cil.sedna.memory.MemoryMaps;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -101,15 +103,13 @@ public class FlashStorageDevice extends IdentityProxy<ItemStack> implements VMDe
     }
 
     @Override
-    public CompoundTag serializeNBT() {
-        final CompoundTag tag = new CompoundTag();
-        blob.writeTo(tag);
-        return tag;
+    public void serialize(final ValueOutput output) {
+        blob.writeTo(output);
     }
 
     @Override
-    public void deserializeNBT(final CompoundTag tag) {
-        blob.readFrom(tag);
+    public void deserialize(final ValueInput input) {
+        blob.readFrom(input);
     }
 
     @Subscribe

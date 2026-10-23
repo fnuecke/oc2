@@ -7,18 +7,17 @@ import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.tags.BlockTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.BlockTagCopyingItemTagProvider;
 
 import java.util.concurrent.CompletableFuture;
 
 import static li.cil.oc2.common.tags.ItemTags.*;
 
-public final class ModItemTagsProvider extends ItemTagsProvider {
-    public ModItemTagsProvider(final PackOutput output, final CompletableFuture<HolderLookup.Provider> lookupProvider, final CompletableFuture<TagsProvider.TagLookup<Block>> blockTags, final ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, blockTags, API.MOD_ID, existingFileHelper);
+public final class ModItemTagsProvider extends BlockTagCopyingItemTagProvider {
+    public ModItemTagsProvider(final PackOutput output, final CompletableFuture<HolderLookup.Provider> lookupProvider, final CompletableFuture<TagsProvider.TagLookup<Block>> blockTags) {
+        super(output, lookupProvider, blockTags, API.MOD_ID);
     }
 
     @SuppressWarnings("unchecked")

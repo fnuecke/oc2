@@ -3,6 +3,7 @@
 package li.cil.oc2.client.gui.widget;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.Mth;
 
 public final class Sprite {
@@ -44,7 +45,6 @@ public final class Sprite {
     }
 
     private void blit(final GuiGraphics graphics, final int x, final int y, final int u0, final int v0, final int width, final int height) {
-        // GuiGraphics binds the texture itself, so the explicit Texture.bind() is gone.
-        graphics.blit(texture.location, x, y, u0, v0, width, height, texture.width, texture.height);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture.location, x, y, u0, v0, width, height, texture.width, texture.height);
     }
 }

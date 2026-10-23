@@ -3,6 +3,7 @@
 package li.cil.oc2.client.gui.widget;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public final class NineSliceSprite {
     public final Texture texture;
@@ -67,6 +68,6 @@ public final class NineSliceSprite {
     }
 
     private void blit(final GuiGraphics graphics, final int x, final int y, final int u, final int v, final int width, final int height) {
-        graphics.blit(texture.location, x, y, u, v, width, height, texture.width, texture.height);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture.location, x, y, u, v, width, height, texture.width, texture.height);
     }
 }

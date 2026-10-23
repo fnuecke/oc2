@@ -22,9 +22,9 @@ import li.cil.sedna.api.device.MemoryMappedDevice;
  * <p>
  * The lifecycle for VMDevices can be depicted as such:
  * <pre>
- * ┌──────────────┐ ┌────────────────┐
- * │serializeNBT()│ │deserializeNBT()◄───────┐
- * └──────────────┘ └───────┬────────┘       │
+ * ┌───────────┐    ┌─────────────┐
+ * │serialize()│    │deserialize()◄──────────┐
+ * └───────────┘    └───────┬─────┘          │
  *   May be called          │VM starts or    │
  *   at any time,    ┌──────┤resumes after   │
  *   except while    │      │load            │

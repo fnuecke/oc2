@@ -2,7 +2,10 @@
 
 package li.cil.oc2.common.serialization;
 
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -70,13 +73,19 @@ public final class BlobReference {
 
     public void writeTo(final CompoundTag tag) {
         if (handle != null) {
-            tag.putUUID(TAG_NAME, handle);
+            tag.store(TAG_NAME, UUIDUtil.CODEC, handle);
         }
     }
 
     public void readFrom(final CompoundTag tag) {
-        if (tag.hasUUID(TAG_NAME)) {
-            handle = tag.getUUID(TAG_NAME);
-        }
+        handle = tag.read(TAG_NAME, UUIDUtil.CODEC).orElse(handle);
+    }
+
+    public void writeTo(final ValueOutput output) {
+        output.storeNullable(TAG_NAME, UUIDUtil.CODEC, handle);
+    }
+
+    public void readFrom(final ValueInput input) {
+        handle = input.read(TAG_NAME, UUIDUtil.CODEC).orElse(handle);
     }
 }

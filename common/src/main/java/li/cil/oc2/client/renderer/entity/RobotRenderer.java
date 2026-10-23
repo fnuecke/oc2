@@ -9,18 +9,15 @@ import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
 import li.cil.oc2.common.entity.Robot;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public final class RobotRenderer extends EntityRenderer<Robot> {
+public final class RobotRenderer extends EntityRenderer<Robot, RobotRenderState> {
     private static final Vector3f GLOW_COLOR = new Vector3f(0.16f, 0.43f, 0.45f);
     private static final Vector3f GLOW_COLOR_BRIGHT = new Vector3f(0.35f, 0.95f, 1f);
 
@@ -44,50 +41,59 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
     // --------------------------------------------------------------------- //
 
     @Override
-    public ResourceLocation getTextureLocation(final Robot entity) {
-        return RobotModel.ROBOT_ENTITY_TEXTURE;
+    public RobotRenderState createRenderState() {
+        return new RobotRenderState();
     }
 
     @Override
-    public void render(final Robot entity, final float entityYaw, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int packedLight) {
-        final Robot.AnimationState state = entity.getAnimationState();
-        final long gameTime = entity.level().getGameTime();
-        final double time = (double) gameTime + partialTicks;
-        float deltaTime = Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
-        state.update(time, deltaTime, entity.level().random);
+    public void extractRenderState(final Robot entity, final RobotRenderState renderState, final float partialTicks) {
+        super.extractRenderState(entity, renderState, partialTicks);
 
-        stack.pushPose();
+        final Robot.AnimationState state = entity.getAnimationState();
+
         // NB: we don't entityYaw given to use because that uses a plain lerp which can lead to ugly
         //     jumps in case we get a wrapped rotationYaw synced from the server (leading to ~360
         //     degree delta to the last known previous rotation). Haven't figured out where to
         //     alternatively prevent this wrapping or patch the prev value instead.
         final float partialRotation = Mth.degreesDifferenceAbs(entity.yRotO, entity.getYRot()) * partialTicks;
-        final float rotation = Mth.approachDegrees(entity.yRotO, entity.getYRot(), partialRotation);
-        stack.mulPose(Axis.YN.rotationDegrees(rotation));
+        renderState.rotation = Mth.approachDegrees(entity.yRotO, entity.getYRot(), partialRotation);
+        renderState.baseY = state.getBaseRenderOffsetY(partialTicks);
+        renderState.topY = state.getTopRenderOffsetY(partialTicks);
+        renderState.topRotationY = state.getTopRenderRotationY(partialTicks);
+        renderState.isRunning = entity.getVirtualMachine().isRunning();
+        renderState.statusColor = entity.getStatusColor();
+        renderState.statusValue = entity.getStatusValue();
+        renderState.gameTime = entity.level().getGameTime();
+        renderState.partialTicks = partialTicks;
+    }
 
-        model.setupAnim(entity, 0, 0, 0, 0, 0);
+    @Override
+    public void submit(final RobotRenderState state, final PoseStack stack, final SubmitNodeCollector collector, final CameraRenderState camera) {
+        stack.pushPose();
+        stack.mulPose(Axis.YN.rotationDegrees(state.rotation));
 
-        final VertexConsumer consumer = bufferSource.getBuffer(model.renderType(getTextureLocation(entity)));
-        model.renderToBuffer(stack, consumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        model.submit(stack, collector, state.lightCoords, state.baseY, state.topY, state.topRotationY);
 
-        if (entity.getVirtualMachine().isRunning()) {
+        if (state.isRunning) {
             stack.pushPose();
-            model.applyTopTransform(stack);
-            renderStatusLights(stack, bufferSource, entity.getStatusColor(), entity.getStatusValue());
+            model.applyTopTransform(stack, state.topY, state.topRotationY);
+            renderStatusLights(stack, collector, state.statusColor, state.statusValue);
             stack.popPose();
         }
 
-        if (state.topRenderOffsetY > Robot.AnimationState.TOP_IDLE_Y) {
-            stack.translate(0, state.baseRenderOffsetY, 0);
-            Overlays.renderBox(ModRenderType.getGlow(), stack, bufferSource, GLOW_BOUNDS, GLOW_COLOR, GLOW_COLOR_BRIGHT, gameTime, partialTicks);
+        if (state.topY > Robot.AnimationState.TOP_IDLE_Y) {
+            stack.translate(0, state.baseY, 0);
+            Overlays.renderBox(ModRenderType.getGlow(), stack, collector, GLOW_BOUNDS, GLOW_COLOR, GLOW_COLOR_BRIGHT, state.gameTime, state.partialTicks);
         }
 
         stack.popPose();
+
+        super.submit(state, stack, collector, camera);
     }
 
     // --------------------------------------------------------------------- //
 
-    private static void renderStatusLights(final PoseStack stack, final MultiBufferSource bufferSource, final int color, final float value) {
+    private static void renderStatusLights(final PoseStack stack, final SubmitNodeCollector collector, final int color, final float value) {
         if (value <= 0) {
             return;
         }
@@ -96,21 +102,21 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
         final float g = ((color >>> 8) & 0xFF) / 255f;
         final float b = (color & 0xFF) / 255f;
 
-        final VertexConsumer consumer = bufferSource.getBuffer(ModRenderType.getIndicator());
-        final Matrix4f matrix = stack.last().pose();
         final float top = STATUS_Y + STATUS_HEIGHT * value;
-        addQuad(matrix, consumer, -STATUS_OUTER_X, -STATUS_INNER_X, top, r, g, b);
-        addQuad(matrix, consumer, STATUS_INNER_X, STATUS_OUTER_X, top, r, g, b);
+        collector.submitCustomGeometry(stack, ModRenderType.getIndicator(), (pose, consumer) -> {
+            addQuad(pose, consumer, -STATUS_OUTER_X, -STATUS_INNER_X, top, r, g, b);
+            addQuad(pose, consumer, STATUS_INNER_X, STATUS_OUTER_X, top, r, g, b);
+        });
     }
 
-    private static void addQuad(final Matrix4f matrix, final VertexConsumer consumer, final float x0, final float x1, final float y1, final float r, final float g, final float b) {
+    private static void addQuad(final PoseStack.Pose matrix, final VertexConsumer consumer, final float x0, final float x1, final float y1, final float r, final float g, final float b) {
         addVertex(matrix, consumer, x0, STATUS_Y, r, g, b);
         addVertex(matrix, consumer, x1, STATUS_Y, r, g, b);
         addVertex(matrix, consumer, x1, y1, r, g, b);
         addVertex(matrix, consumer, x0, y1, r, g, b);
     }
 
-    private static void addVertex(final Matrix4f matrix, final VertexConsumer consumer, final float x, final float y, final float r, final float g, final float b) {
+    private static void addVertex(final PoseStack.Pose matrix, final VertexConsumer consumer, final float x, final float y, final float r, final float g, final float b) {
         consumer.addVertex(matrix, x, y, STATUS_Z).setColor(r, g, b, 1f);
     }
 }

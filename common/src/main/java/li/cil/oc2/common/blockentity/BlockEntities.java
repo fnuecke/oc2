@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public final class BlockEntities {
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = RegistryUtils.getInitializerFor(Registries.BLOCK_ENTITY_TYPE);
@@ -47,10 +48,9 @@ public final class BlockEntities {
 
     // --------------------------------------------------------------------- //
 
-    @SuppressWarnings("ConstantConditions") // .build(null) is fine
     private static <B extends Block, T extends BlockEntity> RegistrySupplier<BlockEntityType<T>> register(final RegistrySupplier<B> block, final BlockEntityType.BlockEntitySupplier<T> factory) {
         final RegistrySupplier<BlockEntityType<T>> type = BLOCK_ENTITIES.register(
-            block.getId().getPath(), () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
+            block.getId().getPath(), () -> new BlockEntityType<>(factory, Set.of(block.get())));
         ALL.add(type);
         return type;
     }

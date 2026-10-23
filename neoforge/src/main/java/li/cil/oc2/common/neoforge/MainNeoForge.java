@@ -18,7 +18,7 @@ public final class MainNeoForge {
         MOD_CONTAINER = modContainer;
 
         Main.initialize();
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             Manuals.initialize();
         }
     }

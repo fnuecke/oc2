@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -32,24 +33,24 @@ public final class DeviceBusTests {
             .thenExecuteAfter(60, () -> {
                 attached[0] = computer.deviceCount();
                 if (attached[0] <= baseline[0]) {
-                    throw new GameTestAssertException("precondition: the device never attached, count stayed at "
-                        + baseline[0]);
+                    throw new GameTestAssertException(Component.literal("precondition: the device never attached, count stayed at "
+                        + baseline[0]), 0);
                 }
             })
             .thenExecute(() -> breakBlock(helper, DEVICE_POS))
             .thenExecuteAfter(60, () -> {
                 if (computer.deviceCount() != baseline[0]) {
-                    throw new GameTestAssertException("breaking the neighbour left its devices on the bus: "
-                        + computer.deviceCount() + ", expected " + baseline[0]);
+                    throw new GameTestAssertException(Component.literal("breaking the neighbour left its devices on the bus: "
+                        + computer.deviceCount() + ", expected " + baseline[0]), 0);
                 }
             })
             .thenExecute(() -> placeDevice(helper))
             .thenExecuteAfter(60, () -> {
                 final int rediscovered = computer.deviceCount();
                 if (rediscovered != attached[0]) {
-                    throw new GameTestAssertException(
+                    throw new GameTestAssertException(Component.literal(
                         "neighbour not rediscovered after being replaced: first attach="
-                            + attached[0] + ", after replace=" + rediscovered);
+                            + attached[0] + ", after replace=" + rediscovered), 0);
                 }
             })
             .thenSucceed();
@@ -66,9 +67,9 @@ public final class DeviceBusTests {
             .thenWaitUntil(() -> {
                 attached[0] = computer.deviceCount();
                 if (attached[0] <= base[0]) {
-                    throw new GameTestAssertException(
+                    throw new GameTestAssertException(Component.literal(
                         "chest did not attach in the first place (alone=" + base[0]
-                            + ", attached=" + attached[0] + ")");
+                            + ", attached=" + attached[0] + ")"), 0);
                 }
             })
             .thenExecute(() -> collectGarbage(helper))
@@ -77,9 +78,9 @@ public final class DeviceBusTests {
             .thenWaitUntil(() -> {
                 final int after = computer.deviceCount();
                 if (after != base[0]) {
-                    throw new GameTestAssertException(
+                    throw new GameTestAssertException(Component.literal(
                         "bus kept the device after its capability went away: alone="
-                            + base[0] + ", attached=" + attached[0] + ", after=" + after);
+                            + base[0] + ", attached=" + attached[0] + ", after=" + after), 0);
                 }
             })
             .thenSucceed();
@@ -97,7 +98,7 @@ public final class DeviceBusTests {
         BusCables.placeInterface(helper, player, lastCable, Direction.EAST);
 
         if (helper.absolutePos(CABLE_POS).getX() >> 4 == helper.absolutePos(lastCable).getX() >> 4) {
-            throw new GameTestAssertException("the cable run does not cross a chunk boundary");
+            throw new GameTestAssertException(Component.literal("the cable run does not cross a chunk boundary"), 0);
         }
 
         final int[] base = new int[1];
@@ -108,9 +109,9 @@ public final class DeviceBusTests {
             .thenExecuteAfter(80, () -> {
                 final int reached = computer.deviceCount();
                 if (reached <= base[0]) {
-                    throw new GameTestAssertException(
+                    throw new GameTestAssertException(Component.literal(
                         "device at the far end of a cross-chunk cable run was not found (run="
-                            + base[0] + ", with device=" + reached + ")");
+                            + base[0] + ", with device=" + reached + ")"), 0);
                 }
             })
             .thenSucceed();
@@ -125,8 +126,8 @@ public final class DeviceBusTests {
         final ComputerFixture owner = ComputerFixture.place(helper, player, COMPUTER_POS);
         BusCables.placeCableWithInterfaces(helper, player, CABLE_POS, Direction.WEST, Direction.UP);
         useOn(helper, player, new ItemStack(Items.FLASH_DRIVE.get()), CABLE_POS, Direction.UP);
-        if (!(helper.getBlockEntity(drivePos) instanceof FlashDriveBlockEntity)) {
-            throw new GameTestAssertException("no flash drive at " + drivePos);
+        if (!(helper.getLevel().getBlockEntity(helper.absolutePos(drivePos)) instanceof FlashDriveBlockEntity)) {
+            throw new GameTestAssertException(Component.literal("no flash drive at " + drivePos), 0);
         }
 
         BusCables.placeCableWithInterfaces(helper, player, otherCable, Direction.WEST, Direction.EAST);
@@ -135,12 +136,12 @@ public final class DeviceBusTests {
         helper.startSequence()
             .thenExecuteAfter(80, () -> {
                 if (countFlashDrives(owner) == 0) {
-                    throw new GameTestAssertException(
-                        "the bus touching the drive's mounting face does not see it: " + owner.describe());
+                    throw new GameTestAssertException(Component.literal(
+                        "the bus touching the drive's mounting face does not see it: " + owner.describe()), 0);
                 }
                 if (countFlashDrives(bystander) != 0) {
-                    throw new GameTestAssertException(
-                        "drive is visible from a side face: " + bystander.describe());
+                    throw new GameTestAssertException(Component.literal(
+                        "drive is visible from a side face: " + bystander.describe()), 0);
                 }
             })
             .thenSucceed();

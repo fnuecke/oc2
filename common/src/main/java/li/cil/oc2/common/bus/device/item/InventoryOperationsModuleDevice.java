@@ -127,7 +127,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         }
 
         return ItemHandlerUtils.transfer(inventory, fromSlot, count,
-            (stack, simulate) -> inventory.insertItem(intoSlot, stack, simulate), entity::spawnAtLocation);
+            (stack, simulate) -> inventory.insertItem(intoSlot, stack, simulate), stack -> entity.spawnAtLocation((ServerLevel) entity.level(), stack));
     }
 
     @Callback(energy = 1, description = DROP_DESCRIPTION, returnValueDescription = "the number of items dropped.")
@@ -139,7 +139,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
     public int drop(@Parameter(value = "count", description = "the number of items to drop.") final int count,
                     @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         return ItemHandlerUtils.transferFirst(List.of(inventory()), robot.getSelectedSlot(),
-            requireItemHandlersOrWorld(side), ItemHandlerUtils.ANY_SLOT, 0, count, entity::spawnAtLocation);
+            requireItemHandlersOrWorld(side), ItemHandlerUtils.ANY_SLOT, 0, count, stack -> entity.spawnAtLocation((ServerLevel) entity.level(), stack));
     }
 
     @Callback(energy = 1, description = DROP_INTO_DESCRIPTION, returnValueDescription = "the number of items dropped.")
@@ -153,7 +153,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
                         @Parameter(value = "count", description = "the number of items to drop.") final int count,
                         @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         return ItemHandlerUtils.transferFirst(List.of(inventory()), robot.getSelectedSlot(),
-            ItemHandlerDeviceUtils.requireItemHandlersWithSlot(requireItemHandlers(side), intoSlot), intoSlot, 0, count, entity::spawnAtLocation);
+            ItemHandlerDeviceUtils.requireItemHandlersWithSlot(requireItemHandlers(side), intoSlot), intoSlot, 0, count, stack -> entity.spawnAtLocation((ServerLevel) entity.level(), stack));
     }
 
     @Callback(energy = 1, description = TAKE_DESCRIPTION, returnValueDescription = "the number of items taken.")
@@ -165,7 +165,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
     public int take(@Parameter(value = "count", description = "the number of items to take.") final int count,
                     @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         return ItemHandlerUtils.transferFirst(requireItemHandlersOrWorld(side), ItemHandlerUtils.ANY_SLOT,
-            List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, entity::spawnAtLocation);
+            List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, stack -> entity.spawnAtLocation((ServerLevel) entity.level(), stack));
     }
 
     @Callback(energy = 1, description = TAKE_FROM_DESCRIPTION, returnValueDescription = "the number of items taken.")
@@ -179,7 +179,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
                         @Parameter(value = "count", description = "the number of items to take.") final int count,
                         @Parameter(value = "side", description = "`front`, `up` or `down`. Optional, defaults to `front`.", optional = true) @Nullable final RobotOperationSide side) {
         return ItemHandlerUtils.transferFirst(ItemHandlerDeviceUtils.requireItemHandlersWithSlot(requireItemHandlers(side), fromSlot), fromSlot,
-            List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, entity::spawnAtLocation);
+            List.of(inventory()), ItemHandlerUtils.ANY_SLOT, robot.getSelectedSlot(), count, stack -> entity.spawnAtLocation((ServerLevel) entity.level(), stack));
     }
 
     @Callback(energy = 1, description = MOVE_INTO_DESCRIPTION, returnValueDescription = "the number of items moved.")
@@ -193,7 +193,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         }
 
         return ItemHandlerUtils.transferFirst(List.of(inventory), fromSlot,
-            List.of(ItemHandlerDeviceUtils.requireContainerItem(inventory, selectedSlot)), ItemHandlerUtils.ANY_SLOT, 0, count, entity::spawnAtLocation);
+            List.of(ItemHandlerDeviceUtils.requireContainerItem(inventory, selectedSlot)), ItemHandlerUtils.ANY_SLOT, 0, count, stack -> entity.spawnAtLocation((ServerLevel) entity.level(), stack));
     }
 
     @Callback(energy = 1, description = MOVE_FROM_DESCRIPTION, returnValueDescription = "the number of items moved.")
@@ -207,7 +207,7 @@ public final class InventoryOperationsModuleDevice extends AbstractItemDevice {
         }
 
         return ItemHandlerUtils.transferFirst(List.of(ItemHandlerDeviceUtils.requireContainerItem(inventory, selectedSlot)), ItemHandlerUtils.ANY_SLOT,
-            List.of(inventory), intoSlot, 0, count, entity::spawnAtLocation);
+            List.of(inventory), intoSlot, 0, count, stack -> entity.spawnAtLocation((ServerLevel) entity.level(), stack));
     }
 
     // --------------------------------------------------------------------- //

@@ -4,7 +4,7 @@ package li.cil.oc2.common;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import li.cil.oc2.common.config.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,7 +41,7 @@ public abstract class ConfigManager {
         STRING_CONVERTERS.put(double.class, Pair.of(o -> String.valueOf((double) o), Double::parseDouble));
         STRING_CONVERTERS.put(String.class, Pair.of(s -> (String) s, s -> s));
         STRING_CONVERTERS.put(UUID.class, Pair.of(Object::toString, UUID::fromString));
-        STRING_CONVERTERS.put(ResourceLocation.class, Pair.of(Object::toString, ResourceLocation::parse));
+        STRING_CONVERTERS.put(Identifier.class, Pair.of(Object::toString, Identifier::parse));
     }
 
     // --------------------------------------------------------------------- //

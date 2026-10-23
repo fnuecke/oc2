@@ -20,6 +20,7 @@ import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.stats.Stat;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -50,6 +51,7 @@ public final class FakePlayerUtilsImpl {
         private FabricFakePlayer(final ServerLevel level, final GameProfile profile) {
             super(level.getServer(), level, profile, ClientInformation.createDefault());
             this.connection = new FakePlayerPacketListener(level.getServer(), this);
+            this.gameMode.setGameModeForPlayer(GameType.SURVIVAL, null);
         }
 
         @Override
@@ -61,7 +63,7 @@ public final class FakePlayerUtilsImpl {
         }
 
         @Override
-        public boolean isInvulnerableTo(final DamageSource source) {
+        public boolean isInvulnerableTo(final ServerLevel level, final DamageSource source) {
             return true;
         }
 

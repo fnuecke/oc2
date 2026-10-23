@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -46,7 +47,7 @@ public final class ConnectorFixture {
     }
 
     public NetworkConnectorBlockEntity blockEntity() {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, NetworkConnectorBlockEntity.class);
     }
 
     public ConnectionResult tryLinkTo(final ConnectorFixture other) {
@@ -56,7 +57,7 @@ public final class ConnectorFixture {
     public void linkTo(final ConnectorFixture other) {
         final ConnectionResult result = tryLinkTo(other);
         if (result != ConnectionResult.SUCCESS) {
-            throw new GameTestAssertException("could not link the connectors: " + result);
+            throw new GameTestAssertException(Component.literal("could not link the connectors: " + result), 0);
         }
     }
 
@@ -68,7 +69,7 @@ public final class ConnectorFixture {
         final NetworkInterface networkInterface = Capabilities.get(
             blockEntity(), Capabilities.NETWORK_INTERFACE, side);
         if (networkInterface == null) {
-            throw new GameTestAssertException("connector at " + pos + " exposes no network interface");
+            throw new GameTestAssertException(Component.literal("connector at " + pos + " exposes no network interface"), 0);
         }
         return networkInterface;
     }
@@ -80,7 +81,7 @@ public final class ConnectorFixture {
             field.setAccessible(true);
             return field.get(blockEntity());
         } catch (final ReflectiveOperationException e) {
-            throw new GameTestAssertException("could not read the connector's adjacent interface: " + e);
+            throw new GameTestAssertException(Component.literal("could not read the connector's adjacent interface: " + e), 0);
         }
     }
 

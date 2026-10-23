@@ -13,19 +13,19 @@ import li.cil.oc2.gametest.fixture.Hardware;
 import li.cil.oc2.gametest.util.BusCables;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestSequence;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import static li.cil.oc2.gametest.util.TestSupport.*;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "redstone_event")
 public final class RedstoneEventTests {
     private static final String BATCH = "oc2_redstone_events";
     private static final String SUITE = "redstone_events";
@@ -38,7 +38,8 @@ public final class RedstoneEventTests {
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BATCH)
+    @TestHolder
     public static void guestReceivesInputChanges(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerWithRedstoneInterface(helper);
         final GuestTests tests = computer.guestTests();
@@ -63,7 +64,8 @@ public final class RedstoneEventTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MLAPI_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MLAPI_BATCH)
+    @TestHolder
     public static void guestExampleWaitsForInputChange(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerWithRedstoneInterface(helper);
         final GuestTests tests = computer.guestTests();
@@ -82,11 +84,12 @@ public final class RedstoneEventTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MLAPI_NAMES_BATCH)
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = MLAPI_NAMES_BATCH)
+    @TestHolder
     public static void guestExampleListsInterfaceLabel(final GameTestHelper helper) {
         final ComputerFixture computer = placeComputerWithRedstoneInterface(helper);
         final GuestTests tests = computer.guestTests();
-        final BusCableBlockEntity cable = helper.getBlockEntity(CABLE_POS);
+        final BusCableBlockEntity cable = helper.getBlockEntity(CABLE_POS, BusCableBlockEntity.class);
         cable.setInterfaceName(Direction.EAST, "test_device");
 
         startSequence(helper, computer, tests, MLAPI_NAMES_SUITE)
@@ -122,7 +125,7 @@ public final class RedstoneEventTests {
     }
 
     private static RedstoneInterfaceBlockEntity redstoneInterface(final GameTestHelper helper) {
-        return helper.getBlockEntity(DEVICE_POS);
+        return helper.getBlockEntity(DEVICE_POS, RedstoneInterfaceBlockEntity.class);
     }
 
     // --------------------------------------------------------------------- //

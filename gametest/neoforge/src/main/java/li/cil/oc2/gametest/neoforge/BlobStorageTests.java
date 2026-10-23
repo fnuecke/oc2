@@ -13,17 +13,18 @@ import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.StorageItemUtils;
 import li.cil.oc2.common.util.StorageItemUtils.State;
-import net.minecraft.core.NonNullList;
-import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
+import net.neoforged.testframework.gametest.GameTest;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,17 +34,16 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static li.cil.oc2.gametest.util.Blobs.*;
-import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
-import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
+import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
-@GameTestHolder(MOD_ID)
-@PrefixGameTestTemplate(false)
+@ForEachTest(groups = "blob_storage")
 public final class BlobStorageTests {
     private static final long ANCIENT_MILLIS = 1000L;
 
     // --------------------------------------------------------------------- //
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void capacityIsClampedToConfiguredMaximum(final GameTestHelper helper) {
         final int originalMaximum = Config.maxBlobCapacity;
         try {
@@ -54,8 +54,8 @@ public final class BlobStorageTests {
 
             final int capacity = item.getCapacity(stack);
             if (capacity != Config.maxBlobCapacity) {
-                throw new GameTestAssertException("Hand crafted capacity was not clamped: expected "
-                    + Config.maxBlobCapacity + ", got " + capacity);
+                throw new GameTestAssertException(Component.literal("Hand crafted capacity was not clamped: expected "
+                    + Config.maxBlobCapacity + ", got " + capacity), 0);
             }
         } finally {
             Config.maxBlobCapacity = originalMaximum;
@@ -64,7 +64,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void capacityIsUnboundedWhenMaximumIsZero(final GameTestHelper helper) {
         final int originalMaximum = Config.maxBlobCapacity;
         try {
@@ -74,8 +75,8 @@ public final class BlobStorageTests {
             final ItemStack stack = item.withCapacity(new ItemStack(item), 12345);
 
             if (item.getCapacity(stack) != 12345) {
-                throw new GameTestAssertException("A maximum of zero should mean no limit, got "
-                    + item.getCapacity(stack));
+                throw new GameTestAssertException(Component.literal("A maximum of zero should mean no limit, got "
+                    + item.getCapacity(stack)), 0);
             }
         } finally {
             Config.maxBlobCapacity = originalMaximum;
@@ -84,7 +85,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void saveClearsClosedMarkers(final GameTestHelper helper) {
         final BlobReference closedBlob = new BlobReference();
         final BlobReference stillOpenBlob = new BlobReference();
@@ -96,13 +98,13 @@ public final class BlobStorageTests {
             BlobStorage.handleSaved();
 
             if (BlobStorage.isMarkedHandle(closed)) {
-                throw new GameTestAssertException("marker of a blob closed before the save should be gone");
+                throw new GameTestAssertException(Component.literal("marker of a blob closed before the save should be gone"), 0);
             }
             if (!BlobStorage.isMarkedHandle(stillOpen)) {
-                throw new GameTestAssertException("blob still open at the save should keep its marker");
+                throw new GameTestAssertException(Component.literal("blob still open at the save should keep its marker"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(closedBlob);
             release(stillOpenBlob);
@@ -111,29 +113,30 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void ownMarkersAreNeverStale(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
             final UUID handle = createBlob(blob);
             if (BlobStorage.isStaleHandle(handle)) {
-                throw new GameTestAssertException("A blob we are holding open is not evidence of a crash");
+                throw new GameTestAssertException(Component.literal("A blob we are holding open is not evidence of a crash"), 0);
             }
 
             blob.close();
             if (!BlobStorage.isMarkedHandle(handle)) {
-                throw new GameTestAssertException("Precondition: closing keeps the marker");
+                throw new GameTestAssertException(Component.literal("Precondition: closing keeps the marker"), 0);
             }
             if (BlobStorage.isStaleHandle(handle)) {
-                throw new GameTestAssertException("A marker this session wrote is not evidence of a crash");
+                throw new GameTestAssertException(Component.literal("A marker this session wrote is not evidence of a crash"), 0);
             }
 
             BlobStorage.handleSaved();
             if (BlobStorage.isMarkedHandle(handle) || BlobStorage.isStaleHandle(handle)) {
-                throw new GameTestAssertException("The save clears the marker and the handle with it");
+                throw new GameTestAssertException(Component.literal("The save clears the marker and the handle with it"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -141,27 +144,28 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void foreignMarkerIsStale(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
         final Path directory = BlobStorage.getDataDirectory();
         if (directory == null) {
-            throw new GameTestAssertException("Blob storage is not initialized");
+            throw new GameTestAssertException(Component.literal("Blob storage is not initialized"), 0);
         }
 
         try {
             markStale(handle);
 
             if (!BlobStorage.isStaleHandle(handle)) {
-                throw new GameTestAssertException("marker from another session should read as stale");
+                throw new GameTestAssertException(Component.literal("marker from another session should read as stale"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             try {
                 Files.deleteIfExists(directory.resolve(handle + ".dirty"));
             } catch (final IOException e) {
-                throw new GameTestAssertException("Failed cleaning up: " + e);
+                throw new GameTestAssertException(Component.literal("Failed cleaning up: " + e), 0);
             }
             release(handle);
         }
@@ -169,7 +173,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void reopeningBeforeSaveKeepsTheMarker(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -180,10 +185,10 @@ public final class BlobStorageTests {
             BlobStorage.handleSaved();
 
             if (!BlobStorage.isMarkedHandle(handle)) {
-                throw new GameTestAssertException("save should keep the marker of a reopened blob");
+                throw new GameTestAssertException(Component.literal("save should keep the marker of a reopened blob"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -191,7 +196,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void deletingABlobTakesItsMarker(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -200,11 +206,11 @@ public final class BlobStorageTests {
             BlobStorage.delete(handle);
 
             if (BlobStorage.isMarkedHandle(handle)) {
-                throw new GameTestAssertException("A marker outliving its blob would flag whatever handle "
-                    + "happened to land on it next");
+                throw new GameTestAssertException(Component.literal("A marker outliving its blob would flag whatever handle "
+                    + "happened to land on it next"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -212,13 +218,14 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void evictionMovesBlobAndMarkerToTrash(final GameTestHelper helper) {
         final ConfigSnapshot config = ConfigSnapshot.take();
         final List<UUID> handles = new ArrayList<>();
         final Path trashDirectory = BlobStorage.getTrashDirectory();
         if (trashDirectory == null) {
-            throw new GameTestAssertException("Blob storage is not initialized");
+            throw new GameTestAssertException(Component.literal("Blob storage is not initialized"), 0);
         }
 
         try {
@@ -231,18 +238,18 @@ public final class BlobStorageTests {
             createClosedBlob(handles, System.currentTimeMillis());
 
             if (BlobStorage.exists(evicted) || BlobStorage.isMarkedHandle(evicted)) {
-                throw new GameTestAssertException("Eviction must take the blob and its marker out of the blob "
-                    + "directory");
+                throw new GameTestAssertException(Component.literal("Eviction must take the blob and its marker out of the blob "
+                    + "directory"), 0);
             }
             if (!Files.exists(trashDirectory.resolve(evicted.toString()))
                 || !Files.exists(trashDirectory.resolve(evicted + ".dirty"))) {
-                throw new GameTestAssertException("blob and marker belong in the trash under their original names");
+                throw new GameTestAssertException(Component.literal("blob and marker belong in the trash under their original names"), 0);
             }
 
             Files.deleteIfExists(trashDirectory.resolve(evicted.toString()));
             Files.deleteIfExists(trashDirectory.resolve(evicted + ".dirty"));
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             config.restore();
             releaseAll(handles);
@@ -251,7 +258,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void markersDoNotCountAsBlobs(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -259,10 +267,10 @@ public final class BlobStorageTests {
             createBlob(blob);
 
             if (BlobStorage.getBlobCount() != before + 1) {
-                throw new GameTestAssertException("marker should not count towards the blob count");
+                throw new GameTestAssertException(Component.literal("marker should not count towards the blob count"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -270,22 +278,24 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void openRefusesMissingBlob(final GameTestHelper helper) {
         final UUID handle = BlobStorage.allocateHandle();
 
         try {
             BlobStorage.open(handle, false);
-            throw new GameTestAssertException("opening a missing blob should fail");
+            throw new GameTestAssertException(Component.literal("opening a missing blob should fail"), 0);
         } catch (final BlobStorage.BlobMissingException ignored) {
         } catch (final IOException e) {
-            throw new GameTestAssertException("Expected BlobMissingException, got " + e);
+            throw new GameTestAssertException(Component.literal("Expected BlobMissingException, got " + e), 0);
         }
 
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void openRefusesBlobAlreadyInUse(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -293,11 +303,11 @@ public final class BlobStorageTests {
 
             try {
                 BlobStorage.open(handle, true);
-                throw new GameTestAssertException("opening a blob that is already in use should fail");
+                throw new GameTestAssertException(Component.literal("opening a blob that is already in use should fail"), 0);
             } catch (final BlobStorage.BlobInUseException ignored) {
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -305,7 +315,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void referenceRefusesToOpenTwice(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -313,11 +324,11 @@ public final class BlobStorageTests {
 
             try {
                 blob.open();
-                throw new GameTestAssertException("opening a reference that is already open should fail");
+                throw new GameTestAssertException(Component.literal("opening a reference that is already open should fail"), 0);
             } catch (final IllegalStateException ignored) {
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -325,7 +336,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void evictionRemovesLeastRecentlyUsedBlob(final GameTestHelper helper) {
         final ConfigSnapshot config = ConfigSnapshot.take();
         final List<UUID> handles = new ArrayList<>();
@@ -341,13 +353,13 @@ public final class BlobStorageTests {
             createClosedBlob(handles, System.currentTimeMillis());
 
             if (BlobStorage.exists(oldest)) {
-                throw new GameTestAssertException("Least recently used blob should have been evicted");
+                throw new GameTestAssertException(Component.literal("Least recently used blob should have been evicted"), 0);
             }
             if (!BlobStorage.exists(newer)) {
-                throw new GameTestAssertException("More recently used blob should have been kept");
+                throw new GameTestAssertException(Component.literal("More recently used blob should have been kept"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             config.restore();
             releaseAll(handles);
@@ -356,7 +368,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void evictionKeepsBlobsThatAreInUse(final GameTestHelper helper) {
         final ConfigSnapshot config = ConfigSnapshot.take();
         final List<UUID> handles = new ArrayList<>();
@@ -375,13 +388,13 @@ public final class BlobStorageTests {
             createClosedBlob(handles, System.currentTimeMillis());
 
             if (!BlobStorage.exists(inUse) || !BlobStorage.isOpen(inUse)) {
-                throw new GameTestAssertException("an open blob should never be evicted");
+                throw new GameTestAssertException(Component.literal("an open blob should never be evicted"), 0);
             }
             if (BlobStorage.exists(evictable)) {
-                throw new GameTestAssertException("The closed blob should have been evicted instead");
+                throw new GameTestAssertException(Component.literal("The closed blob should have been evicted instead"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             config.restore();
             release(inUseBlob);
@@ -391,7 +404,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void evictionKeepsBlobsWithinGracePeriod(final GameTestHelper helper) {
         final ConfigSnapshot config = ConfigSnapshot.take();
         final List<UUID> handles = new ArrayList<>();
@@ -408,13 +422,13 @@ public final class BlobStorageTests {
             createClosedBlob(handles, System.currentTimeMillis());
 
             if (BlobStorage.exists(stale)) {
-                throw new GameTestAssertException("A blob well past the grace period should have been evicted");
+                throw new GameTestAssertException(Component.literal("A blob well past the grace period should have been evicted"), 0);
             }
             if (!BlobStorage.exists(recent)) {
-                throw new GameTestAssertException("A blob used within the grace period must not be evicted");
+                throw new GameTestAssertException(Component.literal("A blob used within the grace period must not be evicted"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             config.restore();
             releaseAll(handles);
@@ -423,13 +437,14 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void trashIsTrimmedToConfiguredSize(final GameTestHelper helper) {
         final ConfigSnapshot config = ConfigSnapshot.take();
         final List<UUID> handles = new ArrayList<>();
         final Path trashDirectory = BlobStorage.getTrashDirectory();
         if (trashDirectory == null) {
-            throw new GameTestAssertException("Blob storage is not initialized");
+            throw new GameTestAssertException(Component.literal("Blob storage is not initialized"), 0);
         }
 
         try {
@@ -450,17 +465,17 @@ public final class BlobStorageTests {
             }
 
             if (trashedCount > Config.maxTrashedBlobCount) {
-                throw new GameTestAssertException("Trash should have been trimmed to "
-                    + Config.maxTrashedBlobCount + ", holds " + trashedCount);
+                throw new GameTestAssertException(Component.literal("Trash should have been trimmed to "
+                    + Config.maxTrashedBlobCount + ", holds " + trashedCount), 0);
             }
             if (Files.exists(trashDirectory.resolve(first.toString()))) {
-                throw new GameTestAssertException("Trash should drop its oldest entry first");
+                throw new GameTestAssertException(Component.literal("Trash should drop its oldest entry first"), 0);
             }
 
             Files.deleteIfExists(trashDirectory.resolve(second.toString()));
             Files.deleteIfExists(trashDirectory.resolve(second + ".dirty"));
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             config.restore();
             releaseAll(handles);
@@ -469,7 +484,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void clearBlobDataReleasesBlobAndClearsFlag(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -480,22 +496,22 @@ public final class BlobStorageTests {
             StorageItemUtils.setState(stack, State.CORRUPTED);
 
             if (!isCorrupted(stack)) {
-                throw new GameTestAssertException("Item should have been flagged as corrupted");
+                throw new GameTestAssertException(Component.literal("Item should have been flagged as corrupted"), 0);
             }
 
             StorageItemUtils.clearBlobData(stack);
 
             if (isCorrupted(stack)) {
-                throw new GameTestAssertException("Resetting the item should clear the corrupted flag");
+                throw new GameTestAssertException(Component.literal("Resetting the item should clear the corrupted flag"), 0);
             }
-            if (ItemDeviceUtils.getItemDeviceData(stack).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
-                throw new GameTestAssertException("Resetting the item should drop the blob handle");
+            if (ItemDeviceUtils.getItemDeviceData(stack).getCompoundOrEmpty(DEVICE_KEY).read(HANDLE_TAG_NAME, UUIDUtil.CODEC).isPresent()) {
+                throw new GameTestAssertException(Component.literal("Resetting the item should drop the blob handle"), 0);
             }
             if (BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("resetting the item should delete its blob");
+                throw new GameTestAssertException(Component.literal("resetting the item should delete its blob"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -503,7 +519,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void clearBlobDataKeepsBlobThatIsInUse(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -512,10 +529,10 @@ public final class BlobStorageTests {
             StorageItemUtils.clearBlobData(driveReferencing(new ItemStack(Items.HARD_DRIVE_LARGE.get()), handle));
 
             if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("a blob another item holds open should survive a reset");
+                throw new GameTestAssertException(Component.literal("a blob another item holds open should survive a reset"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -523,7 +540,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void stripBlobDataLeavesBlobAlone(final GameTestHelper helper) {
         final BlobReference blob = new BlobReference();
         try {
@@ -533,14 +551,14 @@ public final class BlobStorageTests {
             final ItemStack stack = driveReferencing(new ItemStack(Items.HARD_DRIVE_LARGE.get()), handle);
             StorageItemUtils.stripBlobData(stack);
 
-            if (ItemDeviceUtils.getItemDeviceData(stack).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
-                throw new GameTestAssertException("Stripping should drop the blob handle");
+            if (ItemDeviceUtils.getItemDeviceData(stack).getCompoundOrEmpty(DEVICE_KEY).read(HANDLE_TAG_NAME, UUIDUtil.CODEC).isPresent()) {
+                throw new GameTestAssertException(Component.literal("Stripping should drop the blob handle"), 0);
             }
             if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("stripping should leave the blob alone");
+                throw new GameTestAssertException(Component.literal("stripping should leave the blob alone"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             release(blob);
         }
@@ -548,19 +566,20 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void resetRecipeOnlyAppliesToCorruptedOrUnverifiedDrives(final GameTestHelper helper) {
         final ResetRecipe recipe = new ResetRecipe(CraftingBookCategory.MISC);
 
         final ItemStack healthy = new ItemStack(Items.HARD_DRIVE_LARGE.get());
         if (recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
-            throw new GameTestAssertException("reset should not match a healthy drive");
+            throw new GameTestAssertException(Component.literal("reset should not match a healthy drive"), 0);
         }
 
         final ItemStack corrupted = new ItemStack(Items.HARD_DRIVE_LARGE.get());
         StorageItemUtils.setState(corrupted, State.CORRUPTED);
         if (!recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
-            throw new GameTestAssertException("Resetting must apply to a drive that lost its data");
+            throw new GameTestAssertException(Component.literal("Resetting must apply to a drive that lost its data"), 0);
         }
 
         final BlobReference blob = new BlobReference();
@@ -569,7 +588,7 @@ public final class BlobStorageTests {
             final UUID handle = createBlob(blob);
             blob.close();
             if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("Precondition: the drive has data to keep");
+                throw new GameTestAssertException(Component.literal("Precondition: the drive has data to keep"), 0);
             }
 
             driveReferencing(unverified, handle);
@@ -578,25 +597,25 @@ public final class BlobStorageTests {
             final CraftingInput input = gridOf(unverified, new ItemStack(Items.WRENCH.get()));
 
             if (!recipe.matches(input, helper.getLevel())) {
-                throw new GameTestAssertException("Accepting an unverified drive is the same craft as "
-                    + "resetting a corrupted one");
+                throw new GameTestAssertException(Component.literal("Accepting an unverified drive is the same craft as "
+                    + "resetting a corrupted one"), 0);
             }
 
             final ItemStack result = recipe.assemble(input, helper.getLevel().registryAccess());
             if (StorageItemUtils.getState(result) != State.ACKNOWLEDGED) {
-                throw new GameTestAssertException("The craft moves the drive to acknowledged, got "
-                    + StorageItemUtils.getState(result));
+                throw new GameTestAssertException(Component.literal("The craft moves the drive to acknowledged, got "
+                    + StorageItemUtils.getState(result)), 0);
             }
-            if (!ItemDeviceUtils.getItemDeviceData(result).getCompound(DEVICE_KEY).hasUUID(HANDLE_TAG_NAME)) {
-                throw new GameTestAssertException("reset of an unverified drive should keep the handle");
+            if (!ItemDeviceUtils.getItemDeviceData(result).getCompoundOrEmpty(DEVICE_KEY).read(HANDLE_TAG_NAME, UUIDUtil.CODEC).isPresent()) {
+                throw new GameTestAssertException(Component.literal("reset of an unverified drive should keep the handle"), 0);
             }
 
             recipe.getRemainingItems(input);
             if (!BlobStorage.exists(handle)) {
-                throw new GameTestAssertException("...and it must not delete the blob either");
+                throw new GameTestAssertException(Component.literal("...and it must not delete the blob either"), 0);
             }
         } catch (final IOException e) {
-            throw new GameTestAssertException("Unexpected failure: " + e);
+            throw new GameTestAssertException(Component.literal("Unexpected failure: " + e), 0);
         } finally {
             StorageItemUtils.clearBlobData(unverified);
             release(blob);
@@ -605,7 +624,8 @@ public final class BlobStorageTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void resetKeepsCapacity(final GameTestHelper helper) {
         final ResetRecipe recipe = new ResetRecipe(CraftingBookCategory.MISC);
 
@@ -617,42 +637,43 @@ public final class BlobStorageTests {
             gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel().registryAccess());
 
         if (!result.is(item)) {
-            throw new GameTestAssertException("Reset should hand back the same kind of drive");
+            throw new GameTestAssertException(Component.literal("Reset should hand back the same kind of drive"), 0);
         }
         if (item.getCapacity(result) != 2 * 1024 * 1024) {
-            throw new GameTestAssertException("Reset must keep the drive's capacity, got "
-                + item.getCapacity(result));
+            throw new GameTestAssertException(Component.literal("Reset must keep the drive's capacity, got "
+                + item.getCapacity(result)), 0);
         }
         if (isCorrupted(result)) {
-            throw new GameTestAssertException("Reset should hand back a drive that is no longer corrupted");
+            throw new GameTestAssertException(Component.literal("Reset should hand back a drive that is no longer corrupted"), 0);
         }
 
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
     public static void toolRecipeStepsAsideForCorruptedOrUnverifiedDrives(final GameTestHelper helper) {
         final ToolRecipe recipe = new ToolRecipe(new ShapelessRecipe("", CraftingBookCategory.MISC,
             new ItemStack(Items.HARD_DRIVE_LARGE.get()),
-            NonNullList.of(Ingredient.EMPTY,
+            List.of(
                 Ingredient.of(Items.WRENCH.get()),
                 Ingredient.of(Items.HARD_DRIVE_LARGE.get()))));
 
         final ItemStack healthy = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
         if (!recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
-            throw new GameTestAssertException("Converting a healthy drive should still work");
+            throw new GameTestAssertException(Component.literal("Converting a healthy drive should still work"), 0);
         }
 
         final ItemStack corrupted = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
         StorageItemUtils.setState(corrupted, State.CORRUPTED);
         if (recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
-            throw new GameTestAssertException("tool recipe should not match a corrupted drive");
+            throw new GameTestAssertException(Component.literal("tool recipe should not match a corrupted drive"), 0);
         }
 
         final ItemStack unverified = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
         StorageItemUtils.setState(unverified, State.INCONSISTENT);
         if (recipe.matches(gridOf(unverified, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
-            throw new GameTestAssertException("tool recipe should not match an unverified drive");
+            throw new GameTestAssertException(Component.literal("tool recipe should not match an unverified drive"), 0);
         }
 
         helper.succeed();
@@ -678,7 +699,7 @@ public final class BlobStorageTests {
     private static void setLastUsed(final UUID handle, final long millis) throws IOException {
         final Path directory = BlobStorage.getDataDirectory();
         if (directory == null) {
-            throw new GameTestAssertException("Blob storage is not initialized");
+            throw new GameTestAssertException(Component.literal("Blob storage is not initialized"), 0);
         }
 
         Files.setLastModifiedTime(directory.resolve(handle.toString()), FileTime.fromMillis(millis));

@@ -32,7 +32,7 @@ public final class MessageUtils {
             return;
         }
 
-        final ServerLevel level = player.serverLevel();
+        final ServerLevel level = player.level();
         final BlockEntity blockEntity = LevelUtils.getBlockEntityIfChunkExists(level, pos);
         if (type.isInstance(blockEntity)) {
             callback.accept(player, (T) blockEntity);
@@ -45,7 +45,7 @@ public final class MessageUtils {
             return;
         }
 
-        final ServerLevel level = player.serverLevel();
+        final ServerLevel level = player.level();
         final Entity entity = level.getEntity(id);
         if (!type.isInstance(entity)) {
             return;
@@ -64,7 +64,7 @@ public final class MessageUtils {
             return;
         }
 
-        final ServerLevel level = player.serverLevel();
+        final ServerLevel level = player.level();
         final Entity entity = level.getEntity(id);
         if (type.isInstance(entity) && entity.closerThan(player, 8)) {
             callback.accept((T) entity);

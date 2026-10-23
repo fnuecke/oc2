@@ -63,7 +63,7 @@ public final class CapabilitiesImpl {
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T> T get(final ItemStack stack, final CapabilityType<T> type) {
-        final ContainerItemContext context = ContainerItemContext.withConstant(stack);
+        final ContainerItemContext context = ContainerItemContext.ofSingleSlot(FabricCapabilityAdapters.stack(stack));
 
         if (type == Capabilities.ENERGY_STORAGE) {
             return (T) FabricCapabilityAdapters.energy(EnergyStorage.ITEM.find(stack, context));

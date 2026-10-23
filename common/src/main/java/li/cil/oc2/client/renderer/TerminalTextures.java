@@ -6,11 +6,14 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
 import dev.architectury.event.events.client.ClientTickEvent;
+import li.cil.oc2.api.API;
 import li.cil.oc2.common.vm.device.Terminal;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.resources.Identifier;
 
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.concurrent.ExecutionException;
 
 @Environment(EnvType.CLIENT)
@@ -19,6 +22,8 @@ public final class TerminalTextures {
         .expireAfterAccess(Duration.ofSeconds(5))
         .removalListener(TerminalTextures::handleNoLongerRendering)
         .build();
+    private static final ArrayDeque<Identifier> FREE_LOCATIONS = new ArrayDeque<>();
+    private static int locationCount;
 
     // --------------------------------------------------------------------- //
 
@@ -31,7 +36,7 @@ public final class TerminalTextures {
 
     public static TerminalTexture get(final Terminal terminal) {
         try {
-            return TEXTURES.get(terminal, () -> new TerminalTexture(terminal));
+            return TEXTURES.get(terminal, () -> new TerminalTexture(terminal, allocateLocation()));
         } catch (final ExecutionException e) {
             throw new RuntimeException(e);
         }
@@ -39,10 +44,19 @@ public final class TerminalTextures {
 
     // --------------------------------------------------------------------- //
 
+    private static Identifier allocateLocation() {
+        final Identifier location = FREE_LOCATIONS.poll();
+        if (location != null) {
+            return location;
+        }
+        return Identifier.fromNamespaceAndPath(API.MOD_ID, "terminal/" + locationCount++);
+    }
+
     private static void handleNoLongerRendering(final RemovalNotification<Terminal, TerminalTexture> notification) {
         final TerminalTexture value = notification.getValue();
         if (value != null) {
             value.close();
+            FREE_LOCATIONS.add(value.getLocation());
         }
     }
 

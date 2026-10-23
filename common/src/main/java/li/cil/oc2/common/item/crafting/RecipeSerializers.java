@@ -6,8 +6,8 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import li.cil.oc2.common.util.RegistryUtils;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 
 public final class RecipeSerializers {
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = RegistryUtils.getInitializerFor(Registries.RECIPE_SERIALIZER);
@@ -15,7 +15,7 @@ public final class RecipeSerializers {
     // --------------------------------------------------------------------- //
 
     public static final RegistrySupplier<ToolRecipe.Serializer> TOOL = RECIPE_SERIALIZERS.register("tool", ToolRecipe.Serializer::new);
-    public static final RegistrySupplier<SimpleCraftingRecipeSerializer<ResetRecipe>> RESET = RECIPE_SERIALIZERS.register("reset", () -> new SimpleCraftingRecipeSerializer<>(ResetRecipe::new));
+    public static final RegistrySupplier<CustomRecipe.Serializer<ResetRecipe>> RESET = RECIPE_SERIALIZERS.register("reset", () -> new CustomRecipe.Serializer<>(ResetRecipe::new));
 
     // --------------------------------------------------------------------- //
 

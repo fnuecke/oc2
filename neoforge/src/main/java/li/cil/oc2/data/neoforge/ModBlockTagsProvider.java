@@ -6,11 +6,10 @@ import li.cil.oc2.api.API;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -18,10 +17,10 @@ import static li.cil.oc2.common.block.Blocks.*;
 import static li.cil.oc2.common.tags.BlockTags.*;
 
 public final class ModBlockTagsProvider extends BlockTagsProvider {
-    private static final TagKey<Block> SABLE_SILENT_ASSEMBLY_REMOVAL = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("sable", "silent_assembly_removal"));
+    private static final TagKey<Block> SABLE_SILENT_ASSEMBLY_REMOVAL = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("sable", "silent_assembly_removal"));
 
-    public ModBlockTagsProvider(final PackOutput output, final CompletableFuture<HolderLookup.Provider> lookupProvider, final ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, API.MOD_ID, existingFileHelper);
+    public ModBlockTagsProvider(final PackOutput output, final CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, API.MOD_ID);
     }
 
     @Override

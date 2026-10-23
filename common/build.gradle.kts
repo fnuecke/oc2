@@ -5,11 +5,6 @@ architectury {
     common(enabledPlatforms.split(","))
 }
 
-sourceSets.main {
-    resources.srcDir("src/generated/resources")
-    resources.exclude(".cache/**")
-}
-
 loom {
     accessWidenerPath.set(file("src/main/resources/${modId}.accesswidener"))
 }
@@ -25,10 +20,14 @@ dependencies {
     } else {
         compileOnly(libs.common.manual.api)
     }
+    if (useLocalTis3d) {
+        compileOnly(files(tis3dApiJar()))
+    } else {
+        compileOnly(libs.tis3d.api)
+    }
 
     compileOnly(libs.jei.common.api)
     compileOnly(libs.cc.core.api)
-    compileOnly(libs.tis3d.api)
 
     testCompileOnly("com.google.code.findbugs:jsr305:3.0.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")

@@ -35,6 +35,8 @@ public class ExtraItemsJEIPlugin implements IModPlugin {
     public void registerItemSubtypes(final ISubtypeRegistration registration) {
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.COMPUTER.get(), new ComputerSubtypeInterpreter());
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.ROBOT.get(), new RobotSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.HARD_DRIVE_SMALL.get(), new ImageSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.HARD_DRIVE_MEDIUM.get(), new ImageSubtypeInterpreter());
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.HARD_DRIVE_LARGE.get(), new ImageSubtypeInterpreter());
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.FLASH_MEMORY.get(), new ImageSubtypeInterpreter());
         registration.registerSubtypeInterpreter(VanillaTypes.ITEM_STACK, Items.FLOPPY.get(), new ImageSubtypeInterpreter());

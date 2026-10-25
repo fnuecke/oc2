@@ -17,7 +17,7 @@ public interface MappedStorage {
 
     VMDeviceLoadResult claim(VMContext context, OptionalAddress address, OptionalInterrupt interrupt);
 
-    void setBlockDevice(@Nullable BlockDevice block) throws IOException;
+    void setBlockDevice(@Nullable BlockDevice block, boolean notify) throws IOException;
 
     void close() throws IOException;
 }

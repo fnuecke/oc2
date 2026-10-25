@@ -60,7 +60,7 @@ public final class BlockDeviceDataRegistry {
 
     // --------------------------------------------------------------------- //
 
-    public static final RegistrySupplier<BlockDeviceData> BUILDROOT =
+    public static final RegistrySupplier<BlockDeviceData> SEDNA_LINUX =
         INITIALIZER.register(path(HARD_DRIVE_MEDIUM, "sedna"), () -> new BuiltinBlockDeviceData(
             BuiltinBlockDeviceData.readOnce(Buildroot::getRootFilesystem), "Sedna Linux", DyeColor.GREEN));
     public static final RegistrySupplier<BlockDeviceData> CPM =
@@ -70,7 +70,7 @@ public final class BlockDeviceDataRegistry {
 
     public static final RegistrySupplier<BlockDeviceData> FIRMWARE_RISCV =
         INITIALIZER.register(path(FLASH_MEDIUM, "riscv"), () -> new BuiltinBlockDeviceData(
-            BuiltinBlockDeviceData.readOnce(Buildroot::getSednaFirmware), "Sedna Linux", DyeColor.GREEN));
+            BuiltinBlockDeviceData.readOnce(Buildroot::getSednaFirmware), "Sedna Firmware", DyeColor.GREEN));
     public static final RegistrySupplier<BlockDeviceData> FIRMWARE_Z80 =
         INITIALIZER.register(path(FLASH_MEDIUM, "z80"), () -> new BuiltinBlockDeviceData(
             BuiltinBlockDeviceData.readOnce(Cpm::getBootRom), "CP/M 2.2", DyeColor.ORANGE));

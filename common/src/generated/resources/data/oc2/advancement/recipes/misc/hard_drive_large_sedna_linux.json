@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "oc2:hard_drive_large_preloaded"
+        "recipe": "oc2:hard_drive_large_sedna_linux"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "oc2:hard_drive_large_preloaded"
+      "oc2:hard_drive_large_sedna_linux"
     ]
   }
 }

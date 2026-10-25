@@ -339,11 +339,11 @@ public final class ModRecipesProvider extends RecipeProvider {
             .save(consumer);
 
         ToolRecipeBuilder
-            .toolRecipe(Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId()))
+            .toolRecipe(Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId()))
             .requires(Items.HARD_DRIVE_LARGE.get())
             .requires(Items.CPU_RISCV.get())
             .unlockedBy("has_cpu_riscv", inventoryChange(Items.CPU_RISCV.get()))
-            .save(consumer, API.MOD_ID + ":hard_drive_large_preloaded");
+            .save(consumer, API.MOD_ID + ":hard_drive_large_sedna_linux");
 
         ToolRecipeBuilder
             .toolRecipe(Items.HARD_DRIVE_LARGE.get())

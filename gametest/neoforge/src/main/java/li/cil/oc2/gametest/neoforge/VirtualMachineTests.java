@@ -33,7 +33,7 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(20, () -> computer
                 .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId())))
+                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId())))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(60, () -> {
                 computer.assertRunState(VMRunState.STOPPED, "without a processor");

@@ -5,7 +5,9 @@ Hard drives are the main storage device used for data storage in [computers](../
 
 Usually computers use a firmware that requires some hard drive to complete the boot process. See the [flash memory](flash_memory.md) entry for more details. The RISC-V Linux requires a root file system that goes with its firmware. One may be obtained by crafting an 8M hard drive together with a [RISC-V processor](cpu_riscv.md), which writes that root file system to the drive.
 
-Crafting the result with a [wrench](wrench.md) wipes it back to an empty drive.
+OpenOS II is a small operating system with a Lua shell. It should feel fairly familiar if you've used OpenOS before. It runs on a computer with a single 2M [memory](memory.md) module. Crafting a 2M hard drive together with a RISC-V processor writes OpenOS II to the drive. OpenOS II boots with the same firmware as Linux.
+
+Crafting either of these drives with a [wrench](wrench.md) wipes it back to an empty drive.
 
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
 

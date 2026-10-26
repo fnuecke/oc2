@@ -38,9 +38,10 @@ fun substituteLocal(propertyName: String, libraryName: String) {
     }
 }
 
-substituteLocal("ceresDir", "li.cil.ceres:ceres")
-substituteLocal("sednaDir", "li.cil.sedna:sedna")
 substituteLocal("buildrootDir", "li.cil.sedna:sedna-buildroot")
+substituteLocal("ceresDir", "li.cil.ceres:ceres")
+substituteLocal("oc2OsDir", "li.cil.oc2:oc2-os")
+substituteLocal("sednaDir", "li.cil.sedna:sedna")
 substituteLocal("sednaCpmDir", "li.cil.sedna:sedna-cpm")
 substituteLocal("vox2mcDir", "li.cil.vox2mc:vox2mc")
 

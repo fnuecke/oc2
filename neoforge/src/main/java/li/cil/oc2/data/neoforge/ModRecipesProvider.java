@@ -314,6 +314,20 @@ public final class ModRecipesProvider extends RecipeProvider {
             .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
             .save(consumer);
 
+        ToolRecipeBuilder
+            .toolRecipe(Items.HARD_DRIVE_SMALL.get().withData(BlockDeviceDataRegistry.OPEN_OS2.getId()))
+            .requires(Items.HARD_DRIVE_SMALL.get())
+            .requires(Items.CPU_RISCV.get())
+            .unlockedBy("has_cpu_riscv", inventoryChange(Items.CPU_RISCV.get()))
+            .save(consumer, API.MOD_ID + ":hard_drive_small_openos2");
+
+        ToolRecipeBuilder
+            .toolRecipe(Items.HARD_DRIVE_SMALL.get())
+            .requires(Items.WRENCH.get())
+            .requires(Items.HARD_DRIVE_SMALL.get())
+            .unlockedBy("has_hard_drive_small", inventoryChange(Items.HARD_DRIVE_SMALL.get()))
+            .save(consumer, API.MOD_ID + ":hard_drive_small_erase");
+
         ShapedRecipeBuilder
             .shaped(RecipeCategory.MISC, Items.HARD_DRIVE_MEDIUM.get())
             .pattern("ITI")

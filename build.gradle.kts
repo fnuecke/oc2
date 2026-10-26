@@ -46,6 +46,7 @@ subprojects {
         exclusiveContent {
             forRepository { maven("https://fnuecke.github.io/maven") }
             filter {
+                includeModule("li.cil.oc2", "oc2-os")
                 includeModule("li.cil.sedna", "sedna-buildroot")
                 includeModule("li.cil.sedna", "sedna-cpm")
                 includeModule("li.cil.vox2mc", "vox2mc")

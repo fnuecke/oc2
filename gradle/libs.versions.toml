@@ -8,6 +8,7 @@ injectables = "1.0.10"
 manual = "1.2.7"
 
 ceres = "0.0.7"
+oc2-os = "0.1.0"
 sedna = "5.4.0"
 sedna-buildroot = "0.2.10"
 sedna-cpm = "0.4.0"
@@ -39,6 +40,7 @@ architectury-api = { group = "dev.architectury", name = "architectury", version.
 architectury-injectables = { group = "dev.architectury", name = "architectury-injectables", version.ref = "injectables" }
 
 ceres = { group = "li.cil.ceres", name = "ceres", version.ref = "ceres" }
+oc2-os = { group = "li.cil.oc2", name = "oc2-os", version.ref = "oc2-os" }
 sedna = { group = "li.cil.sedna", name = "sedna", version.ref = "sedna" }
 sedna-buildroot = { group = "li.cil.sedna", name = "sedna-buildroot", version.ref = "sedna-buildroot" }
 sedna-cpm = { group = "li.cil.sedna", name = "sedna-cpm", version.ref = "sedna-cpm" }

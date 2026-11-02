@@ -439,7 +439,7 @@ public final class ProjectorDepthRenderer {
         minecraft.options.entityShadows().set(false);
 
         minecraftCameraEntityBak = minecraft.getCameraEntity();
-        minecraft.setCameraEntity(ProjectorCameraEntity.get(level, Vec3.ZERO, partialTicks, 0));
+        minecraft.cameraEntity = ProjectorCameraEntity.get(level, Vec3.ZERO, partialTicks, 0);
         gameRendererMainCameraBak = minecraft.gameRenderer.mainCamera;
         minecraft.gameRenderer.mainCamera = PROJECTOR_DEPTH_CAMERA;
         prepareRenderDispatchers(minecraft, PROJECTOR_DEPTH_CAMERA);
@@ -461,7 +461,7 @@ public final class ProjectorDepthRenderer {
         ((MinecraftExt) minecraft).setMainRenderTargetOverride(null);
         minecraft.getMainRenderTarget().bindWrite(true);
 
-        minecraft.setCameraEntity(minecraftCameraEntityBak);
+        minecraft.cameraEntity = minecraftCameraEntityBak;
         minecraft.gameRenderer.mainCamera = gameRendererMainCameraBak;
         prepareRenderDispatchers(minecraft, gameRendererMainCameraBak);
 

@@ -749,7 +749,7 @@ public final class ProjectorDepthRenderer {
     private static DynamicTexture getColorBuffer(final ProjectorBlockEntity projector) {
         try {
             final RenderInfo renderInfo = RENDER_INFO.get(projector, () -> {
-                final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, false);
+                final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, true);
                 final RenderInfo info = new RenderInfo(texture);
                 info.upload();
                 projector.setFrameConsumer(info);

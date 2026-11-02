@@ -4,7 +4,6 @@
     "package": "li.cil.oc2.mixin.neoforge",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
-        "BusCableBlockMixin",
         "WrenchItemMixin"
     ],
     "injectors": {

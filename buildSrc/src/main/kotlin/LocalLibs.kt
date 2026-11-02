@@ -9,7 +9,7 @@ fun Project.bundledLibs(): List<String> {
 
     return listOf(
         lib("ceres"),
-        lib("oc2-os"),
+        lib("oc-openos2"),
         lib("sedna"),
         lib("sedna-buildroot"),
         lib("sedna-cpm"),

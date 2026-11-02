@@ -136,10 +136,6 @@ public class ItemStackHandler implements DeferredNotifyItemHandler {
         return Item.DEFAULT_MAX_STACK_SIZE;
     }
 
-    public boolean isItemValid(final int slot, final ItemStack stack) {
-        return true;
-    }
-
     // --------------------------------------------------------------------- //
 
     public CompoundTag serializeNBT(final HolderLookup.Provider provider) {

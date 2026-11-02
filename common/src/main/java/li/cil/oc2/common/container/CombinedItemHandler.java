@@ -56,6 +56,12 @@ public final class CombinedItemHandler implements DeferredNotifyItemHandler {
     }
 
     @Override
+    public boolean isItemValid(final int slot, final ItemStack stack) {
+        final int index = indexOf(slot);
+        return handlers[index].isItemValid(slot - baseSlot[index], stack);
+    }
+
+    @Override
     public void setStackInSlotSilently(final int slot, final ItemStack stack) {
         final int index = indexOf(slot);
         handlers[index].setStackInSlotSilently(slot - baseSlot[index], stack);

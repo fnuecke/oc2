@@ -240,6 +240,11 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         return tag;
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void removeComponentsFromTag(final CompoundTag tag) {
+        tag.remove(CONNECTIONS_TAG_NAME);
+    }
 
     @Override
     protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {

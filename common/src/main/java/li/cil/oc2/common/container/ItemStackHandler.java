@@ -2,7 +2,7 @@
 
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
  * but the NBT methods now take a {@link HolderLookup.Provider}: from 1.20.5 on, item stacks cannot
  * be serialized without registry access.
  */
-public class ItemStackHandler implements ItemHandler {
+public class ItemStackHandler implements DeferredNotifyItemHandler {
     private static final String SIZE_TAG_NAME = "Size";
 
     protected NonNullList<ItemStack> stacks;
@@ -48,6 +48,17 @@ public class ItemStackHandler implements ItemHandler {
     public void setStackInSlot(final int slot, final ItemStack stack) {
         validateSlot(slot);
         stacks.set(slot, stack);
+        onContentsChanged(slot);
+    }
+
+    @Override
+    public void setStackInSlotSilently(final int slot, final ItemStack stack) {
+        validateSlot(slot);
+        stacks.set(slot, stack);
+    }
+
+    @Override
+    public void notifySlotChanged(final int slot) {
         onContentsChanged(slot);
     }
 

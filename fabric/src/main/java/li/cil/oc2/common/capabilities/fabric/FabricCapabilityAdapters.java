@@ -5,6 +5,7 @@ package li.cil.oc2.common.capabilities.fabric;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -362,11 +363,11 @@ public final class FabricCapabilityAdapters {
     }
 
     private static final class SlotView extends SnapshotParticipant<ItemStack> implements SingleSlotStorage<ItemVariant> {
-        private final ItemHandler handler;
+        private final DeferredNotifyItemHandler handler;
         private final int slot;
 
         private SlotView(final ItemHandler handler, final int slot) {
-            this.handler = handler;
+            this.handler = (DeferredNotifyItemHandler) handler;
             this.slot = slot;
         }
 
@@ -377,14 +378,17 @@ public final class FabricCapabilityAdapters {
             }
 
             final int count = (int) Math.min(maxAmount, resource.getItem().getDefaultMaxStackSize());
-            final ItemStack stack = resource.toStack(count);
-            if (handler.insertItem(slot, stack, true).getCount() >= count) {
+            final int inserted = count - handler.insertItem(slot, resource.toStack(count), true).getCount();
+            if (inserted <= 0) {
                 return 0;
             }
 
             updateSnapshots(transaction);
-            final ItemStack remainder = handler.insertItem(slot, stack, false);
-            return count - remainder.getCount();
+            final ItemStack existing = handler.getStackInSlot(slot);
+            handler.setStackInSlotSilently(slot, existing.isEmpty()
+                ? resource.toStack(inserted)
+                : existing.copyWithCount(existing.getCount() + inserted));
+            return inserted;
         }
 
         @Override
@@ -398,13 +402,16 @@ public final class FabricCapabilityAdapters {
                 return 0;
             }
 
-            final int count = (int) Math.min(maxAmount, Integer.MAX_VALUE);
-            if (handler.extractItem(slot, count, true).isEmpty()) {
+            final int extracted = handler.extractItem(slot, (int) Math.min(maxAmount, Integer.MAX_VALUE), true).getCount();
+            if (extracted <= 0) {
                 return 0;
             }
 
             updateSnapshots(transaction);
-            return handler.extractItem(slot, count, false).getCount();
+            handler.setStackInSlotSilently(slot, existing.getCount() > extracted
+                ? existing.copyWithCount(existing.getCount() - extracted)
+                : ItemStack.EMPTY);
+            return extracted;
         }
 
         @Override
@@ -429,15 +436,17 @@ public final class FabricCapabilityAdapters {
 
         @Override
         protected ItemStack createSnapshot() {
-            return handler.getStackInSlot(slot).copy();
+            return handler.getStackInSlot(slot);
         }
 
         @Override
         protected void readSnapshot(final ItemStack snapshot) {
-            handler.extractItem(slot, Integer.MAX_VALUE, false);
-            if (!snapshot.isEmpty()) {
-                handler.insertItem(slot, snapshot, false);
-            }
+            handler.setStackInSlotSilently(slot, snapshot);
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            handler.notifySlotChanged(slot);
         }
     }
 

@@ -10,6 +10,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import static li.cil.oc2.gametest.CapabilityAdapterTests.ENERGY;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.ITEMS;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.SIMULATED_EXTRACT;
 import static li.cil.oc2.gametest.util.TestSupport.MOD_ID;
 import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE;
 
@@ -59,6 +60,11 @@ public final class CapabilityAdapterTestsNeoForge {
     @GameTest(template = TEMPLATE)
     public static void itemRoundTripPreservesIdentity(final GameTestHelper helper) {
         CapabilityAdapterTests.itemRoundTripPreservesIdentity(helper, ITEMS);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void simulatedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, SIMULATED_EXTRACT);
     }
 
     @GameTest(template = TEMPLATE)

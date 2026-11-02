@@ -4,6 +4,7 @@ package li.cil.oc2.common.network;
 
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
+import dev.architectury.networking.NetworkManager;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.item.SoundCardDevice;
 import li.cil.oc2.common.network.message.SoundCardAudioMessage;
@@ -115,7 +116,8 @@ public final class SoundCardLoadBalancer {
 
             final BlockPos pos = location.get().blockPos();
             final List<ServerPlayer> listeners = recipients.stream()
-                .filter(player -> player.level() == level && isInEarshot(player, pos))
+                .filter(player -> player.level() == level && isInEarshot(player, pos)
+                    && NetworkManager.canPlayerReceive(player, Network.getMessageType(SoundCardAudioMessage.class)))
                 .toList();
             if (listeners.isEmpty()) {
                 return;

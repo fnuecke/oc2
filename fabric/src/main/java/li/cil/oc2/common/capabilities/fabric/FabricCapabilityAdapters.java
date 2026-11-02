@@ -265,7 +265,7 @@ public final class FabricCapabilityAdapters {
             }
 
             try (Transaction transaction = open()) {
-                final long extracted = view.extract(resource, amount, transaction);
+                final long extracted = view.extract(resource, Math.min(amount, resource.toStack().getMaxStackSize()), transaction);
                 if (!simulate) {
                     transaction.commit();
                 }

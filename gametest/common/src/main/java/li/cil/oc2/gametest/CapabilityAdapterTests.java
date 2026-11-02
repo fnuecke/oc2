@@ -44,6 +44,8 @@ public final class CapabilityAdapterTests {
         helper.setBlock(DEVICE_POS, Blocks.COMPUTER.get());
         return Capabilities.get(blockEntity(helper), Capabilities.ITEM_HANDLER, null);
     };
+    public static final Item LARGE_SLOT_ITEM = net.minecraft.world.item.Items.DIRT;
+    public static final int LARGE_SLOT_AMOUNT = 200;
 
     private static final long AMOUNT = 100;
     private static final Item SHULKER_BOX = net.minecraft.world.item.Items.SHULKER_BOX;
@@ -218,6 +220,16 @@ public final class CapabilityAdapterTests {
             throw new GameTestAssertException("an aborted insert must leave slot " + slot
                 + " untouched, found " + handler.getStackInSlot(slot));
         }
+        helper.succeed();
+    }
+
+    public static void extractFromLargeSlotYieldsAtMostAStack(final GameTestHelper helper, final Function<GameTestHelper, ItemHandler> largeSlot) {
+        final ItemHandler handler = assertNotNull(helper, largeSlot.apply(helper), "item handler");
+        final int stackSize = LARGE_SLOT_ITEM.getDefaultMaxStackSize();
+
+        assertStack("simulated extract", handler.extractItem(0, LARGE_SLOT_AMOUNT, true), LARGE_SLOT_ITEM, stackSize);
+        assertStack("extracted stack", handler.extractItem(0, LARGE_SLOT_AMOUNT, false), LARGE_SLOT_ITEM, stackSize);
+        assertStack("slot after extract", handler.getStackInSlot(0), LARGE_SLOT_ITEM, LARGE_SLOT_AMOUNT - stackSize);
         helper.succeed();
     }
 

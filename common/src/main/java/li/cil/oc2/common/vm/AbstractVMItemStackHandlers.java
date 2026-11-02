@@ -159,6 +159,10 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
             handler.loadDevices(tag.getCompound(key(deviceType))));
     }
 
+    public void resetDevices() {
+        itemHandlers.values().forEach(handler -> handler.getBusElement().reset());
+    }
+
     public void updateDevices() {
         itemHandlers.values().forEach(AbstractDeviceItemStackHandler::updateDevices);
     }

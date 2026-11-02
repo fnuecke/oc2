@@ -513,6 +513,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         final HolderLookup.Provider registries = level().registryAccess();
+        deviceItems.resetDevices();
         deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));

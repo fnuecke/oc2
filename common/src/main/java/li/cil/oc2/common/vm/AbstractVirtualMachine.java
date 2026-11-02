@@ -248,7 +248,11 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
     }
 
     public void deserialize(final CompoundTag tag) {
-        joinWorkerThread();
+        if (architecture != null) {
+            joinWorkerThread();
+            architecture.unmountAllDevices();
+            disposeArchitecture();
+        }
 
         final CompoundTag runnerTag = tag.contains(RUNNER_TAG_NAME, NBTTagIds.TAG_COMPOUND)
             ? tag.getCompound(RUNNER_TAG_NAME) : null;

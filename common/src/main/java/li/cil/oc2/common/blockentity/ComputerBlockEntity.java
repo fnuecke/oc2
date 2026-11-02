@@ -309,6 +309,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 
+        deviceItems.resetDevices();
         deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
     }

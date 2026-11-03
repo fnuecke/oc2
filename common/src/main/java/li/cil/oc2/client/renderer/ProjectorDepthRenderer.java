@@ -792,12 +792,7 @@ public final class ProjectorDepthRenderer {
 
             @Override
             void afterParticles(final Matrix4f modelViewMatrix, final Matrix4f projectionMatrix) {
-                prepareProjectorRendering(modelViewMatrix, projectionMatrix);
-            }
-
-            @Override
-            void afterLevel() {
-                if (hasPendingProjectors()) {
+                if (prepareProjectorRendering(modelViewMatrix, projectionMatrix)) {
                     compositeIntoMainTarget();
                 }
             }

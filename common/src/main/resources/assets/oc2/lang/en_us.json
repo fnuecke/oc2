@@ -112,6 +112,7 @@
   "gui.oc2.computer.error.memory_corrupted": "Memory Corrupted",
   "gui.oc2.computer.error.state_lost": "Machine State Lost",
   "gui.oc2.computer.error.storage_inconsistent": "Drive Data Unverified",
+  "gui.oc2.computer.error.halted": "Halted",
   "gui.oc2.computer.bus_state.incomplete": "Bus Incomplete",
   "gui.oc2.computer.bus_state.too_complex": "Bus Too Complex",
   "gui.oc2.computer.bus_state.multiple_controllers": "Multiple Bus Controllers",

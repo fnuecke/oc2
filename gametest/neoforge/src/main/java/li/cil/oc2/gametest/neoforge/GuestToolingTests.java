@@ -74,7 +74,7 @@ public final class GuestToolingTests {
             .thenSucceed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = SOUND_BATCH)
+    @GameTest(template = TEMPLATE, timeoutTicks = REAL_TIME_TIMEOUT_TICKS, batch = SOUND_BATCH)
     public static void guestPlaysThroughTheSoundCard(final GameTestHelper helper) {
         final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
 

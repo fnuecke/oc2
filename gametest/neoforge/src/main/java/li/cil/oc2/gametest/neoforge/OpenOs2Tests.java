@@ -15,7 +15,7 @@ import static li.cil.oc2.gametest.util.TestSupport.*;
 @GameTestHolder(MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class OpenOs2Tests {
-    private static final int OPEN_OS2_BOOT_TIMEOUT_TICKS = 2_000;
+    private static final int OPEN_OS2_BOOT_TIMEOUT_TICKS = 200;
 
     // --------------------------------------------------------------------- //
 

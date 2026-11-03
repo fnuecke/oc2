@@ -194,6 +194,10 @@ public class VMRunner implements Runnable {
                 }
             }
 
+            if (architecture.isHalted()) {
+                runtimeError = Component.translatable(Constants.COMPUTER_ERROR_HALTED);
+            }
+
             handleAfterRun();
 
             final int elapsed = (int) (System.currentTimeMillis() - start);

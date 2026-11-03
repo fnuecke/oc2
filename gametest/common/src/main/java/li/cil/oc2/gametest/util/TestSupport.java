@@ -7,6 +7,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.GameTestInfo;
+import net.minecraft.gametest.framework.GameTestListener;
+import net.minecraft.gametest.framework.GameTestRunner;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -16,6 +19,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -31,8 +35,9 @@ public final class TestSupport {
     public static final BlockPos DEVICE_POS = new BlockPos(4, WORK_Y, 2);
     public static final BlockPos ROBOT_POS = new BlockPos(12, WORK_Y, 2);
 
-    public static final int BOOT_TIMEOUT_TICKS = 50_000;
-    public static final int CPM_BOOT_TIMEOUT_TICKS = 20_000;
+    public static final int BOOT_TIMEOUT_TICKS = 6_000;
+    public static final int CPM_BOOT_TIMEOUT_TICKS = 1_000;
+    public static final int REAL_TIME_TIMEOUT_TICKS = 60_000;
 
     public static String script(final String... lines) {
         return String.join("\n", lines) + "\n";
@@ -119,8 +124,40 @@ public final class TestSupport {
         helper.getLevel().destroyBlock(helper.absolutePos(pos), true, null);
     }
 
+    public static void onTestEnd(final GameTestHelper helper, final Runnable action) {
+        testInfo(helper).addListener(new GameTestListener() {
+            @Override
+            public void testStructureLoaded(final GameTestInfo info) {
+            }
+
+            @Override
+            public void testPassed(final GameTestInfo info, final GameTestRunner runner) {
+                action.run();
+            }
+
+            @Override
+            public void testFailed(final GameTestInfo info, final GameTestRunner runner) {
+                action.run();
+            }
+
+            @Override
+            public void testAddedForRerun(final GameTestInfo original, final GameTestInfo copy, final GameTestRunner runner) {
+            }
+        });
+    }
+
     // --------------------------------------------------------------------- //
 
     private TestSupport() {
+    }
+
+    private static GameTestInfo testInfo(final GameTestHelper helper) {
+        try {
+            final Field field = GameTestHelper.class.getDeclaredField("testInfo");
+            field.setAccessible(true);
+            return (GameTestInfo) field.get(helper);
+        } catch (final ReflectiveOperationException e) {
+            throw new GameTestAssertException("could not read the test info: " + e);
+        }
     }
 }

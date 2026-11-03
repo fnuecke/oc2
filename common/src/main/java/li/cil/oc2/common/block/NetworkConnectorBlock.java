@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -28,6 +29,7 @@ import java.util.Objects;
 
 public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirectionalBlock implements EntityBlock {
     public static final MapCodec<NetworkConnectorBlock> CODEC = MapCodec.unit(NetworkConnectorBlock::new);
+    public static final BooleanProperty CONNECTED = BooleanProperty.create("connected");
 
     @Override
     protected MapCodec<? extends NetworkConnectorBlock> codec() {
@@ -51,7 +53,8 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
             .strength(1.5f, 6.0f));
         registerDefaultState(getStateDefinition().any()
             .setValue(FACING, Direction.NORTH)
-            .setValue(FACE, AttachFace.WALL));
+            .setValue(FACE, AttachFace.WALL)
+            .setValue(CONNECTED, false));
     }
 
     // --------------------------------------------------------------------- //
@@ -116,6 +119,6 @@ public final class NetworkConnectorBlock extends FaceAttachedHorizontalDirection
     // --------------------------------------------------------------------- //
 
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACE, FACING);
+        builder.add(FACE, FACING, CONNECTED);
     }
 }

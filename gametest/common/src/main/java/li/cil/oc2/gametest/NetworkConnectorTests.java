@@ -4,6 +4,7 @@ package li.cil.oc2.gametest;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.capabilities.NetworkInterface;
+import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.blockentity.NetworkConnectorBlockEntity.ConnectionResult;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
@@ -160,6 +161,9 @@ public final class NetworkConnectorTests {
                 if (connector.adjacentInterface() == null) {
                     throw new GameTestAssertException("connector did not find the network card");
                 }
+                if (!helper.getBlockState(connector.pos()).getValue(NetworkConnectorBlock.CONNECTED)) {
+                    throw new GameTestAssertException("a connector with an adjacent interface must be in the connected state");
+                }
             })
             .thenExecute(() -> computer.uninstall(DeviceTypes.CARD.get()))
             .thenExecuteAfter(80, () -> {
@@ -170,6 +174,9 @@ public final class NetworkConnectorTests {
                 if (connector.adjacentInterface() != null) {
                     throw new GameTestAssertException(
                         "the connector is still holding the interface of a card that has been removed");
+                }
+                if (helper.getBlockState(connector.pos()).getValue(NetworkConnectorBlock.CONNECTED)) {
+                    throw new GameTestAssertException("a connector without an adjacent interface must not be in the connected state");
                 }
             })
             .thenSucceed();

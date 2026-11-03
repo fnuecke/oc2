@@ -1,0 +1,25 @@
+{
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "top": "oc2:block/transposer/top",
+    "side": "oc2:block/transposer/side",
+    "bottom": "oc2:block/transposer/bottom",
+    "particle": "#side"
+  },
+  "elements": [
+    {
+      "from": [0.5, 0.5, 0.5],
+      "to": [15.5, 15.5, 15.5],
+      "shade": false,
+      "neoforge_data": { "block_light": 15, "sky_light": 15, "ambient_occlusion": false },
+      "faces": {
+        "down": { "texture": "#bottom", "uv": [0.5, 15.5, 15.5, 0.5], "cullface": "down" },
+        "up": { "texture": "#top", "uv": [0.5, 0.5, 15.5, 15.5], "cullface": "up" },
+        "north": { "texture": "#side", "uv": [15.5, 0.5, 0.5, 15.5], "cullface": "north" },
+        "south": { "texture": "#side", "uv": [0.5, 0.5, 15.5, 15.5], "cullface": "south" },
+        "west": { "texture": "#side", "uv": [0.5, 0.5, 15.5, 15.5], "cullface": "west" },
+        "east": { "texture": "#side", "uv": [15.5, 0.5, 0.5, 15.5], "cullface": "east" }
+      }
+    }
+  ]
+}

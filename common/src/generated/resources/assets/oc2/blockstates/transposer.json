@@ -1,7 +1,14 @@
 {
-  "variants": {
-    "": {
-      "model": "oc2:block/transposer"
+  "multipart": [
+    {
+      "apply": {
+        "model": "oc2:block/transposer"
+      }
+    },
+    {
+      "apply": {
+        "model": "oc2:block/transposer_glow"
+      }
     }
-  }
+  ]
 }

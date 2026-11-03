@@ -36,7 +36,7 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
 
     // --------------------------------------------------------------------- //
 
-    private long lastKeepAliveSentAt;
+    private int keepAliveCountdown;
 
     private EditBox addressField;
     private int baudRateIndex;
@@ -106,9 +106,8 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
     // --------------------------------------------------------------------- //
 
     private void sendKeepAlive() {
-        final long now = System.currentTimeMillis();
-        if (now - lastKeepAliveSentAt > TerminalBlockEntity.CLIENT_KEEPALIVE_EVERY_MILLIS) {
-            lastKeepAliveSentAt = now;
+        if (--keepAliveCountdown <= 0) {
+            keepAliveCountdown = TerminalBlockEntity.CLIENT_KEEPALIVE_EVERY;
             Network.sendToServer(new TerminalKeepAliveMessage(blockEntity));
         }
     }

@@ -1,5 +1,5 @@
 # Mid-level API
-The mid-level API (MLAPI) is a low-level friendly way of interacting with devices. It's primary consumer is programs running on a [Z80 processor](item/cpu_z80.md), but [RISC-V computers](item/cpu_riscv.md) can make use of it, as well; see below. It usually makes available a subset of the devices accessible via the [high-level API](hlapi.md) (HLAPI), in a form an 8-bit machine can access comfortably: a function is picked by number, and its arguments and results are plain bytes.
+The mid-level API (MLAPI) is a low-level friendly way of interacting with devices. Its primary consumer is programs running on [CP/M](getting_started/cpm.md), but programs on [Linux](getting_started/linux.md) can make use of it, as well, see below. OpenOS II does not support it. It usually makes available a subset of the devices accessible via the [high-level API](hlapi.md) (HLAPI), in a form an 8-bit machine can access comfortably: a function is picked by number, and its arguments and results are plain bytes.
 
 For the function codes each device offers, see the [list of devices](device/index.md).
 
@@ -63,7 +63,7 @@ This sets the output on side 1, upwards, to 15. Put a redstone lamp above the co
 
 To write your own, `ED` on the boot disk creates and edits source files, as in `ED B:PROG.Z80`.
 
-## On a RISC-V Computer
+## On Linux
 Linux offers the same registers as a memory page in the file `/dev/uio0`, which needs `root` privileges to open. The C header `mlapi.h` provides utilities to find and map this memory area; layout is then the same as described above. It also provides a helper to find a device by its names, `mlapi_find(0, "storage", "ITEMS")`, which matches devices the same way as `OCFIND`, and to make a call. It lives in `/mnt/builtin/include`, where `tcc` should pick it up automatically.
 
 `/mnt/builtin/example/redstone.c` does the same as `REDSTN.Z80` does on the Z80. Run it directly:  

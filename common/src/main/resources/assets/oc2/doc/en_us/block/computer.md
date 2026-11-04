@@ -3,7 +3,7 @@
 
 Computers provide a basis for building hardware capable of running an operating system or low-level software.
 
-Read the [quickstart guide](../getting_started.md) for a short explanation on how to get a working computer.
+Read the [getting started guide](../getting_started/index.md) for a short explanation on how to get a working computer.
 
 ### Configuration
 Configure the components in a computer in its inventory screen. To access this screen, either open the computer with a [wrench](../item/wrench.md), or switch to the inventory screen using the toggle button to the left of the terminal screen.

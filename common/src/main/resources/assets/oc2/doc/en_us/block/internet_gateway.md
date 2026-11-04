@@ -9,7 +9,7 @@ The gateway consumes energy for every packet it transmits, in both directions, a
 
 ## Setting Up a Computer
 
-Computers access the gateway through an ordinary [network interface card](../item/network_interface_card.md), so under the default Linux distribution this is just ethernet and the usual tools work.
+Computers access the gateway through an ordinary [network interface card](../item/network_interface_card.md). Note that only [Linux](../getting_started/linux.md) supports networking.
 
 There is no DHCP server behind the gateway, so pick the addresses yourself. Any private range will do, as long as the gateway address you name is on the same subnet as the computer:
 
@@ -23,6 +23,6 @@ The commands above last until the next reboot. `setup-network.lua` does all of t
 
 TCP, UDP and ping are supported. Connections can only be opened outwards: nothing on the internet can connect to a computer.
 
-`https://` addresses work, but **without certificate verification**, because the default Linux does not ship a list of trusted authorities. The traffic is protected from passive observers, but there is no guarantee the remote is not a man-in-the-middle. Treat it accordingly, and do not send passwords you care about through it.
+`https://` addresses work, but **without certificate verification**, because Linux does not ship a list of trusted authorities. The traffic is protected from passive observers, but there is no guarantee the remote is not a man-in-the-middle. Treat it accordingly, and do not send passwords you care about through it.
 
 Connections do not survive the chunk unloading or the server restarting. Treat this as a temporary connection failure and handle it accordingly.

@@ -33,7 +33,7 @@ Robots have a built-in compass and keep track of where they are. `getFacing()` r
 The origin is initialized when the robot is placed. `calibratePosition()` resets it to where the robot is at that moment. The position stays correct even when the robot is moved by external measures.
 
 ## The robot Library
-Driving the action queue by hand is tedious, so the default Linux distribution ships a `robot` library that waits for completion:
+Driving the action queue by hand is tedious, so OpenOS II and Linux ship a `robot` library that waits for completion:
 
 `local r = require("robot")`  
 `r.move("forward")`  
@@ -41,7 +41,7 @@ Driving the action queue by hand is tedious, so the default Linux distribution s
 
 `move` and `turn` block until the action has completed and return whether it succeeded. `moveAsync` and `turnAsync` block only until the action is in the queue. All four take an optional timeout in milliseconds, defaulting to thirty seconds, and return `false` if it runs out. For the asynchronous pair, a timeout means the queue stayed full for that long.
 
-An equivalent library is available for micropython.
+On Linux, an equivalent library is available for MicroPython. On CP/M, use the `robot` device through the [MLAPI](mlapi.md).
 
 ## Example
 This walks the robot around a three by three square:

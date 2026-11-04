@@ -7,7 +7,7 @@ On Linux, use `getty` to spawn a session on the terminal:
 `setsid getty -L ttyS1 9600 screen &`
 
 On CP/M, switch to an external terminal like so:  
-`STAT CON:=TTY:`.
+`STAT CON:=TTY:`
 
 ## Configuration
 Configure the terminal address and baud rate in its settings screen. To access this screen, either open the terminal with a [wrench](../item/wrench.md), or switch to the settings screen using the toggle button on the left of the terminal screen.

@@ -13,6 +13,10 @@ Baud rate must be configured in software and must match between endpoints on a s
 
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
 
+## OpenOS II
+
+The ports are named as on Linux, starting at `/dev/ttyS1`. `stty -F /dev/ttyS1 9600` sets the rate. The `oc2.serial` library works the same as on Linux, see below.
+
 ## Linux
 
 The card is a plain serial port. The first one in a machine is `/dev/ttyS1`, because `ttyS0` is the built-in terminal. Set the rate endpoints on the segment should commonly use:
@@ -40,7 +44,7 @@ CP/M uses the first card as its reader and punch, so BDOS functions 3 and 4 go t
 `STAT CON:=TTY:` switches to the first card as the console, for example to use the computer from a [terminal](../block/terminal.md).  
 `STAT CON:=CRT:` goes back to the built-in one.
 
-`SERBAUD` sets another rate from a divisor: 384 is 300 baud, 96 is 1200, 12 is 9600, 6 is 19200, 1 is 115200.
+`SERBAUD` in `SERIAL.INC` sets another rate from a divisor: 384 is 300 baud, 96 is 1200, 12 is 9600, 6 is 19200, 1 is 115200.
 
 `TERM` is a dumb terminal on the card: everything typed is written, everything read is printed. `Ctrl-]` quits. Corrupted data prints as `~`.
 

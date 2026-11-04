@@ -1,5 +1,5 @@
 # Basics
-This entry describes the general concepts behind [computers](block/computer.md): which processors and operating systems there are, and how software talks to devices. For step-by-step instructions, see the [getting started guide](getting_started/index.md).
+This entry describes the general concepts behind [computers](block/computer.md): which processors and operating systems there are, and how software talks to devices. For step-by-step instructions, see the [getting started guide](systems/index.md).
 
 ## Architectures
 Computers need a processor (CPU) to run. There are two architectures:
@@ -8,9 +8,9 @@ Computers need a processor (CPU) to run. There are two architectures:
 
 ## Operating Systems
 Three operating systems (OS) are supplied:
-- [OpenOS II](getting_started/openos2.md), a small OS with a shell and programs written in Lua.
-- [Linux](getting_started/linux.md), a small Linux distribution with common command line tools, Lua, MicroPython and a C compiler.
-- [CP/M](getting_started/cpm.md), CP/M 2.2 with an assembler, a linker and a line editor.
+- [OpenOS II](systems/openos2.md), a small OS with a shell and programs written in Lua.
+- [Linux](systems/linux.md), a small Linux distribution with common command line tools, Lua, MicroPython and a C compiler.
+- [CP/M](systems/cpm.md), CP/M 2.2 with an assembler, a linker and a line editor.
 
 ## Native Devices
 Native devices are memory-mapped devices on RISC-V and port-mapped devices on Z80. This means they are mapped to some area in physical memory or to a dedicated device port. The OS uses its own drivers to talk to them. Examples are [hard drives](item/hard_drive.md), the [network interface card](item/network_interface_card.md) and the [sound card](item/sound_card.md).

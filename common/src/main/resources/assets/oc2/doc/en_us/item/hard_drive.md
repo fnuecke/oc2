@@ -4,8 +4,8 @@
 Hard drives are the main storage device used for data storage in [computers](../block/computer.md) and [robots](robot.md).
 
 Usually computers use a firmware that requires some hard drive to complete the boot process. See the [flash memory](flash_memory.md) entry for more details. Crafting a hard drive together with a [RISC-V processor](cpu_riscv.md) writes an operating system to it:
-- 2M hard drive: [OpenOS II](../getting_started/openos2.md).
-- 8M hard drive: [Linux](../getting_started/linux.md).
+- 2M hard drive: [OpenOS II](../systems/openos2.md).
+- 8M hard drive: [Linux](../systems/linux.md).
 
 Crafting either of these drives with a [wrench](wrench.md) wipes it back to an empty drive.
 

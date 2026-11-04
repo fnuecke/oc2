@@ -6,7 +6,7 @@ The sound card provides a means for computers to emit arbitrary audio signals. T
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
 
 ## OpenOS II
-See the [OpenOS II guide](../getting_started/openos2.md) for general usage.
+See the [OpenOS II guide](../systems/openos2.md) for general usage.
 
 The first sound card provides three devices, all playing mono audio at 11025 samples per second:
 - `/dev/dsp` takes one unsigned byte per sample.
@@ -17,7 +17,7 @@ The format and rate cannot be changed. Audio must be 11025 samples per second. R
 `cat sound.raw > /dev/dspW`
 
 ## Linux
-See the [Linux guide](../getting_started/linux.md) for general usage.
+See the [Linux guide](../systems/linux.md) for general usage.
 
 Sound cards typically appear as `/dev/dsp` devices. The simplest way to play audio is to write raw samples to the device:  
 `cat sound.raw > /dev/dsp`

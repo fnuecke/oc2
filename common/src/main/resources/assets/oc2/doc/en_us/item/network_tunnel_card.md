@@ -5,7 +5,7 @@ The network tunnel card allows [computers](../block/computer.md) to send message
 
 To link two tunnel devices, open their configuration interface (use while holding), and insert the other tunnel device to link to. This allows linking any two network tunnel devices.
 
-Only [Linux](../getting_started/linux.md) supports this device. It provides a regular ethernet device. Network setup can either be performed manually, or using the convenience script `setup-network.lua`. This script provides the option to either use a fixed-address setup, or a DHCP setup. For a DHCP setup, exactly one computer in the network must act as a DHCP server. See [networking](../networking.md) for details.
+Only [Linux](../systems/linux.md) supports this device. It provides a regular ethernet device. Network setup can either be performed manually, or using the convenience script `setup-network.lua`. This script provides the option to either use a fixed-address setup, or a DHCP setup. For a DHCP setup, exactly one computer in the network must act as a DHCP server. See [networking](../networking.md) for details.
 
 After initial setup, use the command `ifconfig` to see the currently used IP address.
 

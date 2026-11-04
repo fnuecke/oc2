@@ -10,7 +10,7 @@ Computers *have to be shut down* before installing or removing this component. I
 Unlike the terminal screen, keyboards send key positions (scancodes), which the computer interprets using its own layout, defaulting to US. If that gives you the wrong characters, load a matching layout as described below.
 
 ## OpenOS II
-See the [OpenOS II guide](../getting_started/openos2.md) for general usage.
+See the [OpenOS II guide](../systems/openos2.md) for general usage.
 
 OpenOS II does not show a console on a projector, the keyboard has to be used by programs manually. Each key press arrives as a `key_down` signal, each release as a `key_up` signal. Run `keytest` to see the values. In Lua:  
 `local event = require("event")`  
@@ -25,7 +25,7 @@ To load another layout, `us`, `de`, `fr` or `uk`:
 The layout is reset on the next reboot. Add it to `/.shrc` to load it automatically.
 
 ## Linux
-See the [Linux guide](../getting_started/linux.md) for general usage.
+See the [Linux guide](../systems/linux.md) for general usage.
 
 The keyboard provides events via the `evdev` system. Its primary use-case is in combination with a [projector](projector.md): key presses are sent to the terminal session displayed there, without additional configuration.
 

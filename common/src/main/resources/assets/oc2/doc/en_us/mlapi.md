@@ -1,5 +1,5 @@
 # Mid-level API
-The mid-level API (MLAPI) is a low-level friendly way of interacting with devices. Its primary consumer is programs running on [CP/M](getting_started/cpm.md), but programs on [Linux](getting_started/linux.md) can make use of it, as well, see below. OpenOS II does not support it. It usually makes available a subset of the devices accessible via the [high-level API](hlapi.md) (HLAPI), in a form an 8-bit machine can access comfortably: a function is picked by number, and its arguments and results are plain bytes.
+The mid-level API (MLAPI) is a low-level friendly way of interacting with devices. Its primary consumer is programs running on [CP/M](systems/cpm.md), but programs on [Linux](systems/linux.md) can make use of it, as well, see below. OpenOS II does not support it. It usually makes available a subset of the devices accessible via the [high-level API](hlapi.md) (HLAPI), in a form an 8-bit machine can access comfortably: a function is picked by number, and its arguments and results are plain bytes.
 
 For the function codes each device offers, see the [list of devices](device/index.md).
 

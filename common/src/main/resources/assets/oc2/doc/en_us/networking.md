@@ -1,7 +1,7 @@
 # Networking
 To set up a [computer](block/computer.md) network, use [network connectors](block/network_connector.md) and [network cables](item/network_cable.md) to connect the connectors. Finally, make sure a [network interface card](item/network_interface_card.md) is installed in each computer that should be part of the network.
 
-Only [Linux](getting_started/linux.md) supports networking.
+Only [Linux](systems/linux.md) supports networking.
 
 Connectors have to be attached to any face but the front face of a computer. This allows the network card installed in it to send and receive packets through the connector.
 

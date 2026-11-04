@@ -1,7 +1,7 @@
 # High-level API
 Controlling devices using Lua is a core concept when using [computers](block/computer.md). Many devices are so-called high-level API (HLAPI) devices. This means they are not controlled using native drivers, but via a simple RPC system, employing JSON messages over a serial device.
 
-Everything in this entry applies to [OpenOS II](getting_started/openos2.md) and [Linux](getting_started/linux.md), unless noted otherwise. To access devices from [CP/M](getting_started/cpm.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
+Everything in this entry applies to [OpenOS II](systems/openos2.md) and [Linux](systems/linux.md), unless noted otherwise. To access devices from [CP/M](systems/cpm.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
 
 If multiple devices of the same type are connected, `find` may return any of them. To grab a specific one, assign the bus interface in front of the desired device a name, by using a [wrench](item/wrench.md), then find it by that name instead. Multiple names can be passed: `find("storage", "item_handler")` only matches a device with both.
 

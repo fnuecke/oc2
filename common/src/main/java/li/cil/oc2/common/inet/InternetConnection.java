@@ -41,6 +41,7 @@ public final class InternetConnection implements GatewayConnection {
 
     // --------------------------------------------------------------------- //
 
+    @Override
     public void stop() {
         stopRequested.set(true);
     }

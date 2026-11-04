@@ -3,18 +3,22 @@
 package li.cil.oc2.common.mixin;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
+import com.mojang.blaze3d.framegraph.FramePass;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import li.cil.oc2.client.renderer.ProjectorDepthRenderer;
 import li.cil.oc2.common.ext.LevelRendererExt;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LevelTargetBundle;
 import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.culling.Frustum;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -27,6 +31,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class LevelRendererMixin implements LevelRendererExt {
     @Shadow
     private int ticks;
+
+    @Shadow
+    @Final
+    private LevelTargetBundle targets;
 
     @Unique
     @Nullable
@@ -62,6 +70,17 @@ public abstract class LevelRendererMixin implements LevelRendererExt {
     @Inject(method = "renderLevel", at = @At("HEAD"))
     private void captureMainCamera(final GraphicsResourceAllocator graphicsResourceAllocator, final DeltaTracker deltaTracker, final boolean renderBlockOutline, final Camera camera, final Matrix4f frustumMatrix, final Matrix4f projectionMatrix, final Matrix4f cullingProjectionMatrix, final GpuBufferSlice shaderFog, final Vector4f fogColor, final boolean renderSky, final CallbackInfo ci) {
         ProjectorDepthRenderer.captureMainCamera(frustumMatrix, projectionMatrix);
+    }
+
+    // With "Fabulous!" graphics, project before the transparency chain, so translucent layers blend over the projection.
+    // The second post chain added in renderLevel is the transparency chain, the first is the entity outline chain.
+    @ModifyArg(method = "renderLevel", index = 0, at = @At(value = "INVOKE", ordinal = 1,
+        target = "Lnet/minecraft/client/renderer/PostChain;addToFrame(Lcom/mojang/blaze3d/framegraph/FrameGraphBuilder;IILnet/minecraft/client/renderer/PostChain$TargetBundle;)V"))
+    private FrameGraphBuilder addProjectorsPass(final FrameGraphBuilder frameGraphBuilder) {
+        final FramePass pass = frameGraphBuilder.addPass("oc2_projectors");
+        targets.main = pass.readsAndWrites(targets.main);
+        pass.executes(ProjectorDepthRenderer::onBeforeTransparencyChain);
+        return frameGraphBuilder;
     }
 
     @ModifyArg(method = "renderLevel", index = 1, at = @At(value = "INVOKE",

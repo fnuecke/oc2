@@ -40,6 +40,7 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
     private static final String HAS_ENERGY_TAG_NAME = "has_energy";
 
     private static final int IS_CHARGING_CODE = 1;
+    private static final int POWER_ON_DELAY_TICKS = 5;
 
     private static final Predicate<Entity> ENTITY_PREDICATE =
         EntitySelector.NO_SPECTATORS
@@ -48,8 +49,9 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
     // --------------------------------------------------------------------- //
 
     private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.chargerEnergyStorage);
-    private boolean hasEnergy;
     private boolean isCharging;
+    private boolean hasEnergy;
+    private int ticksWithEnergy;
     private final AABB renderBoundingBox;
 
     // --------------------------------------------------------------------- //
@@ -88,16 +90,22 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
             return;
         }
 
-        isCharging = false;
-        final boolean hasEnergy = energy.getEnergyStored() > 0;
-        if (hasEnergy) {
-            chargeBlock();
-            chargeEntities();
+        if (energy.getEnergyStored() == 0) {
+            ticksWithEnergy = 0;
+        } else if (ticksWithEnergy < POWER_ON_DELAY_TICKS) {
+            ticksWithEnergy++;
         }
 
+        final boolean hasEnergy = ticksWithEnergy >= POWER_ON_DELAY_TICKS;
         if (hasEnergy != this.hasEnergy) {
             this.hasEnergy = hasEnergy;
             Network.sendToClientsTrackingBlockEntity(new ChargerStateMessage(this, this.hasEnergy), this);
+        }
+
+        isCharging = false;
+        if (hasEnergy) {
+            chargeBlock();
+            chargeEntities();
         }
 
         if (isCharging) {

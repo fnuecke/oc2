@@ -1,0 +1,24 @@
+{
+  "ambientocclusion": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "glow": "oc2:block/overlay/transposer_glow",
+    "particle": "#glow"
+  },
+  "elements": [
+    {
+      "from": [0.5, 0.5, 0.5],
+      "to": [15.5, 15.5, 15.5],
+      "shade": false,
+      "light_emission": 15,
+      "faces": {
+        "down": { "texture": "#glow", "cullface": "down" },
+        "up": { "texture": "#glow", "cullface": "up" },
+        "north": { "texture": "#glow", "cullface": "north" },
+        "south": { "texture": "#glow", "cullface": "south" },
+        "west": { "texture": "#glow", "cullface": "west" },
+        "east": { "texture": "#glow", "cullface": "east" }
+      }
+    }
+  ]
+}

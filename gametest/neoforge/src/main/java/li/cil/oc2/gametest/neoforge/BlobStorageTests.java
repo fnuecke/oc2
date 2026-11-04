@@ -659,18 +659,18 @@ public final class BlobStorageTests {
                 Ingredient.of(Items.WRENCH.get()),
                 Ingredient.of(Items.HARD_DRIVE_LARGE.get()))));
 
-        final ItemStack healthy = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
+        final ItemStack healthy = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId());
         if (!recipe.matches(gridOf(healthy, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException(Component.literal("Converting a healthy drive should still work"), 0);
         }
 
-        final ItemStack corrupted = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
+        final ItemStack corrupted = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId());
         StorageItemUtils.setState(corrupted, State.CORRUPTED);
         if (recipe.matches(gridOf(corrupted, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException(Component.literal("tool recipe should not match a corrupted drive"), 0);
         }
 
-        final ItemStack unverified = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId());
+        final ItemStack unverified = Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId());
         StorageItemUtils.setState(unverified, State.INCONSISTENT);
         if (recipe.matches(gridOf(unverified, new ItemStack(Items.WRENCH.get())), helper.getLevel())) {
             throw new GameTestAssertException(Component.literal("tool recipe should not match an unverified drive"), 0);

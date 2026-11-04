@@ -2,8 +2,10 @@
 
 package li.cil.oc2.gametest.neoforge;
 
+import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.capabilities.neoforge.NeoForgeCapabilityAdapters;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.item.Items;
 import li.cil.oc2.gametest.CapabilityAdapterTests;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -326,6 +328,29 @@ public final class CapabilityAdapterTestsNeoForge {
     @TestHolder
     public static void containerFluidDrainReplacesItem(final GameTestHelper helper) {
         CapabilityAdapterTests.containerFluidDrainReplacesItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
+    public static void occupiedSlotStillAcceptsMatchingItems(final GameTestHelper helper) {
+        helper.setBlock(DEVICE_POS, Blocks.COMPUTER.get());
+        final ResourceHandler<ItemResource> handler = platformItems(helper);
+        final ItemResource memory = ItemResource.of(Items.MEMORY_SMALL.get());
+        int slot = 0;
+        try (Transaction transaction = Transaction.openRoot()) {
+            while (handler.insert(slot, memory, 1, transaction) == 0) {
+                slot++;
+            }
+            transaction.commit();
+        }
+
+        if (!handler.isValid(slot, memory)) {
+            throw new GameTestAssertException(Component.literal("an occupied memory slot should still accept memory"), 0);
+        }
+        if (handler.isValid(slot, ItemResource.of(net.minecraft.world.item.Items.DIRT))) {
+            throw new GameTestAssertException(Component.literal("a memory slot should not accept dirt"), 0);
+        }
+        helper.succeed();
     }
 
     // --------------------------------------------------------------------- //

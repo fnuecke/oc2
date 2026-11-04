@@ -45,7 +45,7 @@ public final class FloppyControllerStorage implements MappedStorage {
     }
 
     @Override
-    public void setBlockDevice(@Nullable final BlockDevice block) throws IOException {
+    public void setBlockDevice(@Nullable final BlockDevice block, final boolean notify) throws IOException {
         if (block == null) {
             controller.removeDisk(UNIT);
         } else {

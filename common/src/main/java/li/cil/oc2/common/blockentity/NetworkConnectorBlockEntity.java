@@ -9,7 +9,6 @@ import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.network.Network;
-import li.cil.oc2.common.network.message.NetworkConnectorAdjacentInterfaceMessage;
 import li.cil.oc2.common.network.message.NetworkConnectorConnectionsMessage;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.ServerScheduler;
@@ -26,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -53,7 +53,6 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     }
 
     private static final String CONNECTIONS_TAG_NAME = "connections";
-    private static final String HAS_ADJACENT_INTERFACE_TAG_NAME = "has_adjacent_interface";
     private static final String IS_OWNER_TAG_NAME = "is_owner";
     private static final String POSITION_TAG_NAME = "position";
 
@@ -72,7 +71,6 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     private NetworkInterface adjacentInterface;
     @Nullable
     private Capabilities.InvalidationHandle adjacentInterfaceHandle;
-    private boolean hasAdjacentInterface; // == adjacentInterface != null for client
     private boolean isAdjacentInterfaceDirty = true;
 
     private final HashSet<BlockPos> connectorPositions = new HashSet<>();
@@ -184,15 +182,6 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         isAdjacentInterfaceDirty = true;
     }
 
-    public boolean hasAdjacentInterface() {
-        return hasAdjacentInterface;
-    }
-
-    @Environment(EnvType.CLIENT)
-    public void setHasAdjacentInterfaceClient(final boolean value) {
-        hasAdjacentInterface = value;
-    }
-
     @Override
     public void serverTick() {
         if (level == null) {
@@ -235,8 +224,6 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
         }
         tag.put(CONNECTIONS_TAG_NAME, connections);
 
-        tag.putBoolean(HAS_ADJACENT_INTERFACE_TAG_NAME, hasAdjacentInterface);
-
         return tag;
     }
 
@@ -262,8 +249,6 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     @Override
     protected void loadAdditional(final ValueInput input) {
         super.loadAdditional(input);
-
-        hasAdjacentInterface = input.getBooleanOr(HAS_ADJACENT_INTERFACE_TAG_NAME, false);
 
         input.childrenListOrEmpty(CONNECTIONS_TAG_NAME).stream().limit(MAX_CONNECTION_COUNT).forEach(connection -> {
             final BlockPos position = connection.read(POSITION_TAG_NAME, BlockPos.CODEC).orElse(null);
@@ -414,14 +399,12 @@ public final class NetworkConnectorBlockEntity extends ModBlockEntity implements
     }
 
     private void setHasAdjacentInterface(final boolean value) {
-        if (value == hasAdjacentInterface) {
+        final BlockState state = getBlockState();
+        if (state.getValue(NetworkConnectorBlock.CONNECTED) == value) {
             return;
         }
 
-        hasAdjacentInterface = value;
-
-        final NetworkConnectorAdjacentInterfaceMessage message = new NetworkConnectorAdjacentInterfaceMessage(this);
-        Network.sendToClientsTrackingBlockEntity(message, this);
+        level.setBlock(getBlockPos(), state.setValue(NetworkConnectorBlock.CONNECTED, value), Block.UPDATE_CLIENTS);
     }
 
     private void onConnectedPositionsChanged() {

@@ -57,6 +57,7 @@ Images are identified by their own path, so the one above is `my_pack:block_devi
 The images we provide are registered in code, with the ids below. A data pack image wins over a registered one,
 so shipping an image at one of these paths replaces it:
 
+- `oc2:block_devices/hdd/openos2.bin`
 - `oc2:block_devices/hdd/sedna.bin`
 - `oc2:block_devices/floppy/cpm.bin`
 - `oc2:block_devices/flash/riscv.bin`

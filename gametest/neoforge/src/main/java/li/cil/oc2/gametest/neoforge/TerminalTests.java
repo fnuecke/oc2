@@ -5,6 +5,7 @@ package li.cil.oc2.gametest.neoforge;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.blockentity.TerminalBlockEntity;
+import li.cil.oc2.common.bus.device.block.KeyboardDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
@@ -181,7 +182,35 @@ public final class TerminalTests {
             .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 200, batch = BATCH)
+    @TestHolder
+    public static void keyboardUserExpiresWithoutKeepAlive(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        final KeyboardDevice<Object> keyboard = new KeyboardDevice<>(new Object());
+
+        helper.startSequence()
+            .thenExecute(() -> {
+                keyboard.handleUsedBy(player);
+                assertTrue(helper, "a player is a user right after using the keyboard", isUser(keyboard, player));
+            })
+            .thenExecuteAfter(KeyboardDevice.USER_KEEPALIVE_EVERY, () -> keyboard.handleUsedBy(player))
+            .thenExecuteAfter(KeyboardDevice.USER_KEEPALIVE_EVERY + 10, () -> assertTrue(helper,
+                "a keep-alive extends the use", isUser(keyboard, player)))
+            .thenExecuteAfter(KeyboardDevice.USER_KEEPALIVE_EVERY, () -> assertTrue(helper,
+                "a player without keep-alive expires", !isUser(keyboard, player)))
+            .thenSucceed();
+    }
+
     // --------------------------------------------------------------------- //
+
+    private static boolean isUser(final KeyboardDevice<?> keyboard, final Player player) {
+        for (final Player user : keyboard.getTerminalUsers()) {
+            if (user == player) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private static void linkTerminals(final GameTestHelper helper, final Player player, final BlockPos firstPos, final BlockPos secondPos) {
         placeTerminal(helper, player, firstPos, Direction.WEST);

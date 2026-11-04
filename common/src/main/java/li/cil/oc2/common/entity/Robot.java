@@ -549,11 +549,6 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
     }
 
     @Override
-    protected boolean isAffectedByBlocks() {
-        return false;
-    }
-
-    @Override
     protected Vec3 limitPistonMovement(final Vec3 pos) {
         lastPistonMovement = level().getGameTime();
         return super.limitPistonMovement(pos);

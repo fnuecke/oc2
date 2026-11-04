@@ -80,6 +80,8 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     private static final String IS_PROJECTING_TAG_NAME = "projecting";
     private static final String HAS_ENERGY_TAG_NAME = "has_energy";
 
+    private static final int POWER_ON_DELAY_TICKS = 5;
+
     private static final ExecutorService DECODER_WORKERS = Executors.newCachedThreadPool(r -> {
         final Thread thread = new Thread(r);
         thread.setDaemon(true);
@@ -90,7 +92,9 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
     // --------------------------------------------------------------------- //
 
     private final ProjectorDevice projectorDevice = new ProjectorDevice(this, this::handleMountedChanged);
-    private boolean isMounted, hasEnergy;
+    private boolean isMounted;
+    private boolean hasEnergy;
+    private int ticksWithEnergy;
     private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.projectorEnergyStorage);
     private final Picture picture = Picture.create(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, ColorSpace.YUV420J);
 
@@ -184,7 +188,13 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
         final boolean isPowered;
         if (Config.projectorsUseEnergy()) {
-            isPowered = energy.extractEnergy(Config.projectorEnergyPerTick, true) >= Config.projectorEnergyPerTick;
+            if (energy.extractEnergy(Config.projectorEnergyPerTick, true) < Config.projectorEnergyPerTick) {
+                ticksWithEnergy = 0;
+            } else if (ticksWithEnergy < POWER_ON_DELAY_TICKS) {
+                ticksWithEnergy++;
+            }
+
+            isPowered = ticksWithEnergy >= POWER_ON_DELAY_TICKS;
             if (isPowered) {
                 energy.extractEnergy(Config.projectorEnergyPerTick, false);
             }

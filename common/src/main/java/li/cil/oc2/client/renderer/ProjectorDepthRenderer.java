@@ -125,6 +125,7 @@ public final class ProjectorDepthRenderer {
     private static int pendingRenderCount;
     private static int refreshSlot;
     private static boolean isRenderingProjectorDepth;
+    private static boolean isRenderedBeforeTransparencyChain;
     @Nullable
     private static Camera gameRendererMainCameraBak;
     @Nullable
@@ -218,12 +219,20 @@ public final class ProjectorDepthRenderer {
         PROJECTION_MATRIX.set(projectionMatrix);
     }
 
+    public static void onBeforeTransparencyChain() {
+        isRenderedBeforeTransparencyChain = true;
+        if (prepareProjectorRendering()) {
+            renderProjectors(Minecraft.getInstance());
+        }
+    }
+
     public static void onAfterLevel() {
         try {
-            if (prepareProjectorRendering()) {
+            if (!isRenderedBeforeTransparencyChain && prepareProjectorRendering()) {
                 renderProjectors(Minecraft.getInstance());
             }
         } finally {
+            isRenderedBeforeTransparencyChain = false;
             pendingRenderCount = 0;
             Arrays.fill(PROJECTOR_COLOR_BUFFERS, null);
             Arrays.fill(PROJECTOR_DEPTH_BUFFERS, null);

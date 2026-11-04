@@ -103,10 +103,10 @@ public final class DatapackDataTests {
         requireDrive(Items.HARD_DRIVE_MEDIUM.get(), HDD, false);
         requireDrive(Items.HARD_DRIVE_LARGE.get(), HDD, false);
 
-        final BlockDeviceData buildroot = BlockDeviceDataRegistry.BUILDROOT.get();
-        requireDrive(Items.HARD_DRIVE_SMALL.get(), buildroot, false);
-        requireDrive(Items.HARD_DRIVE_MEDIUM.get(), buildroot, false);
-        requireDrive(Items.HARD_DRIVE_LARGE.get(), buildroot, true);
+        final BlockDeviceData sednaLinux = BlockDeviceDataRegistry.SEDNA_LINUX.get();
+        requireDrive(Items.HARD_DRIVE_SMALL.get(), sednaLinux, false);
+        requireDrive(Items.HARD_DRIVE_MEDIUM.get(), sednaLinux, false);
+        requireDrive(Items.HARD_DRIVE_LARGE.get(), sednaLinux, true);
 
         helper.succeed();
     }

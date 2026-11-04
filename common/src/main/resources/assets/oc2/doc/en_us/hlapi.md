@@ -1,17 +1,16 @@
 # High-level API
-Controlling devices using Lua is a core concept when using [computers](block/computer.md). Many devices are so-called high-level API (HLAPI) devices. This means they are not controlled using regular Linux drivers, but via a simple RPC system, employing JSON messages over a serial device.
+Controlling devices using Lua is a core concept when using [computers](block/computer.md). Many devices are so-called high-level API (HLAPI) devices. This means they are not controlled using native drivers, but via a simple RPC system, employing JSON messages over a serial device.
 
-Everything in this entry needs the Linux system that ships for the [RISC-V processor](item/cpu_riscv.md). To access devices from a [Z80 processor](item/cpu_z80.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
-
+Everything in this entry applies to [OpenOS II](systems/openos2.md) and [Linux](systems/linux.md), unless noted otherwise. To access devices from [CP/M](systems/cpm.md), see the [mid-level API](mlapi.md) (MLAPI) entry.
 
 If multiple devices of the same type are connected, `find` may return any of them. To grab a specific one, assign the bus interface in front of the desired device a name, by using a [wrench](item/wrench.md), then find it by that name instead. Multiple names can be passed: `find("storage", "item_handler")` only matches a device with both.
 
 For the methods available on devices, see the [list of devices](device/index.md).
 
 ## The Devices Library
-The default Linux distribution includes libraries to make HLAPI devices more easily accessible. The `devices` library provides utilities for discovering devices and calling methods on them, as well as obtaining documentation on devices, when available.
+OpenOS II and Linux include libraries to make HLAPI devices more easily accessible. The `devices` library provides utilities for discovering devices and calling methods on them, as well as obtaining documentation on devices, when available.
 
-Note: this document will use Lua to provide an overview, examples and API documentation. An equivalent library with API parity is also available for micropython. 
+Note: this document will use Lua to provide an overview, examples and API documentation. On Linux, an equivalent library with API parity is also available for MicroPython.
 
 To use the `devices` library, import it using `require("devices")`. What you get back is an object, so its methods are called with colon notation: store it in a variable, then call `d:list()` rather than `d.list()`.
 
@@ -58,16 +57,18 @@ To invoke a method on such a wrapper, use colon notation, and the method's name.
 
 `wrapper:waitEvent(timeout:number, eventType:string):table` works like `waitEvent` on the library, but only returns events sent by this device. Events from other devices are discarded while waiting.
 
-To obtain the documentation of the device, `tostring` it. In the Lua interpreter, use `=wrapper`.
+To obtain the documentation of the device, `tostring` it. In the interactive Lua prompt, enter the variable's name, e.g. `wrapper`.
 
 ## Running Several Scripts at Once
-The serial devices used for the RPC system can only be opened by one program at a time. A small background service, `oc2busd`, opens them once when the computer boots and relays messages for everything else. While it's running, as many scripts as you like can use the `devices` library at the same time.
+On OpenOS II, all programs and background jobs share one connection to the devices.
+
+On Linux, the serial devices used for the RPC system can only be opened by one program at a time. A small background service, `oc2busd`, opens them once when the computer boots and relays messages for everything else. While it's running, as many scripts as you like can use the `devices` library at the same time.
 
 Calls are still carried out one at a time, in the order they arrive, so two scripts controlling the same device will not interleave halfway through an operation.
 
 Events, such as a [robot](robotics.md) finishing an action, are delivered to *every* listening script. A script that starts in the middle of an action may therefore see events for something it did not begin, so check that an event refers to the action you are waiting on. `waitEvent` takes an event name for early filtering.
 
-Each `require("devices")` gives a script one connection to the service. To hold more than one at the same time, for example to keep a long-running call from holding up everything else, open further ones explicitly:  
+On Linux, each `require("devices")` gives a script one connection to the service. To hold more than one at the same time, for example to keep a long-running call from holding up everything else, open further ones explicitly:  
 `bus = require("oc2.bus").connect()`
 
 Close such a connection with `bus:close()` once it is no longer needed. The one behind `require("devices")` is best left alone, since everything else in the script shares it.
@@ -95,7 +96,7 @@ Then get the `Device` wrapper for the redstone interface block and store it in a
 
 The `redstone` in this call is the device type name, the same we checked for just earlier using `lsdev.lua`.
 
-We now have a wrapper for the redstone interface block on which we may call methods. To get a list of the available methods, run `=r`.
+We now have a wrapper for the redstone interface block on which we may call methods. To get a list of the available methods, enter `r`.
 
 For our example, we're interested in the `setRedstoneOutput` method. It allows setting the signal emitted from the redstone interface.
 

@@ -27,16 +27,16 @@ loom {
         create("data") {
             client()
             runDirectory.set(file("build/datagen"))
-            jvmArguments.add("-Dfabric-api.datagen")
-            jvmArguments.add("-Dfabric-api.datagen.output-dir=${file("src/generated/resources").absolutePath}")
-            jvmArguments.add("-Dfabric-api.datagen.modid=${modId}")
+            systemProperties.put("fabric-api.datagen", "true")
+            systemProperties.put("fabric-api.datagen.output-dir", file("src/generated/resources").absolutePath)
+            systemProperties.put("fabric-api.datagen.modid", modId)
         }
 
         create("gameTest") {
             server()
             runDirectory.set(file("run/gametest"))
-            jvmArguments.add("-Dfabric-api.gametest")
-            jvmArguments.add("-Dfabric-api.gametest.report-file=${gameTestResultsDir.get().asFile.absolutePath}/fabric-game-tests.xml")
+            systemProperties.put("fabric-api.gametest", "true")
+            systemProperties.put("fabric-api.gametest.report-file", gameTestResultsDir.get().file("fabric-game-tests.xml").asFile.absolutePath)
             jvmArguments.add("-ea")
         }
     }

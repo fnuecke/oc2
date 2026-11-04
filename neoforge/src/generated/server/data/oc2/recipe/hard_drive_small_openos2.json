@@ -1,0 +1,19 @@
+{
+  "type": "oc2:tool",
+  "category": "misc",
+  "ingredients": [
+    "oc2:hard_drive_small",
+    "oc2:cpu_riscv"
+  ],
+  "result": {
+    "components": {
+      "minecraft:custom_data": {
+        "oc2": {
+          "image": "oc2:block_devices/hdd/openos2.bin"
+        }
+      }
+    },
+    "count": 1,
+    "id": "oc2:hard_drive_small"
+  }
+}

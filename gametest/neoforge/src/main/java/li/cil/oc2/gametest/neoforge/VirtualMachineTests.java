@@ -8,12 +8,21 @@ import li.cil.oc2.common.bus.device.data.BlockDeviceDataRegistry;
 import li.cil.oc2.common.bus.device.item.MemoryDevice;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.util.SerializationUtils;
+import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.VMRunState;
+import li.cil.oc2.common.vm.arch.R5Architecture;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.fixture.Hardware;
+import li.cil.oc2.gametest.fixture.MachineFixture;
+import li.cil.oc2.gametest.fixture.RobotFixture;
+import li.cil.sedna.api.Sizes;
+import li.cil.sedna.api.memory.MemoryAccessException;
+import li.cil.sedna.riscv.R5Board;
+import li.cil.sedna.riscv.R5MemoryRangeAllocationStrategy;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +30,7 @@ import net.neoforged.testframework.annotation.ForEachTest;
 import net.neoforged.testframework.annotation.TestHolder;
 import net.neoforged.testframework.gametest.GameTest;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +52,7 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(20, () -> computer
                 .install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_RISCV.getId()))
                 .install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_LARGE.get()))
-                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId())))
+                .install(DeviceTypes.HARD_DRIVE.get(), Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId())))
             .thenExecuteAfter(20, computer::start)
             .thenExecuteAfter(60, () -> {
                 computer.assertRunState(VMRunState.STOPPED, "without a processor");
@@ -93,6 +103,26 @@ public final class VirtualMachineTests {
             .thenExecuteAfter(60, () -> {
                 computer.assertRunState(VMRunState.STOPPED, "after the processor was swapped");
                 computer.assertBootError(Constants.COMPUTER_ERROR_STATE_LOST, "a machine losing its state to a new architecture must say so");
+            })
+            .thenSucceed();
+    }
+
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = 900)
+    @TestHolder
+    public static void unrecoverableTrapStopsComputer(final GameTestHelper helper) {
+        final ComputerFixture computer = ComputerFixture.placePowered(helper, COMPUTER_POS);
+
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
+            .thenExecuteAfter(20, computer::start)
+            .thenExecuteAfter(300, () -> {
+                computer.assertRunState(VMRunState.RUNNING, "precondition");
+                // Wipes the firmware, so the next machine level trap faults in its handler.
+                zeroMemory(computer, R5MemoryRangeAllocationStrategy.PHYSICAL_MEMORY_FIRST, 64 * 1024);
+            })
+            .thenExecuteAfter(60, () -> {
+                computer.assertRunState(VMRunState.STOPPED, "after the trap handler was wiped");
+                computer.assertBootError(Constants.COMPUTER_ERROR_HALTED, "a halted processor must say so");
             })
             .thenSucceed();
     }
@@ -153,10 +183,67 @@ public final class VirtualMachineTests {
             .thenSucceed();
     }
 
+    @GameTest(template = TEMPLATE_ID, timeoutTicks = BOOT_TIMEOUT_TICKS, batch = BOOT_RELOAD_BATCH)
+    @TestHolder
+    public static void runningRobotKeepsMemoryOnSaveAndLoad(final GameTestHelper helper) {
+        final RobotFixture robot = RobotFixture.place(helper, ROBOT_POS);
+
+        final long[] instructionsAtReload = new long[1];
+        final List<String> memoryAtReload = new ArrayList<>();
+        helper.startSequence()
+            .thenExecuteAfter(20, () -> {
+                robot.charge();
+                Hardware.installLinux(robot);
+            })
+            .thenExecuteAfter(20, robot::start)
+            .thenWaitUntil(() -> {
+                robot.charge();
+                robot.assertRunState(VMRunState.RUNNING, "before reload");
+                if (robot.guestInstructions() == 0) {
+                    throw new GameTestAssertException(Component.literal("guest has not started yet"), 0);
+                }
+            })
+            .thenExecute(() -> {
+                memoryAtReload.addAll(memory(robot));
+                final RegistryAccess registries = helper.getLevel().registryAccess();
+                final CompoundTag tag = SerializationUtils.saveToTag(ProblemReporter.Collector.EMPTY_ROOT, registries, robot.entity()::saveWithoutId);
+                SerializationUtils.loadFromTag(ProblemReporter.Collector.EMPTY_ROOT, registries, tag, robot.entity()::load);
+                instructionsAtReload[0] = robot.guestInstructions();
+            })
+            .thenWaitUntil(() -> {
+                robot.charge();
+                robot.assertNoGuestPanic();
+                robot.assertRunState(VMRunState.RUNNING, "after reload");
+                if (robot.guestInstructions() <= instructionsAtReload[0]) {
+                    throw new GameTestAssertException(Component.literal("guest is not retiring instructions after reload"), 0);
+                }
+                if (!memory(robot).equals(memoryAtReload)) {
+                    throw new GameTestAssertException(Component.literal("memory did not survive reload: "
+                        + memoryAtReload + " -> " + memory(robot)), 0);
+                }
+            })
+            .thenSucceed();
+    }
+
     // --------------------------------------------------------------------- //
 
-    private static List<String> memory(final ComputerFixture computer) {
-        return computer.devices().stream()
+    private static void zeroMemory(final ComputerFixture computer, final long address, final int length) {
+        try {
+            final Field architectureField = AbstractVirtualMachine.class.getDeclaredField("architecture");
+            architectureField.setAccessible(true);
+            final Field boardField = R5Architecture.class.getDeclaredField("board");
+            boardField.setAccessible(true);
+            final R5Board board = (R5Board) boardField.get(architectureField.get(computer.virtualMachine()));
+            for (int offset = 0; offset < length; offset += 8) {
+                board.getMemoryMap().store(address + offset, 0, Sizes.SIZE_64_LOG2);
+            }
+        } catch (final ReflectiveOperationException | MemoryAccessException e) {
+            throw new GameTestAssertException(Component.literal("could not wipe guest memory: " + e), 0);
+        }
+    }
+
+    private static List<String> memory(final MachineFixture machine) {
+        return machine.devices().stream()
             .filter(device -> device instanceof MemoryDevice)
             .map(device -> SerializationUtils.saveToTag(ProblemReporter.Collector.EMPTY_ROOT, RegistryAccess.EMPTY, device::serialize).toString())
             .sorted()

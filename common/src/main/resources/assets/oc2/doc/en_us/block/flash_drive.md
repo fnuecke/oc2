@@ -5,7 +5,7 @@ The flash drive exposes [flash memory](../item/flash_memory.md) to a [computer](
 
 Flash memory can be inserted and removed at runtime. The drive itself cannot: computers *have to be shut down* before installing or removing it.
 
-On a Linux system, the drive appears as a `/dev/vdX` device, following any installed hard drives, just like a floppy disk drive. It is a raw block device.
+On OpenOS II and Linux, the drive appears as a `/dev/vdX` device, following any installed hard drives, just like a floppy disk drive. It is a raw block device. CP/M does not support it.
 
 To write your firmware to the flash memory, *erasing what was there before*:  
 `dd if=<firmware file> of=/dev/vdX bs=512 conv=fsync`

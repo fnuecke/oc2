@@ -80,7 +80,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
 
     private final Entity entity;
     private final Robot robot;
-    private long lastOperation = -MIN_COOLDOWN;
+    private long lastOperation;
     private int cooldown = MIN_COOLDOWN;
 
     // --------------------------------------------------------------------- //

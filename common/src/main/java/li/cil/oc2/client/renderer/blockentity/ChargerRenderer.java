@@ -37,7 +37,7 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity, 
 
     // --------------------------------------------------------------------- //
 
-    public static final Identifier EFFECT_LOCATION = Identifier.fromNamespaceAndPath(API.MOD_ID, "block/charger/effect");
+    public static final Identifier EFFECT_LOCATION = Identifier.fromNamespaceAndPath(API.MOD_ID, "block/overlay/charger_glow");
 
     private static final Material TEXTURE_EFFECT = new Material(TextureAtlas.LOCATION_BLOCKS, EFFECT_LOCATION);
 

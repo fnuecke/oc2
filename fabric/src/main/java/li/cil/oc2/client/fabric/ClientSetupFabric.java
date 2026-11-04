@@ -6,6 +6,7 @@ import dev.architectury.registry.client.level.entity.EntityModelLayerRegistry;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
+import dev.architectury.registry.client.rendering.RenderTypeRegistry;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.audio.SoundCardAudio;
 import li.cil.oc2.client.gui.*;
@@ -17,10 +18,8 @@ import li.cil.oc2.client.renderer.blockentity.ChargerRenderer;
 import li.cil.oc2.client.renderer.blockentity.ComputerRenderer;
 import li.cil.oc2.client.renderer.blockentity.DiskDriveRenderer;
 import li.cil.oc2.client.renderer.blockentity.FlashDriveRenderer;
-import li.cil.oc2.client.renderer.blockentity.NetworkConnectorRenderer;
 import li.cil.oc2.client.renderer.blockentity.ProjectorRenderer;
 import li.cil.oc2.client.renderer.blockentity.TerminalRenderer;
-import li.cil.oc2.client.renderer.blockentity.TransposerRenderer;
 import li.cil.oc2.client.renderer.color.BusCableBlockColor;
 import li.cil.oc2.client.renderer.entity.RobotRenderer;
 import li.cil.oc2.client.renderer.entity.RobotSpecialRenderer;
@@ -32,6 +31,7 @@ import li.cil.oc2.common.entity.Entities;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.resources.Identifier;
 
@@ -47,15 +47,14 @@ public final class ClientSetupFabric implements ClientModInitializer {
 
         BusCableModelLoader.initialize();
         ColorHandlerRegistry.registerBlockColors(new BusCableBlockColor(), Blocks.BUS_CABLE);
+        RenderTypeRegistry.register(ChunkSectionLayer.CUTOUT, Blocks.TRANSPOSER.get());
 
         BlockEntityRendererRegistry.register(BlockEntities.COMPUTER.get(), ComputerRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.DISK_DRIVE.get(), DiskDriveRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.FLASH_DRIVE.get(), FlashDriveRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.CHARGER.get(), ChargerRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.PROJECTOR.get(), ProjectorRenderer::new);
-        BlockEntityRendererRegistry.register(BlockEntities.NETWORK_CONNECTOR.get(), NetworkConnectorRenderer::new);
         BlockEntityRendererRegistry.register(BlockEntities.TERMINAL.get(), TerminalRenderer::new);
-        BlockEntityRendererRegistry.register(BlockEntities.TRANSPOSER.get(), TransposerRenderer::new);
 
         EntityRendererRegistry.register(Entities.ROBOT, RobotRenderer::new);
         EntityModelLayerRegistry.register(RobotModel.ROBOT_MODEL_LAYER, RobotModel::createRobotLayer);

@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 public final class TerminalScreen extends AbstractBlockEntityScreen<TerminalBlockEntity> {
     private final TerminalWidget terminalWidget;
 
-    private long lastKeepAliveSentAt;
+    private int keepAliveCountdown;
 
     // --------------------------------------------------------------------- //
 
@@ -158,9 +158,8 @@ public final class TerminalScreen extends AbstractBlockEntityScreen<TerminalBloc
     // --------------------------------------------------------------------- //
 
     private void sendKeepAlive() {
-        final long now = System.currentTimeMillis();
-        if (now - lastKeepAliveSentAt > TerminalBlockEntity.CLIENT_KEEPALIVE_EVERY_MILLIS) {
-            lastKeepAliveSentAt = now;
+        if (--keepAliveCountdown <= 0) {
+            keepAliveCountdown = TerminalBlockEntity.CLIENT_KEEPALIVE_EVERY;
             Network.sendToServer(new TerminalKeepAliveMessage(blockEntity));
         }
     }

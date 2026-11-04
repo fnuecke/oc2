@@ -64,7 +64,7 @@ public final class ComputerItem extends ModBlockItem implements CreativeTabItemP
                 new ItemStack(Items.MEMORY_LARGE.get())
             ));
             itemsTag.put(key(DeviceTypes.HARD_DRIVE.get()), makeInventoryTag(provider,
-                Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId())
+                Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId())
             ));
             itemsTag.put(key(DeviceTypes.CARD.get()), makeInventoryTag(provider,
                 new ItemStack(Items.NETWORK_INTERFACE_CARD.get())

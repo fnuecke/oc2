@@ -2,6 +2,7 @@
 
 package li.cil.oc2.instrumentation;
 
+import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
@@ -13,6 +14,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class Instrumentation {
@@ -43,7 +45,30 @@ public final class Instrumentation {
 
         ReflectCommand.register();
 
+        LifecycleEvent.SERVER_STOPPED.register(Instrumentation::exitAfterServerThread);
+
         EnvExecutor.runInEnv(EnvType.CLIENT, () -> InstrumentationClient::initialize);
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static void exitAfterServerThread(final MinecraftServer server) {
+        if (!server.isDedicatedServer()) {
+            return;
+        }
+
+        final Thread serverThread = server.getRunningThread();
+        final Thread thread = new Thread(() -> {
+            try {
+                serverThread.join();
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            System.exit(0);
+        }, "Dev Server Exit");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     // --------------------------------------------------------------------- //

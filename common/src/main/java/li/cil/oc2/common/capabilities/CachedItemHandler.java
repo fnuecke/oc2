@@ -31,6 +31,11 @@ public record CachedItemHandler(CapabilityCache<ItemHandler> cache) implements I
         return handler().getSlotLimit(slot);
     }
 
+    @Override
+    public boolean isItemValid(final int slot, final ItemStack stack) {
+        return handler().isItemValid(slot, stack);
+    }
+
     private ItemHandler handler() {
         final ItemHandler handler = cache.get();
         if (handler == null) {

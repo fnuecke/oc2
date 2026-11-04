@@ -47,6 +47,12 @@ public final class ComputerFixture implements MachineFixture {
 
     public static ComputerFixture place(final GameTestHelper helper, final Player player, final BlockPos pos) {
         TestSupport.place(helper, player, new ItemStack(Items.COMPUTER.get()), pos);
+        final BlockPos absolute = helper.absolutePos(pos);
+        TestSupport.onTestEnd(helper, () -> {
+            if (helper.getLevel().isLoaded(absolute) && helper.getLevel().getBlockEntity(absolute) instanceof final ComputerBlockEntity computer) {
+                computer.stop();
+            }
+        });
         return new ComputerFixture(helper, pos);
     }
 

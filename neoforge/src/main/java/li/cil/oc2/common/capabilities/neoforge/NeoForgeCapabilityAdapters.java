@@ -271,6 +271,15 @@ public final class NeoForgeCapabilityAdapters {
 
             return inner.getCapacityAsInt(slot, inner.getResource(slot));
         }
+
+        @Override
+        public boolean isItemValid(final int slot, final ItemStack stack) {
+            if (slot < 0 || slot >= inner.size()) {
+                return false;
+            }
+
+            return inner.isValid(slot, ItemResource.of(stack));
+        }
     }
 
     private static final class ReverseItemHandlerAdapter implements ResourceHandler<ItemResource> {
@@ -307,7 +316,7 @@ public final class NeoForgeCapabilityAdapters {
 
         @Override
         public boolean isValid(final int index, final ItemResource resource) {
-            return !resource.isEmpty() && inner.insertItem(index, resource.toStack(), true).isEmpty();
+            return !resource.isEmpty() && inner.isItemValid(index, resource.toStack());
         }
 
         @Override

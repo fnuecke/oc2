@@ -10,8 +10,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.model.SimpleModelWrapper;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.QuadCollection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -27,12 +30,25 @@ import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public record BusCableBakedModel(
-    BlockStateModel proxy,
-    BlockModelPart[] straightModelByAxis,
-    BlockModelPart[] supportModelByFace
-) implements DynamicBlockStateModel {
+public final class BusCableBakedModel implements DynamicBlockStateModel {
+    private final BlockStateModel proxy;
+    private final BlockModelPart[] straightModelByAxis;
+    private final BlockModelPart[] supportModelByFace;
+    private final Map<TextureAtlasSprite, Boolean> opaqueSprites = new ConcurrentHashMap<>();
+
+    // --------------------------------------------------------------------- //
+
+    public BusCableBakedModel(final BlockStateModel proxy, final BlockModelPart[] straightModelByAxis, final BlockModelPart[] supportModelByFace) {
+        this.proxy = proxy;
+        this.straightModelByAxis = straightModelByAxis;
+        this.supportModelByFace = supportModelByFace;
+    }
+
+    // --------------------------------------------------------------------- //
+
     @Override
     public void collectParts(final BlockAndTintGetter level, final BlockPos pos, final BlockState state,
                              final RandomSource random, final List<BlockModelPart> parts) {
@@ -68,8 +84,8 @@ public record BusCableBakedModel(
 
     // --------------------------------------------------------------------- //
 
-    private static void collectFacadeParts(final BlockAndTintGetter level, final BlockPos pos,
-                                           final RandomSource random, final List<BlockModelPart> parts) {
+    private void collectFacadeParts(final BlockAndTintGetter level, final BlockPos pos,
+                                    final RandomSource random, final List<BlockModelPart> parts) {
         final BlockEntity blockEntity = level.getBlockEntity(pos);
 
         BlockState facadeState = null;
@@ -85,8 +101,55 @@ public record BusCableBakedModel(
         final List<BlockModelPart> facadeParts = new ArrayList<>();
         model.collectParts(level, pos, facadeState, random, facadeParts);
         for (final BlockModelPart part : facadeParts) {
-            parts.add(new FacadePart(part, part.getRenderType(facadeState)));
+            final ChunkSectionLayer layer = part.getRenderType(facadeState);
+            if (layer != ChunkSectionLayer.CUTOUT) {
+                parts.add(new FacadePart(part, layer));
+                continue;
+            }
+
+            final QuadCollection.Builder opaqueQuads = new QuadCollection.Builder();
+            final QuadCollection.Builder otherQuads = new QuadCollection.Builder();
+            addQuads(part, null, opaqueQuads, otherQuads);
+            for (final Direction side : Constants.DIRECTIONS) {
+                addQuads(part, side, opaqueQuads, otherQuads);
+            }
+            addPart(parts, part, opaqueQuads.build(), ChunkSectionLayer.SOLID);
+            addPart(parts, part, otherQuads.build(), layer);
         }
+    }
+
+    private static void addPart(final List<BlockModelPart> parts, final BlockModelPart part, final QuadCollection quads, final ChunkSectionLayer layer) {
+        if (!quads.getAll().isEmpty()) {
+            parts.add(new SimpleModelWrapper(quads, part.useAmbientOcclusion(), part.particleIcon(), layer));
+        }
+    }
+
+    private void addQuads(final BlockModelPart part, @Nullable final Direction side,
+                          final QuadCollection.Builder opaqueQuads, final QuadCollection.Builder otherQuads) {
+        for (final BakedQuad quad : part.getQuads(side)) {
+            final QuadCollection.Builder quads = isOpaque(quad.sprite()) ? opaqueQuads : otherQuads;
+            if (side == null) {
+                quads.addUnculledFace(quad);
+            } else {
+                quads.addCulledFace(side, quad);
+            }
+        }
+    }
+
+    private boolean isOpaque(final TextureAtlasSprite sprite) {
+        return opaqueSprites.computeIfAbsent(sprite, s -> {
+            final SpriteContents contents = s.contents();
+            return contents.getUniqueFrames().allMatch(frame -> {
+                for (int y = 0; y < contents.height(); y++) {
+                    for (int x = 0; x < contents.width(); x++) {
+                        if (contents.isTransparent(frame, x, y)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            });
+        });
     }
 
     @Nullable

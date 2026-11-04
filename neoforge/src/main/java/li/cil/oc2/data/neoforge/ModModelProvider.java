@@ -10,6 +10,7 @@ import li.cil.oc2.client.renderer.entity.RobotSpecialRenderer;
 import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.block.FlippableOrientableBlock;
+import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.item.ColoredItem;
 import li.cil.oc2.common.item.Items;
@@ -27,6 +28,7 @@ import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.renderer.block.model.VariantMutator;
+import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
@@ -51,12 +53,14 @@ public final class ModModelProvider extends ModelProvider {
     private static final Identifier FLASH_DRIVE_MODEL = modelLocation("block/flash_drive");
     private static final Identifier KEYBOARD_MODEL = modelLocation("block/keyboard");
     private static final Identifier NETWORK_CONNECTOR_MODEL = modelLocation("block/network_connector");
+    private static final Identifier NETWORK_CONNECTOR_INDICATOR_MODEL = modelLocation("block/network_connector_indicator");
     private static final Identifier NETWORK_HUB_MODEL = modelLocation("block/network_hub");
     private static final Identifier INTERNET_GATEWAY_MODEL = modelLocation("block/internet_gateway");
     private static final Identifier PROJECTOR_MODEL = modelLocation("block/projector");
     private static final Identifier REDSTONE_INTERFACE_MODEL = modelLocation("block/redstone_interface");
     private static final Identifier TERMINAL_MODEL = modelLocation("block/terminal");
     private static final Identifier TRANSPOSER_MODEL = modelLocation("block/transposer");
+    private static final Identifier TRANSPOSER_GLOW_MODEL = modelLocation("block/transposer_glow");
 
     // --------------------------------------------------------------------- //
 
@@ -80,7 +84,7 @@ public final class ModModelProvider extends ModelProvider {
         flippableOrientableBlock(blocks, Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
         horizontalBlock(blocks, Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
         orientableBlock(blocks, Blocks.TERMINAL, Items.TERMINAL, TERMINAL_MODEL);
-        simpleBlock(blocks, Blocks.TRANSPOSER, Items.TRANSPOSER, TRANSPOSER_MODEL);
+        transposer(blocks);
 
         busCable(blocks);
 
@@ -162,13 +166,23 @@ public final class ModModelProvider extends ModelProvider {
     }
 
     private static void networkConnector(final BlockModelGenerators blocks) {
-        blocks.blockStateOutput.accept(MultiVariantGenerator.dispatch(Blocks.NETWORK_CONNECTOR.get())
-            .with(PropertyDispatch.initial(BlockStateProperties.ATTACH_FACE, BlockStateProperties.HORIZONTAL_FACING)
-                .generate((face, facing) -> {
-                    final int x = face == AttachFace.CEILING ? 180 : face == AttachFace.WALL ? 90 : 0;
-                    final int y = (int) facing.toYRot() + 180 + (face == AttachFace.CEILING ? 180 : 0);
-                    return rotated(NETWORK_CONNECTOR_MODEL, x, y);
-                })));
+        final MultiPartGenerator generator = MultiPartGenerator.multiPart(Blocks.NETWORK_CONNECTOR.get());
+        for (final AttachFace face : AttachFace.values()) {
+            for (final Direction facing : Direction.Plane.HORIZONTAL) {
+                final int x = face == AttachFace.CEILING ? 180 : face == AttachFace.WALL ? 90 : 0;
+                final int y = (int) facing.toYRot() + 180 + (face == AttachFace.CEILING ? 180 : 0);
+                generator.with(new ConditionBuilder()
+                        .term(BlockStateProperties.ATTACH_FACE, face)
+                        .term(BlockStateProperties.HORIZONTAL_FACING, facing),
+                    rotated(NETWORK_CONNECTOR_MODEL, x, y));
+                generator.with(new ConditionBuilder()
+                        .term(BlockStateProperties.ATTACH_FACE, face)
+                        .term(BlockStateProperties.HORIZONTAL_FACING, facing)
+                        .term(NetworkConnectorBlock.CONNECTED, true),
+                    rotated(NETWORK_CONNECTOR_INDICATOR_MODEL, x, y));
+            }
+        }
+        blocks.blockStateOutput.accept(generator);
 
         final Identifier itemModel = ExtendedModelTemplateBuilder.builder()
             .parent(NETWORK_CONNECTOR_MODEL)
@@ -177,6 +191,13 @@ public final class ModModelProvider extends ModelProvider {
             .build()
             .create(modelLocation("item/" + Items.NETWORK_CONNECTOR.getId().getPath()), new TextureMapping(), blocks.modelOutput);
         blocks.itemModelOutput.accept(Items.NETWORK_CONNECTOR.get(), ItemModelUtils.plainModel(itemModel));
+    }
+
+    private static void transposer(final BlockModelGenerators blocks) {
+        blocks.blockStateOutput.accept(MultiPartGenerator.multiPart(Blocks.TRANSPOSER.get())
+            .with(BlockModelGenerators.plainVariant(TRANSPOSER_MODEL))
+            .with(BlockModelGenerators.plainVariant(TRANSPOSER_GLOW_MODEL)));
+        blocks.itemModelOutput.accept(Items.TRANSPOSER.get(), ItemModelUtils.plainModel(TRANSPOSER_MODEL));
     }
 
     private static <T extends OrientableBlock> void orientableBlock(final BlockModelGenerators blocks, final RegistrySupplier<T> block,
@@ -214,12 +235,6 @@ public final class ModModelProvider extends ModelProvider {
     private static <T extends Block> void cubeBlock(final BlockModelGenerators blocks, final RegistrySupplier<T> block,
                                                     final RegistrySupplier<Item> item) {
         final Identifier model = ModelTemplates.CUBE_ALL.create(block.get(), TextureMapping.cube(block.get()), blocks.modelOutput);
-        blocks.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(block.get(), BlockModelGenerators.plainVariant(model)));
-        blocks.itemModelOutput.accept(item.get(), ItemModelUtils.plainModel(model));
-    }
-
-    private static <T extends Block> void simpleBlock(final BlockModelGenerators blocks, final RegistrySupplier<T> block,
-                                                      final RegistrySupplier<Item> item, final Identifier model) {
         blocks.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(block.get(), BlockModelGenerators.plainVariant(model)));
         blocks.itemModelOutput.accept(item.get(), ItemModelUtils.plainModel(model));
     }

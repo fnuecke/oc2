@@ -3,6 +3,8 @@
 package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
+
+import li.cil.oc2.client.gui.InternetGatewayConfigurationScreen;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BlockEntities;
@@ -14,6 +16,7 @@ import li.cil.oc2.common.item.TooltipUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,6 +24,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -36,6 +41,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -88,6 +94,20 @@ public final class InternetGatewayBlock extends HorizontalDirectionalBlock imple
     }
 
     @Override
+    protected InteractionResult useWithoutItem(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof final InternetGatewayBlockEntity gateway) {
+            if (level.isClientSide()) {
+                openConfigurationScreen(gateway);
+            }
+
+            return InteractionResult.sidedSuccess(level.isClientSide());
+        }
+
+        return super.useWithoutItem(state, level, pos, player, hit);
+    }
+
+    @Override
     public void animateTick(final BlockState state, final Level level, final BlockPos pos, final RandomSource random) {
         if (!(level.getBlockEntity(pos) instanceof final InternetGatewayBlockEntity gateway) || !gateway.isOperational()) {
             return;
@@ -121,5 +141,10 @@ public final class InternetGatewayBlock extends HorizontalDirectionalBlock imple
     protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING);
+    }
+
+    @Environment(EnvType.CLIENT)
+    private static void openConfigurationScreen(final InternetGatewayBlockEntity gateway) {
+        Minecraft.getInstance().setScreen(new InternetGatewayConfigurationScreen(gateway));
     }
 }

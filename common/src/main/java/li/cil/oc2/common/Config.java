@@ -210,6 +210,25 @@ public final class Config {
     @Min(30280)
     public static int internetBytesPerSecondTotal = 512 * 1024;
 
+    @Path("admin.vxlan")
+    @Comment("Whether VXLAN virtual networks are enabled. If disabled, only the default internet gateway is available.")
+    public static boolean vxlanEnabled = false;
+
+    @Path("admin.vxlan")
+    @Comment("The local address to bind VXLAN sockets to.")
+    public static String vxlanBindAddress = "0.0.0.0";
+
+    @Path("admin.vxlan")
+    @Comment("The local port to bind VXLAN sockets to.")
+    @Min(1)
+    @Max(65535)
+    public static int vxlanBindPort = 4789;
+
+    @Path("admin.vxlan")
+    @Comment("The allowed peers for VXLAN that can be chosen by computers. If empty, no peer is allowed. Peers are specified as address:port, e.g. 192.168.1.1:4789")
+    @ItemType(String.class)
+    public static List<String> vxlanAllowedPeers = new ArrayList<>();
+
     public static int cpuEnergyPerTick(@Nullable final ArchitectureType architecture) {
         if (architecture == null) {
             return 0;

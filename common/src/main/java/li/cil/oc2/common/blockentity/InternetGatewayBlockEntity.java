@@ -7,10 +7,13 @@ import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyHandler;
+import li.cil.oc2.common.inet.GatewayConnection;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.InternetManager;
+import li.cil.oc2.common.inet.vxlan.VXLANManager;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.InternetGatewayConfigurationMessage;
 import li.cil.oc2.common.network.message.InternetGatewayStateMessage;
 import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.core.BlockPos;
@@ -25,14 +28,28 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public final class InternetGatewayBlockEntity extends ModBlockEntity implements NetworkInterface, InternetAdapter, TickableBlockEntity {
+    public enum InternetMode {
+        NAT,
+        VXLAN
+    }
+
     private static final String OPERATIONAL_TAG_NAME = "operational";
+    private static final String INTERNET_MODE_TAG_NAME = "internet_mode";
+    private static final String VXLAN_PEER_TAG_NAME = "vxlan_peer";
+    private static final String VXLAN_PORT_TAG_NAME = "vxlan_port";
+    private static final String VXLAN_VNI_TAG_NAME = "vxlan_vni";
 
     private final Deque<byte[]> toNetwork = new ArrayDeque<>();
     private final Deque<byte[]> toInternet = new ArrayDeque<>();
     private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.internetGatewayEnergyStorage);
 
+    private InternetMode internetMode = InternetMode.NAT;
+    private String vxlanPeer = "";
+    private int vxlanPort = 4789;
+    private int vxlanVni;
+
     @Nullable
-    private InternetConnection connection;
+    private GatewayConnection connection;
     private boolean isOperational;
 
     // --------------------------------------------------------------------- //
@@ -97,22 +114,38 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
     // --------------------------------------------------------------------- //
 
-    @Override
-    protected void loadServer() {
-        super.loadServer();
-        InternetManager.getInstance().ifPresent(manager -> connection = manager.connect(this, describeOrigin()));
+    private void load() {
+        if (internetMode == InternetMode.VXLAN) {
+            connection = VXLANManager.getInstance()
+                .map(manager -> manager.connect(this, vxlanPeer, vxlanPort, vxlanVni))
+                .orElse(null);
+        } else {
+            connection = InternetManager.getInstance()
+                .map(manager -> manager.connect(this, describeOrigin()))
+                .orElse(null);
+        }
     }
 
     @Override
-    protected void unloadServer(final boolean isDestroyed) {
-        super.unloadServer(isDestroyed);
-        final InternetConnection connection = this.connection;
+    protected void loadServer() {
+        super.loadServer();
+        load();
+    }
+
+    private void stop() {
+        final GatewayConnection connection = this.connection;
         if (connection != null) {
             connection.stop();
             this.connection = null;
         }
         toNetwork.clear();
-        toInternet.clear();
+        toInternet.clear();        
+    }
+
+    @Override
+    protected void unloadServer(final boolean isDestroyed) {
+        super.unloadServer(isDestroyed);
+        stop();
     }
 
     @Override
@@ -126,7 +159,10 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.putBoolean(OPERATIONAL_TAG_NAME, isOperational);
-
+        tag.putString(INTERNET_MODE_TAG_NAME, internetMode.name());
+        tag.putString(VXLAN_PEER_TAG_NAME, vxlanPeer);
+        tag.putInt(VXLAN_PORT_TAG_NAME, vxlanPort);
+        tag.putInt(VXLAN_VNI_TAG_NAME, vxlanVni);
         return tag;
     }
 
@@ -135,6 +171,10 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         super.saveAdditional(tag, registries);
 
         tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
+        tag.putString(INTERNET_MODE_TAG_NAME, internetMode.name());
+        tag.putString(VXLAN_PEER_TAG_NAME, vxlanPeer);
+        tag.putInt(VXLAN_PORT_TAG_NAME, vxlanPort);
+        tag.putInt(VXLAN_VNI_TAG_NAME, vxlanVni);
     }
 
     @Override
@@ -143,6 +183,19 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
         isOperational = tag.getBoolean(OPERATIONAL_TAG_NAME);
+
+        if (tag.contains(INTERNET_MODE_TAG_NAME)) {
+            internetMode = InternetMode.valueOf(tag.getString(INTERNET_MODE_TAG_NAME));
+        }
+        if (tag.contains(VXLAN_PEER_TAG_NAME)) {
+            vxlanPeer = tag.getString(VXLAN_PEER_TAG_NAME);
+        }
+        if (tag.contains(VXLAN_PORT_TAG_NAME)) {
+            vxlanPort = tag.getInt(VXLAN_PORT_TAG_NAME);
+        }
+        if (tag.contains(VXLAN_VNI_TAG_NAME)) {
+            vxlanVni = tag.getInt(VXLAN_VNI_TAG_NAME);
+        }
     }
 
     // --------------------------------------------------------------------- //
@@ -198,5 +251,46 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
             ChunkUtils.setLazyUnsaved(level, getBlockPos());
         }
         return true;
+    }
+
+    public String getVxlanPeer() {
+        return vxlanPeer;
+    }
+
+    public int getVxlanPort() {
+        return vxlanPort;
+    }
+
+    public int getVxlanVni() {
+        return vxlanVni;
+    }
+
+    public InternetMode getInternetMode() {
+        return internetMode;
+    }
+
+    public void setConfigurationClient(final String peer, final int port, final int vni, final InternetMode mode) {
+        vxlanPeer = peer;
+        vxlanPort = port;
+        vxlanVni = vni;
+        internetMode = mode;
+    }
+
+    public void setConfiguration(final String peer, final int port, final int vni, final InternetMode mode) {
+        if (internetMode != mode || !vxlanPeer.equals(peer) || vxlanPort != port || vxlanVni != vni) {
+            internetMode = mode;
+            vxlanPeer = peer;
+            vxlanPort = port;
+            vxlanVni = vni;
+
+            setChanged();
+            stop();
+            load();
+
+            Network.sendToClientsTrackingBlockEntity(
+                new InternetGatewayConfigurationMessage.ToClient(this, peer, port, vni, mode),
+                this
+            );
+        }
     }
 }

@@ -50,7 +50,7 @@
   "item.oc2.cpu_z80": "Z80 Processor",
   "item.oc2.cpu_z80.desc": "An 8-bit processor. Runs CP/M.",
   "item.oc2.cpu_riscv": "RISC-V Processor",
-  "item.oc2.cpu_riscv.desc": "A 64-bit processor. Runs Linux.",
+  "item.oc2.cpu_riscv.desc": "A 64-bit processor. Runs OpenOS II and Linux.",
   "item.oc2.redstone_interface_card": "Redstone Interface Card",
   "item.oc2.redstone_interface_card.desc": "Emits and reads redstone signals through the Computer.",
   "item.oc2.network_interface_card": "Network Interface Card",

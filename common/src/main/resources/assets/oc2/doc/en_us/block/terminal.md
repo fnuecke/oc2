@@ -7,7 +7,7 @@ A terminal is a standalone screen and keyboard without the rest of the computer,
 The console can be moved to a terminal:  
 `console /dev/ttyS1`  
 The shell then runs on the terminal, and the computer's own screen stays unchanged. It can be moved back using `console /dev/ttyS0`. To do this automatically at boot time, in `/init.d/50-console.lua`:  
-`require("shell").execute("console /dev/ttyS1")`  
+`os.execute("console /dev/ttyS1")`  
 
 The default on both ends is 9600 baud. For faster output, set the same rate in the terminal's settings and with `stty -F /dev/ttyS1 115200`.
 

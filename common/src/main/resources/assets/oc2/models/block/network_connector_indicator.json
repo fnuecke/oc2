@@ -1,6 +1,6 @@
 {
   "textures": {
-    "indicator": "oc2:block/network_connector_indicator",
+    "indicator": "oc2:block/overlay/network_connector_glow",
     "particle": "#indicator"
   },
   "elements": [

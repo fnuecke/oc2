@@ -14,11 +14,9 @@ Baud rate must be configured in software and must match between endpoints on a s
 Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
 
 ## OpenOS II
-
 The ports are named as on Linux, starting at `/dev/ttyS1`. `stty -F /dev/ttyS1 9600` sets the rate. The `oc2.serial` library works the same as on Linux, see below.
 
 ## Linux
-
 The card is a plain serial port. The first one in a machine is `/dev/ttyS1`, because `ttyS0` is the built-in terminal. Set the rate endpoints on the segment should commonly use:
 
 `stty -F /dev/ttyS1 9600 raw \`
@@ -38,7 +36,6 @@ The `oc2.serial` library wraps that, and also reads the address of the card via 
 There is also a MicroPython version with the same API.
 
 ## CP/M
-
 CP/M uses the first card as its reader and punch, so BDOS functions 3 and 4 go through it.
 
 `STAT CON:=TTY:` switches to the first card as the console, for example to use the computer from a [terminal](../block/terminal.md).  
@@ -53,7 +50,6 @@ CP/M uses the first card as its reader and punch, so BDOS functions 3 and 4 go t
 `SERCHAT.Z80` on the system disk is an example program.
 
 ## Suggested multi-endpoint framing
-
 The serial port reads and writes raw bytes from and to the bus. To associate data with endpoints, the library expects the following framing:
 
 `01h  to  from  length  payload...  checksum`
@@ -61,7 +57,6 @@ The serial port reads and writes raw bytes from and to the bus. To associate dat
 The checksum is `to + from + length` plus every payload byte, overflowing. Address 255 means everyone.
 
 ## Failure modes
-
 Unlike the [network card](network_interface_card.md), errors are not automatically compensated, so programs must handle them accordingly. The following errors categories exist:
 
 - **Overrun**: the machine is not reading the port fast enough, bytes are dropped.

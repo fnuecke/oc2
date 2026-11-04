@@ -29,7 +29,7 @@ Different operating systems support different hardware. This is a brief overview
 - [Projector](../block/projector.md): OpenOS II (programs only), Linux (with a console)
 - [Keyboard](../block/keyboard.md): OpenOS II (programs only), Linux (console input)
 - [Serial interface card](../item/serial_interface_card.md): all
-- [Terminal](../block/terminal.md) as a console: Linux, CP/M
+- [Terminal](../block/terminal.md) as a console: OpenOS II, Linux, CP/M
 - [HLAPI](../hlapi.md) devices: OpenOS II, Linux
 - [MLAPI](../mlapi.md) devices: CP/M, Linux
 - [Robots](../robotics.md): all

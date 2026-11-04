@@ -8,7 +8,6 @@ The internet gateway connects a network of [network connectors](network_connecto
 The gateway consumes energy for every packet it transmits, in both directions, and drops packets when insufficiently powered.
 
 ## Setting Up a Computer
-
 Computers access the gateway through an ordinary [network interface card](../item/network_interface_card.md). Note that only [Linux](../getting_started/linux.md) supports networking.
 
 There is no DHCP server behind the gateway, so pick the addresses yourself. Any private range will do, as long as the gateway address you name is on the same subnet as the computer:

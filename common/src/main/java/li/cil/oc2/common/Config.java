@@ -220,7 +220,7 @@ public final class Config {
     public static boolean vxlanEnabled = false;
 
     @Path("admin.vxlan")
-    @Comment("The local address to bind VXLAN sockets to. The default (0.0.0.0) binds to all available IPv4 interfaces and (::) for IPv6.")
+    @Comment("The local address to bind VXLAN sockets to. The default (0.0.0.0) binds to all available IPv4 interfaces. To bind to all IPv6 interfaces instead, use (::).")
     public static String vxlanBindAddress = "0.0.0.0";
 
     @Path("admin.vxlan")

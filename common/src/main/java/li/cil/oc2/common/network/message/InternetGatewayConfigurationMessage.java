@@ -12,23 +12,11 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
     public static final int MAX_PEER_LENGTH = 45;
 
     protected BlockPos pos;
-    protected String peer;
-    protected int port;
-    protected int vni;
-    protected InternetGatewayBlockEntity.InternetMode mode;
+    protected InternetGatewayBlockEntity.Settings settings;
 
-    protected InternetGatewayConfigurationMessage(
-        final InternetGatewayBlockEntity gateway,
-        final String peer,
-        final int port,
-        final int vni,
-        final InternetGatewayBlockEntity.InternetMode mode
-    ) {
+    protected InternetGatewayConfigurationMessage(final InternetGatewayBlockEntity gateway, final InternetGatewayBlockEntity.Settings settings) {
         this.pos = gateway.getBlockPos();
-        this.peer = peer;
-        this.port = port;
-        this.vni = vni;
-        this.mode = mode;
+        this.settings = settings;
     }
 
     protected InternetGatewayConfigurationMessage(final RegistryFriendlyByteBuf buffer) {
@@ -38,25 +26,26 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        peer = buffer.readUtf(MAX_PEER_LENGTH);
-        port = buffer.readVarInt();
-        vni = buffer.readVarInt();
-        mode = InternetGatewayBlockEntity.InternetMode.valueOf(buffer.readUtf());
+        settings = new InternetGatewayBlockEntity.Settings(
+            buffer.readUtf(MAX_PEER_LENGTH),
+            buffer.readVarInt(),
+            buffer.readVarInt(),
+            InternetGatewayBlockEntity.InternetMode.valueOf(buffer.readUtf())
+        );
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        buffer.writeUtf(peer, MAX_PEER_LENGTH);
-        buffer.writeVarInt(port);
-        buffer.writeVarInt(vni);
-        buffer.writeUtf(mode.name());
+        buffer.writeUtf(settings.vxlanPeer(), MAX_PEER_LENGTH);
+        buffer.writeVarInt(settings.vxlanPort());
+        buffer.writeVarInt(settings.vxlanVni());
+        buffer.writeUtf(settings.mode().name());
     }
 
     public static final class ToServer extends InternetGatewayConfigurationMessage {
-        public ToServer(final InternetGatewayBlockEntity gateway, final String peer, final int port,
-                        final int vni, final InternetGatewayBlockEntity.InternetMode mode) {
-            super(gateway, peer, port, vni, mode);
+        public ToServer(final InternetGatewayBlockEntity gateway, final InternetGatewayBlockEntity.Settings settings) {
+            super(gateway, settings);
         }
 
         public ToServer(final RegistryFriendlyByteBuf buffer) {
@@ -67,14 +56,13 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
         protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos,
                 InternetGatewayBlockEntity.class,
-                (player, gateway) -> gateway.setConfiguration(peer, port, vni, mode));
+                (player, gateway) -> gateway.setConfiguration(settings));
         }
     }
 
     public static final class ToClient extends InternetGatewayConfigurationMessage {
-        public ToClient(final InternetGatewayBlockEntity gateway, final String peer, final int port,
-                        final int vni, final InternetGatewayBlockEntity.InternetMode mode) {
-            super(gateway, peer, port, vni, mode);
+        public ToClient(final InternetGatewayBlockEntity gateway, final InternetGatewayBlockEntity.Settings settings) {
+            super(gateway, settings);
         }
 
         public ToClient(final RegistryFriendlyByteBuf buffer) {
@@ -84,7 +72,7 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
         @Override
         protected void handleMessage(final NetworkManager.PacketContext context) {
             MessageUtils.withClientBlockEntityAt(pos, InternetGatewayBlockEntity.class,
-                gateway -> gateway.setConfigurationClient(peer, port, vni, mode));
+                gateway -> gateway.setConfigurationClient(settings));
         }
     }
 }

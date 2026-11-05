@@ -5,6 +5,7 @@ package li.cil.oc2.common.inet.vxlan;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.util.AddressParseException;
@@ -121,7 +122,11 @@ public final class VXLANManager {
         return Optional.ofNullable(instance);
     }
 
-    public Optional<VXLANConnection> connect(final InternetAdapter adapter, final String peer, final int port, final int vni) {
+    public Optional<VXLANConnection> connect(final InternetAdapter adapter, final InternetGatewayBlockEntity.Settings settings) {
+        final String peer = settings.vxlanPeer();
+        final int port = settings.vxlanPort();
+        final int vni = settings.vxlanVni();
+
         if (port < 1 || port > 65535) {
             return Optional.empty();
         }
@@ -137,6 +142,12 @@ public final class VXLANManager {
         }
 
         if (address instanceof Inet6Address && !ipv6) {
+            LOGGER.info("VXLAN peer {} is an IPv6 address, but VXLAN is bound to an IPv4 address; dropping connection attempt.", address.getHostAddress());
+            return Optional.empty();
+        }
+
+        if (!allowedPeers.contains(address)) {
+            LOGGER.info("VXLAN peer {} is not an allowed peer; dropping connection attempt.", address.getHostAddress());
             return Optional.empty();
         }
 
@@ -177,12 +188,7 @@ public final class VXLANManager {
     private void sendFrames(final VXLANConnection connection) {
         final InetSocketAddress peer = connection.getPeer();
         byte[] frame;
-        for (int i = 0; i < InternetConnection.FRAME_QUEUE_SIZE
-            && (frame = connection.getAdapter().readInternetFrame()) != null; i++) {
-            if (!allowedPeers.contains(peer.getAddress())) {
-                THROTTLED_LOGGER.info("VXLAN peer {} is not an allowed peer; dropping frames.", peer.getAddress().getHostAddress());
-                continue;
-            }
+        for (int i = 0; i < InternetConnection.FRAME_QUEUE_SIZE && (frame = connection.getAdapter().readInternetFrame()) != null; i++) {
             if (frame.length > InternetConnection.MAX_FRAME_SIZE) {
                 continue;
             }

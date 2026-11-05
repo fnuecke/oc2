@@ -21,7 +21,6 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
     private static final int LABEL_OFFSET = 10;
     private static final int TITLE_COLOR = 0x404040;
     private static final int LABEL_COLOR = 0xFFAAAAAA;
-    private static final int DISABLED_COLOR = 0xFF666666;
 
     private static final int MODE_TOP = 34;
     private static final int PEER_TOP = 76;
@@ -61,11 +60,14 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
     public void renderFg(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         graphics.drawString(font, title, leftPos + MARGIN, topPos + MARGIN, TITLE_COLOR, false);
         graphics.drawString(font, MODE_LABEL, leftPos + MARGIN, topPos + MODE_TOP - LABEL_OFFSET, LABEL_COLOR);
-        graphics.drawString(font, PEER_LABEL, leftPos + MARGIN, topPos + PEER_TOP - LABEL_OFFSET, LABEL_COLOR);
-        graphics.drawString(font, PORT_LABEL, leftPos + MARGIN, topPos + NETWORK_TOP - LABEL_OFFSET, LABEL_COLOR);
-        graphics.drawString(font, VNI_LABEL,
-            leftPos + MARGIN + COLUMN_WIDTH + COLUMN_GAP,
-            topPos + NETWORK_TOP - LABEL_OFFSET, LABEL_COLOR);
+
+        if (modeButton.getMode() == InternetGatewayBlockEntity.InternetMode.VXLAN) {
+            graphics.drawString(font, PEER_LABEL, leftPos + MARGIN, topPos + PEER_TOP - LABEL_OFFSET, LABEL_COLOR);
+            graphics.drawString(font, PORT_LABEL, leftPos + MARGIN, topPos + NETWORK_TOP - LABEL_OFFSET, LABEL_COLOR);
+            graphics.drawString(font, VNI_LABEL,
+                leftPos + MARGIN + COLUMN_WIDTH + COLUMN_GAP,
+                topPos + NETWORK_TOP - LABEL_OFFSET, LABEL_COLOR);
+        }
     }
 
     @Override
@@ -77,16 +79,16 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
             imageWidth - MARGIN * 2, BUTTON_HEIGHT
         ));
 
-        peerField = addPeerField(topPos + PEER_TOP, blockEntity.getVxlanPeer());
+        peerField = addPeerField(topPos + PEER_TOP, blockEntity.getSettings().vxlanPeer());
 
         portField = addNumberField(
             leftPos + MARGIN, topPos + NETWORK_TOP,
-            COLUMN_WIDTH, blockEntity.getVxlanPort(), 1, 65535
+            COLUMN_WIDTH, blockEntity.getSettings().vxlanPort(), 1, 65535
         );
 
         vniField = addNumberField(
             leftPos + MARGIN + COLUMN_WIDTH + COLUMN_GAP, topPos + NETWORK_TOP,
-            COLUMN_WIDTH, blockEntity.getVxlanVni(), 0, 16_777_215
+            COLUMN_WIDTH, blockEntity.getSettings().vxlanVni(), 0, 16_777_215
         );
 
         updateFieldsEnabled();
@@ -99,16 +101,16 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
 
         final InternetGatewayBlockEntity.InternetMode mode = modeButton.getMode();
         final String peer = peerField.getValue().trim();
-        final int port = valueOf(portField, blockEntity.getVxlanPort());
-        final int vni = valueOf(vniField, blockEntity.getVxlanVni());
+        final int port = valueOf(portField, blockEntity.getSettings().vxlanPort());
+        final int vni = valueOf(vniField, blockEntity.getSettings().vxlanVni());
 
-        if (mode != blockEntity.getInternetMode()
-            || !peer.equals(blockEntity.getVxlanPeer())
-            || port != blockEntity.getVxlanPort()
-            || vni != blockEntity.getVxlanVni()) {
-            Network.sendToServer(new InternetGatewayConfigurationMessage.ToServer(
-                blockEntity, peer, port, vni, mode
-            ));
+        if (mode != blockEntity.getSettings().mode()
+            || !peer.equals(blockEntity.getSettings().vxlanPeer())
+            || port != blockEntity.getSettings().vxlanPort()
+            || vni != blockEntity.getSettings().vxlanVni()) {
+            Network.sendToServer(new InternetGatewayConfigurationMessage.ToServer(blockEntity, new InternetGatewayBlockEntity.Settings(
+                peer, port, vni, mode
+            )));
         }
     }
 
@@ -145,15 +147,21 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
     }
 
     private void updateFieldsEnabled() {
-        final boolean enabled = modeButton.getMode() == InternetGatewayBlockEntity.InternetMode.VXLAN;
+        final boolean vxlan = modeButton.getMode() == InternetGatewayBlockEntity.InternetMode.VXLAN;
 
-        peerField.setEditable(enabled);
-        portField.setEditable(enabled);
-        vniField.setEditable(enabled);
+        peerField.setVisible(vxlan);
+        portField.setVisible(vxlan);
+        vniField.setVisible(vxlan);
 
-        peerField.setTextColor(enabled ? 0xFFFFFFFF : DISABLED_COLOR);
-        portField.setTextColor(enabled ? 0xFFFFFFFF : DISABLED_COLOR);
-        vniField.setTextColor(enabled ? 0xFFFFFFFF : DISABLED_COLOR);
+        peerField.setEditable(vxlan);
+        portField.setEditable(vxlan);
+        vniField.setEditable(vxlan);
+
+        if (!vxlan) {
+            peerField.setFocused(false);
+            portField.setFocused(false);
+            vniField.setFocused(false);
+        }
     }
 
     private static int valueOf(final EditBox field, final int fallback) {
@@ -197,7 +205,7 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
                 Sprites.GENERIC_BUTTON_BASE, Sprites.GENERIC_BUTTON_PRESSED
             );
 
-            mode = blockEntity.getInternetMode();
+            mode = blockEntity.getSettings().mode();
             updateCaption();
         }
 

@@ -2,11 +2,11 @@
 
 package li.cil.oc2.common.inet.vxlan;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import li.cil.oc2.common.inet.GatewayConnection;
 import li.cil.oc2.common.inet.InternetAdapter;
+
+import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class VXLANConnection implements GatewayConnection  {
 

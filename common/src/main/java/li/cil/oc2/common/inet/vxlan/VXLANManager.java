@@ -32,6 +32,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class VXLANManager {
     private static final int HEADER_SIZE = 8;
     private static final int FLAGS_VNI_VALID = 0x08;
+    private static final int ETHERNET_HEADER_SIZE = 14;
+
     private static final Logger LOGGER = LogManager.getLogger(VXLANManager.class);
     private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
 
@@ -44,6 +46,7 @@ public final class VXLANManager {
     private final List<VXLANConnection> connections = new CopyOnWriteArrayList<>();
     private final DatagramChannel channel;
     private final ByteBuffer sendBuffer = ByteBuffer.allocate(HEADER_SIZE + InternetConnection.MAX_FRAME_SIZE);
+    private final ByteBuffer receiveBuffer = ByteBuffer.allocate(HEADER_SIZE + InternetConnection.MAX_FRAME_SIZE + 1); // +1 to detect oversize frames
 
     // --------------------------------------------------------------------- //
 
@@ -140,6 +143,7 @@ public final class VXLANManager {
         for (final VXLANConnection connection : connections) {
             sendFrames(connection);
         }
+        receiveFrames();
     }
 
     private void shutdown() {
@@ -183,6 +187,51 @@ public final class VXLANManager {
                 channel.send(sendBuffer, peer);
             } catch (final IOException e) {
                 THROTTLED_LOGGER.error("Failed to send VXLAN datagram.", e);
+            }
+        }
+    }
+
+    private void receiveFrames() {
+        // Fixed cap so a flood can't hold up the tick; the rest waits in the OS buffer.
+        final int maxDatagrams = InternetConnection.FRAME_QUEUE_SIZE * Math.max(1, connections.size());
+        for (int i = 0; i < maxDatagrams; i++) {
+            receiveBuffer.clear();
+            final InetSocketAddress source;
+            try {
+                source = (InetSocketAddress) channel.receive(receiveBuffer);
+            } catch (final IOException e) {
+                THROTTLED_LOGGER.error("Failed to receive VXLAN datagram.", e);
+                return;
+            }
+            if (source == null) {
+                return; // nothing pending
+            }
+            handleDatagram(source);
+        }
+    }
+
+    private void handleDatagram(final InetSocketAddress source) {
+        // 1. Allowlist first, before parsing anything. Drop silently: the volume is attacker-controlled.
+        if (!allowedPeers.contains(source.getAddress())) {
+            return;
+        }
+
+        receiveBuffer.flip();
+        final int length = receiveBuffer.remaining();
+        if (length < HEADER_SIZE + ETHERNET_HEADER_SIZE || length > HEADER_SIZE + InternetConnection.MAX_FRAME_SIZE) {
+            return;
+        }
+        if ((receiveBuffer.get(0) & FLAGS_VNI_VALID) == 0) { // reserved bits are ignored per RFC 7348
+            return;
+        }
+        final int vni = receiveBuffer.getInt(4) >>> 8;
+
+        // 2. Forward to all connections with matching VNI and peer address.
+        for (final VXLANConnection connection : connections) {
+            if (connection.getVni() == vni && connection.getPeer().getAddress().equals(source.getAddress())) {
+                final byte[] frame = new byte[length - HEADER_SIZE];
+                receiveBuffer.get(HEADER_SIZE, frame);
+                connection.getAdapter().writeInternetFrame(frame);
             }
         }
     }

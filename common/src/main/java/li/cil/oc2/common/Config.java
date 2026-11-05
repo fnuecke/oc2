@@ -211,7 +211,7 @@ public final class Config {
     public static int internetBytesPerSecondTotal = 512 * 1024;
 
     @Path("admin.vxlan")
-    @Comment("Whether VXLAN virtual networks are enabled. If disabled, only the default internet gateway is available.")
+    @Comment("Whether VXLAN virtual networks are enabled. If disabled, only the default NAT internet mode is available.")
     public static boolean vxlanEnabled = false;
 
     @Path("admin.vxlan")

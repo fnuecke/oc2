@@ -115,12 +115,11 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     // --------------------------------------------------------------------- //
 
     private void load() {
-        if (internetMode == InternetMode.VXLAN) {
-            connection = VXLANManager.getInstance()
+        switch (internetMode) {
+            case VXLAN -> connection = VXLANManager.getInstance()
                 .flatMap(manager -> manager.connect(this, vxlanPeer, vxlanPort, vxlanVni))
                 .orElse(null);
-        } else {
-            connection = InternetManager.getInstance()
+            case NAT -> connection = InternetManager.getInstance()
                 .map(manager -> manager.connect(this, describeOrigin()))
                 .orElse(null);
         }

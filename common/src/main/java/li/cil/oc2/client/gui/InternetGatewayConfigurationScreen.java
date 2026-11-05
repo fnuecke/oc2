@@ -219,11 +219,10 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
         }
 
         private void updateCaption() {
-            setMessage(
-                mode == InternetGatewayBlockEntity.InternetMode.NAT
-                    ? NAT_MODE_LABEL
-                    : VXLAN_MODE_LABEL
-            );
+            switch (mode) {
+                case NAT -> setMessage(NAT_MODE_LABEL);
+                case VXLAN -> setMessage(VXLAN_MODE_LABEL);
+            }
         }
     }
 }

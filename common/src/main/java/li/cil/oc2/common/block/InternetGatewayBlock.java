@@ -94,6 +94,10 @@ public final class InternetGatewayBlock extends HorizontalDirectionalBlock imple
 
     @Override
     protected InteractionResult useWithoutItem(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
+        if (!Config.vxlanEnabled) {
+            return InteractionResult.PASS;
+        }
+
         final BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof final InternetGatewayBlockEntity gateway) {
             if (level.isClientSide()) {

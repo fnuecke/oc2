@@ -11,14 +11,18 @@ import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.inet.InternetAdapter;
+import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.util.AddressParseException;
 import li.cil.oc2.common.inet.util.InternetUtils;
+import li.cil.oc2.common.util.ThrottledLogger;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
+import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +30,10 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class VXLANManager {
+    private static final int HEADER_SIZE = 8;
+    private static final int FLAGS_VNI_VALID = 0x08;
     private static final Logger LOGGER = LogManager.getLogger(VXLANManager.class);
+    private static final ThrottledLogger THROTTLED_LOGGER = new ThrottledLogger(LOGGER, Duration.ofMinutes(1));
 
     // --------------------------------------------------------------------- //
 
@@ -36,6 +43,7 @@ public final class VXLANManager {
     private final Set<InetAddress> allowedPeers;
     private final List<VXLANConnection> connections = new CopyOnWriteArrayList<>();
     private final DatagramChannel channel;
+    private final ByteBuffer sendBuffer = ByteBuffer.allocate(HEADER_SIZE + InternetConnection.MAX_FRAME_SIZE);
 
     // --------------------------------------------------------------------- //
 
@@ -84,7 +92,7 @@ public final class VXLANManager {
 
             LOGGER.info("VXLAN is enabled and bound to {}:{}.", Config.vxlanBindAddress, Config.vxlanBindPort);
             if (Config.vxlanAllowedPeers.isEmpty()) {
-                LOGGER.warn("No allowed peers configured for VXLAN; no connections will be accepted.");
+                LOGGER.warn("No allowed peers configured for VXLAN; no VXLAN traffic will be exchanged.");
             } else {
                 LOGGER.info("Computers can reach the network provided by VXLAN, "
                     + "subject to the configured allowed peers: {}", Config.vxlanAllowedPeers);
@@ -129,6 +137,9 @@ public final class VXLANManager {
 
     public void onServerTick() {
         connections.removeIf(VXLANConnection::isStopped);
+        for (final VXLANConnection connection : connections) {
+            sendFrames(connection);
+        }
     }
 
     private void shutdown() {
@@ -145,6 +156,34 @@ public final class VXLANManager {
             channel.close();
         } catch (final IOException e) {
             LOGGER.warn("Failed to close VXLAN channel.", e);
+        }
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private void sendFrames(final VXLANConnection connection) {
+        final InetSocketAddress peer = connection.getPeer();
+        byte[] frame;
+        for (int i = 0; i < InternetConnection.FRAME_QUEUE_SIZE
+            && (frame = connection.getAdapter().readInternetFrame()) != null; i++) {
+            if (!allowedPeers.contains(peer.getAddress())) {
+                THROTTLED_LOGGER.info("VXLAN peer {} is not an allowed peer; dropping frames.", peer.getAddress().getHostAddress());
+                continue;
+            }
+            if (frame.length > InternetConnection.MAX_FRAME_SIZE) {
+                continue;
+            }
+
+            sendBuffer.clear();
+            sendBuffer.putInt(FLAGS_VNI_VALID << 24); // flags byte + 3 reserved bytes
+            sendBuffer.putInt(connection.getVni() << 8); // 24-bit VNI + 1 reserved byte
+            sendBuffer.put(frame);
+            sendBuffer.flip();
+            try {
+                channel.send(sendBuffer, peer);
+            } catch (final IOException e) {
+                THROTTLED_LOGGER.error("Failed to send VXLAN datagram.", e);
+            }
         }
     }
 }

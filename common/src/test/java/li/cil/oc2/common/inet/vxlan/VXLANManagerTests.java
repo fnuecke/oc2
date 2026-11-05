@@ -3,21 +3,32 @@
 package li.cil.oc2.common.inet.vxlan;
 
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.inet.InternetAdapter;
+import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
+import java.net.SocketTimeoutException;
 import java.nio.channels.DatagramChannel;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 
+import static li.cil.oc2.common.inet.InternetConnection.MAX_FRAME_SIZE;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VXLANManagerTests {
@@ -123,17 +134,104 @@ public class VXLANManagerTests {
         assertTrue(connection.isPresent());
     }
 
-    private VXLANManager startManager() {
-        configureEnabledManager();
+    @Test
+    public void encodesFrameCorrectly() throws IOException {
+        final StubAdapter adapter = new StubAdapter();
+        final VXLANManager manager = startManager("127.0.0.1");
+
+        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
+            peer.setSoTimeout(1000);
+            final VXLANConnection connection = manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            adapter.toInternet.add(new byte[]{1, 2, 3});
+
+            manager.onServerTick();
+
+            final byte[] received = new byte[11];
+            final DatagramPacket packet = new DatagramPacket(received, received.length);
+            peer.receive(packet);
+
+            assertArrayEquals(new byte[]{8, 0, 0, 0, 0, 0, 100, 0, 1, 2, 3}, packet.getData());
+            connection.stop();
+        }
+    }
+
+    @Test
+    public void deniedPeerDoesNotReceiveFrame() throws IOException {
+        final StubAdapter adapter = new StubAdapter();
+        final VXLANManager manager = startManager();
+
+        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
+            peer.setSoTimeout(100);
+            manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            adapter.toInternet.add(new byte[]{1, 2, 3});
+
+            manager.onServerTick();
+
+            assertThrows(SocketTimeoutException.class, () -> peer.receive(new DatagramPacket(new byte[11], 11)));
+            assertTrue(adapter.toInternet.isEmpty());
+        }
+    }
+
+    @Test
+    public void oversizedFrameIsDropped() throws IOException {
+        final StubAdapter adapter = new StubAdapter();
+        final VXLANManager manager = startManager("127.0.0.1");
+
+        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
+            peer.setSoTimeout(100);
+            manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            adapter.toInternet.add(new byte[MAX_FRAME_SIZE + 1]);
+
+            manager.onServerTick();
+
+            assertThrows(SocketTimeoutException.class, () -> peer.receive(new DatagramPacket(new byte[11], 11)));
+        }
+    }
+
+    @Test
+    public void stoppedConnectionDoesNotReceiveFrame() throws IOException {
+        final StubAdapter adapter = new StubAdapter();
+        final VXLANManager manager = startManager("127.0.0.1");
+
+        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
+            peer.setSoTimeout(100);
+            final VXLANConnection connection = manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            connection.stop();
+            adapter.toInternet.add(new byte[]{1, 2, 3});
+
+            manager.onServerTick();
+
+            assertThrows(SocketTimeoutException.class, () -> peer.receive(new DatagramPacket(new byte[11], 11)));
+        }
+    }
+
+    private VXLANManager startManager(final String... allowedPeers) {
+        configureEnabledManager(allowedPeers);
         VXLANManager.start();
         return VXLANManager.getInstance().orElseThrow();
     }
 
-    private void configureEnabledManager() {
+    private void configureEnabledManager(final String... allowedPeers) {
         Config.vxlanEnabled = true;
         Config.vxlanBindAddress = "127.0.0.1";
         Config.vxlanBindPort = findFreePort();
-        Config.vxlanAllowedPeers = new ArrayList<>();
+        Config.vxlanAllowedPeers = Arrays.asList(allowedPeers);
+    }
+
+    private static final class StubAdapter implements InternetAdapter {
+        final Deque<byte[]> toInternet = new ArrayDeque<>();
+        final List<byte[]> fromInternet = new ArrayList<>();
+
+        @Nullable
+        @Override
+        public byte[] readInternetFrame() {
+            return toInternet.pollFirst();
+        }
+
+        @Override
+        public void writeInternetFrame(final byte[] frame) {
+            fromInternet.add(frame);
+        }
     }
 
     private static int findFreePort() {

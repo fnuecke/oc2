@@ -15,9 +15,11 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.time.Duration;
@@ -46,22 +48,26 @@ public final class VXLANManager {
     private final ByteBuffer sendBuffer = ByteBuffer.allocate(HEADER_SIZE + InternetConnection.MAX_FRAME_SIZE);
     private final ByteBuffer receiveBuffer = ByteBuffer.allocate(HEADER_SIZE + InternetConnection.MAX_FRAME_SIZE + 1); // +1 to detect oversize frames
 
+    private final boolean ipv6;
+
     // --------------------------------------------------------------------- //
 
     private VXLANManager() throws IOException, AddressParseException {
-        final InetAddress bindAddress = InternetUtils.toJavaInetAddress(InternetUtils.parseIpv4Address(Config.vxlanBindAddress));
+        final InetAddress bindAddress = parseAddress(Config.vxlanBindAddress);
 
         final Set<InetAddress> parsedAllowedPeers = new HashSet<>();
         for (final String peer : Config.vxlanAllowedPeers) {
             try {
-                parsedAllowedPeers.add(InternetUtils.toJavaInetAddress(InternetUtils.parseIpv4Address(peer)));
+                parsedAllowedPeers.add(parseAddress(peer));
             } catch (final AddressParseException e) {
                 LOGGER.warn("Ignoring invalid VXLAN allowed peer '{}'.", peer, e);
             }
         }
         allowedPeers = parsedAllowedPeers;
 
-        channel = DatagramChannel.open(StandardProtocolFamily.INET);
+        ipv6 = bindAddress instanceof Inet6Address;
+        channel = DatagramChannel.open(ipv6 ? StandardProtocolFamily.INET6 : StandardProtocolFamily.INET);
+
         try {
             channel.configureBlocking(false);
             channel.bind(new InetSocketAddress(bindAddress, Config.vxlanBindPort));
@@ -98,7 +104,7 @@ public final class VXLANManager {
                 LOGGER.info("Computers can reach the network provided by VXLAN, "
                     + "subject to the configured allowed peers: {}", Config.vxlanAllowedPeers);
             }
-        } catch (final IOException | AddressParseException e) {
+        } catch (final IOException | AddressParseException | UnsupportedOperationException e) {
             LOGGER.error("Failed to start VXLAN manager; VXLAN is unavailable.", e);
         }
     }
@@ -125,10 +131,15 @@ public final class VXLANManager {
 
         final InetAddress address;
         try {
-            address = InternetUtils.toJavaInetAddress(InternetUtils.parseIpv4Address(peer));
+            address = parseAddress(peer);
         } catch (final AddressParseException e) {
             return Optional.empty();
         }
+
+        if (address instanceof Inet6Address && !ipv6) {
+            return Optional.empty();
+        }
+
         final InetSocketAddress peerAddress = new InetSocketAddress(address, port);
 
         final VXLANConnection connection = new VXLANConnection(adapter, peerAddress, vni);
@@ -143,6 +154,8 @@ public final class VXLANManager {
         }
         receiveFrames();
     }
+
+    // --------------------------------------------------------------------- //
 
     private void shutdown() {
         closeQuietly(channel);
@@ -160,8 +173,6 @@ public final class VXLANManager {
             LOGGER.warn("Failed to close VXLAN channel.", e);
         }
     }
-
-    // --------------------------------------------------------------------- //
 
     private void sendFrames(final VXLANConnection connection) {
         final InetSocketAddress peer = connection.getPeer();
@@ -231,6 +242,20 @@ public final class VXLANManager {
                 receiveBuffer.get(HEADER_SIZE, frame);
                 connection.getAdapter().writeInternetFrame(frame);
             }
+        }
+    }
+
+    private static InetAddress parseAddress(final String value) throws AddressParseException {
+        if (!value.contains(":")) {
+            return InternetUtils.toJavaInetAddress(InternetUtils.parseIpv4Address(value)); // unchanged
+        }
+        if (value.contains("%")) {
+            throw new AddressParseException("Scoped IPv6 addresses are not supported");
+        }
+        try {
+            return InetAddress.getByName(value); // a string containing ':' is only ever parsed as a literal
+        } catch (final UnknownHostException e) {
+            throw new AddressParseException(e.getMessage());
         }
     }
 }

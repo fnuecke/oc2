@@ -220,7 +220,7 @@ public final class Config {
     public static boolean vxlanEnabled = false;
 
     @Path("admin.vxlan")
-    @Comment("The local address to bind VXLAN sockets to. The default (0.0.0.0) binds to all available interfaces.")
+    @Comment("The local address to bind VXLAN sockets to. The default (0.0.0.0) binds to all available IPv4 interfaces and (::) for IPv6.")
     public static String vxlanBindAddress = "0.0.0.0";
 
     @Path("admin.vxlan")
@@ -230,7 +230,7 @@ public final class Config {
     public static int vxlanBindPort = 4789;
 
     @Path("admin.vxlan")
-    @Comment("The allowed peers for VXLAN that can be chosen by computers. If empty, no peer is allowed. Peers are specified as address, e.g. 192.168.1.1")
+    @Comment("The allowed peers for VXLAN that can be chosen by computers. If empty, no peer is allowed. Peers are specified as an IPv4 address, e.g. 192.168.1.1 or IPv6 address, e.g. 2001:db8::1.")
     @ItemType(String.class)
     public static List<String> vxlanAllowedPeers = new ArrayList<>();
 

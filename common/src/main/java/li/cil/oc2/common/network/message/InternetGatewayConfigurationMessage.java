@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
 public abstract class InternetGatewayConfigurationMessage extends AbstractMessage {
-    public static final int MAX_PEER_LENGTH = 15;
+    public static final int MAX_PEER_LENGTH = 45;
 
     protected BlockPos pos;
     protected String peer;

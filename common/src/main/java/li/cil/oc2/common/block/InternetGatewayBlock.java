@@ -3,7 +3,6 @@
 package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
-
 import li.cil.oc2.client.gui.InternetGatewayConfigurationScreen;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;

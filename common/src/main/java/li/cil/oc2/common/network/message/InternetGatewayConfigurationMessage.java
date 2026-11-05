@@ -9,17 +9,21 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 
 public abstract class InternetGatewayConfigurationMessage extends AbstractMessage {
+    public static final int MAX_PEER_LENGTH = 15;
+
     protected BlockPos pos;
     protected String peer;
     protected int port;
     protected int vni;
     protected InternetGatewayBlockEntity.InternetMode mode;
 
-    protected InternetGatewayConfigurationMessage(final InternetGatewayBlockEntity gateway,
-                                                   final String peer,
-                                                   final int port,
-                                                   final int vni,
-                                                   final InternetGatewayBlockEntity.InternetMode mode) {
+    protected InternetGatewayConfigurationMessage(
+        final InternetGatewayBlockEntity gateway,
+        final String peer,
+        final int port,
+        final int vni,
+        final InternetGatewayBlockEntity.InternetMode mode
+    ) {
         this.pos = gateway.getBlockPos();
         this.peer = peer;
         this.port = port;
@@ -34,7 +38,7 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
     @Override
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
-        peer = buffer.readUtf();
+        peer = buffer.readUtf(MAX_PEER_LENGTH);
         port = buffer.readVarInt();
         vni = buffer.readVarInt();
         mode = InternetGatewayBlockEntity.InternetMode.valueOf(buffer.readUtf());
@@ -43,7 +47,7 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
-        buffer.writeUtf(peer);
+        buffer.writeUtf(peer, MAX_PEER_LENGTH);
         buffer.writeVarInt(port);
         buffer.writeVarInt(vni);
         buffer.writeUtf(mode.name());

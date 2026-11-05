@@ -211,7 +211,12 @@ public final class Config {
     public static int internetBytesPerSecondTotal = 512 * 1024;
 
     @Path("admin.vxlan")
-    @Comment("Whether VXLAN virtual networks are enabled. If disabled, only the default NAT internet mode is available.")
+    @Comment({
+        "Whether VXLAN virtual networks are enabled. If disabled, only the default NAT internet mode is available.",
+        "VXLAN is unauthenticated and unencrypted. Only allow peers on networks you trust: anyone who can reach the bind port,",
+        "and spoof an allowed address can inject frames, and computers can send datagrams to any UDP port on an allowed peer.",
+        "Each frame adds 50 bytes of overhead, so the underlay needs a MTU of at least 1500 bytes to carry a 1450 byte guest payload."
+    })
     public static boolean vxlanEnabled = false;
 
     @Path("admin.vxlan")

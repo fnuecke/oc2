@@ -4,19 +4,19 @@ package li.cil.oc2.common.inet.vxlan;
 
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.inet.InternetAdapter;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.StandardProtocolFamily;
 import java.net.SocketTimeoutException;
+import java.net.StandardProtocolFamily;
 import java.nio.channels.DatagramChannel;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -67,11 +67,8 @@ public class VXLANManagerTests {
 
     @Test
     public void managerDoesNotStartWhenPortIsInUse() throws IOException {
-        final int port;
         try (DatagramChannel occupyingChannel = openLoopbackChannel()) {
-            port = ((InetSocketAddress) occupyingChannel.getLocalAddress()).getPort();
             configureEnabledManager();
-            Config.vxlanBindPort = port;
 
             VXLANManager.start();
 

@@ -2,11 +2,6 @@
 
 package li.cil.oc2.common.inet.vxlan;
 
-import javax.annotation.Nullable;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.TickEvent;
 import li.cil.oc2.common.Config;
@@ -15,7 +10,10 @@ import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.util.AddressParseException;
 import li.cil.oc2.common.inet.util.InternetUtils;
 import li.cil.oc2.common.util.ThrottledLogger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;

@@ -139,7 +139,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
             this.connection = null;
         }
         toNetwork.clear();
-        toInternet.clear();        
+        toInternet.clear();
     }
 
     @Override

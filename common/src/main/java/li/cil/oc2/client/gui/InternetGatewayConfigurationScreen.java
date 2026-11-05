@@ -120,7 +120,7 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
             imageWidth - MARGIN * 2, FIELD_HEIGHT, PEER_LABEL
         );
 
-        field.setMaxLength(255);
+        field.setMaxLength(InternetGatewayConfigurationMessage.MAX_PEER_LENGTH);
         field.setValue(value);
         field.setFilter(InternetGatewayConfigurationScreen::isPeerCharacter);
 

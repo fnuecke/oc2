@@ -80,15 +80,15 @@ public final class VXLANManager {
             return;
         }
         try {
-            VXLANManager newinstance = new VXLANManager();
+            instance = new VXLANManager();
 
-            InetSocketAddress localAddress = (InetSocketAddress) newinstance.channel.getLocalAddress();       
-
-            LOGGER.info("VXLAN is enabled and bound to {}:{}.", localAddress.getAddress().getHostAddress(), localAddress.getPort());
-            LOGGER.info("Computers can reach the network provided by VXLAN, "
-                + "subject to the configured allowed peers: {}", Config.vxlanAllowedPeers);
-
-            instance = newinstance;
+            LOGGER.info("VXLAN is enabled and bound to {}:{}.", Config.vxlanBindAddress, Config.vxlanBindPort);
+            if (Config.vxlanAllowedPeers.isEmpty()) {
+                LOGGER.warn("No allowed peers configured for VXLAN; no connections will be accepted.");
+            } else {
+                LOGGER.info("Computers can reach the network provided by VXLAN, "
+                    + "subject to the configured allowed peers: {}", Config.vxlanAllowedPeers);
+            }
         } catch (final IOException | AddressParseException e) {
             LOGGER.error("Failed to start VXLAN manager; VXLAN is unavailable.", e);
         }
@@ -107,19 +107,21 @@ public final class VXLANManager {
     }
 
     public Optional<VXLANConnection> connect(final InternetAdapter adapter, final String peer, final int port, final int vni) {
-        if (port < 0 || port > 65535) {
+        if (port < 1 || port > 65535) {
             return Optional.empty();
         }
         if (vni < 0 || vni > 16777215) {
             return Optional.empty();
         }
+
+        final InetAddress address;
         try {
-            InternetUtils.toJavaInetAddress(InternetUtils.parseIpv4Address(peer));
+            address = InternetUtils.toJavaInetAddress(InternetUtils.parseIpv4Address(peer));
         } catch (final AddressParseException e) {
             return Optional.empty();
         }
+        final InetSocketAddress peerAddress = new InetSocketAddress(address, port);
 
-        final InetSocketAddress peerAddress = new InetSocketAddress(peer, port);
         final VXLANConnection connection = new VXLANConnection(adapter, peerAddress, vni);
         connections.add(connection);
         return Optional.of(connection);

@@ -102,7 +102,7 @@ public final class BusCableBakedModel implements DynamicBlockStateModel {
         model.collectParts(level, pos, facadeState, random, facadeParts);
         for (final BlockModelPart part : facadeParts) {
             final ChunkSectionLayer layer = part.getRenderType(facadeState);
-            if (layer != ChunkSectionLayer.CUTOUT) {
+            if (layer == ChunkSectionLayer.SOLID) {
                 parts.add(new FacadePart(part, layer));
                 continue;
             }

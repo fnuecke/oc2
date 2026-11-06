@@ -31,9 +31,14 @@ public abstract class AbstractModContainerScreen<T extends AbstractContainerMenu
     public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
         super.render(graphics, mouseX, mouseY, partialTicks);
 
-        renderFg(graphics, partialTicks, mouseX, mouseY);
-
         renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    public void renderContents(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        super.renderContents(graphics, mouseX, mouseY, partialTicks);
+
+        renderFg(graphics, partialTicks, mouseX, mouseY);
     }
 
     // --------------------------------------------------------------------- //

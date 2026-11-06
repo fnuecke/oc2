@@ -6,7 +6,6 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.widget.Sprite;
 import li.cil.oc2.common.container.DeviceTypeSlotItemHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -55,12 +54,7 @@ public final class GuiUtils {
     }
 
     public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final GuiGraphics graphics, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
-        final Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null) {
-            return;
-        }
-
-        final boolean isCursorHoldingStack = !minecraft.player.inventoryMenu.getCarried().isEmpty();
+        final boolean isCursorHoldingStack = !screen.getMenu().getCarried().isEmpty();
         if (isCursorHoldingStack) {
             return;
         }

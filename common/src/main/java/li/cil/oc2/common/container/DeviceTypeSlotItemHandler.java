@@ -4,9 +4,6 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.common.inventory.ItemHandler;
-import net.minecraft.resources.Identifier;
-
-import javax.annotation.Nullable;
 
 public final class DeviceTypeSlotItemHandler extends SlotItemHandler {
     private final DeviceType deviceType;
@@ -18,15 +15,5 @@ public final class DeviceTypeSlotItemHandler extends SlotItemHandler {
 
     public DeviceType getDeviceType() {
         return deviceType;
-    }
-
-    @Nullable
-    @Override
-    public Identifier getNoItemIcon() {
-        if (hasItem()) {
-            return super.getNoItemIcon();
-        } else {
-            return deviceType.getBackgroundIcon();
-        }
     }
 }

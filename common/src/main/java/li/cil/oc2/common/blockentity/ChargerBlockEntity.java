@@ -15,6 +15,7 @@ import li.cil.oc2.common.energy.FixedEnergyHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.ChargerStateMessage;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -186,9 +187,18 @@ public final class ChargerBlockEntity extends ModBlockEntity implements Tickable
         assert level != null;
 
         final long amount = Math.min(energy.getEnergyStored(), Config.chargerEnergyPerTick);
-        final boolean simulate = level.isClientSide();
-        if (energy.extractEnergy(energyHandler.receiveEnergy(amount, simulate), simulate) > 0) {
-            isCharging = true;
+        if (amount <= 0) {
+            return;
+        }
+
+        try (Transaction transaction = Transaction.openRoot()) {
+            final long received = energyHandler.receiveEnergy(amount, transaction);
+            if (received > 0 && energy.extractEnergy(received, transaction) == received) {
+                isCharging = true;
+                if (!level.isClientSide()) {
+                    transaction.commit();
+                }
+            }
         }
     }
 

@@ -10,6 +10,7 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.inet.InternetManager;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -35,7 +36,7 @@ public final class InternetGatewayTests {
                 Capabilities.get(blockEntity, Capabilities.NETWORK_INTERFACE, Direction.NORTH);
             assertNotNull(helper, networkInterface, "network interface capability");
 
-            energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
+            Transaction.run(transaction -> energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, transaction));
 
             final byte[] frame = new byte[64];
             for (int i = 0; i < 1000; ++i) {
@@ -60,7 +61,7 @@ public final class InternetGatewayTests {
 
         final EnergyHandler energy = energy(helper, blockEntity);
 
-        final long received = energy.receiveEnergy(500, false);
+        final long received = Transaction.run(transaction -> energy.receiveEnergy(500, transaction));
         assertTrue(helper, "the gateway should accept energy", received > 0);
 
         final var registries = helper.getLevel().registryAccess();
@@ -87,7 +88,7 @@ public final class InternetGatewayTests {
             final BlockEntity blockEntity = placeGateway(helper);
             gateway = (InternetGatewayBlockEntity) blockEntity;
 
-            energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, false);
+            Transaction.run(transaction -> energy(helper, blockEntity).receiveEnergy(Config.internetGatewayEnergyStorage, transaction));
         } catch (final Throwable t) {
             restoreInternetAccess(wasEnabled);
             throw t;
@@ -129,7 +130,7 @@ public final class InternetGatewayTests {
         helper.startSequence()
             .thenExecute(() -> {
                 try {
-                    energy.receiveEnergy(Config.internetGatewayEnergyPerPacket, false);
+                    Transaction.run(transaction -> energy.receiveEnergy(Config.internetGatewayEnergyPerPacket, transaction));
                 } catch (final Throwable t) {
                     restoreInternetAccess(wasEnabled);
                     throw t;

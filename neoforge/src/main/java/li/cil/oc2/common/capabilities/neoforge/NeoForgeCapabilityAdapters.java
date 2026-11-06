@@ -2,12 +2,11 @@
 
 package li.cil.oc2.common.capabilities.neoforge;
 
-import com.google.common.collect.MapMaker;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
-import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.neoforge.NeoForgeTransactionContext;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,40 +19,34 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 public final class NeoForgeCapabilityAdapters {
-    private static final Map<DeferredNotifyItemHandler, ReverseItemHandlerAdapter> ITEM_ADAPTERS = new MapMaker().weakKeys().weakValues().makeMap();
-    private static final Map<FluidHandler, ReverseFluidHandlerAdapter> FLUID_ADAPTERS = new MapMaker().weakKeys().weakValues().makeMap();
-
-    // --------------------------------------------------------------------- //
-
     @Nullable
     public static EnergyHandler energy(@Nullable final net.neoforged.neoforge.transfer.energy.EnergyHandler handler) {
-        if (handler instanceof final ReverseEnergyHandlerAdapter reverse) {
-            return reverse.inner;
+        if (handler instanceof ReverseEnergyHandlerAdapter(final EnergyHandler inner)) {
+            return inner;
         }
         return handler == null ? null : new EnergyHandlerAdapter(handler);
     }
 
     @Nullable
     public static ItemHandler items(@Nullable final ResourceHandler<ItemResource> handler) {
-        if (handler instanceof final ReverseItemHandlerAdapter reverse) {
-            return reverse.inner;
+        if (handler instanceof ReverseItemHandlerAdapter(final ItemHandler inner)) {
+            return inner;
         }
         return handler == null ? null : new ItemHandlerAdapter(handler);
     }
 
     @Nullable
     public static FluidHandler fluids(@Nullable final ResourceHandler<FluidResource> handler) {
-        if (handler instanceof final ReverseFluidHandlerAdapter reverse) {
-            return reverse.inner;
+        if (handler instanceof ReverseFluidHandlerAdapter(final FluidHandler inner)) {
+            return inner;
         }
         return handler == null ? null : new FluidHandlerAdapter(handler);
     }
 
-    public static ResourceHandler<ItemResource> toNeoForge(final DeferredNotifyItemHandler handler) {
-        return adapter(handler);
+    public static ResourceHandler<ItemResource> toNeoForge(final ItemHandler handler) {
+        return new ReverseItemHandlerAdapter(handler);
     }
 
     public static net.neoforged.neoforge.transfer.energy.EnergyHandler toNeoForge(final EnergyHandler storage) {
@@ -61,27 +54,18 @@ public final class NeoForgeCapabilityAdapters {
     }
 
     public static ResourceHandler<FluidResource> toNeoForge(final FluidHandler handler) {
-        return FLUID_ADAPTERS.computeIfAbsent(handler, ReverseFluidHandlerAdapter::new);
+        return new ReverseFluidHandlerAdapter(handler);
     }
 
     public static ItemAccess slot(final ItemHandler handler, final int slot) {
         if (handler instanceof ItemHandlerAdapter(ResourceHandler<ItemResource> inner)) {
             return ItemAccess.forHandlerIndexStrict(inner, slot);
         }
-        return adapter((DeferredNotifyItemHandler) handler).access(slot);
+        return ItemAccess.forHandlerIndexStrict(new ReverseItemHandlerAdapter(handler), slot);
     }
 
     public static ItemAccess stack(final ItemStack stack) {
         return new StackItemAccess(stack);
-    }
-
-    private static ReverseItemHandlerAdapter adapter(final DeferredNotifyItemHandler handler) {
-        return ITEM_ADAPTERS.computeIfAbsent(handler, ReverseItemHandlerAdapter::new);
-    }
-
-    @SuppressWarnings("deprecation")
-    private static Transaction open() {
-        return Transaction.open(Transaction.getCurrentOpenedTransaction());
     }
 
     private static int clamp(final long value) {
@@ -92,25 +76,13 @@ public final class NeoForgeCapabilityAdapters {
 
     private record EnergyHandlerAdapter(net.neoforged.neoforge.transfer.energy.EnergyHandler inner) implements EnergyHandler {
         @Override
-        public long receiveEnergy(final long maxReceive, final boolean simulate) {
-            try (Transaction transaction = open()) {
-                final int inserted = inner.insert(clamp(maxReceive), transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-                return inserted;
-            }
+        public long receiveEnergy(final long maxReceive, final li.cil.oc2.common.transaction.TransactionContext transaction) {
+            return inner.insert(clamp(maxReceive), NeoForgeTransactionContext.unwrap(transaction));
         }
 
         @Override
-        public long extractEnergy(final long maxExtract, final boolean simulate) {
-            try (Transaction transaction = open()) {
-                final int extracted = inner.extract(clamp(maxExtract), transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-                return extracted;
-            }
+        public long extractEnergy(final long maxExtract, final li.cil.oc2.common.transaction.TransactionContext transaction) {
+            return inner.extract(clamp(maxExtract), NeoForgeTransactionContext.unwrap(transaction));
         }
 
         @Override
@@ -125,28 +97,20 @@ public final class NeoForgeCapabilityAdapters {
 
         @Override
         public boolean canExtract() {
-            try (Transaction transaction = open()) {
+            try (Transaction transaction = Transaction.openRoot()) {
                 return inner.extract(1, transaction) > 0;
             }
         }
 
         @Override
         public boolean canReceive() {
-            try (Transaction transaction = open()) {
+            try (Transaction transaction = Transaction.openRoot()) {
                 return inner.insert(1, transaction) > 0;
             }
         }
     }
 
-    private static final class ReverseEnergyHandlerAdapter extends SnapshotJournal<Long>
-        implements net.neoforged.neoforge.transfer.energy.EnergyHandler {
-        private final EnergyHandler inner;
-        private long moved;
-
-        private ReverseEnergyHandlerAdapter(final EnergyHandler inner) {
-            this.inner = inner;
-        }
-
+    private record ReverseEnergyHandlerAdapter(EnergyHandler inner) implements net.neoforged.neoforge.transfer.energy.EnergyHandler {
         @Override
         public long getAmountAsLong() {
             return inner.getEnergyStored();
@@ -159,40 +123,12 @@ public final class NeoForgeCapabilityAdapters {
 
         @Override
         public int insert(final int amount, final TransactionContext transaction) {
-            if (amount <= 0 || !inner.canReceive()) {
-                return 0;
-            }
-            updateSnapshots(transaction);
-            final int inserted = clamp(inner.receiveEnergy(amount, false));
-            moved += inserted;
-            return inserted;
+            return inner.canReceive() ? clamp(inner.receiveEnergy(amount, new NeoForgeTransactionContext(transaction))) : 0;
         }
 
         @Override
         public int extract(final int amount, final TransactionContext transaction) {
-            if (amount <= 0 || !inner.canExtract()) {
-                return 0;
-            }
-            updateSnapshots(transaction);
-            final int extracted = clamp(inner.extractEnergy(amount, false));
-            moved -= extracted;
-            return extracted;
-        }
-
-        @Override
-        protected Long createSnapshot() {
-            return moved;
-        }
-
-        @Override
-        protected void revertToSnapshot(final Long snapshot) {
-            final long delta = moved - snapshot;
-            if (delta > 0) {
-                inner.extractEnergy(delta, false);
-            } else if (delta < 0) {
-                inner.receiveEnergy(-delta, false);
-            }
-            moved = snapshot;
+            return inner.canExtract() ? clamp(inner.extractEnergy(amount, new NeoForgeTransactionContext(transaction))) : 0;
         }
     }
 
@@ -219,7 +155,7 @@ public final class NeoForgeCapabilityAdapters {
         }
 
         @Override
-        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
+        public ItemStack insertItem(final int slot, final ItemStack stack, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (stack.isEmpty()) {
                 return ItemStack.EMPTY;
             }
@@ -228,22 +164,16 @@ public final class NeoForgeCapabilityAdapters {
                 return stack;
             }
 
-            try (Transaction transaction = open()) {
-                final int inserted = inner.insert(slot, ItemResource.of(stack), stack.getCount(), transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-
-                if (inserted >= stack.getCount()) {
-                    return ItemStack.EMPTY;
-                }
-
-                return stack.copyWithCount(stack.getCount() - inserted);
+            final int inserted = inner.insert(slot, ItemResource.of(stack), stack.getCount(), NeoForgeTransactionContext.unwrap(transaction));
+            if (inserted >= stack.getCount()) {
+                return ItemStack.EMPTY;
             }
+
+            return stack.copyWithCount(stack.getCount() - inserted);
         }
 
         @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+        public ItemStack extractItem(final int slot, final int amount, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (slot < 0 || slot >= inner.size() || amount <= 0) {
                 return ItemStack.EMPTY;
             }
@@ -253,14 +183,8 @@ public final class NeoForgeCapabilityAdapters {
                 return ItemStack.EMPTY;
             }
 
-            try (Transaction transaction = open()) {
-                final int extracted = inner.extract(slot, resource, Math.min(amount, resource.getMaxStackSize()), transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-
-                return extracted <= 0 ? ItemStack.EMPTY : resource.toStack(extracted);
-            }
+            final int extracted = inner.extract(slot, resource, Math.min(amount, resource.getMaxStackSize()), NeoForgeTransactionContext.unwrap(transaction));
+            return extracted <= 0 ? ItemStack.EMPTY : resource.toStack(extracted);
         }
 
         @Override
@@ -282,20 +206,10 @@ public final class NeoForgeCapabilityAdapters {
         }
     }
 
-    private static final class ReverseItemHandlerAdapter implements ResourceHandler<ItemResource> {
-        private final DeferredNotifyItemHandler inner;
-        private final SlotJournal[] slots;
-        private final ItemAccess[] accesses;
-
-        private ReverseItemHandlerAdapter(final DeferredNotifyItemHandler inner) {
-            this.inner = inner;
-            this.slots = new SlotJournal[inner.getSlots()];
-            this.accesses = new ItemAccess[inner.getSlots()];
-        }
-
+    private record ReverseItemHandlerAdapter(ItemHandler inner) implements ResourceHandler<ItemResource> {
         @Override
         public int size() {
-            return slots.length;
+            return inner.getSlots();
         }
 
         @Override
@@ -326,82 +240,21 @@ public final class NeoForgeCapabilityAdapters {
             }
 
             final int count = Math.min(amount, resource.getMaxStackSize());
-            final int inserted = count - inner.insertItem(index, resource.toStack(count), true).getCount();
-            if (inserted <= 0) {
-                return 0;
-            }
-
-            journal(index).updateSnapshots(transaction);
-            final ItemStack existing = inner.getStackInSlot(index);
-            inner.setStackInSlotSilently(index, existing.isEmpty()
-                ? resource.toStack(inserted)
-                : existing.copyWithCount(existing.getCount() + inserted));
-            return inserted;
+            return count - inner.insertItem(index, resource.toStack(count), new NeoForgeTransactionContext(transaction)).getCount();
         }
 
         @Override
         public int extract(final int index, final ItemResource resource, final int amount, final TransactionContext transaction) {
-            if (resource.isEmpty() || amount <= 0) {
+            if (resource.isEmpty() || amount <= 0 || !resource.matches(inner.getStackInSlot(index))) {
                 return 0;
             }
 
-            final ItemStack existing = inner.getStackInSlot(index);
-            if (existing.isEmpty() || !resource.matches(existing)) {
-                return 0;
-            }
-
-            final int extracted = inner.extractItem(index, amount, true).getCount();
-            if (extracted <= 0) {
-                return 0;
-            }
-
-            journal(index).updateSnapshots(transaction);
-            inner.setStackInSlotSilently(index, existing.getCount() > extracted
-                ? existing.copyWithCount(existing.getCount() - extracted)
-                : ItemStack.EMPTY);
-            return extracted;
+            return inner.extractItem(index, amount, new NeoForgeTransactionContext(transaction)).getCount();
         }
 
         @Override
         public String toString() {
             return "ItemHandlerResourceHandler[" + inner + "]";
-        }
-
-        private ItemAccess access(final int index) {
-            if (accesses[index] == null) {
-                accesses[index] = ItemAccess.forHandlerIndexStrict(this, index);
-            }
-            return accesses[index];
-        }
-
-        private SlotJournal journal(final int index) {
-            if (slots[index] == null) {
-                slots[index] = new SlotJournal(index);
-            }
-            return slots[index];
-        }
-
-        private final class SlotJournal extends SnapshotJournal<ItemStack> {
-            private final int slot;
-
-            private SlotJournal(final int slot) {
-                this.slot = slot;
-            }
-
-            @Override
-            protected ItemStack createSnapshot() {
-                return inner.getStackInSlot(slot);
-            }
-
-            @Override
-            protected void revertToSnapshot(final ItemStack snapshot) {
-                inner.setStackInSlotSilently(slot, snapshot);
-            }
-
-            @Override
-            protected void onRootCommit(final ItemStack originalState) {
-                inner.notifySlotChanged(slot);
-            }
         }
     }
 
@@ -508,31 +361,25 @@ public final class NeoForgeCapabilityAdapters {
         }
 
         @Override
-        public int fill(final FluidStack stack, final boolean simulate) {
+        public int fill(final FluidStack stack, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (stack.isEmpty()) {
                 return 0;
             }
 
-            try (Transaction transaction = open()) {
-                final int filled = inner.insert(toNeoForge(stack), stack.amount(), transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-                return filled;
-            }
+            return inner.insert(toNeoForge(stack), stack.amount(), NeoForgeTransactionContext.unwrap(transaction));
         }
 
         @Override
-        public FluidStack drain(final FluidStack stack, final boolean simulate) {
+        public FluidStack drain(final FluidStack stack, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (stack.isEmpty()) {
                 return FluidStack.EMPTY;
             }
 
-            return drain(toNeoForge(stack), stack.amount(), simulate);
+            return drain(toNeoForge(stack), stack.amount(), transaction);
         }
 
         @Override
-        public FluidStack drain(final int amount, final boolean simulate) {
+        public FluidStack drain(final int amount, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (amount <= 0) {
                 return FluidStack.EMPTY;
             }
@@ -540,21 +387,16 @@ public final class NeoForgeCapabilityAdapters {
             for (int tank = 0; tank < inner.size(); tank++) {
                 final FluidResource resource = inner.getResource(tank);
                 if (!resource.isEmpty() && inner.getAmountAsLong(tank) > 0) {
-                    return drain(resource, amount, simulate);
+                    return drain(resource, amount, transaction);
                 }
             }
 
             return FluidStack.EMPTY;
         }
 
-        private FluidStack drain(final FluidResource resource, final int amount, final boolean simulate) {
-            try (Transaction transaction = open()) {
-                final int drained = inner.extract(resource, amount, transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-                return drained > 0 ? fromNeoForge(resource, drained) : FluidStack.EMPTY;
-            }
+        private FluidStack drain(final FluidResource resource, final int amount, final li.cil.oc2.common.transaction.TransactionContext transaction) {
+            final int drained = inner.extract(resource, amount, NeoForgeTransactionContext.unwrap(transaction));
+            return drained > 0 ? fromNeoForge(resource, drained) : FluidStack.EMPTY;
         }
 
         private static FluidStack fromNeoForge(final FluidResource resource, final int amount) {
@@ -566,13 +408,7 @@ public final class NeoForgeCapabilityAdapters {
         }
     }
 
-    private static final class ReverseFluidHandlerAdapter extends SnapshotJournal<FluidStack[]> implements ResourceHandler<FluidResource> {
-        private final FluidHandler inner;
-
-        private ReverseFluidHandlerAdapter(final FluidHandler inner) {
-            this.inner = inner;
-        }
-
+    private record ReverseFluidHandlerAdapter(FluidHandler inner) implements ResourceHandler<FluidResource> {
         @Override
         public int size() {
             return inner.getTanks();
@@ -605,13 +441,7 @@ public final class NeoForgeCapabilityAdapters {
                 return 0;
             }
 
-            final FluidStack stack = new FluidStack(resource.getFluid(), resource.getComponentsPatch(), amount);
-            if (inner.fill(stack, true) <= 0) {
-                return 0;
-            }
-
-            updateSnapshots(transaction);
-            return inner.fill(stack, false);
+            return inner.fill(new FluidStack(resource.getFluid(), resource.getComponentsPatch(), amount), new NeoForgeTransactionContext(transaction));
         }
 
         @Override
@@ -620,37 +450,7 @@ public final class NeoForgeCapabilityAdapters {
                 return 0;
             }
 
-            final FluidStack stack = new FluidStack(resource.getFluid(), resource.getComponentsPatch(), amount);
-            if (inner.drain(stack, true).isEmpty()) {
-                return 0;
-            }
-
-            updateSnapshots(transaction);
-            return inner.drain(stack, false).amount();
-        }
-
-        @Override
-        protected FluidStack[] createSnapshot() {
-            final FluidStack[] tanks = new FluidStack[inner.getTanks()];
-            for (int tank = 0; tank < tanks.length; tank++) {
-                tanks[tank] = inner.getFluidInTank(tank);
-            }
-            return tanks;
-        }
-
-        @Override
-        protected void revertToSnapshot(final FluidStack[] snapshot) {
-            for (int tank = 0; tank < inner.getTanks(); tank++) {
-                final FluidStack current = inner.getFluidInTank(tank);
-                if (!current.isEmpty()) {
-                    inner.drain(current, false);
-                }
-            }
-            for (final FluidStack stack : snapshot) {
-                if (!stack.isEmpty()) {
-                    inner.fill(stack, false);
-                }
-            }
+            return inner.drain(new FluidStack(resource.getFluid(), resource.getComponentsPatch(), amount), new NeoForgeTransactionContext(transaction)).amount();
         }
     }
 

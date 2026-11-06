@@ -30,6 +30,12 @@ public final class TransposerTestsNeoForge {
         TransposerTests.transposerMovesItemsViaMidLevelApi(helper);
     }
 
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
+    public static void transposerMovesDeviceItemBetweenComputers(final GameTestHelper helper) {
+        TransposerTests.transposerMovesDeviceItemBetweenComputers(helper);
+    }
+
     // --------------------------------------------------------------------- //
 
     private TransposerTestsNeoForge() {

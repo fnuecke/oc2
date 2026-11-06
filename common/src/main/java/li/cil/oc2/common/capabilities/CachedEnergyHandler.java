@@ -3,16 +3,17 @@
 package li.cil.oc2.common.capabilities;
 
 import li.cil.oc2.common.energy.EnergyHandler;
+import li.cil.oc2.common.transaction.TransactionContext;
 
 public record CachedEnergyHandler(CapabilityCache<EnergyHandler> cache) implements EnergyHandler {
     @Override
-    public long receiveEnergy(final long maxReceive, final boolean simulate) {
-        return handler().receiveEnergy(maxReceive, simulate);
+    public long receiveEnergy(final long maxReceive, final TransactionContext transaction) {
+        return handler().receiveEnergy(maxReceive, transaction);
     }
 
     @Override
-    public long extractEnergy(final long maxExtract, final boolean simulate) {
-        return handler().extractEnergy(maxExtract, simulate);
+    public long extractEnergy(final long maxExtract, final TransactionContext transaction) {
+        return handler().extractEnergy(maxExtract, transaction);
     }
 
     @Override

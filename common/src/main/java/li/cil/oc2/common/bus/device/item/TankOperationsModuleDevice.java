@@ -14,6 +14,7 @@ import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidHandlerUtils;
 import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -113,7 +114,7 @@ public final class TankOperationsModuleDevice extends AbstractItemDevice {
     @Callback(energy = 1, description = FILL_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int fill(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount,
                     @Parameter(value = "side", description = SIDE_DESCRIPTION, optional = true) @Nullable final RobotOperationSide side) {
-        return FluidHandlerUtils.transferFirst(List.of(tank()), requireFluidHandlersOrWorld(side), amount);
+        return Transaction.run(transaction -> FluidHandlerUtils.transferFirst(List.of(tank()), requireFluidHandlersOrWorld(side), amount, transaction));
     }
 
     @Callback(energy = 1, description = DRAIN_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
@@ -124,19 +125,19 @@ public final class TankOperationsModuleDevice extends AbstractItemDevice {
     @Callback(energy = 1, description = DRAIN_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int drain(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount,
                      @Parameter(value = "side", description = SIDE_DESCRIPTION, optional = true) @Nullable final RobotOperationSide side) {
-        return FluidHandlerUtils.transferFirst(requireFluidHandlersOrWorld(side), List.of(tank()), amount);
+        return Transaction.run(transaction -> FluidHandlerUtils.transferFirst(requireFluidHandlersOrWorld(side), List.of(tank()), amount, transaction));
     }
 
     @Callback(energy = 1, description = MOVE_INTO_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int moveInto(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount) {
         final FluidHandler item = FluidHandlerDeviceUtils.requireContainerItem(inventory(), robot.getSelectedSlot());
-        return FluidHandlerUtils.transfer(tank(), amount, (stack, simulate) -> FluidHandlerUtils.insertFluidStack(item, stack, simulate));
+        return Transaction.run(transaction -> FluidHandlerUtils.transferFirst(List.of(tank()), List.of(item), amount, transaction));
     }
 
     @Callback(energy = 1, description = MOVE_FROM_DESCRIPTION, returnValueDescription = "the amount moved in millibuckets.")
     public int moveFrom(@Parameter(value = "amount", description = "the most millibuckets to move.") final int amount) {
         final FluidHandler item = FluidHandlerDeviceUtils.requireContainerItem(inventory(), robot.getSelectedSlot());
-        return FluidHandlerUtils.transfer(item, amount, (stack, simulate) -> FluidHandlerUtils.insertFluidStack(tank(), stack, simulate));
+        return Transaction.run(transaction -> FluidHandlerUtils.transferFirst(List.of(item), List.of(tank()), amount, transaction));
     }
 
     // --------------------------------------------------------------------- //

@@ -9,6 +9,8 @@ import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.TypedItemStackHandler;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.AbstractMessage;
+import li.cil.oc2.common.transaction.Transaction;
+import li.cil.oc2.common.transaction.TransactionContext;
 import li.cil.oc2.common.util.ItemDeviceUtils;
 import li.cil.oc2.common.util.ItemStackUtils;
 import li.cil.oc2.common.util.LocationSupplierUtils;
@@ -77,18 +79,25 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
 
     @VisibleForTesting
     public ItemStack insert(final ItemStack stack, @Nullable final Player player) {
-        if (!canInsert(stack)) {
+        if (level == null || !canInsert(stack)) {
             return stack;
         }
 
-        eject(player);
+        final ItemStack ejected;
+        final ItemStack remainder;
+        try (Transaction transaction = Transaction.openRoot()) {
+            ejected = itemHandler.extractItem(0, 1, transaction);
+            remainder = itemHandler.insertItem(0, stack, transaction);
+            transaction.commit();
+        }
 
+        dropEjected(ejected, player);
         insertSoundEmitter.play();
-        return itemHandler.insertItem(0, stack, false);
+        return remainder;
     }
 
     public boolean canEject() {
-        return !itemHandler.extractItem(0, 1, true).isEmpty();
+        return !itemHandler.getStackInSlotRaw(0).isEmpty();
     }
 
     public void eject(@Nullable final Player player) {
@@ -96,17 +105,7 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
             return;
         }
 
-        final ItemStack stack = itemHandler.extractItem(0, 1, false);
-        if (!stack.isEmpty()) {
-            final Direction facing = getEjectDirection();
-            ejectSoundEmitter.play();
-            ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing).ifPresent(entity -> {
-                if (player != null) {
-                    entity.setNoPickUpDelay();
-                    entity.setTarget(player.getUUID());
-                }
-            });
-        }
+        dropEjected(Transaction.run(transaction -> itemHandler.extractItem(0, 1, transaction)), player);
     }
 
     public void dropMedia() {
@@ -114,8 +113,9 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
             return;
         }
 
-        final ItemStack stack = itemHandler.extractItem(0, 1, false);
+        final ItemStack stack = itemHandler.getStackInSlot(0);
         if (!stack.isEmpty()) {
+            itemHandler.setStackInSlot(0, ItemStack.EMPTY);
             ItemStackUtils.spawnAsEntity(level, getBlockPos(), stack);
         }
     }
@@ -215,6 +215,23 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
 
     // --------------------------------------------------------------------- //
 
+    private void dropEjected(final ItemStack stack, @Nullable final Player player) {
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        final Direction facing = getEjectDirection();
+        ejectSoundEmitter.play();
+        ItemStackUtils.spawnAsEntity(level, getBlockPos().relative(facing), stack, facing).ifPresent(entity -> {
+            if (player != null) {
+                entity.setNoPickUpDelay();
+                entity.setTarget(player.getUUID());
+            }
+        });
+    }
+
+    // --------------------------------------------------------------------- //
+
     private final class RemovableMediaItemStackHandler extends TypedItemStackHandler {
         public RemovableMediaItemStackHandler(final TagKey<Item> mediaTag) {
             super(1, mediaTag);
@@ -232,12 +249,12 @@ public abstract class AbstractRemovableMediaBlockEntity<TDevice extends Abstract
         }
 
         @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-            if (slot == 0 && !simulate && amount > 0) {
+        public ItemStack extractItem(final int slot, final int amount, final TransactionContext transaction) {
+            if (slot == 0 && amount > 0) {
                 exportDeviceDataToItemStack(getStackInSlotRaw(0));
             }
 
-            return super.extractItem(slot, amount, simulate);
+            return super.extractItem(slot, amount, transaction);
         }
 
         @Override

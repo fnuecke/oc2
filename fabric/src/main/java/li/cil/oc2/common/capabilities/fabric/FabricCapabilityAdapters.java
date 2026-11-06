@@ -5,8 +5,8 @@ package li.cil.oc2.common.capabilities.fabric;
 import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
-import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.fabric.FabricTransactionContext;
 import li.cil.oc2.common.util.ItemStackUtils;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -19,7 +19,6 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -36,16 +35,25 @@ public final class FabricCapabilityAdapters {
 
     @Nullable
     public static EnergyHandler energy(@Nullable final team.reborn.energy.api.EnergyStorage storage) {
+        if (storage instanceof ReverseEnergyStorageAdapter(final EnergyHandler inner)) {
+            return inner;
+        }
         return storage == null ? null : new EnergyHandlerAdapter(storage);
     }
 
     @Nullable
     public static ItemHandler items(@Nullable final Storage<ItemVariant> storage) {
+        if (storage instanceof final ReverseItemHandlerAdapter reverse) {
+            return reverse.inner;
+        }
         return storage == null ? null : new ItemHandlerAdapter(storage);
     }
 
     @Nullable
     public static FluidHandler fluids(@Nullable final Storage<FluidVariant> storage) {
+        if (storage instanceof ReverseFluidHandlerAdapter(final FluidHandler inner)) {
+            return inner;
+        }
         return storage == null ? null : new FluidHandlerAdapter(storage);
     }
 
@@ -53,7 +61,7 @@ public final class FabricCapabilityAdapters {
         return new ReverseEnergyStorageAdapter(storage);
     }
 
-    public static Storage<ItemVariant> toFabric(final DeferredNotifyItemHandler handler) {
+    public static Storage<ItemVariant> toFabric(final ItemHandler handler) {
         return new ReverseItemHandlerAdapter(handler);
     }
 
@@ -62,41 +70,24 @@ public final class FabricCapabilityAdapters {
     }
 
     public static SingleSlotStorage<ItemVariant> slot(final ItemHandler handler, final int slot) {
-        return handler instanceof final ItemHandlerAdapter adapter ? Objects.requireNonNull(adapter.slot(slot)) : new SlotView((DeferredNotifyItemHandler) handler, slot);
+        return handler instanceof final ItemHandlerAdapter adapter ? Objects.requireNonNull(adapter.slot(slot)) : new SlotView(handler, slot);
     }
 
     public static SingleSlotStorage<ItemVariant> stack(final ItemStack stack) {
         return new StackStorage(stack);
     }
 
-    @SuppressWarnings("deprecation")
-    private static Transaction open() {
-        return Transaction.openNested(Transaction.getCurrentUnsafe());
-    }
-
     // --------------------------------------------------------------------- //
 
     private record EnergyHandlerAdapter(team.reborn.energy.api.EnergyStorage inner) implements EnergyHandler {
         @Override
-        public long receiveEnergy(final long maxReceive, final boolean simulate) {
-            try (Transaction transaction = open()) {
-                final long inserted = inner.insert(maxReceive, transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-                return inserted;
-            }
+        public long receiveEnergy(final long maxReceive, final li.cil.oc2.common.transaction.TransactionContext transaction) {
+            return inner.insert(maxReceive, FabricTransactionContext.unwrap(transaction));
         }
 
         @Override
-        public long extractEnergy(final long maxExtract, final boolean simulate) {
-            try (Transaction transaction = open()) {
-                final long extracted = inner.extract(maxExtract, transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-                return extracted;
-            }
+        public long extractEnergy(final long maxExtract, final li.cil.oc2.common.transaction.TransactionContext transaction) {
+            return inner.extract(maxExtract, FabricTransactionContext.unwrap(transaction));
         }
 
         @Override
@@ -123,12 +114,12 @@ public final class FabricCapabilityAdapters {
     private record ReverseEnergyStorageAdapter(EnergyHandler inner) implements team.reborn.energy.api.EnergyStorage {
         @Override
         public long insert(final long maxAmount, final TransactionContext transaction) {
-            return new EnergyMovement(inner).insert(maxAmount, transaction);
+            return inner.receiveEnergy(maxAmount, new FabricTransactionContext(transaction));
         }
 
         @Override
         public long extract(final long maxAmount, final TransactionContext transaction) {
-            return new EnergyMovement(inner).extract(maxAmount, transaction);
+            return inner.extractEnergy(maxAmount, new FabricTransactionContext(transaction));
         }
 
         @Override
@@ -149,45 +140,6 @@ public final class FabricCapabilityAdapters {
         @Override
         public boolean supportsExtraction() {
             return inner.canExtract();
-        }
-    }
-
-    private static final class EnergyMovement extends SnapshotParticipant<Long> {
-        private final EnergyHandler inner;
-        private long moved;
-
-        private EnergyMovement(final EnergyHandler inner) {
-            this.inner = inner;
-        }
-
-        long insert(final long maxAmount, final TransactionContext transaction) {
-            updateSnapshots(transaction);
-            final long inserted = inner.receiveEnergy(maxAmount, false);
-            moved += inserted;
-            return inserted;
-        }
-
-        long extract(final long maxAmount, final TransactionContext transaction) {
-            updateSnapshots(transaction);
-            final long extracted = inner.extractEnergy(maxAmount, false);
-            moved -= extracted;
-            return extracted;
-        }
-
-        @Override
-        protected Long createSnapshot() {
-            return moved;
-        }
-
-        @Override
-        protected void readSnapshot(final Long snapshot) {
-            final long delta = moved - snapshot;
-            if (delta > 0) {
-                inner.extractEnergy(delta, false);
-            } else if (delta < 0) {
-                inner.receiveEnergy(-delta, false);
-            }
-            moved = snapshot;
         }
     }
 
@@ -215,7 +167,7 @@ public final class FabricCapabilityAdapters {
         }
 
         @Override
-        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
+        public ItemStack insertItem(final int slot, final ItemStack stack, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (stack.isEmpty()) {
                 return ItemStack.EMPTY;
             }
@@ -225,22 +177,16 @@ public final class FabricCapabilityAdapters {
                 return stack;
             }
 
-            try (Transaction transaction = open()) {
-                final long inserted = view.insert(ItemVariant.of(stack), stack.getCount(), transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-
-                if (inserted >= stack.getCount()) {
-                    return ItemStack.EMPTY;
-                }
-
-                return stack.copyWithCount(stack.getCount() - (int) inserted);
+            final long inserted = view.insert(ItemVariant.of(stack), stack.getCount(), FabricTransactionContext.unwrap(transaction));
+            if (inserted >= stack.getCount()) {
+                return ItemStack.EMPTY;
             }
+
+            return stack.copyWithCount(stack.getCount() - (int) inserted);
         }
 
         @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+        public ItemStack extractItem(final int slot, final int amount, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             final SingleSlotStorage<ItemVariant> view = slot(slot);
             if (view == null || amount <= 0) {
                 return ItemStack.EMPTY;
@@ -251,14 +197,8 @@ public final class FabricCapabilityAdapters {
                 return ItemStack.EMPTY;
             }
 
-            try (Transaction transaction = open()) {
-                final long extracted = view.extract(resource, Math.min(amount, maxStackSize(resource)), transaction);
-                if (!simulate) {
-                    transaction.commit();
-                }
-
-                return extracted <= 0 ? ItemStack.EMPTY : resource.toStack((int) extracted);
-            }
+            final long extracted = view.extract(resource, Math.min(amount, maxStackSize(resource)), FabricTransactionContext.unwrap(transaction));
+            return extracted <= 0 ? ItemStack.EMPTY : resource.toStack((int) extracted);
         }
 
         @Override
@@ -293,10 +233,10 @@ public final class FabricCapabilityAdapters {
     }
 
     private static final class ReverseItemHandlerAdapter implements SlottedStorage<ItemVariant> {
-        private final DeferredNotifyItemHandler inner;
+        private final ItemHandler inner;
         private final List<SingleSlotStorage<ItemVariant>> slots = new ArrayList<>();
 
-        private ReverseItemHandlerAdapter(final DeferredNotifyItemHandler inner) {
+        private ReverseItemHandlerAdapter(final ItemHandler inner) {
             this.inner = inner;
             for (int slot = 0; slot < inner.getSlots(); slot++) {
                 slots.add(new SlotView(inner, slot));
@@ -348,15 +288,7 @@ public final class FabricCapabilityAdapters {
         }
     }
 
-    private static final class SlotView extends SnapshotParticipant<ItemStack> implements SingleSlotStorage<ItemVariant> {
-        private final DeferredNotifyItemHandler handler;
-        private final int slot;
-
-        private SlotView(final DeferredNotifyItemHandler handler, final int slot) {
-            this.handler = handler;
-            this.slot = slot;
-        }
-
+    private record SlotView(ItemHandler handler, int slot) implements SingleSlotStorage<ItemVariant> {
         @Override
         public long insert(final ItemVariant resource, final long maxAmount, final TransactionContext transaction) {
             if (resource.isBlank() || maxAmount <= 0) {
@@ -364,40 +296,16 @@ public final class FabricCapabilityAdapters {
             }
 
             final int count = (int) Math.min(maxAmount, maxStackSize(resource));
-            final int inserted = count - handler.insertItem(slot, resource.toStack(count), true).getCount();
-            if (inserted <= 0) {
-                return 0;
-            }
-
-            updateSnapshots(transaction);
-            final ItemStack existing = handler.getStackInSlot(slot);
-            handler.setStackInSlotSilently(slot, existing.isEmpty()
-                ? resource.toStack(inserted)
-                : existing.copyWithCount(existing.getCount() + inserted));
-            return inserted;
+            return count - handler.insertItem(slot, resource.toStack(count), new FabricTransactionContext(transaction)).getCount();
         }
 
         @Override
         public long extract(final ItemVariant resource, final long maxAmount, final TransactionContext transaction) {
-            if (resource.isBlank() || maxAmount <= 0) {
+            if (resource.isBlank() || maxAmount <= 0 || !resource.matches(handler.getStackInSlot(slot))) {
                 return 0;
             }
 
-            final ItemStack existing = handler.getStackInSlot(slot);
-            if (existing.isEmpty() || !resource.matches(existing)) {
-                return 0;
-            }
-
-            final int extracted = handler.extractItem(slot, (int) Math.min(maxAmount, Integer.MAX_VALUE), true).getCount();
-            if (extracted <= 0) {
-                return 0;
-            }
-
-            updateSnapshots(transaction);
-            handler.setStackInSlotSilently(slot, existing.getCount() > extracted
-                ? existing.copyWithCount(existing.getCount() - extracted)
-                : ItemStack.EMPTY);
-            return extracted;
+            return handler.extractItem(slot, (int) Math.min(maxAmount, Integer.MAX_VALUE), new FabricTransactionContext(transaction)).getCount();
         }
 
         @Override
@@ -420,21 +328,6 @@ public final class FabricCapabilityAdapters {
             final ItemStack stack = handler.getStackInSlot(slot);
             final int limit = handler.getSlotLimit(slot);
             return stack.isEmpty() ? limit : Math.min(limit, stack.getMaxStackSize());
-        }
-
-        @Override
-        protected ItemStack createSnapshot() {
-            return handler.getStackInSlot(slot);
-        }
-
-        @Override
-        protected void readSnapshot(final ItemStack snapshot) {
-            handler.setStackInSlotSilently(slot, snapshot);
-        }
-
-        @Override
-        protected void onFinalCommit() {
-            handler.notifySlotChanged(slot);
         }
     }
 
@@ -501,51 +394,48 @@ public final class FabricCapabilityAdapters {
         }
 
         @Override
-        public int fill(final FluidStack stack, final boolean simulate) {
+        public int fill(final FluidStack stack, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (stack.isEmpty()) {
                 return 0;
             }
 
             final FluidVariant resource = toFabric(stack);
-            return transfer(stack.amount(), simulate, (amount, transaction) -> inner.insert(resource, amount, transaction));
+            return transfer(stack.amount(), FabricTransactionContext.unwrap(transaction), (amount, nested) -> inner.insert(resource, amount, nested));
         }
 
         @Override
-        public FluidStack drain(final FluidStack stack, final boolean simulate) {
+        public FluidStack drain(final FluidStack stack, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (stack.isEmpty()) {
                 return FluidStack.EMPTY;
             }
 
-            return drain(toFabric(stack), stack.amount(), simulate);
+            return drain(toFabric(stack), stack.amount(), FabricTransactionContext.unwrap(transaction));
         }
 
         @Override
-        public FluidStack drain(final int amount, final boolean simulate) {
+        public FluidStack drain(final int amount, final li.cil.oc2.common.transaction.TransactionContext transaction) {
             if (amount <= 0) {
                 return FluidStack.EMPTY;
             }
 
-            final FluidVariant resource;
-            try (Transaction transaction = open()) {
-                resource = StorageUtil.findExtractableResource(inner, transaction);
-            }
-
-            return resource == null ? FluidStack.EMPTY : drain(resource, amount, simulate);
+            final TransactionContext context = FabricTransactionContext.unwrap(transaction);
+            final FluidVariant resource = StorageUtil.findExtractableResource(inner, context);
+            return resource == null ? FluidStack.EMPTY : drain(resource, amount, context);
         }
 
-        private FluidStack drain(final FluidVariant resource, final int amount, final boolean simulate) {
-            final int drained = transfer(amount, simulate, (droplets, transaction) -> inner.extract(resource, droplets, transaction));
+        private FluidStack drain(final FluidVariant resource, final int amount, final TransactionContext transaction) {
+            final int drained = transfer(amount, transaction, (droplets, nested) -> inner.extract(resource, droplets, nested));
             return drained > 0 ? fromFabric(resource, drained) : FluidStack.EMPTY;
         }
 
-        private static int transfer(final int amount, final boolean simulate, final Transfer transfer) {
+        private static int transfer(final int amount, final TransactionContext transaction, final Transfer transfer) {
             if (amount <= 0) {
                 return 0;
             }
 
-            try (Transaction transaction = open()) {
+            try (Transaction nested = transaction.openNested()) {
                 final int rounded;
-                try (Transaction probe = Transaction.openNested(transaction)) {
+                try (Transaction probe = nested.openNested()) {
                     rounded = millibuckets(transfer.apply(droplets(amount), probe));
                 }
                 if (rounded <= 0) {
@@ -553,13 +443,11 @@ public final class FabricCapabilityAdapters {
                 }
 
                 final long requested = droplets(rounded);
-                if (transfer.apply(requested, transaction) != requested) {
+                if (transfer.apply(requested, nested) != requested) {
                     return 0;
                 }
 
-                if (!simulate) {
-                    transaction.commit();
-                }
+                nested.commit();
                 return rounded;
             }
         }
@@ -592,13 +480,13 @@ public final class FabricCapabilityAdapters {
         @Override
         public long insert(final FluidVariant resource, final long maxAmount, final TransactionContext transaction) {
             final FluidStack stack = fromFabric(resource, millibuckets(maxAmount));
-            return stack.isEmpty() ? 0 : droplets(new FluidMovement(inner, stack).fill(transaction));
+            return stack.isEmpty() ? 0 : droplets(inner.fill(stack, new FabricTransactionContext(transaction)));
         }
 
         @Override
         public long extract(final FluidVariant resource, final long maxAmount, final TransactionContext transaction) {
             final FluidStack stack = fromFabric(resource, millibuckets(maxAmount));
-            return stack.isEmpty() ? 0 : droplets(new FluidMovement(inner, stack).drain(transaction));
+            return stack.isEmpty() ? 0 : droplets(inner.drain(stack, new FabricTransactionContext(transaction)).amount());
         }
 
         @Override
@@ -636,51 +524,6 @@ public final class FabricCapabilityAdapters {
         @Override
         public long getCapacity() {
             return droplets(storage.inner().getTankCapacity(tank));
-        }
-    }
-
-    private static final class FluidMovement extends SnapshotParticipant<Integer> {
-        private final FluidHandler inner;
-        private final FluidStack stack;
-        private int moved;
-
-        private FluidMovement(final FluidHandler inner, final FluidStack stack) {
-            this.inner = inner;
-            this.stack = stack;
-        }
-
-        int fill(final TransactionContext transaction) {
-            final int filled = inner.fill(stack, false);
-            if (filled > 0) {
-                updateSnapshots(transaction);
-                moved += filled;
-            }
-            return filled;
-        }
-
-        int drain(final TransactionContext transaction) {
-            final int drained = inner.drain(stack, false).amount();
-            if (drained > 0) {
-                updateSnapshots(transaction);
-                moved -= drained;
-            }
-            return drained;
-        }
-
-        @Override
-        protected Integer createSnapshot() {
-            return moved;
-        }
-
-        @Override
-        protected void readSnapshot(final Integer snapshot) {
-            final int delta = moved - snapshot;
-            if (delta > 0) {
-                inner.drain(stack.withAmount(delta), false);
-            } else if (delta < 0) {
-                inner.fill(stack.withAmount(-delta), false);
-            }
-            moved = snapshot;
         }
     }
 

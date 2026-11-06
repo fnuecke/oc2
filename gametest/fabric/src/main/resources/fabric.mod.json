@@ -23,6 +23,8 @@
       "li.cil.oc2.gametest.fabric.FakePlayerTestsFabric",
       "li.cil.oc2.gametest.fabric.RecipeTestsFabric",
       "li.cil.oc2.gametest.fabric.RPCTypeAdapterTestsFabric",
+      "li.cil.oc2.gametest.fabric.TransactionTestsFabric",
+      "li.cil.oc2.gametest.fabric.TransferTestsFabric",
       "li.cil.oc2.gametest.fabric.TransposerTestsFabric",
       "li.cil.oc2.gametest.fabric.VanillaDeviceTestsFabric",
       "li.cil.oc2.gametest.fabric.BusCablePickTestsFabric"

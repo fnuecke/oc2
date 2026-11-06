@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.energy;
 
+import li.cil.oc2.common.transaction.SnapshotJournal;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
@@ -11,6 +13,7 @@ public final class FixedEnergyHandler implements EnergyHandler {
 
     private final int capacity;
     private int energy;
+    private final SnapshotJournal journal = SnapshotJournal.create(() -> energy, value -> energy = value, () -> {});
 
     // --------------------------------------------------------------------- //
 
@@ -21,28 +24,26 @@ public final class FixedEnergyHandler implements EnergyHandler {
     // --------------------------------------------------------------------- //
 
     @Override
-    public long receiveEnergy(final long maxReceive, final boolean simulate) {
-        if (maxReceive <= 0) {
+    public long receiveEnergy(final long maxReceive, final TransactionContext transaction) {
+        final int received = (int) Math.min(capacity - energy, maxReceive);
+        if (received <= 0) {
             return 0;
         }
 
-        final int received = (int) Math.min(capacity - energy, maxReceive);
-        if (!simulate) {
-            energy += received;
-        }
+        journal.updateSnapshots(transaction);
+        energy += received;
         return received;
     }
 
     @Override
-    public long extractEnergy(final long maxExtract, final boolean simulate) {
-        if (maxExtract <= 0) {
+    public long extractEnergy(final long maxExtract, final TransactionContext transaction) {
+        final int extracted = (int) Math.min(energy, maxExtract);
+        if (extracted <= 0) {
             return 0;
         }
 
-        final int extracted = (int) Math.min(energy, maxExtract);
-        if (!simulate) {
-            energy -= extracted;
-        }
+        journal.updateSnapshots(transaction);
+        energy -= extracted;
         return extracted;
     }
 
@@ -67,6 +68,16 @@ public final class FixedEnergyHandler implements EnergyHandler {
     }
 
     // --------------------------------------------------------------------- //
+
+    // Internal fast-path where we don't really need transactions.
+    public boolean consume(final int amount) {
+        if (amount > energy) {
+            return false;
+        }
+
+        energy -= amount;
+        return true;
+    }
 
     public void serialize(final ValueOutput output) {
         output.putInt(STORED_TAG_NAME, energy);

@@ -5,15 +5,14 @@ package li.cil.oc2.common.container;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 final class ContainerItemAccess<T> {
-    private static final Logger LOGGER = LogManager.getLogger(ContainerItemAccess.class);
-
     private final ItemHandler inventory;
     private final int slot;
     private final CapabilityType<T> type;
@@ -37,7 +36,7 @@ final class ContainerItemAccess<T> {
         return capability != null ? operation.apply(capability) : fallback;
     }
 
-    <R> R modify(final Function<T, R> operation, final R fallback) {
+    <R> R modify(final BiFunction<T, TransactionContext, R> operation, final R fallback, final TransactionContext transaction) {
         final ItemStack stack = inventory.getStackInSlot(slot);
         final ItemStackHandler copy = getSingleCopy();
         final T capability = Capabilities.get(copy, 0, type);
@@ -45,42 +44,35 @@ final class ContainerItemAccess<T> {
             return fallback;
         }
 
-        final R result = operation.apply(capability);
-        final ItemStack modified = copy.getStackInSlot(0);
-        if (ItemStack.matches(modified, stack.copyWithCount(1))) {
+        try (Transaction nested = transaction.openNested()) {
+            final R result = operation.apply(capability, nested);
+            final ItemStack modified = copy.getStackInSlot(0);
+            if (!ItemStack.matches(modified, stack.copyWithCount(1))) {
+                if (stack.getCount() == 1) {
+                    // Replace modified instance in-place.
+                    if (inventory.extractItem(slot, 1, nested).isEmpty()
+                        || !inventory.insertItem(slot, modified, nested).isEmpty()) {
+                        return fallback;
+                    }
+                } else {
+                    // Insert modified instance.
+                    if (!insertStartingAtSlot(modified, nested).isEmpty()
+                        || inventory.extractItem(slot, 1, nested).isEmpty()) {
+                        return fallback;
+                    }
+                }
+            }
+
+            nested.commit();
             return result;
         }
-
-        if (stack.getCount() == 1) {
-            // Replace modified instance in-place.
-            if (inventory.extractItem(slot, 1, false).isEmpty()) {
-                return fallback;
-            }
-            if (!inventory.insertItem(slot, modified, false).isEmpty()) {
-                // Paranoia, not expected to happen, means there's a bug in the robot inventory.
-                LOGGER.error("Inventory [{}] rejected item [{}] in slot [{}] it was just taken from, item was lost.",
-                    inventory.getClass().getName(), modified, slot);
-            }
-        } else {
-            // Insert modified instance.
-            if (!insertStartingAtSlot(modified).isEmpty()) {
-                return fallback;
-            }
-            if (inventory.extractItem(slot, 1, false).isEmpty()) {
-                // Paranoia, not expected to happen, means there's a bug in the robot inventory.
-                LOGGER.error("Inventory [{}] did not yield an item from slot [{}] holding [{}], item was duplicated.",
-                    inventory.getClass().getName(), slot, stack);
-            }
-        }
-
-        return result;
     }
 
     // --------------------------------------------------------------------- //
 
-    private ItemStack insertStartingAtSlot(ItemStack stack) {
+    private ItemStack insertStartingAtSlot(ItemStack stack, final TransactionContext transaction) {
         for (int i = 0; i < inventory.getSlots() && !stack.isEmpty(); i++) {
-            stack = inventory.insertItem((slot + i) % inventory.getSlots(), stack, false);
+            stack = inventory.insertItem((slot + i) % inventory.getSlots(), stack, transaction);
         }
         return stack;
     }

@@ -16,7 +16,6 @@ import li.cil.oc2.common.bus.device.SystemDevice;
 import li.cil.oc2.common.container.AbstractDeviceItemStackHandler;
 import li.cil.oc2.common.container.AbstractTypedDeviceItemStackHandler;
 import li.cil.oc2.common.container.CombinedItemHandler;
-import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.CpuItem;
 import net.minecraft.core.HolderLookup;
@@ -57,7 +56,7 @@ public abstract class AbstractVMItemStackHandlers implements VMItemStackHandlers
             itemHandlers.put(group.deviceType, new VMItemHandler(group.count, group.deviceType));
         }
 
-        combinedItemHandlers = new CombinedItemHandler(itemHandlers.values().toArray(new DeferredNotifyItemHandler[0]));
+        combinedItemHandlers = new CombinedItemHandler(itemHandlers.values().toArray(new ItemHandler[0]));
     }
 
     // --------------------------------------------------------------------- //

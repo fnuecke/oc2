@@ -2,10 +2,12 @@
 
 package li.cil.oc2.common.energy;
 
-public interface EnergyHandler {
-    long receiveEnergy(long maxReceive, boolean simulate);
+import li.cil.oc2.common.transaction.TransactionContext;
 
-    long extractEnergy(long maxExtract, boolean simulate);
+public interface EnergyHandler {
+    long receiveEnergy(long maxReceive, TransactionContext transaction);
+
+    long extractEnergy(long maxExtract, TransactionContext transaction);
 
     long getEnergyStored();
 

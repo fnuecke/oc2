@@ -4,6 +4,7 @@ package li.cil.oc2.gametest.neoforge;
 
 import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
 import li.cil.oc2.gametest.util.Drops;
@@ -50,7 +51,7 @@ public final class ComputerTests {
                 place(helper, player, dropped, computer.pos());
             })
             .thenExecuteAfter(20, () -> helper.assertFalse(
-                computer.handler(DeviceTypes.MEMORY.get()).extractItem(0, 1, false).isEmpty(),
+                Transaction.run(transaction -> computer.handler(DeviceTypes.MEMORY.get()).extractItem(0, 1, transaction)).isEmpty(),
                 "memory item was not restored after re-placing computer"))
             .thenSucceed();
     }

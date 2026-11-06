@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.fluid;
 
+import li.cil.oc2.common.transaction.TransactionContext;
+
 public interface FluidHandler {
     int BUCKET = 1000;
 
@@ -11,9 +13,9 @@ public interface FluidHandler {
 
     int getTankCapacity(int tank);
 
-    int fill(FluidStack stack, boolean simulate);
+    int fill(FluidStack stack, TransactionContext transaction);
 
-    FluidStack drain(FluidStack stack, boolean simulate);
+    FluidStack drain(FluidStack stack, TransactionContext transaction);
 
-    FluidStack drain(int amount, boolean simulate);
+    FluidStack drain(int amount, TransactionContext transaction);
 }

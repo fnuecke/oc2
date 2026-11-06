@@ -8,6 +8,7 @@ import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.device.Terminal;
@@ -166,7 +167,7 @@ public final class ComputerFixture implements MachineFixture {
     }
 
     public ItemStack uninstall(final DeviceType type) {
-        final ItemStack removed = handler(type).extractItem(0, 1, false);
+        final ItemStack removed = Transaction.run(transaction -> handler(type).extractItem(0, 1, transaction));
         if (removed.isEmpty()) {
             throw new GameTestAssertException(Component.literal("nothing to remove from the " + type + " slot"), 0);
         }

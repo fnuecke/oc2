@@ -285,7 +285,9 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
 
     protected abstract AbstractTerminalVMRunner createRunner(AbstractArchitecture architecture);
 
-    protected abstract boolean consumeEnergy(final int amount, final boolean simulate);
+    protected abstract boolean hasEnergy(final int amount);
+
+    protected abstract boolean consumeEnergy(final int amount);
 
     protected void handleBusStateChanged(final CommonDeviceBusController.BusState value) {
     }
@@ -410,7 +412,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             return;
         }
 
-        if (!consumeEnergy(busController.getEnergyConsumption(), true)) {
+        if (!hasEnergy(busController.getEnergyConsumption())) {
             // Don't even start running if we couldn't keep running.
             error(Component.translatable(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
@@ -482,7 +484,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
             return;
         }
 
-        if (!consumeEnergy(busController.getEnergyConsumption(), false)) {
+        if (!consumeEnergy(busController.getEnergyConsumption())) {
             error(Component.translatable(Constants.COMPUTER_ERROR_NOT_ENOUGH_ENERGY));
             return;
         }
@@ -494,7 +496,7 @@ public abstract class AbstractVirtualMachine implements VirtualMachine, VirtualM
         if (amount < 0) {
             throw new IllegalArgumentException("Energy amount [" + amount + "] is negative.");
         }
-        return consumeEnergy(amount, false);
+        return consumeEnergy(amount);
     }
 
     private void setBusState(final CommonDeviceBusController.BusState value) {

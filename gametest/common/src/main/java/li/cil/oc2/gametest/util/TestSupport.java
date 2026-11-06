@@ -3,6 +3,8 @@
 package li.cil.oc2.gametest.util;
 
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.transaction.Transaction;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestAssertException;
@@ -23,6 +25,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Function;
 
 public final class TestSupport {
     public static final String MOD_ID = "oc2_gametest";
@@ -87,6 +90,12 @@ public final class TestSupport {
             return;
         }
         throw failure(helper, what + " should have been rejected");
+    }
+
+    public static <T> T abort(final Function<TransactionContext, T> operation) {
+        try (Transaction transaction = Transaction.openRoot()) {
+            return operation.apply(transaction);
+        }
     }
 
     public static Player fakePlayer(final GameTestHelper helper) {

@@ -9,6 +9,7 @@ import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.common.bus.IODeviceBusAdapter;
 import li.cil.oc2.common.bus.TestIOInvocation;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.TransactionContext;
 import li.cil.sedna.api.Sizes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
@@ -284,12 +285,12 @@ public final class ItemHandlerDeviceIOTests {
         }
 
         @Override
-        public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
+        public ItemStack insertItem(final int slot, final ItemStack stack, final TransactionContext transaction) {
             return stack;
         }
 
         @Override
-        public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+        public ItemStack extractItem(final int slot, final int amount, final TransactionContext transaction) {
             return ItemStack.EMPTY;
         }
     }

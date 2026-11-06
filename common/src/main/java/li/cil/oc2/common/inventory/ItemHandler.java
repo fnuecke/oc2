@@ -2,6 +2,7 @@
 
 package li.cil.oc2.common.inventory;
 
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 
 public interface ItemHandler {
@@ -9,9 +10,9 @@ public interface ItemHandler {
 
     ItemStack getStackInSlot(int slot);
 
-    ItemStack insertItem(int slot, ItemStack stack, boolean simulate);
+    ItemStack insertItem(int slot, ItemStack stack, TransactionContext transaction);
 
-    ItemStack extractItem(int slot, int amount, boolean simulate);
+    ItemStack extractItem(int slot, int amount, TransactionContext transaction);
 
     default int getSlotLimit(final int slot) {
         return 64;

@@ -7,6 +7,8 @@ import li.cil.oc2.api.bus.device.object.*;
 import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -33,8 +35,8 @@ public final class CraftingModuleDevice extends AbstractItemDevice {
     private static final int GRID_SIZE = 3;
     private static final int GRID_SLOTS = GRID_SIZE * GRID_SIZE;
 
-    private static final String CRAFT_DESCRIPTION = "Tries to craft once from the crafting grid. Fails if the grid matches no recipe " +
-        "or the result does not fit into the bottom row.";
+    private static final String CRAFT_DESCRIPTION = "Tries to craft once from the crafting grid. Fails if the grid matches no recipe, " +
+        "or if the result or the leftover items, such as empty buckets, do not fit.";
 
     // --------------------------------------------------------------------- //
 
@@ -66,17 +68,27 @@ public final class CraftingModuleDevice extends AbstractItemDevice {
         }
 
         final ItemStack result = recipe.get().value().assemble(input, level.registryAccess());
-        if (result.isEmpty() || !insertIntoOutput(inventory, result, true).isEmpty()) {
+        if (result.isEmpty()) {
             return 0;
         }
 
         final NonNullList<ItemStack> remainders = recipe.get().value().getRemainingItems(input);
-        result.onCraftedBySystem(level);
-        final int crafted = result.getCount();
-        insertIntoOutput(inventory, result, false);
-        consumeIngredients(inventory, positioned, remainders);
+        try (Transaction transaction = Transaction.openRoot()) {
+            try (Transaction probe = transaction.openNested()) {
+                if (!craft(inventory, result, positioned, remainders, probe)) {
+                    return 0;
+                }
+            }
 
-        return crafted;
+            result.onCraftedBySystem(level);
+            final int crafted = result.getCount();
+            if (!craft(inventory, result, positioned, remainders, transaction)) {
+                return 0;
+            }
+
+            transaction.commit();
+            return crafted;
+        }
     }
 
     // --------------------------------------------------------------------- //
@@ -94,32 +106,37 @@ public final class CraftingModuleDevice extends AbstractItemDevice {
         return IntStream.range(0, GRID_SLOTS).mapToObj(inventory::getStackInSlot).toList();
     }
 
-    private void consumeIngredients(final ItemHandler inventory, final CraftingInput.Positioned positioned,
-                                    final NonNullList<ItemStack> remainders) {
+    private boolean craft(final ItemHandler inventory, final ItemStack result, final CraftingInput.Positioned positioned,
+                          final NonNullList<ItemStack> remainders, final TransactionContext transaction) {
+        return insertIntoOutput(inventory, result, transaction).isEmpty() && consumeIngredients(inventory, positioned, remainders, transaction);
+    }
+
+    private boolean consumeIngredients(final ItemHandler inventory, final CraftingInput.Positioned positioned,
+                                       final NonNullList<ItemStack> remainders, final TransactionContext transaction) {
         final CraftingInput input = positioned.input();
         for (int row = 0; row < input.height(); row++) {
             for (int column = 0; column < input.width(); column++) {
                 final int slot = positioned.left() + column + (positioned.top() + row) * GRID_SIZE;
-                inventory.extractItem(slot, 1, false);
-
-                final ItemStack remainder = remainders.get(column + row * input.width());
-                if (remainder.isEmpty()) {
+                if (inventory.getStackInSlot(slot).isEmpty()) {
                     continue;
                 }
 
-                final ItemStack rejected = insertIntoOutput(inventory, inventory.insertItem(slot, remainder, false), false);
-                if (!rejected.isEmpty()) {
-                    entity.spawnAtLocation((ServerLevel) entity.level(), rejected);
+                final ItemStack remainder = remainders.get(column + row * input.width());
+                if (inventory.extractItem(slot, 1, transaction).isEmpty()
+                    || !insertIntoOutput(inventory, inventory.insertItem(slot, remainder, transaction), transaction).isEmpty()) {
+                    return false;
                 }
             }
         }
+
+        return true;
     }
 
-    private ItemStack insertIntoOutput(final ItemHandler inventory, ItemStack stack, final boolean simulate) {
+    private ItemStack insertIntoOutput(final ItemHandler inventory, ItemStack stack, final TransactionContext transaction) {
         final int outputSlots = inventory.getSlots() - GRID_SLOTS;
         final int start = Math.max(robot.getSelectedSlot() - GRID_SLOTS, 0);
         for (int i = 0; i < outputSlots && !stack.isEmpty(); i++) {
-            stack = inventory.insertItem(GRID_SLOTS + (start + i) % outputSlots, stack, simulate);
+            stack = inventory.insertItem(GRID_SLOTS + (start + i) % outputSlots, stack, transaction);
         }
 
         return stack;

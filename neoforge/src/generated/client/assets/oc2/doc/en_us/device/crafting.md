@@ -10,7 +10,7 @@ The top part of the robot's inventory, slots `0` to `8`, serves as the crafting 
 ### Methods
 
 `craft():number`
-Tries to craft once from the crafting grid. Fails if the grid matches no recipe or the result does not fit into the bottom row.
+Tries to craft once from the crafting grid. Fails if the grid matches no recipe, or if the result or the leftover items, such as empty buckets, do not fit.
 - Returns the number of items crafted, or `0` if crafting failed.
 - Energy cost: `1`
 
@@ -20,6 +20,6 @@ Device name: `CRFTNG`
 ### Methods
 
 `1 craft`
-Tries to craft once from the crafting grid. Fails if the grid matches no recipe or the result does not fit into the bottom row.
+Tries to craft once from the crafting grid. Fails if the grid matches no recipe, or if the result or the leftover items, such as empty buckets, do not fit.
 - Returns one byte, the number of items crafted, `0` if crafting failed.
 - Energy cost: `1`

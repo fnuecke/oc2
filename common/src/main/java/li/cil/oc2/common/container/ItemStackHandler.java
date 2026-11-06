@@ -2,7 +2,10 @@
 
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
+import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.SnapshotJournal;
+import li.cil.oc2.common.transaction.TransactionContext;
+import li.cil.oc2.jcodec.common.tools.MathUtil;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.Item;
@@ -10,10 +13,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class ItemStackHandler implements DeferredNotifyItemHandler {
+public class ItemStackHandler implements ItemHandler {
     private static final String SIZE_TAG_NAME = "Size";
 
     protected NonNullList<ItemStack> stacks;
+    private SnapshotJournal[] journals;
 
     // --------------------------------------------------------------------- //
 
@@ -23,6 +27,7 @@ public class ItemStackHandler implements DeferredNotifyItemHandler {
 
     public ItemStackHandler(final NonNullList<ItemStack> stacks) {
         this.stacks = stacks;
+        this.journals = new SnapshotJournal[stacks.size()];
     }
 
     // --------------------------------------------------------------------- //
@@ -45,18 +50,7 @@ public class ItemStackHandler implements DeferredNotifyItemHandler {
     }
 
     @Override
-    public void setStackInSlotSilently(final int slot, final ItemStack stack) {
-        validateSlot(slot);
-        stacks.set(slot, stack);
-    }
-
-    @Override
-    public void notifySlotChanged(final int slot) {
-        onContentsChanged(slot);
-    }
-
-    @Override
-    public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
+    public ItemStack insertItem(final int slot, final ItemStack stack, final TransactionContext transaction) {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -81,22 +75,18 @@ public class ItemStackHandler implements DeferredNotifyItemHandler {
             return stack;
         }
 
-        final boolean reachedLimit = stack.getCount() > limit;
-        if (!simulate) {
-            if (existing.isEmpty()) {
-                stacks.set(slot, reachedLimit ? stack.copyWithCount(limit) : stack);
-            } else {
-                existing.grow(reachedLimit ? limit : stack.getCount());
-            }
-            onContentsChanged(slot);
-        }
+        final int inserted = Math.min(limit, stack.getCount());
+        getSlotJournal(slot).updateSnapshots(transaction);
+        stacks.set(slot, existing.isEmpty()
+            ? stack.copyWithCount(inserted)
+            : existing.copyWithCount(existing.getCount() + inserted));
 
-        return reachedLimit ? stack.copyWithCount(stack.getCount() - limit) : ItemStack.EMPTY;
+        return inserted < stack.getCount() ? stack.copyWithCount(stack.getCount() - inserted) : ItemStack.EMPTY;
     }
 
     @Override
-    public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-        if (amount == 0) {
+    public ItemStack extractItem(final int slot, final int amount, final TransactionContext transaction) {
+        if (amount <= 0) {
             return ItemStack.EMPTY;
         }
 
@@ -107,24 +97,14 @@ public class ItemStackHandler implements DeferredNotifyItemHandler {
             return ItemStack.EMPTY;
         }
 
-        final int toExtract = Math.min(amount, existing.getMaxStackSize());
-        if (existing.getCount() <= toExtract) {
-            if (!simulate) {
-                stacks.set(slot, ItemStack.EMPTY);
-                onContentsChanged(slot);
-                return existing;
-            }
-            return existing.copy();
-        }
+        final int extracted = MathUtil.min3(amount, existing.getCount(), existing.getMaxStackSize());
+        getSlotJournal(slot).updateSnapshots(transaction);
+        stacks.set(slot, existing.getCount() > extracted ? existing.copyWithCount(existing.getCount() - extracted) : ItemStack.EMPTY);
 
-        if (!simulate) {
-            stacks.set(slot, existing.copyWithCount(existing.getCount() - toExtract));
-            onContentsChanged(slot);
-        }
-
-        return existing.copyWithCount(toExtract);
+        return existing.copyWithCount(extracted);
     }
 
+    @Override
     public int getSlotLimit(final int slot) {
         return Item.DEFAULT_MAX_STACK_SIZE;
     }
@@ -146,6 +126,7 @@ public class ItemStackHandler implements DeferredNotifyItemHandler {
 
     protected void setSize(final int size) {
         stacks = NonNullList.withSize(size, ItemStack.EMPTY);
+        journals = new SnapshotJournal[size];
     }
 
     protected int readSize(final ValueInput input) {
@@ -160,6 +141,15 @@ public class ItemStackHandler implements DeferredNotifyItemHandler {
     }
 
     protected void onLoad() {
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private SnapshotJournal getSlotJournal(final int slot) {
+        if (journals[slot] == null) {
+            journals[slot] = SnapshotJournal.create(() -> stacks.get(slot), stack -> stacks.set(slot, stack), () -> onContentsChanged(slot));
+        }
+        return journals[slot];
     }
 
     private void validateSlot(final int slot) {

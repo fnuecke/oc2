@@ -3,6 +3,7 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
@@ -27,10 +28,12 @@ public class SlotItemHandler extends Slot {
 
     @Override
     public boolean mayPlace(final ItemStack stack) {
-        if (stack.isEmpty()) {
+        if (stack.isEmpty() || !itemHandler.isItemValid(index, stack)) {
             return false;
         }
-        return itemHandler.insertItem(index, stack, true).getCount() < stack.getCount();
+
+        final ItemStack existing = getItem();
+        return existing.isEmpty() || (ItemStack.isSameItemSameComponents(existing, stack) && existing.getCount() < getMaxStackSize(stack));
     }
 
     @Override
@@ -58,18 +61,12 @@ public class SlotItemHandler extends Slot {
     }
 
     @Override
-    public int getMaxStackSize(final ItemStack stack) {
-        final ItemStack remainder = itemHandler.insertItem(index, stack.copyWithCount(stack.getMaxStackSize()), true);
-        return stack.getMaxStackSize() - remainder.getCount() + getItem().getCount();
-    }
-
-    @Override
     public boolean mayPickup(final Player player) {
-        return !itemHandler.extractItem(index, 1, true).isEmpty();
+        return !getItem().isEmpty();
     }
 
     @Override
     public ItemStack remove(final int amount) {
-        return itemHandler.extractItem(index, amount, false);
+        return Transaction.run(transaction -> itemHandler.extractItem(index, amount, transaction));
     }
 }

@@ -29,7 +29,8 @@ import static li.cil.oc2.gametest.CapabilityAdapterTests.FOREIGN_ITEMS;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.ITEMS;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.LARGE_SLOT_AMOUNT;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.LARGE_SLOT_ITEM;
-import static li.cil.oc2.gametest.CapabilityAdapterTests.SIMULATED_EXTRACT;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.UNCOMMITTED_EXTRACT;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.UNCOMMITTED_INSERT;
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
@@ -109,8 +110,8 @@ public final class CapabilityAdapterTestsFabric {
     // --------------------------------------------------------------------- //
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void simulatedInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedInsertDoesNotMutate(helper, ENERGY);
+    public void uncommittedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedInsertDoesNotMutate(helper, ENERGY);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -119,8 +120,8 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void simulatedExtractDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedExtractDoesNotMutate(helper, ENERGY);
+    public void uncommittedExtractDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedExtractDoesNotMutate(helper, ENERGY);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -139,8 +140,8 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void foreignSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedInsertDoesNotMutate(helper, FOREIGN_ENERGY);
+    public void foreignUncommittedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedInsertDoesNotMutate(helper, FOREIGN_ENERGY);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -149,8 +150,8 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void foreignSimulatedExtractDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedExtractDoesNotMutate(helper, FOREIGN_ENERGY);
+    public void foreignUncommittedExtractDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedExtractDoesNotMutate(helper, FOREIGN_ENERGY);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -179,8 +180,8 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void simulatedItemInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedItemInsertDoesNotMutate(helper, ITEMS);
+    public void uncommittedItemInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedItemInsertDoesNotMutate(helper, ITEMS);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -194,8 +195,8 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void foreignSimulatedItemInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedItemInsertDoesNotMutate(helper, FOREIGN_ITEMS);
+    public void foreignUncommittedItemInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedItemInsertDoesNotMutate(helper, FOREIGN_ITEMS);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -224,13 +225,23 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void simulatedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
-        CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, SIMULATED_EXTRACT);
+    public void uncommittedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, UNCOMMITTED_EXTRACT);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
     public void abortedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
         CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, ABORTED_ITEM_EXTRACT);
+    }
+
+    @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
+    public void uncommittedInsertLeavesDevicesUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.abortedInsertLeavesDevicesUntouched(helper, UNCOMMITTED_INSERT);
+    }
+
+    @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
+    public void abortedInsertLeavesDevicesUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.abortedInsertLeavesDevicesUntouched(helper, ABORTED_ITEM_INSERT);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -264,8 +275,8 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void containerItemSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.containerItemSimulatedInsertDoesNotMutate(helper);
+    public void containerItemUncommittedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemUncommittedInsertDoesNotMutate(helper);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
@@ -279,8 +290,8 @@ public final class CapabilityAdapterTestsFabric {
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
-    public void containerFluidSimulatedFillDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.containerFluidSimulatedFillDoesNotMutate(helper);
+    public void containerFluidUncommittedFillDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidUncommittedFillDoesNotMutate(helper);
     }
 
     @GameTest(structure = TEMPLATE_ID, maxTicks = 100)

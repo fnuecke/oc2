@@ -9,6 +9,8 @@ import li.cil.oc2.api.capabilities.Robot;
 import li.cil.oc2.api.util.RobotOperationSide;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
+import li.cil.oc2.common.transaction.TransactionContext;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import li.cil.oc2.common.util.LevelUtils;
 import li.cil.oc2.common.util.TickUtils;
@@ -154,10 +156,11 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
         final List<ItemEntity> droppedItems = getItemsInRange();
         droppedItems.removeAll(oldItems);
 
-        for (final ItemEntity itemEntity : droppedItems) {
-            ItemStack stack = itemEntity.getItem();
-            stack = insertStartingAt(inventory, stack, selectedSlot + 1, false);
-            itemEntity.setItem(stack);
+        try (Transaction transaction = Transaction.openRoot()) {
+            for (final ItemEntity itemEntity : droppedItems) {
+                itemEntity.setItem(insertStartingAt(inventory, itemEntity.getItem(), selectedSlot + 1, transaction));
+            }
+            transaction.commit();
         }
 
         return true;
@@ -184,8 +187,8 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
         final int selectedSlot = robot.getSelectedSlot();
         final ItemHandler inventory = inventory();
 
-        final ItemStack extracted = inventory.extractItem(selectedSlot, 1, true);
-        if (extracted.isEmpty() || !(extracted.getItem() instanceof BlockItem)) {
+        final ItemStack selected = inventory.getStackInSlot(selectedSlot);
+        if (selected.isEmpty() || !(selected.getItem() instanceof BlockItem)) {
             return false;
         }
 
@@ -198,7 +201,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
             blockPos,
             false);
 
-        final ItemStack itemStack = extracted.copy();
+        final ItemStack itemStack = selected.copyWithCount(1);
         final ServerPlayer player = FakePlayerUtils.getFakePlayer(serverLevel, entity);
 
         // Full useOn dance for permission checks.
@@ -213,7 +216,7 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
         }
 
         if (itemStack.isEmpty()) {
-            inventory.extractItem(selectedSlot, 1, false);
+            Transaction.run(transaction -> inventory.extractItem(selectedSlot, 1, transaction));
         }
 
         return true;
@@ -320,10 +323,10 @@ public final class BlockOperationsModuleDevice extends AbstractItemDevice {
         return Mth.ceil(1 / progressPerTick);
     }
 
-    private ItemStack insertStartingAt(final ItemHandler handler, ItemStack stack, final int startSlot, final boolean simulate) {
+    private ItemStack insertStartingAt(final ItemHandler handler, ItemStack stack, final int startSlot, final TransactionContext transaction) {
         for (int i = 0; i < handler.getSlots(); i++) {
             final int slot = (startSlot + i) % handler.getSlots();
-            stack = handler.insertItem(slot, stack, simulate);
+            stack = handler.insertItem(slot, stack, transaction);
             if (stack.isEmpty()) {
                 return ItemStack.EMPTY;
             }

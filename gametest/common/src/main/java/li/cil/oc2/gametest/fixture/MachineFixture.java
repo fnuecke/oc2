@@ -7,6 +7,7 @@ import li.cil.oc2.api.bus.device.DeviceType;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.serialization.NBTSerialization;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.vm.AbstractVirtualMachine;
 import li.cil.oc2.common.vm.VMRunState;
 import li.cil.oc2.common.vm.VirtualMachine;
@@ -142,7 +143,8 @@ public interface MachineFixture {
     default void installInto(final DeviceType type, final ItemStack stack) {
         final ItemHandler handler = handler(type);
         for (int slot = 0; slot < handler.getSlots(); slot++) {
-            if (handler.insertItem(slot, stack, false).isEmpty()) {
+            final int candidate = slot;
+            if (Transaction.run(transaction -> handler.insertItem(candidate, stack, transaction)).isEmpty()) {
                 return;
             }
         }

@@ -29,7 +29,8 @@ import static li.cil.oc2.gametest.CapabilityAdapterTests.FOREIGN_ITEMS;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.ITEMS;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.LARGE_SLOT_AMOUNT;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.LARGE_SLOT_ITEM;
-import static li.cil.oc2.gametest.CapabilityAdapterTests.SIMULATED_EXTRACT;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.UNCOMMITTED_EXTRACT;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.UNCOMMITTED_INSERT;
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 import static li.cil.oc2.gametest.util.TestSupport.TEMPLATE_ID;
 
@@ -104,8 +105,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void simulatedInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedInsertDoesNotMutate(helper, ENERGY);
+    public static void uncommittedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedInsertDoesNotMutate(helper, ENERGY);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -116,8 +117,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void simulatedExtractDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedExtractDoesNotMutate(helper, ENERGY);
+    public static void uncommittedExtractDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedExtractDoesNotMutate(helper, ENERGY);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -140,8 +141,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void foreignSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedInsertDoesNotMutate(helper, FOREIGN_ENERGY);
+    public static void foreignUncommittedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedInsertDoesNotMutate(helper, FOREIGN_ENERGY);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -152,8 +153,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void foreignSimulatedExtractDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedExtractDoesNotMutate(helper, FOREIGN_ENERGY);
+    public static void foreignUncommittedExtractDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedExtractDoesNotMutate(helper, FOREIGN_ENERGY);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -188,8 +189,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void simulatedItemInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedItemInsertDoesNotMutate(helper, ITEMS);
+    public static void uncommittedItemInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedItemInsertDoesNotMutate(helper, ITEMS);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -206,8 +207,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void foreignSimulatedItemInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.simulatedItemInsertDoesNotMutate(helper, FOREIGN_ITEMS);
+    public static void foreignUncommittedItemInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.uncommittedItemInsertDoesNotMutate(helper, FOREIGN_ITEMS);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -242,14 +243,26 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void simulatedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
-        CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, SIMULATED_EXTRACT);
+    public static void uncommittedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, UNCOMMITTED_EXTRACT);
     }
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
     public static void abortedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
         CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, ABORTED_ITEM_EXTRACT);
+    }
+
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
+    public static void uncommittedInsertLeavesDevicesUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.abortedInsertLeavesDevicesUntouched(helper, UNCOMMITTED_INSERT);
+    }
+
+    @GameTest(template = TEMPLATE_ID)
+    @TestHolder
+    public static void abortedInsertLeavesDevicesUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.abortedInsertLeavesDevicesUntouched(helper, ABORTED_ITEM_INSERT);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -290,8 +303,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void containerItemSimulatedInsertDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.containerItemSimulatedInsertDoesNotMutate(helper);
+    public static void containerItemUncommittedInsertDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerItemUncommittedInsertDoesNotMutate(helper);
     }
 
     @GameTest(template = TEMPLATE_ID)
@@ -308,8 +321,8 @@ public final class CapabilityAdapterTestsNeoForge {
 
     @GameTest(template = TEMPLATE_ID)
     @TestHolder
-    public static void containerFluidSimulatedFillDoesNotMutate(final GameTestHelper helper) {
-        CapabilityAdapterTests.containerFluidSimulatedFillDoesNotMutate(helper);
+    public static void containerFluidUncommittedFillDoesNotMutate(final GameTestHelper helper) {
+        CapabilityAdapterTests.containerFluidUncommittedFillDoesNotMutate(helper);
     }
 
     @GameTest(template = TEMPLATE_ID)

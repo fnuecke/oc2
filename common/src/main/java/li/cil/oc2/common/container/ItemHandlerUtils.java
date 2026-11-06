@@ -3,12 +3,13 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.inventory.WorldItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 public final class ItemHandlerUtils {
@@ -16,7 +17,7 @@ public final class ItemHandlerUtils {
 
     // --------------------------------------------------------------------- //
 
-    public static ItemStack insertItemStack(final ItemHandler handler, ItemStack stack, final boolean simulate) {
+    public static ItemStack insertItemStack(final ItemHandler handler, ItemStack stack, final TransactionContext transaction) {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -25,7 +26,7 @@ public final class ItemHandlerUtils {
             for (int slot = 0; slot < handler.getSlots() && !stack.isEmpty(); slot++) {
                 final ItemStack existing = handler.getStackInSlot(slot);
                 if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack)) {
-                    stack = handler.insertItem(slot, stack, simulate);
+                    stack = handler.insertItem(slot, stack, transaction);
                 }
             }
 
@@ -36,55 +37,62 @@ public final class ItemHandlerUtils {
 
         for (int slot = 0; slot < handler.getSlots() && !stack.isEmpty(); slot++) {
             if (handler.getStackInSlot(slot).isEmpty()) {
-                stack = handler.insertItem(slot, stack, simulate);
+                stack = handler.insertItem(slot, stack, transaction);
             }
         }
 
         return stack;
     }
 
-    public static int transfer(final ItemHandler source, final int sourceSlot, final int count,
-                               final BiFunction<ItemStack, Boolean, ItemStack> insert, final Consumer<ItemStack> overflow) {
+    public static int transfer(final ItemHandler source, final int sourceSlot, final ItemHandler target, final int targetSlot,
+                               final int count, final TransactionContext transaction) {
         if (count <= 0) {
             return 0;
         }
 
-        final ItemStack available = source.extractItem(sourceSlot, count, true);
-        if (available.isEmpty()) {
-            return 0;
+        final int accepted;
+        try (Transaction nested = transaction.openNested()) {
+            final ItemStack available = source.extractItem(sourceSlot, count, nested);
+            if (available.isEmpty()) {
+                return 0;
+            }
+
+            accepted = available.getCount() - target.insertItem(targetSlot, available, nested).getCount();
         }
 
-        final int accepted = available.getCount() - insert.apply(available, true).getCount();
         if (accepted <= 0) {
             return 0;
         }
 
-        final ItemStack extracted = source.extractItem(sourceSlot, accepted, false);
-        if (extracted.isEmpty()) {
-            return 0;
-        }
-
-        final ItemStack remaining = insert.apply(extracted, false);
-        if (!remaining.isEmpty()) {
-            final ItemStack rejected = source.insertItem(sourceSlot, remaining, false);
-            if (!rejected.isEmpty()) {
-                overflow.accept(rejected);
+        try (Transaction nested = transaction.openNested()) {
+            final ItemStack extracted = source.extractItem(sourceSlot, accepted, nested);
+            if (extracted.isEmpty() || !target.insertItem(targetSlot, extracted, nested).isEmpty()) {
+                return 0;
             }
-        }
 
-        return extracted.getCount() - remaining.getCount();
+            nested.commit();
+            return extracted.getCount();
+        }
     }
 
     public static int transferFirst(final List<ItemHandler> sources, final int sourceSlot,
                                     final List<ItemHandler> targets, final int targetSlot, final int targetStartSlot,
-                                    final int count, final Consumer<ItemStack> overflow) {
+                                    final int count, final TransactionContext transaction) {
         if (count <= 0) {
             return 0;
         }
 
         for (final ItemHandler source : sources) {
             for (final int from : sourceSlot == ANY_SLOT ? allSlots(source) : new int[]{sourceSlot}) {
-                final ItemStack available = source.extractItem(from, count, true);
+                // The world reports an empty slot, but may yield items.
+                if (!(source instanceof WorldItemHandler) && source.getStackInSlot(from).isEmpty()) {
+                    continue;
+                }
+
+                final ItemStack available;
+                try (Transaction probe = transaction.openNested()) {
+                    available = source.extractItem(from, count, probe);
+                }
                 if (available.isEmpty()) {
                     continue;
                 }
@@ -95,8 +103,7 @@ public final class ItemHandlerUtils {
                             continue;
                         }
 
-                        final int moved = transfer(source, from, count,
-                            (stack, simulate) -> target.insertItem(into, stack, simulate), overflow);
+                        final int moved = transfer(source, from, target, into, count, transaction);
                         if (moved > 0) {
                             return moved;
                         }

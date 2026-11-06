@@ -4,6 +4,7 @@ package li.cil.oc2.common.blockentity;
 
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.EnergyHandler;
+import li.cil.oc2.common.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
@@ -33,7 +34,7 @@ public final class CreativeEnergyBlockEntity extends ModBlockEntity implements T
                 if (blockEntity != null) {
                     final EnergyHandler energy = Capabilities.get(blockEntity, Capabilities.ENERGY_STORAGE, side.getOpposite());
                     if (energy != null) {
-                        energy.receiveEnergy(Integer.MAX_VALUE, false);
+                        Transaction.run(transaction -> energy.receiveEnergy(Integer.MAX_VALUE, transaction));
                     }
                 }
             }

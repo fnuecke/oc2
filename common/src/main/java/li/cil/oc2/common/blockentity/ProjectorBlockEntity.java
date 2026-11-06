@@ -188,16 +188,13 @@ public final class ProjectorBlockEntity extends ModBlockEntity implements Tickab
 
         final boolean isPowered;
         if (Config.projectorsUseEnergy()) {
-            if (energy.extractEnergy(Config.projectorEnergyPerTick, true) < Config.projectorEnergyPerTick) {
+            if (energy.getEnergyStored() < Config.projectorEnergyPerTick) {
                 ticksWithEnergy = 0;
             } else if (ticksWithEnergy < POWER_ON_DELAY_TICKS) {
                 ticksWithEnergy++;
             }
 
-            isPowered = ticksWithEnergy >= POWER_ON_DELAY_TICKS;
-            if (isPowered) {
-                energy.extractEnergy(Config.projectorEnergyPerTick, false);
-            }
+            isPowered = ticksWithEnergy >= POWER_ON_DELAY_TICKS && energy.consume(Config.projectorEnergyPerTick);
         } else {
             isPowered = true;
         }

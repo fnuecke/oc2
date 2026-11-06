@@ -2,14 +2,20 @@
 
 package li.cil.oc2.gametest;
 
+import li.cil.oc2.api.bus.device.Device;
+import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.api.bus.device.io.IODevice;
 import li.cil.oc2.api.bus.device.object.ObjectDevice;
 import li.cil.oc2.api.bus.device.rpc.RPCDevice;
 import li.cil.oc2.api.util.Side;
 import li.cil.oc2.common.blockentity.TransposerBlockEntity;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.util.ItemDeviceUtils;
+import li.cil.oc2.common.vm.AbstractVMItemStackHandlers;
 import li.cil.oc2.gametest.fixture.ComputerFixture;
+import li.cil.oc2.gametest.util.Blobs;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -17,6 +23,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.UUID;
 
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeIo;
 import static li.cil.oc2.gametest.util.DeviceCalls.invokeRpc;
@@ -119,14 +129,51 @@ public final class TransposerTests {
         helper.succeed();
     }
 
+    public static void transposerMovesDeviceItemBetweenComputers(final GameTestHelper helper) {
+        final Player player = fakePlayer(helper);
+        final TransposerBlockEntity transposer = placeTransposer(helper);
+        final ComputerFixture source = ComputerFixture.place(helper, player, SOURCE_POS);
+        final ComputerFixture target = ComputerFixture.place(helper, player, TARGET_POS);
+        final int devicesWithoutDrive = devices(target).size();
+        final UUID blob = UUID.randomUUID();
+        source.install(DeviceTypes.HARD_DRIVE.get(), Blobs.driveReferencing(new ItemStack(Items.HARD_DRIVE_SMALL.get()), blob));
+        final int devicesWithDrive = devices(source).size();
+        assertTrue(helper, "the drive adds devices", devicesWithDrive > devicesWithoutDrive);
+
+        assertEquals(helper, "items moved", 1, transposer.moveItems(Side.WEST, Side.EAST, 1));
+
+        assertTrue(helper, "the source drive slot is empty", source.slot(DeviceTypes.HARD_DRIVE.get()).isEmpty());
+        final ItemStack moved = target.slot(DeviceTypes.HARD_DRIVE.get());
+        assertTrue(helper, "the target drive slot holds the drive", moved.is(Items.HARD_DRIVE_SMALL.get()));
+        assertValue(helper, "blob referenced by the moved drive", blob, blobOf(moved));
+        assertEquals(helper, "source devices after the move", devicesWithoutDrive, devices(source).size());
+        assertEquals(helper, "target devices after the move", devicesWithDrive, devices(target).size());
+
+        helper.succeed();
+    }
+
     // --------------------------------------------------------------------- //
 
-    private static TransposerBlockEntity placeTransposerBetweenChests(final GameTestHelper helper) {
+    private static TransposerBlockEntity placeTransposer(final GameTestHelper helper) {
         helper.setBlock(TRANSPOSER_POS, li.cil.oc2.common.block.Blocks.TRANSPOSER.get());
-        helper.setBlock(SOURCE_POS, Blocks.CHEST);
-        helper.setBlock(TARGET_POS, Blocks.CHEST);
         helper.setBlock(TRANSPOSER_POS.above(), Blocks.STONE);
         return helper.getBlockEntity(TRANSPOSER_POS, TransposerBlockEntity.class);
+    }
+
+    private static Collection<Device> devices(final ComputerFixture computer) {
+        return ((AbstractVMItemStackHandlers) computer.blockEntity().getItemStackHandlers()).getDevices();
+    }
+
+    @Nullable
+    private static UUID blobOf(final ItemStack stack) {
+        return ItemDeviceUtils.getItemDeviceData(stack).getCompoundOrEmpty(Blobs.DEVICE_KEY)
+            .read(Blobs.HANDLE_TAG_NAME, UUIDUtil.CODEC).orElse(null);
+    }
+
+    private static TransposerBlockEntity placeTransposerBetweenChests(final GameTestHelper helper) {
+        helper.setBlock(SOURCE_POS, Blocks.CHEST);
+        helper.setBlock(TARGET_POS, Blocks.CHEST);
+        return placeTransposer(helper);
     }
 
     // --------------------------------------------------------------------- //

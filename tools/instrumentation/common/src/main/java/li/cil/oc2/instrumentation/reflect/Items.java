@@ -4,6 +4,7 @@ package li.cil.oc2.instrumentation.reflect;
 
 import li.cil.oc2.common.container.ItemHandlerUtils;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.vm.AbstractVMItemStackHandlers;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -51,7 +52,8 @@ public final class Items {
         final String item = String.valueOf(BuiltInRegistries.ITEM.getKey(stack.getItem()));
         ItemStack remaining = stack.copyWithCount(count);
         for (final Map.Entry<String, ItemHandler> entry : handlers.entrySet()) {
-            remaining = ItemHandlerUtils.insertItemStack(entry.getValue(), remaining, false);
+            final ItemStack stackToInsert = remaining;
+            remaining = Transaction.run(transaction -> ItemHandlerUtils.insertItemStack(entry.getValue(), stackToInsert, transaction));
             if (remaining.getCount() < count) {
                 return Results.Outcome.success(new Results.Inserted(
                     item, count, count - remaining.getCount(), remaining.getCount(), entry.getKey()));
@@ -68,7 +70,9 @@ public final class Items {
             final ItemHandler handler = entry.getValue();
             for (int slot = 0; slot < handler.getSlots() && taken < count; slot++) {
                 if (ItemStack.isSameItem(handler.getStackInSlot(slot), stack)) {
-                    taken += handler.extractItem(slot, count - taken, false).getCount();
+                    final int candidate = slot;
+                    final int missing = count - taken;
+                    taken += Transaction.run(transaction -> handler.extractItem(candidate, missing, transaction)).getCount();
                     from = entry.getKey();
                 }
             }

@@ -1008,17 +1008,13 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         }
 
         @Override
-        protected boolean consumeEnergy(final int amount, final boolean simulate) {
-            if (!Config.robotsUseEnergy()) {
-                return true;
-            }
+        protected boolean hasEnergy(final int amount) {
+            return !Config.robotsUseEnergy() || amount <= energy.getEnergyStored();
+        }
 
-            if (amount > energy.getEnergyStored()) {
-                return false;
-            }
-
-            energy.extractEnergy(amount, simulate);
-            return true;
+        @Override
+        protected boolean consumeEnergy(final int amount) {
+            return !Config.robotsUseEnergy() || energy.consume(amount);
         }
 
         @Override

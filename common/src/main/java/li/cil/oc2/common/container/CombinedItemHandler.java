@@ -2,17 +2,18 @@
 
 package li.cil.oc2.common.container;
 
-import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
+import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 
-public final class CombinedItemHandler implements DeferredNotifyItemHandler {
-    private final DeferredNotifyItemHandler[] handlers;
+public final class CombinedItemHandler implements ItemHandler {
+    private final ItemHandler[] handlers;
     private final int[] baseSlot;
     private final int slotCount;
 
     // --------------------------------------------------------------------- //
 
-    public CombinedItemHandler(final DeferredNotifyItemHandler... handlers) {
+    public CombinedItemHandler(final ItemHandler... handlers) {
         this.handlers = handlers;
         this.baseSlot = new int[handlers.length];
 
@@ -38,15 +39,15 @@ public final class CombinedItemHandler implements DeferredNotifyItemHandler {
     }
 
     @Override
-    public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
+    public ItemStack insertItem(final int slot, final ItemStack stack, final TransactionContext transaction) {
         final int index = indexOf(slot);
-        return handlers[index].insertItem(slot - baseSlot[index], stack, simulate);
+        return handlers[index].insertItem(slot - baseSlot[index], stack, transaction);
     }
 
     @Override
-    public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
+    public ItemStack extractItem(final int slot, final int amount, final TransactionContext transaction) {
         final int index = indexOf(slot);
-        return handlers[index].extractItem(slot - baseSlot[index], amount, simulate);
+        return handlers[index].extractItem(slot - baseSlot[index], amount, transaction);
     }
 
     @Override
@@ -59,18 +60,6 @@ public final class CombinedItemHandler implements DeferredNotifyItemHandler {
     public boolean isItemValid(final int slot, final ItemStack stack) {
         final int index = indexOf(slot);
         return handlers[index].isItemValid(slot - baseSlot[index], stack);
-    }
-
-    @Override
-    public void setStackInSlotSilently(final int slot, final ItemStack stack) {
-        final int index = indexOf(slot);
-        handlers[index].setStackInSlotSilently(slot - baseSlot[index], stack);
-    }
-
-    @Override
-    public void notifySlotChanged(final int slot) {
-        final int index = indexOf(slot);
-        handlers[index].notifySlotChanged(slot - baseSlot[index]);
     }
 
     // --------------------------------------------------------------------- //

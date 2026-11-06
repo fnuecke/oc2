@@ -3,6 +3,7 @@
 package li.cil.oc2.common.capabilities;
 
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 
 public record CachedItemHandler(CapabilityCache<ItemHandler> cache) implements ItemHandler {
@@ -17,13 +18,13 @@ public record CachedItemHandler(CapabilityCache<ItemHandler> cache) implements I
     }
 
     @Override
-    public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
-        return handler().insertItem(slot, stack, simulate);
+    public ItemStack insertItem(final int slot, final ItemStack stack, final TransactionContext transaction) {
+        return handler().insertItem(slot, stack, transaction);
     }
 
     @Override
-    public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-        return handler().extractItem(slot, amount, simulate);
+    public ItemStack extractItem(final int slot, final int amount, final TransactionContext transaction) {
+        return handler().extractItem(slot, amount, transaction);
     }
 
     @Override

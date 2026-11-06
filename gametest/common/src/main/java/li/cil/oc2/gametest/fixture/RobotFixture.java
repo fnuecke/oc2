@@ -10,6 +10,7 @@ import li.cil.oc2.common.energy.EnergyHandler;
 import li.cil.oc2.common.entity.Robot;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.vm.VirtualMachine;
 import li.cil.oc2.common.vm.device.Terminal;
 import li.cil.oc2.gametest.util.DeviceCalls;
@@ -129,7 +130,7 @@ public final class RobotFixture implements MachineFixture {
     }
 
     public RobotFixture give(final ItemStack stack) {
-        robot.getInventory().insertItem(robot.getSelectedSlot(), stack, false);
+        Transaction.run(transaction -> robot.getInventory().insertItem(robot.getSelectedSlot(), stack, transaction));
         return this;
     }
 
@@ -153,7 +154,7 @@ public final class RobotFixture implements MachineFixture {
     public RobotFixture charge() {
         final EnergyHandler storage = robot.getCapability(Capabilities.ENERGY_STORAGE, null);
         if (storage != null) {
-            storage.receiveEnergy(storage.getMaxEnergyStored(), false);
+            Transaction.run(transaction -> storage.receiveEnergy(storage.getMaxEnergyStored(), transaction));
         }
         return this;
     }

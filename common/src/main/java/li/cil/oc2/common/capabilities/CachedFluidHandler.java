@@ -4,6 +4,7 @@ package li.cil.oc2.common.capabilities;
 
 import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
+import li.cil.oc2.common.transaction.TransactionContext;
 
 public record CachedFluidHandler(CapabilityCache<FluidHandler> cache) implements FluidHandler {
     @Override
@@ -22,18 +23,18 @@ public record CachedFluidHandler(CapabilityCache<FluidHandler> cache) implements
     }
 
     @Override
-    public int fill(final FluidStack stack, final boolean simulate) {
-        return handler().fill(stack, simulate);
+    public int fill(final FluidStack stack, final TransactionContext transaction) {
+        return handler().fill(stack, transaction);
     }
 
     @Override
-    public FluidStack drain(final FluidStack stack, final boolean simulate) {
-        return handler().drain(stack, simulate);
+    public FluidStack drain(final FluidStack stack, final TransactionContext transaction) {
+        return handler().drain(stack, transaction);
     }
 
     @Override
-    public FluidStack drain(final int amount, final boolean simulate) {
-        return handler().drain(amount, simulate);
+    public FluidStack drain(final int amount, final TransactionContext transaction) {
+        return handler().drain(amount, transaction);
     }
 
     private FluidHandler handler() {

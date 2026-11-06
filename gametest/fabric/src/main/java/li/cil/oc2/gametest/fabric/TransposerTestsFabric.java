@@ -23,4 +23,9 @@ public final class TransposerTestsFabric {
     public void transposerMovesItemsViaMidLevelApi(final GameTestHelper helper) {
         TransposerTests.transposerMovesItemsViaMidLevelApi(helper);
     }
+
+    @GameTest(structure = TEMPLATE_ID, maxTicks = 100)
+    public void transposerMovesDeviceItemBetweenComputers(final GameTestHelper helper) {
+        TransposerTests.transposerMovesDeviceItemBetweenComputers(helper);
+    }
 }

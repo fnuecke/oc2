@@ -189,11 +189,9 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         if (!Config.internetGatewaysUseEnergy()) {
             return true;
         }
-        if (energy.extractEnergy(Config.internetGatewayEnergyPerPacket, true)
-            < Config.internetGatewayEnergyPerPacket) {
+        if (!energy.consume(Config.internetGatewayEnergyPerPacket)) {
             return false;
         }
-        energy.extractEnergy(Config.internetGatewayEnergyPerPacket, false);
 
         final Level level = getLevel();
         if (level != null) {

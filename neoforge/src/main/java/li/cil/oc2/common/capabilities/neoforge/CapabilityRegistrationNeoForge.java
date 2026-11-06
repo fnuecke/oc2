@@ -8,7 +8,6 @@ import li.cil.oc2.common.blockentity.ModBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.capabilities.CapabilityType;
 import li.cil.oc2.common.entity.Entities;
-import li.cil.oc2.common.inventory.DeferredNotifyItemHandler;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -63,13 +62,13 @@ public final class CapabilityRegistrationNeoForge {
         event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.Item.ENTITY_AUTOMATION, Entities.ROBOT.get(),
             (robot, side) -> {
                 final var items = robot.getCapability(Capabilities.ITEM_HANDLER, side);
-                return items != null ? NeoForgeCapabilityAdapters.toNeoForge((DeferredNotifyItemHandler) items) : null;
+                return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
             });
 
         event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.Item.ENTITY, Entities.ROBOT.get(),
             (robot, context) -> {
                 final var items = robot.getCapability(Capabilities.ITEM_HANDLER, null);
-                return items != null ? NeoForgeCapabilityAdapters.toNeoForge((DeferredNotifyItemHandler) items) : null;
+                return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
             });
 
         event.registerEntity(net.neoforged.neoforge.capabilities.Capabilities.Fluid.ENTITY, Entities.ROBOT.get(),
@@ -96,7 +95,7 @@ public final class CapabilityRegistrationNeoForge {
                     return null;
                 }
                 final var items = modBlockEntity.getCapability(Capabilities.ITEM_HANDLER, side);
-                return items != null ? NeoForgeCapabilityAdapters.toNeoForge((DeferredNotifyItemHandler) items) : null;
+                return items != null ? NeoForgeCapabilityAdapters.toNeoForge(items) : null;
             });
     }
 

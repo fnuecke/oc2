@@ -4,6 +4,7 @@ package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -36,17 +37,13 @@ public final class ContainerItemHandler implements ItemHandler {
     }
 
     @Override
-    public ItemStack insertItem(final int slot, final ItemStack stack, final boolean simulate) {
-        return simulate
-            ? access.read(handler -> handler.insertItem(slot, stack, true), stack)
-            : access.modify(handler -> handler.insertItem(slot, stack, false), stack);
+    public ItemStack insertItem(final int slot, final ItemStack stack, final TransactionContext transaction) {
+        return access.modify((handler, nested) -> handler.insertItem(slot, stack, nested), stack, transaction);
     }
 
     @Override
-    public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-        return simulate
-            ? access.read(handler -> handler.extractItem(slot, amount, true), ItemStack.EMPTY)
-            : access.modify(handler -> handler.extractItem(slot, amount, false), ItemStack.EMPTY);
+    public ItemStack extractItem(final int slot, final int amount, final TransactionContext transaction) {
+        return access.modify((handler, nested) -> handler.extractItem(slot, amount, nested), ItemStack.EMPTY, transaction);
     }
 
     @Override

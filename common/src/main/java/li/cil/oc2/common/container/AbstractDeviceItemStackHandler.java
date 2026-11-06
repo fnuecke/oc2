@@ -3,6 +3,7 @@
 package li.cil.oc2.common.container;
 
 import li.cil.oc2.common.bus.AbstractItemDeviceBusElement;
+import li.cil.oc2.common.transaction.TransactionContext;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
@@ -70,12 +71,12 @@ public abstract class AbstractDeviceItemStackHandler extends FixedSizeItemStackH
     }
 
     @Override
-    public ItemStack extractItem(final int slot, final int amount, final boolean simulate) {
-        if (!simulate && amount > 0) {
+    public ItemStack extractItem(final int slot, final int amount, final TransactionContext transaction) {
+        if (amount > 0) {
             getBusElement().exportDeviceDataToItemStack(slot, super.getStackInSlot(slot));
         }
 
-        return super.extractItem(slot, amount, simulate);
+        return super.extractItem(slot, amount, transaction);
     }
 
     @Override

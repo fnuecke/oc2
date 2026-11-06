@@ -17,12 +17,12 @@ import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidHandlerUtils;
 import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
+import li.cil.oc2.common.transaction.Transaction;
 import li.cil.oc2.common.util.FakePlayerUtils;
 import li.cil.oc2.common.util.HorizontalBlockUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -102,7 +102,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         final boolean isSameSide = requireDirection(sourceSide) == requireDirection(targetSide);
         final List<ItemHandler> sources = requireItemHandlersOrWorld(sourceSide);
         final List<ItemHandler> targets = isSameSide ? sources : requireItemHandlersOrWorld(targetSide);
-        return ItemHandlerUtils.transferFirst(sources, ItemHandlerUtils.ANY_SLOT, targets, ItemHandlerUtils.ANY_SLOT, 0, count, this::dropItemStack);
+        return Transaction.run(transaction -> ItemHandlerUtils.transferFirst(sources, ItemHandlerUtils.ANY_SLOT, targets, ItemHandlerUtils.ANY_SLOT, 0, count, transaction));
     }
 
     @Callback(energy = 1, description = "Moves items from one inventory slot to another. It moves as many items as the source slot yields and the target slot accepts, up to `count`. Only uses inventories, never open space.",
@@ -115,7 +115,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         final boolean isSameSide = requireDirection(sourceSide) == requireDirection(targetSide);
         final List<ItemHandler> sources = ItemHandlerDeviceUtils.requireItemHandlersWithSlot(requireItemHandlers(sourceSide), sourceSlot);
         final List<ItemHandler> targets = ItemHandlerDeviceUtils.requireItemHandlersWithSlot(isSameSide ? sources : requireItemHandlers(targetSide), targetSlot);
-        return ItemHandlerUtils.transferFirst(sources, sourceSlot, targets, targetSlot, 0, count, this::dropItemStack);
+        return Transaction.run(transaction -> ItemHandlerUtils.transferFirst(sources, sourceSlot, targets, targetSlot, 0, count, transaction));
     }
 
     @Callback(description = "Gets how many tanks the fluid container on the specified side has.",
@@ -153,7 +153,7 @@ public final class TransposerBlockEntity extends ModBlockEntity {
             return 0;
         }
 
-        return FluidHandlerUtils.transferFirst(sources, targets, amount);
+        return Transaction.run(transaction -> FluidHandlerUtils.transferFirst(sources, targets, amount, transaction));
     }
 
     // --------------------------------------------------------------------- //
@@ -282,10 +282,5 @@ public final class TransposerBlockEntity extends ModBlockEntity {
         final Direction direction = requireDirection(side);
         return FluidHandlerDeviceUtils.requireFluidHandlersOrWorld(serverLevel(), getBlockPos().relative(direction), direction.getOpposite(),
             null, FakePlayerUtils.getFakePlayer(serverLevel()), side);
-    }
-
-    private void dropItemStack(final ItemStack stack) {
-        final BlockPos pos = getBlockPos();
-        Containers.dropItemStack(requireNonNull(level), pos.getX(), pos.getY(), pos.getZ(), stack);
     }
 }

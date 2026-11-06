@@ -617,17 +617,13 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
 
         @Override
-        protected boolean consumeEnergy(final int amount, final boolean simulate) {
-            if (!Config.computersUseEnergy()) {
-                return true;
-            }
+        protected boolean hasEnergy(final int amount) {
+            return !Config.computersUseEnergy() || amount <= energy.getEnergyStored();
+        }
 
-            if (amount > energy.getEnergyStored()) {
-                return false;
-            }
-
-            energy.extractEnergy(amount, simulate);
-            return true;
+        @Override
+        protected boolean consumeEnergy(final int amount) {
+            return !Config.computersUseEnergy() || energy.consume(amount);
         }
 
         @Override

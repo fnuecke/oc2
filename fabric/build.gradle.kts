@@ -21,8 +21,8 @@ loom {
         create("gameTest") {
             server()
             runDirectory.set(file("run/gametest"))
-            jvmArguments.add("-Dfabric-api.gametest")
-            jvmArguments.add("-Dfabric-api.gametest.report-file=${gameTestResultsDir.get().asFile.absolutePath}/fabric-game-tests.xml")
+            systemProperties.put("fabric-api.gametest", "true")
+            systemProperties.put("fabric-api.gametest.report-file", gameTestResultsDir.get().file("fabric-game-tests.xml").asFile.absolutePath)
             jvmArguments.add("-ea")
         }
     }

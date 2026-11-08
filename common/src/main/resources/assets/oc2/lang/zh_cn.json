@@ -112,9 +112,6 @@
   "message.oc2.invalid_facade_block": "该方块不能被用作一个面。",
 
   "tooltip.oc2.device_needs_reboot": "需要重启",
-  "tooltip.oc2.flash_memory_missing": "启动时需要包含固件的闪存。",
-  "tooltip.oc2.memory_missing": "需要一些内存来加载闪存以执行引导.",
-  "tooltip.oc2.hard_drive_missing": "找不到硬盘。",
   "tooltip.oc2.energy": "能量：%s",
   "tooltip.oc2.energyConsumption": "能量使用：%s/t",
   "tooltip.oc2.confirm": "确认",

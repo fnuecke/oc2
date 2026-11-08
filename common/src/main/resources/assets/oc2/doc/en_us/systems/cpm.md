@@ -7,7 +7,6 @@ Build the computer as described in [getting started](index.md), using these part
 - 1x [Z80 processor](../item/cpu_z80.md)
 - 1x **CP/M 2.2** [flash memory](../item/flash_memory.md), crafted from flash memory and a Z80 processor
 - 1x [disk drive](../block/disk_drive.md) on the bus, holding a **CP/M 2.2** [floppy](../item/floppy.md), crafted from a floppy and a Z80 processor
-- 1x [memory](../item/memory.md), any size
 
 A [robot](../item/robot.md) has a floppy slot of its own, so it can have a system disk without a disk drive.
 

@@ -1,0 +1,7 @@
+{
+  "item": {
+    "items": "oc2:cpu_riscv"
+  },
+  "requires": ["#oc2:devices/memory"],
+  "suggests": ["#oc2:devices/hard_drive"]
+}

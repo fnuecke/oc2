@@ -81,6 +81,7 @@ public final class Providers {
         registry.accept("fluid_handler", FluidHandlerItemDeviceProvider::new);
         registry.accept("item_handler", ItemHandlerItemDeviceProvider::new);
 
+        registry.accept("cpu_z80", CpuZ80ItemDeviceProvider::new);
         registry.accept("file_import_export_card", FileImportExportCardItemDeviceProvider::new);
         registry.accept("flash_memory", FlashMemoryItemDeviceProvider::new);
         registry.accept("floppy", FloppyItemDeviceProvider::new);

@@ -1,0 +1,9 @@
+{
+  "item": {
+    "items": "oc2:flash_memory",
+    "predicates": {
+      "minecraft:custom_data": "{oc2:{image:\"oc2:block_devices/flash/riscv.bin\"}}"
+    }
+  },
+  "requires": ["#oc2:devices/hard_drive"]
+}

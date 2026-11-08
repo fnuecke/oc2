@@ -112,9 +112,6 @@
   "message.oc2.invalid_facade_block": "Этот блок нельзя использовать как фасад.",
 
   "tooltip.oc2.device_needs_reboot": "Требуется перезагрузка",
-  "tooltip.oc2.flash_memory_missing": "Карта памяти содержит прошивку, необходимую для загрузки.",
-  "tooltip.oc2.memory_missing": "Оперативная память требуется для загрузки прошивки из карты памяти и последующей работы.",
-  "tooltip.oc2.hard_drive_missing": "Большинству ОС для загрузки необходима файловая система.",
   "tooltip.oc2.energy": "Энергия: %s",
   "tooltip.oc2.energyConsumption": "Потребление энергии: %s/t",
   "tooltip.oc2.confirm": "Подтвердить",

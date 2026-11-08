@@ -7,7 +7,7 @@ This guide describes how to get a [computer](../block/computer.md) up and runnin
 It is strongly suggested to start with OpenOS II, as it is the most accessible. To go deeper, pick Linux for networking, MicroPython or C, or CP/M for assembly on an 8-bit machine. For the concepts behind processors and devices, see the [basics](../basics.md).
 
 ## Building
-First things first, you need an actual computer case, plus the components listed in the guide for your OS. Once you have all this, place down the computer. Open its inventory screen using a [wrench](../item/wrench.md). Alternatively, open the terminal screen, then use the toggle button to the left to switch to the inventory screen. Here, place the processor, flash memory, memory and, for OpenOS II and Linux, the hard drive into the computer. CP/M boots from a floppy in a disk drive on the bus. A computer without a processor will not start.
+First things first, you need an actual computer case, plus the components listed in the guide for your OS. Once you have all this, place down the computer. Open its inventory screen using a [wrench](../item/wrench.md). Alternatively, open the terminal screen, then use the toggle button to the left to switch to the inventory screen. Here, place the processor, flash memory and, for OpenOS II and Linux, the memory and hard drive into the computer. CP/M boots from a floppy in a disk drive on the bus. A computer without a processor will not start.
 
 ![Computer inventory](../../img/getting_started_inventory.png)
 

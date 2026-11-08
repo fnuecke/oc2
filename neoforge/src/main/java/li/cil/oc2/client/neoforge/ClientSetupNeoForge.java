@@ -46,6 +46,7 @@ public final class ClientSetupNeoForge {
         SoundCardAudio.initialize();
 
         event.enqueueWork(() -> {
+            DeviceHints.initialize();
             CustomItemModelProperties.initialize();
             CustomItemColors.initialize();
 

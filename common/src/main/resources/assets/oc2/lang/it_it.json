@@ -112,9 +112,6 @@
   "message.oc2.invalid_facade_block": "Questo blocco non può essere usato come una facciata.",
 
   "tooltip.oc2.device_needs_reboot": "Richiede riavvio",
-  "tooltip.oc2.flash_memory_missing": "Una memoria flash con il firmware è richiesta per l'avvio.",
-  "tooltip.oc2.memory_missing": "È necessaria della memoria per caricare il firmware e avviare l'esecuzione.",
-  "tooltip.oc2.hard_drive_missing": "La maggior parte dei sistemi ha bisogno di un file system per l'avvio.",
   "tooltip.oc2.energy": "Energia: %s",
   "tooltip.oc2.energyConsumption": "Consumo di Energia: %s/t",
   "tooltip.oc2.confirm": "Conferma",

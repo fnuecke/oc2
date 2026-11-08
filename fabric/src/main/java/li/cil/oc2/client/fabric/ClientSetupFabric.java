@@ -47,6 +47,7 @@ public final class ClientSetupFabric implements ClientModInitializer {
         TerminalTextures.initialize();
         ProjectorDepthRenderer.initialize();
         SoundCardAudio.initialize();
+        DeviceHints.initialize();
         ModShadersFabric.initialize();
         ClientLevelEventsFabric.initialize();
         ClientRenderEventsFabric.initialize();

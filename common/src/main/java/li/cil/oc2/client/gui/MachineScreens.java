@@ -3,7 +3,6 @@
 package li.cil.oc2.client.gui;
 
 import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
 import li.cil.oc2.client.gui.layout.*;
 import li.cil.oc2.client.gui.node.EnergyNode;
 import li.cil.oc2.client.gui.node.MissingDeviceNode;
@@ -20,9 +19,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
 
+import java.util.List;
 import java.util.stream.Stream;
-
-import static li.cil.oc2.common.util.TranslationUtils.text;
 
 @Environment(EnvType.CLIENT)
 public final class MachineScreens {
@@ -64,6 +62,7 @@ public final class MachineScreens {
     public static NodeStack mainboard(final AbstractMachineContainer menu, final ResourceLocation sprite,
                                 final int width, final int height, final SlotPlacement placement) {
         final NodeStack mainboard = NodeStack.vertical().size(width, height).background(sprite);
+        final DeviceHints hints = DeviceHints.get();
         for (final Slot slot : menu.slots) {
             if (!(slot instanceof final DeviceTypeSlotItemHandler deviceSlot)) {
                 continue;
@@ -76,18 +75,12 @@ public final class MachineScreens {
             mainboard.add(node);
 
             if (index == 0) {
-                final Node hint;
-                if (type == DeviceTypes.FLASH_MEMORY.get()) {
-                    hint = new MissingDeviceNode(menu, type, MissingDeviceNode.WARN, text("tooltip.{mod}.flash_memory_missing"));
-                } else if (type == DeviceTypes.MEMORY.get()) {
-                    hint = new MissingDeviceNode(menu, type, MissingDeviceNode.WARN, text("tooltip.{mod}.memory_missing"));
-                } else if (type == DeviceTypes.HARD_DRIVE.get()) {
-                    hint = new MissingDeviceNode(menu, type, MissingDeviceNode.INFO, text("tooltip.{mod}.hard_drive_missing"));
-                } else {
-                    continue;
+                final List<DeviceHints.Hint> typeHints = hints.get(type);
+                if (!typeHints.isEmpty()) {
+                    final Node hint = new MissingDeviceNode(menu, type, typeHints);
+                    placement.place(type, index, hint);
+                    mainboard.add(hint);
                 }
-                placement.place(type, index, hint);
-                mainboard.add(hint);
             }
         }
         return mainboard;

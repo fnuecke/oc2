@@ -57,34 +57,34 @@ public final class ComputerInventoryContainer extends AbstractComputerContainer 
 
         handlers.getItemHandler(DeviceTypes.CPU.get()).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.CPU.get(), 0, 64, 52));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.CPU.get(), 0, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY.get()).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY.get(), 0, 64, 78));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY.get(), 0, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.MEMORY.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.MEMORY.get(), slot, 64 + slot * SLOT_SIZE, 24));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.MEMORY.get(), slot, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.HARD_DRIVE.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE.get(), slot, 100 + slot % 2 * SLOT_SIZE, 60 + slot / 2 * SLOT_SIZE));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE.get(), slot, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.CARD.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.CARD.get(), slot, 38, 24 + slot * SLOT_SIZE));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.CARD.get(), slot, 0, 0));
             }
         });
 
-        createPlayerInventoryAndHotbarSlots(player.getInventory(), 8, 115);
+        createPlayerInventorySlots(player.getInventory());
     }
 }

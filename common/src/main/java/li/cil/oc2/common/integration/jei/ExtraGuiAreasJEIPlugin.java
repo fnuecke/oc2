@@ -3,8 +3,7 @@
 package li.cil.oc2.common.integration.jei;
 
 import li.cil.oc2.api.API;
-import li.cil.oc2.client.gui.AbstractMachineInventoryScreen;
-import li.cil.oc2.client.gui.AbstractMachineTerminalScreen;
+import li.cil.oc2.client.gui.layout.UiContainerScreen;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
@@ -23,20 +22,12 @@ public class ExtraGuiAreasJEIPlugin implements IModPlugin {
 
     @Override
     public void registerGuiHandlers(final IGuiHandlerRegistration registration) {
-        registration.addGenericGuiContainerHandler(AbstractMachineInventoryScreen.class, new AbstractMachineInventoryScreenGuiContainerHandler());
-        registration.addGenericGuiContainerHandler(AbstractMachineTerminalScreen.class, new AbstractMachineTerminalScreenGuiContainerHandler());
+        registration.addGenericGuiContainerHandler(UiContainerScreen.class, new UiContainerScreenGuiContainerHandler());
     }
 
-    private static final class AbstractMachineInventoryScreenGuiContainerHandler implements IGuiContainerHandler<AbstractMachineInventoryScreen<?>> {
+    private static final class UiContainerScreenGuiContainerHandler implements IGuiContainerHandler<UiContainerScreen<?>> {
         @Override
-        public List<Rect2i> getGuiExtraAreas(final AbstractMachineInventoryScreen<?> screen) {
-            return screen.getExtraAreas();
-        }
-    }
-
-    private static final class AbstractMachineTerminalScreenGuiContainerHandler implements IGuiContainerHandler<AbstractMachineTerminalScreen<?>> {
-        @Override
-        public List<Rect2i> getGuiExtraAreas(final AbstractMachineTerminalScreen<?> screen) {
+        public List<Rect2i> getGuiExtraAreas(final UiContainerScreen<?> screen) {
             return screen.getExtraAreas();
         }
     }

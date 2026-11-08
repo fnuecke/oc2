@@ -74,48 +74,46 @@ public final class RobotInventoryContainer extends AbstractRobotContainer {
 
         handlers.getItemHandler(DeviceTypes.CPU.get()).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.CPU.get(), 0, 34, 52));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.CPU.get(), 0, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.FLASH_MEMORY.get()).ifPresent(itemHandler -> {
             if (itemHandler.getSlots() > 0) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY.get(), 0, 34, 78));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLASH_MEMORY.get(), 0, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.MEMORY.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.MEMORY.get(), slot, 34 + slot * SLOT_SIZE, 24));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.MEMORY.get(), slot, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.HARD_DRIVE.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE.get(), slot, 70, 60 + slot * SLOT_SIZE));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.HARD_DRIVE.get(), slot, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.FLOPPY.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLOPPY.get(), slot, 70 + SLOT_SIZE, 60 + slot * SLOT_SIZE));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.FLOPPY.get(), slot, 0, 0));
             }
         });
 
         handlers.getItemHandler(DeviceTypes.ROBOT_MODULE.get()).ifPresent(itemHandler -> {
             for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.ROBOT_MODULE.get(), slot, 8, 24 + slot * SLOT_SIZE));
+                addSlot(new DeviceTypeSlotItemHandler(itemHandler, DeviceTypes.ROBOT_MODULE.get(), slot, 0, 0));
             }
         });
 
         final ItemHandler inventory = robot.getInventory();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
-            final int x = 116 + slot % 3 * SLOT_SIZE;
-            final int y = 20 + slot / 3 * SLOT_SIZE;
-            addSlot(new RobotSlot(inventory, slot, x, y));
+            addSlot(new RobotSlot(inventory, slot, 0, 0));
         }
 
-        createPlayerInventoryAndHotbarSlots(player.getInventory(), 8, 115);
+        createPlayerInventorySlots(player.getInventory());
     }
 
     // --------------------------------------------------------------------- //

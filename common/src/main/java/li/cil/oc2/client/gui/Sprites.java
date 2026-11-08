@@ -2,6 +2,8 @@
 
 package li.cil.oc2.client.gui;
 
+import li.cil.oc2.api.API;
+import li.cil.oc2.client.gui.layout.Theme;
 import li.cil.oc2.client.gui.widget.NineSliceSprite;
 import li.cil.oc2.client.gui.widget.Sprite;
 
@@ -10,29 +12,10 @@ import static li.cil.oc2.client.gui.Textures.*;
 public final class Sprites {
     private static final int BORDER = 8;
 
-    public static final Sprite COMPUTER_CONTAINER = new Sprite(COMPUTER_CONTAINER_TEXTURE);
-    public static final Sprite ROBOT_CONTAINER = new Sprite(ROBOT_CONTAINER_TEXTURE);
-    public static final Sprite TERMINAL_SCREEN = new Sprite(TERMINAL_SCREEN_TEXTURE);
-    public static final Sprite BUS_INTERFACE_SCREEN = new Sprite(BUS_INTERFACE_SCREEN_TEXTURE);
-    public static final Sprite SIDED_DEVICE_SCREEN = new Sprite(SIDED_DEVICE_SCREEN_TEXTURE);
-    public static final Sprite NETWORK_TUNNEL_SCREEN = new Sprite(NETWORK_TUNNEL_SCREEN_TEXTURE);
+    public static final Theme THEME = Theme.of(API.MOD_ID, 0xFF404040);
 
-    public static final NineSliceSprite GENERIC_SCREEN = new NineSliceSprite(GENERIC_SCREEN_TEXTURE, 176, 197, 0, 0, BORDER);
     public static final NineSliceSprite GENERIC_BUTTON_BASE = new NineSliceSprite(GENERIC_BUTTON_TEXTURE, 80, 20, 0, 0, BORDER);
     public static final NineSliceSprite GENERIC_BUTTON_PRESSED = new NineSliceSprite(GENERIC_BUTTON_TEXTURE, 80, 20, 0, 20, BORDER);
-
-    public static final Sprite TERMINAL_FOCUSED = new Sprite(TERMINAL_FOCUSED_TEXTURE);
-    public static final Sprite SLOT_SELECTION = new Sprite(SLOT_SELECTION_TEXTURE, 18, 18, 0, 0);
-    public static final Sprite INFO_ICON = new Sprite(INFO_ICON_TEXTURE);
-    public static final Sprite WARN_ICON = new Sprite(WARN_ICON_TEXTURE);
-
-    public static final Sprite HOTBAR = new Sprite(HOTBAR_TEXTURE);
-    public static final Sprite SIDEBAR_1 = new Sprite(SIDEBAR_1_TEXTURE);
-    public static final Sprite SIDEBAR_2 = new Sprite(SIDEBAR_2_TEXTURE);
-    public static final Sprite SIDEBAR_3 = new Sprite(SIDEBAR_3_TEXTURE);
-
-    public static final Sprite ENERGY_BASE = new Sprite(ENERGY_TEXTURE, 12, 26, 0, 0);
-    public static final Sprite ENERGY_BAR = new Sprite(ENERGY_TEXTURE, 12, 26, 12, 0);
 
     public static final Sprite INPUT_BUTTON_ACTIVE = new Sprite(INPUT_BUTTON_TEXTURE, 12, 12, 1, 1);
     public static final Sprite INPUT_BUTTON_BASE = new Sprite(INPUT_BUTTON_TEXTURE, 12, 12, 15, 1);

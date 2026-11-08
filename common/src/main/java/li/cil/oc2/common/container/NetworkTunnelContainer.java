@@ -16,6 +16,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
@@ -51,6 +52,7 @@ public final class NetworkTunnelContainer extends AbstractContainer {
     private final Player player;
     private final InteractionHand hand;
     private final Container linkSlot = new SimpleContainer(1);
+    private final Slot handItemSlot, linkItemSlot;
 
     // --------------------------------------------------------------------- //
 
@@ -59,13 +61,21 @@ public final class NetworkTunnelContainer extends AbstractContainer {
         this.player = player;
         this.hand = hand;
 
-        createPlayerInventoryAndHotbarSlots(player.getInventory(), 8, 115);
+        createPlayerInventorySlots(player.getInventory());
 
-        addSlot(new LockedSlot(player.getInventory(), getHandSlot(), 80, 25));
-        addSlot(new DeviceTypeSlot(linkSlot, DeviceTypes.NETWORK_TUNNEL.get(), 0, 80, 51));
+        handItemSlot = addSlot(new LockedSlot(player.getInventory(), getHandSlot(), 0, 0));
+        linkItemSlot = addSlot(new DeviceTypeSlot(linkSlot, DeviceTypes.NETWORK_TUNNEL.get(), 0, 0, 0));
     }
 
     // --------------------------------------------------------------------- //
+
+    public Slot getHandItemSlot() {
+        return handItemSlot;
+    }
+
+    public Slot getLinkItemSlot() {
+        return linkItemSlot;
+    }
 
     public boolean hasLinkSlotItem() {
         return !linkSlot.getItem(0).isEmpty();

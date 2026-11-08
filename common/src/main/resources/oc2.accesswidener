@@ -7,9 +7,6 @@ mutable	field	net/minecraft/client/MouseHandler	mouseGrabbed	Z
 accessible	field	net/minecraft/network/protocol/common/ServerboundCustomPayloadPacket	MAX_PAYLOAD_SIZE	I
 accessible	field	net/minecraft/world/entity/Mob	goalSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
 accessible	field	net/minecraft/world/item/crafting/ShapelessRecipe	result	Lnet/minecraft/world/item/ItemStack;
-accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	leftPos	I
-accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	topPos	I
-accessible	field	net/minecraft/client/gui/screens/inventory/AbstractContainerScreen	hoveredSlot	Lnet/minecraft/world/inventory/Slot;
 accessible	method	net/minecraft/client/renderer/LevelRenderer	setupRender	(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZZ)V
 accessible	method	net/minecraft/client/renderer/LevelRenderer	renderSectionLayer	(Lnet/minecraft/client/renderer/RenderType;DDDLorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V
 accessible	method	net/minecraft/client/renderer/LevelRenderer	renderEntity	(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;)V
@@ -27,3 +24,5 @@ accessible	field	net/minecraft/world/level/block/entity/BeaconBlockEntity	primar
 accessible	field	net/minecraft/world/level/block/entity/BeaconBlockEntity	secondaryPower	Lnet/minecraft/core/Holder;
 accessible	field	net/minecraft/world/level/BaseSpawner	nextSpawnData	Lnet/minecraft/world/level/SpawnData;
 accessible	field	net/minecraft/world/level/block/entity/LecternBlockEntity	pageCount	I
+mutable	field	net/minecraft/world/inventory/Slot	x	I
+mutable	field	net/minecraft/world/inventory/Slot	y	I

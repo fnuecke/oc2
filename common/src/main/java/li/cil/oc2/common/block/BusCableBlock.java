@@ -359,6 +359,16 @@ public final class BusCableBlock extends BaseEntityBlock {
         return shapes[getShapeIndex(state)];
     }
 
+    // NeoForge IBlockExtension override, Fabric uses ClientPickBlockGatherCallback.
+    public ItemStack getCloneItemStack(final BlockState state, final HitResult hit, final LevelReader level, final BlockPos pos, final Player player) {
+        final ItemStack stack = getPickedStack(level, pos, player);
+        if (!stack.isEmpty()) {
+            return stack;
+        }
+
+        return getCloneItemStack(level, pos, state);
+    }
+
     public static ItemStack getPickedStack(final BlockGetter level, final BlockPos pos, final Player player) {
         if (!(level.getBlockEntity(pos) instanceof final BusCableBlockEntity busCable)) {
             return ItemStack.EMPTY;

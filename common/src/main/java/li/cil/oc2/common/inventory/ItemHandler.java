@@ -16,4 +16,8 @@ public interface ItemHandler {
     default int getSlotLimit(final int slot) {
         return 64;
     }
+
+    default boolean isItemValid(final int slot, final ItemStack stack) {
+        return true;
+    }
 }

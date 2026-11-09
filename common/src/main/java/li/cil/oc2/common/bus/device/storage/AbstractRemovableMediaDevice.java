@@ -46,7 +46,7 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
 
         setOpenJob(job.thenAcceptAsync(blockDevice -> {
             try {
-                setMedium(blockDevice);
+                setMedium(blockDevice, true);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
@@ -112,7 +112,7 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
 
     @Override
     protected void setBlockDevice(final BlockDevice blockDevice) throws IOException {
-        setMedium(blockDevice);
+        setMedium(blockDevice, false);
     }
 
     @Override
@@ -132,13 +132,13 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
 
     // --------------------------------------------------------------------- //
 
-    private void setMedium(@Nullable final BlockDevice medium) throws IOException {
+    private void setMedium(@Nullable final BlockDevice medium, final boolean notify) throws IOException {
         if (storage == null) {
             return;
         }
 
         final BlockDevice present = medium == EMPTY_BLOCK_DEVICE ? null : medium;
-        storage.setBlockDevice(present != null ? withAccessListener(present) : null);
+        storage.setBlockDevice(present != null ? withAccessListener(present) : null, notify);
     }
 
     private boolean checkAndClearBlockDevice() {
@@ -152,7 +152,7 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
         runtime.join();
 
         try {
-            setMedium(null);
+            setMedium(null, true);
         } catch (final IOException e) {
             LOGGER.error(e);
         }

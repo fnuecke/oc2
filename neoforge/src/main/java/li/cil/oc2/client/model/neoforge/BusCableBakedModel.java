@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
@@ -31,15 +32,28 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public record BusCableBakedModel(
-    BakedModel proxy,
-    BakedModel[] straightModelByAxis,
-    BakedModel[] supportModelByFace
-) implements IDynamicBakedModel {
+public final class BusCableBakedModel implements IDynamicBakedModel {
     private static final ModelProperty<BusCableSupportSide> BUS_CABLE_SUPPORT_PROPERTY = new ModelProperty<>();
     private static final ModelProperty<BusCableFacade> BUS_CABLE_FACADE_PROPERTY = new ModelProperty<>();
     private static final ChunkRenderTypeSet CABLE_RENDER_TYPES = ChunkRenderTypeSet.of(RenderType.solid());
+
+    // --------------------------------------------------------------------- //
+
+    private final BakedModel proxy;
+    private final BakedModel[] straightModelByAxis;
+    private final BakedModel[] supportModelByFace;
+    private final Map<TextureAtlasSprite, Boolean> opaqueSprites = new ConcurrentHashMap<>();
+
+    // --------------------------------------------------------------------- //
+
+    public BusCableBakedModel(final BakedModel proxy, final BakedModel[] straightModelByAxis, final BakedModel[] supportModelByFace) {
+        this.proxy = proxy;
+        this.straightModelByAxis = straightModelByAxis;
+        this.supportModelByFace = supportModelByFace;
+    }
 
     // --------------------------------------------------------------------- //
 
@@ -48,7 +62,7 @@ public record BusCableBakedModel(
         if (data.has(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = data.get(BUS_CABLE_FACADE_PROPERTY);
             return facade != null
-                ? facade.model.getRenderTypes(facade.blockState, rand, facade.data)
+                ? ChunkRenderTypeSet.union(CABLE_RENDER_TYPES, facade.model.getRenderTypes(facade.blockState, rand, facade.data))
                 : ChunkRenderTypeSet.none();
         }
 
@@ -59,11 +73,7 @@ public record BusCableBakedModel(
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, final RandomSource rand, final ModelData extraData, @Nullable final RenderType layer) {
         if (extraData.has(BUS_CABLE_FACADE_PROPERTY)) {
             final BusCableFacade facade = extraData.get(BUS_CABLE_FACADE_PROPERTY);
-            if (facade != null && (layer == null || facade.model.getRenderTypes(facade.blockState, rand, facade.data).contains(layer))) {
-                return facade.model.getQuads(facade.blockState, side, rand, facade.data, layer);
-            } else {
-                return Collections.emptyList();
-            }
+            return facade != null ? getFacadeQuads(facade, side, rand, layer) : Collections.emptyList();
         }
 
         if (state == null || !state.getValue(BusCableBlock.HAS_CABLE) || layer == null || !layer.equals(RenderType.solid())) {
@@ -161,6 +171,48 @@ public record BusCableBakedModel(
     }
 
     // --------------------------------------------------------------------- //
+
+    private List<BakedQuad> getFacadeQuads(final BusCableFacade facade, @Nullable final Direction side, final RandomSource rand, @Nullable final RenderType layer) {
+        if (layer == null) {
+            return facade.model.getQuads(facade.blockState, side, rand, facade.data, null);
+        }
+
+        final long seed = rand.nextLong();
+        rand.setSeed(seed);
+        final ChunkRenderTypeSet facadeLayers = facade.model.getRenderTypes(facade.blockState, rand, facade.data);
+        if (facadeLayers.asList().equals(CABLE_RENDER_TYPES.asList())) {
+            rand.setSeed(seed);
+            return layer.equals(RenderType.solid()) ? facade.model.getQuads(facade.blockState, side, rand, facade.data, layer) : Collections.emptyList();
+        }
+
+        final ArrayList<BakedQuad> quads = new ArrayList<>();
+        for (final RenderType facadeLayer : facadeLayers) {
+            rand.setSeed(seed);
+            for (final BakedQuad quad : facade.model.getQuads(facade.blockState, side, rand, facade.data, facadeLayer)) {
+                final RenderType quadLayer = facadeLayer.equals(RenderType.solid()) || isOpaque(quad.getSprite()) ? RenderType.solid() : facadeLayer;
+                if (quadLayer.equals(layer)) {
+                    quads.add(quad);
+                }
+            }
+        }
+        return quads;
+    }
+
+    private boolean isOpaque(final TextureAtlasSprite sprite) {
+        return opaqueSprites.computeIfAbsent(sprite, s -> {
+            final SpriteContents contents = s.contents();
+            return contents.getUniqueFrames().allMatch(frame -> {
+                for (int y = 0; y < contents.height(); y++) {
+                    for (int x = 0; x < contents.width(); x++) {
+                        if (contents.isTransparent(frame, x, y)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            });
+        });
+    }
 
     private static boolean isNeighborInDirectionSolid(final BlockAndTintGetter level, final BlockPos pos, final Direction direction) {
         final BlockPos neighborPos = pos.relative(direction);

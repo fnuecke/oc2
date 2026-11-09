@@ -60,6 +60,12 @@ public final class RobotModel extends EntityModel<Robot> {
 
     // --------------------------------------------------------------------- //
 
+    public void setPose(final float baseY, final float topY, final float topRotationY) {
+        this.baseY = baseY;
+        this.topY = topY;
+        topRotation[1] = topRotationY;
+    }
+
     public void applyTopTransform(final PoseStack stack) {
         stack.translate(0, topY, 0);
         stack.mulPose(topRotationQuaternion.rotationXYZ(
@@ -68,10 +74,6 @@ public final class RobotModel extends EntityModel<Robot> {
 
     @Override
     public void setupAnim(final Robot entity, final float limbSwing, final float limbSwingAmount, final float ageInTicks, final float netHeadYaw, final float headPitch) {
-        final Robot.AnimationState state = entity.getAnimationState();
-        baseY = state.baseRenderOffsetY;
-        topY = state.topRenderOffsetY;
-        topRotation[1] = state.topRenderRotationY;
     }
 
     @Override

@@ -72,6 +72,7 @@ public final class Constants {
     public static final String COMPUTER_ERROR_MEMORY_CORRUPTED = key("gui.{mod}.computer.error.memory_corrupted");
     public static final String COMPUTER_ERROR_STATE_LOST = key("gui.{mod}.computer.error.state_lost");
     public static final String COMPUTER_ERROR_STORAGE_INCONSISTENT = key("gui.{mod}.computer.error.storage_inconsistent");
+    public static final String COMPUTER_ERROR_HALTED = key("gui.{mod}.computer.error.halted");
     public static final String COMPUTER_BUS_STATE_INCOMPLETE = key("gui.{mod}.computer.bus_state.incomplete");
     public static final String COMPUTER_BUS_STATE_TOO_COMPLEX = key("gui.{mod}.computer.bus_state.too_complex");
     public static final String COMPUTER_BUS_STATE_MULTIPLE_CONTROLLERS = key("gui.{mod}.computer.bus_state.multiple_controllers");

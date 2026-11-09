@@ -139,6 +139,11 @@ public final class NeoForgeCapabilityAdapters {
         public int getSlotLimit(final int slot) {
             return inner.getSlotLimit(slot);
         }
+
+        @Override
+        public boolean isItemValid(final int slot, final ItemStack stack) {
+            return inner.isItemValid(slot, stack);
+        }
     }
 
     private record ReverseItemHandlerAdapter(ItemHandler inner) implements IItemHandler {
@@ -169,11 +174,7 @@ public final class NeoForgeCapabilityAdapters {
 
         @Override
         public boolean isItemValid(final int slot, final ItemStack stack) {
-            if (stack.isEmpty()) {
-                return false;
-            }
-
-            return inner.insertItem(slot, stack, true).getCount() < stack.getCount();
+            return !stack.isEmpty() && inner.isItemValid(slot, stack);
         }
     }
 

@@ -5,7 +5,7 @@ The file import/export card allows breaking the fourth wall. It allows:
 - uploading files from your real computer into a virtual [computer](../block/computer.md).
 - downloading files from a virtual computer onto your real computer.
 
-For added convenience, the default Linux distribution provides two utility scripts for these operations, `import.lua` and `export.lua`.
+For added convenience, OpenOS II and Linux provide two utility scripts for these operations, `import.lua` and `export.lua`. On OpenOS II, they can be run as `import` and `export`. CP/M does not support this card.
 
 `import.lua` will, when run, prompt for a file to upload to the virtual computer. The file will be stored in the current working directory. If a file with the name of the imported file already exists, the option to provide an alternative name will be offered.
 

@@ -9,7 +9,6 @@ import li.cil.oc2.client.renderer.ModRenderType;
 import li.cil.oc2.client.renderer.Overlays;
 import li.cil.oc2.client.renderer.entity.model.RobotModel;
 import li.cil.oc2.common.entity.Robot;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -52,9 +51,8 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
     public void render(final Robot entity, final float entityYaw, final float partialTicks, final PoseStack stack, final MultiBufferSource bufferSource, final int packedLight) {
         final Robot.AnimationState state = entity.getAnimationState();
         final long gameTime = entity.level().getGameTime();
-        final double time = (double) gameTime + partialTicks;
-        float deltaTime = Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
-        state.update(time, deltaTime, entity.level().random);
+        final float baseY = state.getBaseRenderOffsetY(partialTicks);
+        final float topY = state.getTopRenderOffsetY(partialTicks);
 
         stack.pushPose();
         // NB: we don't entityYaw given to use because that uses a plain lerp which can lead to ugly
@@ -65,7 +63,7 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
         final float rotation = Mth.approachDegrees(entity.yRotO, entity.getYRot(), partialRotation);
         stack.mulPose(Axis.YN.rotationDegrees(rotation));
 
-        model.setupAnim(entity, 0, 0, 0, 0, 0);
+        model.setPose(baseY, topY, state.getTopRenderRotationY(partialTicks));
 
         final VertexConsumer consumer = bufferSource.getBuffer(model.renderType(getTextureLocation(entity)));
         model.renderToBuffer(stack, consumer, packedLight, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
@@ -77,8 +75,8 @@ public final class RobotRenderer extends EntityRenderer<Robot> {
             stack.popPose();
         }
 
-        if (state.topRenderOffsetY > Robot.AnimationState.TOP_IDLE_Y) {
-            stack.translate(0, state.baseRenderOffsetY, 0);
+        if (topY > Robot.AnimationState.TOP_IDLE_Y) {
+            stack.translate(0, baseY, 0);
             Overlays.renderBox(ModRenderType.getGlow(), stack, bufferSource, GLOW_BOUNDS, GLOW_COLOR, GLOW_COLOR_BRIGHT, gameTime, partialTicks);
         }
 

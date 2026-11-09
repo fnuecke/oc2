@@ -55,7 +55,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -348,6 +347,10 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
             TerminalBell.play();
         }
 
+        if (isClient) {
+            animationState.tick();
+        }
+
         if (!isClient) {
             virtualMachine.tick();
         }
@@ -513,6 +516,7 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         actionProcessor.deserialize(tag.getCompound(COMMAND_PROCESSOR_TAG_NAME));
         busElement.deserialize(tag.getCompound(BUS_ELEMENT_TAG_NAME));
         final HolderLookup.Provider registries = level().registryAccess();
+        deviceItems.resetDevices();
         deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
         energy.deserializeNBT(tag.getCompound(ENERGY_TAG_NAME));
@@ -683,30 +687,49 @@ public final class Robot extends Entity implements li.cil.oc2.api.capabilities.R
         private static final float MAX_ROTATION_SPEED = 0.180f;
         private static final float HOVER_ANIMATION_SPEED = 0.03f;
 
-        public float topRenderOffsetY = TOP_IDLE_Y;
-        public float baseRenderOffsetY = BASE_IDLE_Y;
-        public float topRenderRotationY;
-        public float topRenderTargetRotationY;
-        public float topRenderRotationSpeed;
+        private float topRenderOffsetY = TOP_IDLE_Y;
+        private float baseRenderOffsetY = BASE_IDLE_Y;
+        private float topRenderRotationY;
+        private float topRenderOffsetYO = TOP_IDLE_Y;
+        private float baseRenderOffsetYO = BASE_IDLE_Y;
+        private float topRenderRotationYO;
+        private float topRenderTargetRotationY;
+        private float topRenderRotationSpeed;
         private final float hoverPhase = hashCode() & 0xFFFF;
 
-        public void update(final double time, final float deltaTime, final RandomSource random) {
+        public float getTopRenderOffsetY(final float partialTicks) {
+            return Mth.lerp(partialTicks, topRenderOffsetYO, topRenderOffsetY);
+        }
+
+        public float getBaseRenderOffsetY(final float partialTicks) {
+            return Mth.lerp(partialTicks, baseRenderOffsetYO, baseRenderOffsetY);
+        }
+
+        public float getTopRenderRotationY(final float partialTicks) {
+            return Mth.lerp(partialTicks, topRenderRotationYO, topRenderRotationY);
+        }
+
+        private void tick() {
+            topRenderOffsetYO = topRenderOffsetY;
+            baseRenderOffsetYO = baseRenderOffsetY;
+            topRenderRotationYO = topRenderRotationY;
+
             if (getVirtualMachine().isRunning() || actionProcessor.hasQueuedActions()) {
-                final float topOffsetY = (float) Math.sin(time * HOVER_ANIMATION_SPEED + hoverPhase) / 32f;
+                final float topOffsetY = (float) Math.sin(level().getGameTime() * HOVER_ANIMATION_SPEED + hoverPhase) / 32f;
 
-                topRenderOffsetY = lerpClamped(topRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
-                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, topOffsetY, deltaTime * TRANSLATION_SPEED);
+                topRenderOffsetY = lerpClamped(topRenderOffsetY, topOffsetY, TRANSLATION_SPEED);
+                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, topOffsetY, TRANSLATION_SPEED);
 
-                topRenderRotationY = lerpClamped(topRenderRotationY, topRenderTargetRotationY, deltaTime * topRenderRotationSpeed);
+                topRenderRotationY = lerpClamped(topRenderRotationY, topRenderTargetRotationY, topRenderRotationSpeed);
                 if (topRenderRotationY == topRenderTargetRotationY) {
                     topRenderTargetRotationY = remapFrom01To(random.nextFloat(), -MAX_ROTATION, MAX_ROTATION);
                     topRenderRotationSpeed = remapFrom01To(random.nextFloat(), MIN_ROTATION_SPEED, MAX_ROTATION_SPEED);
                 }
             } else {
-                topRenderOffsetY = lerpClamped(topRenderOffsetY, TOP_IDLE_Y, deltaTime * TRANSLATION_SPEED * 2);
-                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, BASE_IDLE_Y, deltaTime * TRANSLATION_SPEED);
+                topRenderOffsetY = lerpClamped(topRenderOffsetY, TOP_IDLE_Y, TRANSLATION_SPEED * 2);
+                baseRenderOffsetY = lerpClamped(baseRenderOffsetY, BASE_IDLE_Y, TRANSLATION_SPEED);
 
-                topRenderRotationY = lerpClamped(topRenderRotationY, 0, deltaTime * ROTATION_SPEED);
+                topRenderRotationY = lerpClamped(topRenderRotationY, 0, ROTATION_SPEED);
             }
         }
     }

@@ -9,7 +9,7 @@ In their default configuration, robots cannot interact with their own inventory.
 
 To recharge a robot, it is recommended to make use the [charger](../block/charger.md). It is possible for robots to recharge themselves by simply moving on top of a charger. Alternatively, they may be placed into an inventory on top of the charger.
 
-The default Linux distribution provides a utility Lua library, `robot`, that eases controlling robots. The underlying API offers asynchronous methods for movement. The library implements synchronous alternatives, making sequential programming more convenient.
+OpenOS II and Linux provide a utility Lua library, `robot`, that eases controlling robots. The underlying API offers asynchronous methods for movement. The library implements synchronous alternatives, making sequential programming more convenient.
 
 For an overview of how robots move, how they draw energy and how to script them, see the [robotics](../robotics.md) entry.
 
@@ -19,7 +19,7 @@ Programs control the robot through the `robot` device. See the [robot device](..
 ## Library
 - Library name: `robot`
 
-This is a Lua library. It can be used in the default Linux distribution. For example:  
+This is a Lua library. It can be used on OpenOS II and Linux. For example:  
 `local r = require("robot")`  
 `r.move("forward")`  
 `r.turn("left")`

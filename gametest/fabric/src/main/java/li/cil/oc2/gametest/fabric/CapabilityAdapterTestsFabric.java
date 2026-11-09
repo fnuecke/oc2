@@ -2,22 +2,53 @@
 
 package li.cil.oc2.gametest.fabric;
 
+import li.cil.oc2.common.capabilities.fabric.FabricCapabilityAdapters;
+import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.gametest.CapabilityAdapterTests;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 
+import java.util.function.Function;
+
 import static li.cil.oc2.gametest.CapabilityAdapterTests.ENERGY;
 import static li.cil.oc2.gametest.CapabilityAdapterTests.ITEMS;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.LARGE_SLOT_AMOUNT;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.LARGE_SLOT_ITEM;
+import static li.cil.oc2.gametest.CapabilityAdapterTests.SIMULATED_EXTRACT;
 import static li.cil.oc2.gametest.fabric.util.FabricTestSupport.TEMPLATE;
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
 
 public final class CapabilityAdapterTestsFabric {
+    private static final Function<GameTestHelper, ItemHandler> LARGE_SLOT = helper -> {
+        final SingleVariantStorage<ItemVariant> storage = new SingleVariantStorage<>() {
+            @Override
+            protected ItemVariant getBlankVariant() {
+                return ItemVariant.blank();
+            }
+
+            @Override
+            protected long getCapacity(final ItemVariant variant) {
+                return LARGE_SLOT_AMOUNT;
+            }
+        };
+        storage.variant = ItemVariant.of(LARGE_SLOT_ITEM);
+        storage.amount = LARGE_SLOT_AMOUNT;
+        return FabricCapabilityAdapters.items(storage);
+    };
+    private static final CapabilityAdapterTests.ItemOperation ABORTED_ITEM_EXTRACT = (helper, handler, slot, stack) -> {
+        final SlottedStorage<ItemVariant> platform = (SlottedStorage<ItemVariant>) platformItems(helper);
+        try (Transaction transaction = Transaction.openOuter()) {
+            return stack.copyWithCount((int) platform.getSlot(slot).extract(ItemVariant.of(stack), stack.getCount(), transaction));
+        }
+    };
     private static final CapabilityAdapterTests.EnergyOperation ABORTED_INSERT = (helper, storage, amount) -> {
         final team.reborn.energy.api.EnergyStorage platform = platformEnergy(helper);
         try (Transaction transaction = Transaction.openOuter()) {
@@ -98,6 +129,21 @@ public final class CapabilityAdapterTestsFabric {
     @GameTest(template = TEMPLATE)
     public void abortedItemInsertLeavesHandlerUnchanged(final GameTestHelper helper) {
         CapabilityAdapterTests.abortedItemInsertLeavesHandlerUnchanged(helper, ITEMS, ABORTED_ITEM_INSERT);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void simulatedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, SIMULATED_EXTRACT);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void abortedExtractLeavesDeviceSlotUntouched(final GameTestHelper helper) {
+        CapabilityAdapterTests.extractLeavesDeviceSlotUntouched(helper, ABORTED_ITEM_EXTRACT);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public void extractFromLargeSlotYieldsAtMostAStack(final GameTestHelper helper) {
+        CapabilityAdapterTests.extractFromLargeSlotYieldsAtMostAStack(helper, LARGE_SLOT);
     }
 
     @GameTest(template = TEMPLATE)

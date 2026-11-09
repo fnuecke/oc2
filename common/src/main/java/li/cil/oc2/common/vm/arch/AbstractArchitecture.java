@@ -83,6 +83,10 @@ public abstract class AbstractArchitecture {
         return false;
     }
 
+    public boolean isHalted() {
+        return false;
+    }
+
     public abstract void reset();
 
     public boolean requestShutdown() {

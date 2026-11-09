@@ -114,7 +114,7 @@ public final class RobotItem extends ModItem implements CreativeTabItemProvider 
                 new ItemStack(Items.MEMORY_LARGE.get())
             ));
             itemsTag.put(key(DeviceTypes.HARD_DRIVE.get()), makeInventoryTag(provider,
-                Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.BUILDROOT.getId())
+                Items.HARD_DRIVE_LARGE.get().withData(BlockDeviceDataRegistry.SEDNA_LINUX.getId())
             ));
             itemsTag.put(key(DeviceTypes.ROBOT_MODULE.get()), makeInventoryTag(provider,
                 new ItemStack(Items.BLOCK_OPERATIONS_MODULE.get())

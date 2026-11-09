@@ -25,37 +25,41 @@ function blob.wrap(data)
   return setmetatable({ data = data }, blob.marker)
 end
 
-local crcTable = {}
-for i = 0, 255 do
-  local c = i
-  for _ = 1, 8 do
-    c = (c & 1) ~= 0 and (0xEDB88320 ~ (c >> 1)) or (c >> 1)
+if computer and computer.crc32 then -- OpenOS II
+  blob.checksum = computer.crc32
+else
+  local crcTable = {}
+  for i = 0, 255 do
+    local c = i
+    for _ = 1, 8 do
+      c = (c & 1) ~= 0 and (0xEDB88320 ~ (c >> 1)) or (c >> 1)
+    end
+    crcTable[i] = c
   end
-  crcTable[i] = c
-end
 
-function blob.checksum(data)
-  local crc = 0xFFFFFFFF
-  local byte = string.byte
-  local length = #data
-  local i = 1
-  while i + 7 <= length do
-    local b1, b2, b3, b4, b5, b6, b7, b8 = byte(data, i, i + 7)
-    crc = crcTable[(crc ~ b1) & 0xFF] ~ (crc >> 8)
-    crc = crcTable[(crc ~ b2) & 0xFF] ~ (crc >> 8)
-    crc = crcTable[(crc ~ b3) & 0xFF] ~ (crc >> 8)
-    crc = crcTable[(crc ~ b4) & 0xFF] ~ (crc >> 8)
-    crc = crcTable[(crc ~ b5) & 0xFF] ~ (crc >> 8)
-    crc = crcTable[(crc ~ b6) & 0xFF] ~ (crc >> 8)
-    crc = crcTable[(crc ~ b7) & 0xFF] ~ (crc >> 8)
-    crc = crcTable[(crc ~ b8) & 0xFF] ~ (crc >> 8)
-    i = i + 8
+  function blob.checksum(data)
+    local crc = 0xFFFFFFFF
+    local byte = string.byte
+    local length = #data
+    local i = 1
+    while i + 7 <= length do
+      local b1, b2, b3, b4, b5, b6, b7, b8 = byte(data, i, i + 7)
+      crc = crcTable[(crc ~ b1) & 0xFF] ~ (crc >> 8)
+      crc = crcTable[(crc ~ b2) & 0xFF] ~ (crc >> 8)
+      crc = crcTable[(crc ~ b3) & 0xFF] ~ (crc >> 8)
+      crc = crcTable[(crc ~ b4) & 0xFF] ~ (crc >> 8)
+      crc = crcTable[(crc ~ b5) & 0xFF] ~ (crc >> 8)
+      crc = crcTable[(crc ~ b6) & 0xFF] ~ (crc >> 8)
+      crc = crcTable[(crc ~ b7) & 0xFF] ~ (crc >> 8)
+      crc = crcTable[(crc ~ b8) & 0xFF] ~ (crc >> 8)
+      i = i + 8
+    end
+    while i <= length do
+      crc = crcTable[(crc ~ byte(data, i)) & 0xFF] ~ (crc >> 8)
+      i = i + 1
+    end
+    return crc ~ 0xFFFFFFFF
   end
-  while i <= length do
-    crc = crcTable[(crc ~ byte(data, i)) & 0xFF] ~ (crc >> 8)
-    i = i + 1
-  end
-  return crc ~ 0xFFFFFFFF
 end
 
 local function encode(value, payloads, indices, depth)

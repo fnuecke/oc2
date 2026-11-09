@@ -18,6 +18,10 @@ For documentation on how to get computers up and running, and how to use them, s
 
 The [`docs`](docs) directory holds a high level overview of e.g. the device API for mods and the data pack extension points. The [`examples`](examples) directory holds minimal mods using the device API. The [API Javadoc] documents the mod's API types.
 
+## LLM Use Disclaimer
+
+Use of LLMs on this project includes: gradle, automated testing, research, debugging, verification of documentation, gradle, refactoring, prototyping, gradle.
+
 [OpenComputers]: https://github.com/MightyPirates/OpenComputers
 [documentation]: https://fnuecke.github.io/oc2/manual/
 [API Javadoc]: https://fnuecke.github.io/oc2/javadoc/

@@ -58,6 +58,10 @@ Also consider running the game tests when making bigger changes (or adding a gam
 > [!NOTE]
 > When adding a new block/item, document it (on-device as well as ingame manual). If useful, add game tests for it.
 
+### Use of LLMs
+
+Anything submitted as a PR must have been reviewed and verified by you beforehand. Do not submit LLM output as-is/unseen. As a rule of thumb, only use LLMs as a tool, not a colleague/employee.
+
 ### License
 
-By contributing, you accept that the code is licensed under the MIT license.
+By contributing, you accept that the code is licensed under the MIT license. Assets and translations are in the public domain (CC0 1.0 Universal).

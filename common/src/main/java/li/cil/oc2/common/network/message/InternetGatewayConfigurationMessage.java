@@ -57,7 +57,7 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
 
         @Override
         protected void handleMessage(final NetworkManager.PacketContext context) {
-            if (settings.mode() == InternetGatewayBlockEntity.InternetMode.VXLAN && !Config.vxlanEnabled) {
+            if (settings.mode() == InternetGatewayBlockEntity.InternetMode.VXLAN && !Config.isVxlanEnabled()) {
                 return;
             }
             MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos,

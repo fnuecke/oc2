@@ -58,8 +58,26 @@ public class VXLANManagerTests {
     }
 
     @Test
-    public void managerBindsWhenEnabled() throws IOException {
+    public void managerDoesNotStartWithoutAllowedPeers() {
         configureEnabledManager();
+
+        VXLANManager.start();
+
+        assertFalse(VXLANManager.getInstance().isPresent());
+    }
+
+    @Test
+    public void managerDoesNotStartWithOnlyInvalidPeers() {
+        configureEnabledManager("not-an-address");
+
+        VXLANManager.start();
+
+        assertFalse(VXLANManager.getInstance().isPresent());
+    }
+
+    @Test
+    public void managerBindsWhenEnabled() throws IOException {
+        configureEnabledManager("127.0.0.1");
 
         VXLANManager.start();
 
@@ -69,7 +87,7 @@ public class VXLANManagerTests {
     @Test
     public void managerDoesNotStartWhenPortIsInUse() throws IOException {
         try (DatagramChannel occupyingChannel = openLoopbackChannel()) {
-            configureEnabledManager();
+            configureEnabledManager("127.0.0.1");
             Config.vxlanBindPort = ((InetSocketAddress) occupyingChannel.getLocalAddress()).getPort();
 
             VXLANManager.start();
@@ -80,7 +98,7 @@ public class VXLANManagerTests {
 
     @Test
     public void managerDoesNotStartWithBadBindAddress() {
-        configureEnabledManager();
+        configureEnabledManager("127.0.0.1");
         Config.vxlanBindAddress = "not-an-address";
 
         VXLANManager.start();
@@ -90,7 +108,7 @@ public class VXLANManagerTests {
 
     @Test
     public void stopFreesTheBoundPort() throws IOException {
-        configureEnabledManager();
+        configureEnabledManager("127.0.0.1");
         final int port = Config.vxlanBindPort;
 
         VXLANManager.start();
@@ -104,7 +122,7 @@ public class VXLANManagerTests {
     @ParameterizedTest
     @ValueSource(strings = {"", " ", "garbage", "localhost", "g:1", "[::1]", "fe80::1%1", "010.0.0.1"})
     public void connectRejectsBlankAndGarbagePeers(final String peer) {
-        final VXLANManager manager = startManager();
+        final VXLANManager manager = startManager("127.0.0.1");
 
         assertFalse(manager.connect(null, settings(peer, 4789, 0)).isPresent());
     }
@@ -112,7 +130,7 @@ public class VXLANManagerTests {
     @ParameterizedTest
     @ValueSource(ints = {0, 65536})
     public void connectRejectsInvalidPorts(final int port) {
-        final VXLANManager manager = startManager();
+        final VXLANManager manager = startManager("127.0.0.1");
 
         assertFalse(manager.connect(null, settings("127.0.0.1", port, 0)).isPresent());
     }
@@ -120,7 +138,7 @@ public class VXLANManagerTests {
     @ParameterizedTest
     @ValueSource(ints = {-1, 16777216})
     public void connectRejectsInvalidVnis(final int vni) {
-        final VXLANManager manager = startManager();
+        final VXLANManager manager = startManager("127.0.0.1");
 
         assertFalse(manager.connect(null, settings("127.0.0.1", 4789, vni)).isPresent());
     }
@@ -349,7 +367,7 @@ public class VXLANManagerTests {
 
     private static InternetGatewayBlockEntity.Settings settings(final String peer, final int port, final int vni) {
         return new InternetGatewayBlockEntity.Settings(InternetGatewayBlockEntity.InternetMode.VXLAN,
-            InternetGatewayBlockEntity.Settings.DEFAULT.gatewayAddress(), peer, port, vni);
+            InternetGatewayBlockEntity.Settings.defaults().gatewayAddress(), peer, port, vni);
     }
 
     private static byte[] vxlanDatagram(final int vni, final boolean vniValid, final byte[] frame) {

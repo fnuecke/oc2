@@ -23,7 +23,6 @@ import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -52,19 +51,10 @@ public final class VXLANManager {
 
     // --------------------------------------------------------------------- //
 
-    private VXLANManager() throws IOException, AddressParseException {
+    private VXLANManager(final Set<InetAddress> allowedPeers) throws IOException, AddressParseException {
+        this.allowedPeers = allowedPeers;
+
         final InetAddress bindAddress = InternetUtils.parseInetAddress(Config.vxlanBindAddress);
-
-        final Set<InetAddress> parsedAllowedPeers = new HashSet<>();
-        for (final String peer : Config.vxlanAllowedPeers) {
-            try {
-                parsedAllowedPeers.add(InternetUtils.parseInetAddress(peer));
-            } catch (final AddressParseException e) {
-                LOGGER.warn("Ignoring invalid VXLAN allowed peer '{}'.", peer, e);
-            }
-        }
-        allowedPeers = parsedAllowedPeers;
-
         ipv6 = bindAddress instanceof Inet6Address;
         channel = DatagramChannel.open(ipv6 ? StandardProtocolFamily.INET6 : StandardProtocolFamily.INET);
 
@@ -94,18 +84,18 @@ public final class VXLANManager {
             LOGGER.info("VXLAN is disabled.");
             return;
         }
+        final Set<InetAddress> allowedPeers = Config.parseVxlanAllowedPeers();
+        if (allowedPeers.isEmpty()) {
+            LOGGER.warn("VXLAN is enabled, but no valid allowed peers are configured. VXLAN is unavailable.");
+            return;
+        }
         try {
-            instance = new VXLANManager();
+            instance = new VXLANManager(allowedPeers);
 
             LOGGER.info("VXLAN is enabled and bound to {}:{}.", Config.vxlanBindAddress, Config.vxlanBindPort);
-            if (Config.vxlanAllowedPeers.isEmpty()) {
-                LOGGER.warn("No allowed peers configured for VXLAN; no VXLAN traffic will be exchanged.");
-            } else {
-                LOGGER.info("Computers can reach the network provided by VXLAN, "
-                    + "subject to the configured allowed peers: {}", Config.vxlanAllowedPeers);
-            }
+            LOGGER.info("Computers can reach the network provided by VXLAN. Allowed peers: {}", Config.vxlanAllowedPeers);
         } catch (final IOException | AddressParseException | UnsupportedOperationException e) {
-            LOGGER.error("Failed to start VXLAN manager; VXLAN is unavailable.", e);
+            LOGGER.error("Failed to start VXLAN manager. VXLAN is unavailable.", e);
         }
     }
 

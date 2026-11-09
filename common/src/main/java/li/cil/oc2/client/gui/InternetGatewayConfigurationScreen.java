@@ -17,7 +17,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
+import java.net.InetAddress;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
@@ -42,6 +44,7 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
 
     // --------------------------------------------------------------------- //
 
+    private final boolean isVxlanEnabled = Config.isVxlanEnabled();
     private final EditBoxNode addressNode;
     private final EditBoxNode peerNode;
     private final EditBoxNode portNode;
@@ -58,10 +61,11 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
             MAX_IPV4_LENGTH,
             InternetGatewayConfigurationScreen::isIpv4Character,
             InternetGatewayConfigurationScreen::isValidIpv4Address);
+        final Set<InetAddress> allowedPeers = Config.parseVxlanAllowedPeers();
         peerNode = createAddressNode(PEER_LABEL, settings.vxlanPeer(),
             InternetGatewayConfigurationMessage.MAX_PEER_LENGTH,
             InternetGatewayConfigurationScreen::isAddressCharacter,
-            InternetGatewayConfigurationScreen::isValidAddress);
+            value -> isAllowedPeer(allowedPeers, value));
         portNode = createNumberNode(PORT_LABEL, settings.vxlanPort(), 1, MAX_PORT);
         vniNode = createNumberNode(VNI_LABEL, settings.vxlanVni(), 0, MAX_VNI);
     }
@@ -92,7 +96,7 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
             NodeStack.vertical(
                 LabelNode.truncating(title),
                 Ui.field(MODE_LABEL, new WidgetNode(new ModeButton()).width(Size.GROW))
-                    .visibleWhen(() -> Config.vxlanEnabled),
+                    .visibleWhen(() -> isVxlanEnabled),
                 Ui.field(ADDRESS_LABEL, addressNode)
                     .visibleWhen(() -> mode != InternetMode.VXLAN),
                 NodeStack.vertical(
@@ -158,10 +162,9 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
         }
     }
 
-    private static boolean isValidAddress(final String value) {
+    private static boolean isAllowedPeer(final Set<InetAddress> allowedPeers, final String value) {
         try {
-            InternetUtils.parseInetAddress(value);
-            return true;
+            return allowedPeers.contains(InternetUtils.parseInetAddress(value));
         } catch (final AddressParseException e) {
             return false;
         }

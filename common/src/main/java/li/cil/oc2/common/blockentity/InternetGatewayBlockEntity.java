@@ -35,7 +35,11 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
     public record Settings(InternetMode mode, int gatewayAddress, String vxlanPeer, int vxlanPort, int vxlanVni) {
         private static final int DEFAULT_GATEWAY_ADDRESS = 0xC0A800FE; // 192.168.0.254
-        public static final Settings DEFAULT = new Settings(InternetMode.NAT, DEFAULT_GATEWAY_ADDRESS, "", 4789, 0);
+
+        public static Settings defaults() {
+            final String peer = Config.vxlanAllowedPeers.isEmpty() ? "" : Config.vxlanAllowedPeers.getFirst();
+            return new Settings(InternetMode.NAT, DEFAULT_GATEWAY_ADDRESS, peer, 4789, 0);
+        }
     }
 
     private static final String OPERATIONAL_TAG_NAME = "operational";
@@ -49,7 +53,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     private final Deque<byte[]> toInternet = new ArrayDeque<>();
     private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.internetGatewayEnergyStorage);
 
-    private Settings settings = Settings.DEFAULT;
+    private Settings settings = Settings.defaults();
 
     @Nullable
     private GatewayConnection connection;
@@ -217,9 +221,9 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
     private static Settings readSettings(final CompoundTag tag) {
         if (!tag.contains(INTERNET_MODE_TAG_NAME)) {
-            return Settings.DEFAULT; // Migration for saves pre-settings. TODO: remove in 1.21.11.
+            return Settings.defaults(); // Migration for saves pre-settings. TODO: remove in 1.21.11.
         }
-        final InternetMode mode = Config.vxlanEnabled
+        final InternetMode mode = Config.isVxlanEnabled()
             ? InternetMode.valueOf(tag.getString(INTERNET_MODE_TAG_NAME))
             : InternetMode.NAT;
         return new Settings(mode,

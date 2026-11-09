@@ -3,6 +3,7 @@
 package li.cil.oc2.common.inet.vxlan;
 
 import li.cil.oc2.common.Config;
+import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
 import li.cil.oc2.common.inet.InternetAdapter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -104,7 +105,7 @@ public class VXLANManagerTests {
     public void connectRejectsBlankAndGarbagePeers(final String peer) {
         final VXLANManager manager = startManager();
 
-        assertFalse(manager.connect(null, peer, 4789, 0).isPresent());
+        assertFalse(manager.connect(null, settings(peer, 4789, 0)).isPresent());
     }
 
     @ParameterizedTest
@@ -112,7 +113,7 @@ public class VXLANManagerTests {
     public void connectRejectsInvalidPorts(final int port) {
         final VXLANManager manager = startManager();
 
-        assertFalse(manager.connect(null, "127.0.0.1", port, 0).isPresent());
+        assertFalse(manager.connect(null, settings("127.0.0.1", port, 0)).isPresent());
     }
 
     @ParameterizedTest
@@ -120,14 +121,14 @@ public class VXLANManagerTests {
     public void connectRejectsInvalidVnis(final int vni) {
         final VXLANManager manager = startManager();
 
-        assertFalse(manager.connect(null, "127.0.0.1", 4789, vni).isPresent());
+        assertFalse(manager.connect(null, settings("127.0.0.1", 4789, vni)).isPresent());
     }
 
     @Test
     public void connectAcceptsValidInput() {
         final VXLANManager manager = startManager();
 
-        final Optional<VXLANConnection> connection = manager.connect(null, "127.0.0.1", 4789, 16777215);
+        final Optional<VXLANConnection> connection = manager.connect(null, settings("127.0.0.1", 4789, 16777215));
 
         assertTrue(connection.isPresent());
     }
@@ -139,7 +140,7 @@ public class VXLANManagerTests {
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.setSoTimeout(1000);
-            final VXLANConnection connection = manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            final VXLANConnection connection = manager.connect(adapter, settings("127.0.0.1", peer.getLocalPort(), 100)).orElseThrow();
             adapter.toInternet.add(new byte[]{1, 2, 3});
 
             manager.onServerTick();
@@ -160,7 +161,7 @@ public class VXLANManagerTests {
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.setSoTimeout(100);
-            manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            manager.connect(adapter, settings("127.0.0.1", peer.getLocalPort(), 100)).orElseThrow();
             adapter.toInternet.add(new byte[]{1, 2, 3});
 
             manager.onServerTick();
@@ -177,7 +178,7 @@ public class VXLANManagerTests {
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.setSoTimeout(100);
-            manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            manager.connect(adapter, settings("127.0.0.1", peer.getLocalPort(), 100)).orElseThrow();
             adapter.toInternet.add(new byte[MAX_FRAME_SIZE + 1]);
 
             manager.onServerTick();
@@ -193,7 +194,7 @@ public class VXLANManagerTests {
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.setSoTimeout(100);
-            final VXLANConnection connection = manager.connect(adapter, "127.0.0.1", peer.getLocalPort(), 100).orElseThrow();
+            final VXLANConnection connection = manager.connect(adapter, settings("127.0.0.1", peer.getLocalPort(), 100)).orElseThrow();
             connection.stop();
             adapter.toInternet.add(new byte[]{1, 2, 3});
 
@@ -208,7 +209,7 @@ public class VXLANManagerTests {
         final byte[] frame = testFrame();
         final StubAdapter adapter = new StubAdapter();
         final VXLANManager manager = startManager("127.0.0.1");
-        manager.connect(adapter, "127.0.0.1", 4789, 100).orElseThrow();
+        manager.connect(adapter, settings("127.0.0.1", 4789, 100)).orElseThrow();
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.send(new DatagramPacket(vxlanDatagram(100, true, frame), 8 + frame.length,
@@ -245,7 +246,7 @@ public class VXLANManagerTests {
     public void deniedSourceDoesNotDeliverDatagram() throws IOException {
         final StubAdapter adapter = new StubAdapter();
         final VXLANManager manager = startManager();
-        manager.connect(adapter, "127.0.0.1", 4789, 100).orElseThrow();
+        manager.connect(adapter, settings("127.0.0.1", 4789, 100)).orElseThrow();
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.send(new DatagramPacket(vxlanDatagram(100, true, testFrame()), 8 + 14,
@@ -262,7 +263,7 @@ public class VXLANManagerTests {
         final byte[] frame = testFrame();
         final StubAdapter adapter = new StubAdapter();
         final VXLANManager manager = startManager("127.0.0.1");
-        manager.connect(adapter, "127.0.0.1", 4789, 100).orElseThrow();
+        manager.connect(adapter, settings("127.0.0.1", 4789, 100)).orElseThrow();
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.send(new DatagramPacket(vxlanDatagram(100, true, frame), 8 + frame.length,
@@ -280,7 +281,7 @@ public class VXLANManagerTests {
         final byte[] frame = testFrame();
         final StubAdapter adapter = new StubAdapter();
         final VXLANManager manager = startManager("127.0.0.1");
-        manager.connect(adapter, "127.0.0.1", 4789, 100).orElseThrow();
+        manager.connect(adapter, settings("127.0.0.1", 4789, 100)).orElseThrow();
         adapter.toInternet.add(frame);
 
         try (DatagramSocket peer = new DatagramSocket(4789, InetAddress.getLoopbackAddress())) {
@@ -305,7 +306,7 @@ public class VXLANManagerTests {
         final byte[] frame = testFrame();
         final StubAdapter adapter = new StubAdapter();
         final VXLANManager manager = startManager("127.0.0.1");
-        manager.connect(adapter, "127.0.0.1", 4789, 100).orElseThrow();
+        manager.connect(adapter, settings("127.0.0.1", 4789, 100)).orElseThrow();
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.send(new DatagramPacket(badDatagram, badDatagram.length,
@@ -343,6 +344,10 @@ public class VXLANManagerTests {
             Thread.currentThread().interrupt();
             throw new AssertionError("Interrupted while waiting for UDP loopback traffic.", e);
         }
+    }
+
+    private static InternetGatewayBlockEntity.Settings settings(final String peer, final int port, final int vni) {
+        return new InternetGatewayBlockEntity.Settings(peer, port, vni, InternetGatewayBlockEntity.InternetMode.VXLAN);
     }
 
     private static byte[] vxlanDatagram(final int vni, final boolean vniValid, final byte[] frame) {

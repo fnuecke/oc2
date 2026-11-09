@@ -13,6 +13,7 @@ documents here are primarily intended as reference for mod, data pack and guest 
 | [z80.md](z80.md)           | The Z80 machine: memory, ports, enumeration, boot and interrupts.                      |
 | [floppy.md](floppy.md)     | The Z80 floppy controller.                                                             |
 | [serial.md](serial.md)     | Serial port registers.                                                                 |
+| [vxlan.md](vxlan.md)       | Internet gateway VXLAN mode.                                                           |
 
 Method references of individual devices are part of the
 manual, [generated](../common/src/generated/resources/assets/oc2/doc/en_us/device/index.md) from the code.

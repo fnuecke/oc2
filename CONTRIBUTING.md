@@ -21,13 +21,13 @@ The mod also uses stuff maintained outside this repository:
 
 To save some time and not rely on pipelines to check conformity, you can run the `lint` task locally to see if checks are happy:
 
-```shell
+```sh
 ./gradlew lint
 ```
 
 Also consider running the game tests when making bigger changes (or adding a game test):
 
-```shell
+```sh
 ./gradlew gameTest
 ```
 

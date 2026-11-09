@@ -17,6 +17,20 @@ The mod also uses stuff maintained outside this repository:
 - [buildroot](https://github.com/fnuecke/buildroot), the RISC-V firmware and Linux disk image.
 - [CP/M](https://github.com/fnuecke/sedna-cpm), the Z80 firmware and CP/M disk image.
 
+### Verification
+
+To save some time and not rely on pipelines to check conformity, you can run the `lint` task locally to see if checks are happy:
+
+```shell
+./gradlew lint
+```
+
+Also consider running the game tests when making bigger changes (or adding a game test):
+
+```shell
+./gradlew gameTest
+```
+
 ### Design
 
 1. **Immersion**. For lack of a better word. The mod should avoid breaking the fourth wall.
@@ -41,7 +55,8 @@ The mod also uses stuff maintained outside this repository:
     3. Features mustn't need host configuration/dependencies. That was the whole point of writing an emulator in Java.
     4. Prefer good defaults over config values. In OC1 the config surface exploded to infinity, making it incredibly hard to test.
 
-When adding a new block/item, document it (on-device as well as ingame manual). If useful, add game tests for it.
+> [!NOTE]
+> When adding a new block/item, document it (on-device as well as ingame manual). If useful, add game tests for it.
 
 ### License
 

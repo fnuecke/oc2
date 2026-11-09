@@ -21,7 +21,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> {
-    public static final ResourceLocation EFFECT_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/charger/effect");
+    public static final ResourceLocation EFFECT_LOCATION = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/overlay/charger_glow");
 
     private static final Material TEXTURE_EFFECT = new Material(InventoryMenu.BLOCK_ATLAS, EFFECT_LOCATION);
 

@@ -24,8 +24,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 
 import java.util.List;
+import java.util.UUID;
 
 import static li.cil.oc2.gametest.util.TestSupport.fakePlayer;
+import static li.cil.oc2.gametest.util.TestSupport.onTestEnd;
 import static li.cil.oc2.gametest.util.TestSupport.useOn;
 
 public final class RobotFixture implements MachineFixture {
@@ -40,7 +42,14 @@ public final class RobotFixture implements MachineFixture {
 
     public static RobotFixture place(final GameTestHelper helper, final Player player, final BlockPos pos) {
         useOn(helper, player, new ItemStack(Items.ROBOT.get()), pos, Direction.UP);
-        return find(helper, pos, 2);
+        final RobotFixture robot = find(helper, pos, 2);
+        final UUID id = robot.entity().getUUID();
+        onTestEnd(helper, () -> {
+            if (helper.getLevel().getEntity(id) instanceof final Robot entity) {
+                entity.stop();
+            }
+        });
+        return robot;
     }
 
     public static RobotFixture find(final GameTestHelper helper, final BlockPos pos, final int radius) {

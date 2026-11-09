@@ -135,6 +135,11 @@ public final class R5Architecture extends AbstractArchitecture {
     }
 
     @Override
+    public boolean isHalted() {
+        return board.getCpu().isHalted();
+    }
+
+    @Override
     public void reset() {
         board.reset();
     }

@@ -8,6 +8,7 @@ import li.cil.oc2.common.block.Blocks;
 import li.cil.oc2.common.block.BusCableBlock;
 import li.cil.oc2.common.block.FlippableOrientableBlock;
 import li.cil.oc2.common.block.FlippableOrientation;
+import li.cil.oc2.common.block.NetworkConnectorBlock;
 import li.cil.oc2.common.block.OrientableBlock;
 import li.cil.oc2.common.item.Items;
 import net.minecraft.core.Direction;
@@ -16,6 +17,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.client.model.generators.*;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
@@ -30,12 +33,14 @@ public final class ModBlockStateProvider extends BlockStateProvider {
     private static final ResourceLocation FLASH_DRIVE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/flash_drive");
     private static final ResourceLocation KEYBOARD_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/keyboard");
     private static final ResourceLocation NETWORK_CONNECTOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/network_connector");
+    private static final ResourceLocation NETWORK_CONNECTOR_INDICATOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/network_connector_indicator");
     private static final ResourceLocation NETWORK_HUB_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/network_hub");
     private static final ResourceLocation INTERNET_GATEWAY_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/internet_gateway");
     private static final ResourceLocation PROJECTOR_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/projector");
     private static final ResourceLocation REDSTONE_INTERFACE_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/redstone_interface");
     private static final ResourceLocation TERMINAL_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/terminal");
     private static final ResourceLocation TRANSPOSER_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/transposer");
+    private static final ResourceLocation TRANSPOSER_GLOW_MODEL = ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "block/transposer_glow");
 
     public ModBlockStateProvider(final PackOutput output, final ExistingFileHelper existingFileHelper) {
         super(output, API.MOD_ID, existingFileHelper);
@@ -49,7 +54,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         horizontalBlock(Blocks.DISK_DRIVE, Items.DISK_DRIVE, DISK_DRIVE_MODEL);
         orientableBlock(Blocks.FLASH_DRIVE, Items.FLASH_DRIVE, FLASH_DRIVE_MODEL);
         horizontalBlock(Blocks.KEYBOARD, Items.KEYBOARD, KEYBOARD_MODEL);
-        horizontalFaceBlock(Blocks.NETWORK_CONNECTOR, Items.NETWORK_CONNECTOR, NETWORK_CONNECTOR_MODEL)
+        networkConnectorBlock()
             .transforms()
             .transform(ItemDisplayContext.GUI)
             .rotation(30, 315, 0)
@@ -67,7 +72,7 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         flippableOrientableBlock(Blocks.PROJECTOR, Items.PROJECTOR, PROJECTOR_MODEL);
         horizontalBlock(Blocks.REDSTONE_INTERFACE, Items.REDSTONE_INTERFACE, REDSTONE_INTERFACE_MODEL);
         orientableBlock(Blocks.TERMINAL, Items.TERMINAL, TERMINAL_MODEL);
-        simpleBlock(Blocks.TRANSPOSER, Items.TRANSPOSER, TRANSPOSER_MODEL);
+        transposerBlock();
 
         registerCableStates();
     }
@@ -181,6 +186,52 @@ public final class ModBlockStateProvider extends BlockStateProvider {
             .end();
     }
 
+    private ItemModelBuilder networkConnectorBlock() {
+        final ModelFile model = models().getExistingFile(NETWORK_CONNECTOR_MODEL);
+        final ModelFile indicatorModel = models().getExistingFile(NETWORK_CONNECTOR_INDICATOR_MODEL);
+
+        final MultiPartBlockStateBuilder builder = getMultipartBuilder(Blocks.NETWORK_CONNECTOR.get());
+
+        for (final AttachFace face : AttachFace.values()) {
+            for (final Direction facing : Direction.Plane.HORIZONTAL) {
+                final int rotationX = face.ordinal() * 90;
+                final int rotationY = ((int) facing.toYRot() + 180 + (face == AttachFace.CEILING ? 180 : 0)) % 360;
+
+                builder.part()
+                    .modelFile(model)
+                    .rotationX(rotationX)
+                    .rotationY(rotationY)
+                    .addModel()
+                    .condition(BlockStateProperties.ATTACH_FACE, face)
+                    .condition(BlockStateProperties.HORIZONTAL_FACING, facing)
+                    .end();
+
+                builder.part()
+                    .modelFile(indicatorModel)
+                    .rotationX(rotationX)
+                    .rotationY(rotationY)
+                    .addModel()
+                    .condition(BlockStateProperties.ATTACH_FACE, face)
+                    .condition(BlockStateProperties.HORIZONTAL_FACING, facing)
+                    .condition(NetworkConnectorBlock.CONNECTED, true)
+                    .end();
+            }
+        }
+
+        return itemModels().getBuilder(Items.NETWORK_CONNECTOR.getId().getPath()).parent(model);
+    }
+
+    private void transposerBlock() {
+        final ModelFile model = models().getExistingFile(TRANSPOSER_MODEL);
+        final ModelFile glowModel = models().getExistingFile(TRANSPOSER_GLOW_MODEL);
+
+        getMultipartBuilder(Blocks.TRANSPOSER.get())
+            .part().modelFile(model).addModel().end()
+            .part().modelFile(glowModel).addModel().end();
+
+        itemModels().getBuilder(Items.TRANSPOSER.getId().getPath()).parent(model);
+    }
+
     private <T extends OrientableBlock> ItemModelBuilder orientableBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
         final ModelFile model = models().getExistingFile(modelFileLocation);
         getVariantBuilder(block.get()).forAllStates(state -> ConfiguredModel.builder()
@@ -209,19 +260,8 @@ public final class ModBlockStateProvider extends BlockStateProvider {
         return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
     }
 
-    private <T extends Block> ItemModelBuilder horizontalFaceBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
-        horizontalFaceBlock(block.get(), models().getExistingFile(modelFileLocation));
-        return itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
-    }
-
     private <T extends Block> void simpleBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item) {
         simpleBlock(block.get());
         itemModels().getBuilder(item.getId().getPath()).parent(models().getExistingFile(block.getId()));
-    }
-
-    private <T extends Block> void simpleBlock(final RegistrySupplier<T> block, final RegistrySupplier<Item> item, final ResourceLocation modelFileLocation) {
-        final ModelFile model = models().getExistingFile(modelFileLocation);
-        simpleBlock(block.get(), model);
-        itemModels().getBuilder(item.getId().getPath()).parent(model);
     }
 }

@@ -51,8 +51,8 @@ public final class VirtIOStorage implements MappedStorage {
     }
 
     @Override
-    public void setBlockDevice(@Nullable final BlockDevice block) throws IOException {
-        device.setBlock(block != null ? block : EMPTY);
+    public void setBlockDevice(@Nullable final BlockDevice block, final boolean notify) throws IOException {
+        device.setBlock(block != null ? block : EMPTY, notify);
     }
 
     @Override

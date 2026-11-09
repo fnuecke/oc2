@@ -102,6 +102,23 @@ public abstract class AbstractGroupingDeviceBusElement<TEntry extends AbstractGr
         }
     }
 
+    public void reset() {
+        final boolean hadEntries = groups.stream().anyMatch(group -> !group.isEmpty());
+        for (int i = 0; i < groupCount; i++) {
+            for (final TEntry entry : groups.get(i)) {
+                devices.removeInt(entry.getDevice());
+                deviceGroups.removeInt(entry.getDevice());
+                onEntryRemoved(entry);
+            }
+            groups.get(i).clear();
+            groupData[i] = new CompoundTag();
+        }
+
+        if (hadEntries) {
+            scanDevices();
+        }
+    }
+
     @Override
     public Optional<UUID> getDeviceIdentifier(final Device device) {
         final int index = deviceGroups.getInt(device);

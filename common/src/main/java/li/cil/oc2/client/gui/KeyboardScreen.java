@@ -31,7 +31,7 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     // --------------------------------------------------------------------- //
 
     private final IntSet pressedKeys = new IntOpenHashSet();
-    private long lastKeepAliveSentAt;
+    private int keepAliveCountdown;
 
     // --------------------------------------------------------------------- //
 
@@ -130,9 +130,8 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     }
 
     private void sendKeepAlive() {
-        final long now = System.currentTimeMillis();
-        if (now - lastKeepAliveSentAt > KeyboardDevice.USER_KEEPALIVE_EVERY) {
-            lastKeepAliveSentAt = now;
+        if (--keepAliveCountdown <= 0) {
+            keepAliveCountdown = KeyboardDevice.USER_KEEPALIVE_EVERY;
             Network.sendToServer(new KeyboardKeepAliveMessage(blockEntity));
         }
     }

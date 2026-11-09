@@ -2,7 +2,9 @@
 
 package li.cil.oc2.gametest;
 
+import li.cil.oc2.api.bus.device.Device;
 import li.cil.oc2.common.block.Blocks;
+import li.cil.oc2.common.blockentity.ComputerBlockEntity;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.container.ContainerFluidHandler;
 import li.cil.oc2.common.container.ContainerItemHandler;
@@ -12,6 +14,7 @@ import li.cil.oc2.common.fluid.FluidHandler;
 import li.cil.oc2.common.fluid.FluidStack;
 import li.cil.oc2.common.inventory.ItemHandler;
 import li.cil.oc2.common.item.Items;
+import li.cil.oc2.common.vm.AbstractVMItemStackHandlers;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.Item;
@@ -19,6 +22,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluids;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.function.Function;
 
 import static li.cil.oc2.gametest.util.TestSupport.DEVICE_POS;
@@ -44,6 +50,10 @@ public final class CapabilityAdapterTests {
         helper.setBlock(DEVICE_POS, Blocks.COMPUTER.get());
         return Capabilities.get(blockEntity(helper), Capabilities.ITEM_HANDLER, null);
     };
+    public static final ItemOperation SIMULATED_EXTRACT = (helper, handler, slot, stack) ->
+        handler.extractItem(slot, stack.getCount(), true);
+    public static final Item LARGE_SLOT_ITEM = net.minecraft.world.item.Items.DIRT;
+    public static final int LARGE_SLOT_AMOUNT = 200;
 
     private static final long AMOUNT = 100;
     private static final Item SHULKER_BOX = net.minecraft.world.item.Items.SHULKER_BOX;
@@ -218,6 +228,40 @@ public final class CapabilityAdapterTests {
             throw new GameTestAssertException("an aborted insert must leave slot " + slot
                 + " untouched, found " + handler.getStackInSlot(slot));
         }
+        helper.succeed();
+    }
+
+    public static void extractLeavesDeviceSlotUntouched(final GameTestHelper helper, final ItemOperation extract) {
+        final ItemHandler handler = assertNotNull(helper, ITEMS.apply(helper), "item handler");
+        final AbstractVMItemStackHandlers computer = (AbstractVMItemStackHandlers)
+            ((ComputerBlockEntity) blockEntity(helper)).getItemStackHandlers();
+        final ItemStack memory = new ItemStack(Items.MEMORY_SMALL.get());
+        final int slot = acceptingSlot(handler, memory);
+        handler.insertItem(slot, memory, false);
+        final ItemStack inSlot = computer.combinedItemHandlers.getStackInSlot(slot);
+        final Set<Device> devices = Collections.newSetFromMap(new IdentityHashMap<>());
+        devices.addAll(computer.getDevices());
+
+        final ItemStack extracted = extract.apply(helper, handler, slot, inSlot.copy());
+
+        assertStack("reported extraction", extracted, memory.getItem(), 1);
+        if (computer.combinedItemHandlers.getStackInSlot(slot) != inSlot) {
+            throw new GameTestAssertException("the device slot holds a different stack: "
+                + computer.combinedItemHandlers.getStackInSlot(slot));
+        }
+        if (computer.getDevices().size() != devices.size() || !devices.containsAll(computer.getDevices())) {
+            throw new GameTestAssertException("the devices were rebuilt: " + computer.getDevices());
+        }
+        helper.succeed();
+    }
+
+    public static void extractFromLargeSlotYieldsAtMostAStack(final GameTestHelper helper, final Function<GameTestHelper, ItemHandler> largeSlot) {
+        final ItemHandler handler = assertNotNull(helper, largeSlot.apply(helper), "item handler");
+        final int stackSize = LARGE_SLOT_ITEM.getDefaultMaxStackSize();
+
+        assertStack("simulated extract", handler.extractItem(0, LARGE_SLOT_AMOUNT, true), LARGE_SLOT_ITEM, stackSize);
+        assertStack("extracted stack", handler.extractItem(0, LARGE_SLOT_AMOUNT, false), LARGE_SLOT_ITEM, stackSize);
+        assertStack("slot after extract", handler.getStackInSlot(0), LARGE_SLOT_ITEM, LARGE_SLOT_AMOUNT - stackSize);
         helper.succeed();
     }
 

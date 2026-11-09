@@ -202,7 +202,7 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
 
     protected void setBlockDevice(final BlockDevice blockDevice) throws IOException {
         assert storage != null;
-        storage.setBlockDevice(withAccessListener(blockDevice));
+        storage.setBlockDevice(withAccessListener(blockDevice), false);
     }
 
     protected MappedStorage createStorage(final VMContext context) {

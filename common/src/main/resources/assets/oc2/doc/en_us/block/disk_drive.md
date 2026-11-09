@@ -1,22 +1,18 @@
 # Disk Drive
 ![Taking it for a spin](block:oc2:disk_drive)
 
-The disk drive provides an option for quick media exchange. [Floppy disks](../item/floppy.md) can be added and removed
-at runtime, unlike [hard drives](../item/hard_drive.md).
+The disk drive provides an option for quick media exchange. [Floppy disks](../item/floppy.md) can be added and removed at runtime, unlike [hard drives](../item/hard_drive.md).
 
-Note that it is highly advisable to explicitly unmount your floppy before removing it from the drive to avoid data loss.
+Computers *have to be shut down* before installing or removing this component. Installing it while the computer is running will have no effect, removing it may lead to system errors.
 
-On a Linux system, disk drives will typically appear as `/dev/vdX` devices, following any installed hard drives. They
-are not automatically formatted or mounted, but will only appear as raw block devices. To use them, you'll need to
-configure them, first. For example, on the default Linux distribution, the following commands will be useful:
+## OpenOS II
+See the [OpenOS II guide](../systems/openos2.md) for more on drives. Disk drives appear as `/dev/vdX` devices, following any installed hard drives. Floppies are mounted automatically, at `/mnt/<label>` or at `/mnt/<n>` without a label. Run `format /dev/vdX` to format a new floppy. Close open files before removing a floppy, to avoid data loss.
 
-- `mke2fs /dev/vdX` to format a floppy disk. Run this when first installing the disk. *Will erase data on floppy!*
-- `mount /dev/vdX <mount directory>` to mount a floppy disk after formatting it. Make sure the directory you want to
-  mount it to exists and is empty.
-- `umount <mount directory>` to unmount a floppy disk. Make sure to run this before removing the floppy from the disk
-  drive, to avoid data loss.
+## Linux
+See the [Linux guide](../systems/linux.md) for more on drives. Disk drives appear as `/dev/vdX` devices, following any installed hard drives. They are not automatically formatted or mounted, they will only appear as raw block devices:
+- `mke2fs /dev/vdX` formats a floppy disk. Run this when first installing the disk. *Will erase data on floppy!*
+- `mount /dev/vdX <mount directory>` mounts a floppy disk after formatting it. Make sure the directory you want to mount it to exists and is empty.
+- `umount <mount directory>` unmounts a floppy disk. Make sure to run this before removing the floppy from the disk drive, to avoid data loss.
 
-On a CP/M system, drives are lettered in the order they are found, starting at `A:`. The disk the machine booted from always comes first.
-
-Computers *have to be shut down* before installing or removing this component. Installing it while the computer is
-running will have no effect, removing it may lead to system errors.
+## CP/M
+See the [CP/M guide](../systems/cpm.md) for more on drives. Drives are lettered in the order they are found, starting at `A:`. The disk the machine booted from always comes first.

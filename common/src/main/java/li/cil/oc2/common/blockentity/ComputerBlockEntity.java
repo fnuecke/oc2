@@ -271,6 +271,16 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         return tag;
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void removeComponentsFromTag(final CompoundTag tag) {
+        tag.remove(STATE_TAG_NAME);
+        tag.remove(TERMINAL_TAG_NAME);
+        tag.remove(ENERGY_TAG_NAME);
+        tag.remove(BUS_ELEMENT_TAG_NAME);
+        tag.remove(ITEMS_TAG_NAME);
+        tag.remove(DEVICES_TAG_NAME);
+    }
 
     @Override
     protected void saveAdditional(final CompoundTag tag, final HolderLookup.Provider registries) {
@@ -309,6 +319,7 @@ public final class ComputerBlockEntity extends ModBlockEntity implements Termina
         }
         busElement.load(tag.getCompound(BUS_ELEMENT_TAG_NAME));
 
+        deviceItems.resetDevices();
         deviceItems.loadItems(registries, tag.getCompound(ITEMS_TAG_NAME));
         deviceItems.loadDevices(tag.getCompound(DEVICES_TAG_NAME));
     }

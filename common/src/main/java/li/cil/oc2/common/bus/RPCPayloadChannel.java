@@ -94,19 +94,17 @@ final class RPCPayloadChannel {
     }
 
     void flush() {
-        if (hostToGuest == null) {
-            return;
-        }
+        if (hostToGuest != null) {
+            while (hostToGuest.hasRemaining() && device.canPutByte()) {
+                device.putByte(hostToGuest.get());
+            }
 
-        while (hostToGuest.hasRemaining() && device.canPutByte()) {
-            device.putByte(hostToGuest.get());
+            if (!hostToGuest.hasRemaining()) {
+                hostToGuest = null;
+            }
         }
 
         device.flush();
-
-        if (!hostToGuest.hasRemaining()) {
-            hostToGuest = null;
-        }
     }
 
     void reset() {

@@ -34,8 +34,8 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     private static final String TERMINAL_TAG_NAME = "terminal";
     private static final String IS_CONNECTED_TAG_NAME = "isConnected";
 
-    public static final long CLIENT_KEEPALIVE_EVERY_MILLIS = 1000;
-    private static final long CLIENT_EXPIRES_AFTER_MILLIS = 2000;
+    public static final int CLIENT_KEEPALIVE_EVERY = TickUtils.toTicks(Duration.ofSeconds(1));
+    private static final int CLIENT_EXPIRES_AFTER = TickUtils.toTicks(Duration.ofSeconds(2));
 
     private static final int RECIPIENT_REFRESH_INTERVAL = TickUtils.toTicks(Duration.ofSeconds(1));
     private static final double VIEW_DISTANCE = 8;
@@ -65,7 +65,7 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     }
 
     public void handleUsedBy(final Player player) {
-        if (users.put(player, System.currentTimeMillis()) == null) {
+        if (users.put(player, gameTime()) == null) {
             recipientRefreshCountdown = 0; // someone just opened the screen, do not make them wait
         }
     }
@@ -225,8 +225,8 @@ public final class TerminalBlockEntity extends ModBlockEntity implements Tickabl
     }
 
     private Iterable<Player> getTerminalUsers() {
-        final long now = System.currentTimeMillis();
-        users.entrySet().removeIf(entry -> now - entry.getValue() > CLIENT_EXPIRES_AFTER_MILLIS);
+        final long now = gameTime();
+        users.entrySet().removeIf(entry -> now - entry.getValue() > CLIENT_EXPIRES_AFTER);
 
         return new ArrayList<>(users.keySet());
     }

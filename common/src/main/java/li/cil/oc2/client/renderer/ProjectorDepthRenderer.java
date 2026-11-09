@@ -439,7 +439,7 @@ public final class ProjectorDepthRenderer {
         minecraft.options.entityShadows().set(false);
 
         minecraftCameraEntityBak = minecraft.getCameraEntity();
-        minecraft.setCameraEntity(ProjectorCameraEntity.get(level, Vec3.ZERO, partialTicks, 0));
+        minecraft.cameraEntity = ProjectorCameraEntity.get(level, Vec3.ZERO, partialTicks, 0);
         gameRendererMainCameraBak = minecraft.gameRenderer.mainCamera;
         minecraft.gameRenderer.mainCamera = PROJECTOR_DEPTH_CAMERA;
         prepareRenderDispatchers(minecraft, PROJECTOR_DEPTH_CAMERA);
@@ -461,7 +461,7 @@ public final class ProjectorDepthRenderer {
         ((MinecraftExt) minecraft).setMainRenderTargetOverride(null);
         minecraft.getMainRenderTarget().bindWrite(true);
 
-        minecraft.setCameraEntity(minecraftCameraEntityBak);
+        minecraft.cameraEntity = minecraftCameraEntityBak;
         minecraft.gameRenderer.mainCamera = gameRendererMainCameraBak;
         prepareRenderDispatchers(minecraft, gameRendererMainCameraBak);
 
@@ -749,7 +749,7 @@ public final class ProjectorDepthRenderer {
     private static DynamicTexture getColorBuffer(final ProjectorBlockEntity projector) {
         try {
             final RenderInfo renderInfo = RENDER_INFO.get(projector, () -> {
-                final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, false);
+                final DynamicTexture texture = new DynamicTexture(ProjectorDevice.WIDTH, ProjectorDevice.HEIGHT, true);
                 final RenderInfo info = new RenderInfo(texture);
                 info.upload();
                 projector.setFrameConsumer(info);
@@ -792,12 +792,7 @@ public final class ProjectorDepthRenderer {
 
             @Override
             void afterParticles(final Matrix4f modelViewMatrix, final Matrix4f projectionMatrix) {
-                prepareProjectorRendering(modelViewMatrix, projectionMatrix);
-            }
-
-            @Override
-            void afterLevel() {
-                if (hasPendingProjectors()) {
+                if (prepareProjectorRendering(modelViewMatrix, projectionMatrix)) {
                     compositeIntoMainTarget();
                 }
             }

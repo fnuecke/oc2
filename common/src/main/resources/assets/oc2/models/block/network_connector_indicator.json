@@ -1,0 +1,21 @@
+{
+  "textures": {
+    "indicator": "oc2:block/overlay/network_connector_glow",
+    "particle": "#indicator"
+  },
+  "elements": [
+    {
+      "from": [5.9, 6.9, 5.9],
+      "to": [10.1, 8.1, 10.1],
+      "shade": false,
+      "neoforge_data": { "block_light": 15, "sky_light": 15, "ambient_occlusion": false },
+      "faces": {
+        "up": { "texture": "#indicator", "uv": [6, 6, 10, 10] },
+        "north": { "texture": "#indicator", "uv": [6, 8, 10, 9] },
+        "south": { "texture": "#indicator", "uv": [6, 8, 10, 9] },
+        "west": { "texture": "#indicator", "uv": [6, 8, 10, 9] },
+        "east": { "texture": "#indicator", "uv": [6, 8, 10, 9] }
+      }
+    }
+  ]
+}

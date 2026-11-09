@@ -46,6 +46,7 @@ subprojects {
         exclusiveContent {
             forRepository { maven("https://fnuecke.github.io/maven") }
             filter {
+                includeModule("li.cil.oc2", "oc-openos2")
                 includeModule("li.cil.sedna", "sedna-buildroot")
                 includeModule("li.cil.sedna", "sedna-cpm")
                 includeModule("li.cil.vox2mc", "vox2mc")
@@ -64,7 +65,7 @@ subprojects {
         "minecraft"(rootProject.libs.minecraft)
         val loom = project.extensions.getByName<LoomGradleExtensionAPI>("loom")
         "mappings"(loom.layered {
-            officialMojangMappings()
+            officialMojangMappings { nameSyntheticMembers = true }
             parchment("org.parchmentmc.data:parchment-${rootProject.libs.versions.parchment.minecraft.get()}:${rootProject.libs.versions.parchment.mappings.get()}@zip")
         })
         "compileOnly"("com.google.code.findbugs:jsr305:3.0.2")

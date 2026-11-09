@@ -165,9 +165,11 @@ public final class MountFailureTests {
         final int maxBlobCount = Config.maxBlobCount;
         final int graceHours = Config.blobEvictionGraceHours;
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
+        final BlobReference blob = new BlobReference();
         try {
+            createBlob(blob);
             Config.blobEvictionGraceHours = 24 * 365;
-            Config.maxBlobCount = Math.max(1, BlobStorage.getBlobCount());
+            Config.maxBlobCount = BlobStorage.getBlobCount();
 
             final VMDeviceRegistry registry = registry();
             final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
@@ -186,10 +188,13 @@ public final class MountFailureTests {
 
             registry.unmountDevices();
             device.dispose();
+        } catch (final IOException e) {
+            throw new GameTestAssertException("Unexpected failure: " + e);
         } finally {
             Config.maxBlobCount = maxBlobCount;
             Config.blobEvictionGraceHours = graceHours;
             StorageItemUtils.clearBlobData(stack);
+            release(blob);
         }
 
         helper.succeed();

@@ -66,6 +66,6 @@ public abstract class AbstractSideConfigurationScreen extends UiScreen {
             .add(help);
         final NodeStack content = NodeStack.vertical(blockView).alignment(Align.START, Align.CENTER);
         content.add(createControls());
-        return new Window(content);
+        return new Window(Ui.section(title, content));
     }
 }

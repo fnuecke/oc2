@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.ToIntFunction;
 
 public class LabelNode extends Node {
-    private static final int LABEL_INSET = 1;
     private static final String ELLIPSIS = "...";
 
     // --------------------------------------------------------------------- //
@@ -55,7 +54,7 @@ public class LabelNode extends Node {
 
     @Override
     protected int contentWidth() {
-        return allowTruncating ? 0 : LABEL_INSET + font().width(text);
+        return allowTruncating ? 0 : font().width(text);
     }
 
     @Override
@@ -65,7 +64,7 @@ public class LabelNode extends Node {
 
     @Override
     protected void drawForeground(final UiRenderer renderer, final int mouseX, final int mouseY) {
-        renderer.text(getOrBuildComponent(), x + LABEL_INSET, y, color.applyAsInt(renderer.theme()), false);
+        renderer.text(getOrBuildComponent(), x, y, color.applyAsInt(renderer.theme()), false);
     }
 
     @Nullable
@@ -83,11 +82,10 @@ public class LabelNode extends Node {
     private Component getOrBuildComponent() {
         if (cacheKey != w || cache == null) {
             final Font font = font();
-            final int available = w - LABEL_INSET;
             cacheKey = w;
-            isTruncated = font.width(text) > available;
+            isTruncated = font.width(text) > w;
             cache = isTruncated
-                ? Component.literal(font.plainSubstrByWidth(text.getString(), available - font.width(ELLIPSIS)) + ELLIPSIS)
+                ? Component.literal(font.plainSubstrByWidth(text.getString(), w - font.width(ELLIPSIS)) + ELLIPSIS)
                 : text;
         }
         return cache;

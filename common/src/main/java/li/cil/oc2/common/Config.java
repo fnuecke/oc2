@@ -217,7 +217,7 @@ public final class Config {
         "and spoof an allowed address can inject frames, and computers can send datagrams to any UDP port on an allowed peer.",
         "Each frame adds 50 bytes of overhead, so the underlay needs a MTU of at least 1500 bytes to carry a 1450 byte guest payload."
     })
-    public static boolean vxlanEnabled = false;
+    public static boolean vxlanEnabled;
 
     @Path("admin.vxlan")
     @Comment("The local address to bind VXLAN sockets to. The default (0.0.0.0) binds to all available IPv4 interfaces. To bind to all IPv6 interfaces instead, use (::).")

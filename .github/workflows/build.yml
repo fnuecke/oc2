@@ -29,12 +29,14 @@ jobs:
         run: ./gradlew build apiJavadoc
       - name: Run game tests
         run: ./gradlew gameTest
-      - name: Upload game test results
+      - name: Upload test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: gametest-results-${{ matrix.os }}
-          path: '*/build/test-results/gameTest/*.xml'
+          name: test-results-${{ matrix.os }}
+          path: |
+            **/build/test-results/test/*.xml
+            */build/test-results/gameTest/*.xml
           if-no-files-found: error
           retention-days: 1
           overwrite: true

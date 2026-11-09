@@ -160,11 +160,12 @@
   "gui.oc2.open_configuration.capt": "Settings",
 
   "gui.oc2.internet_gateway.mode": "Internet Mode",
+  "gui.oc2.internet_gateway.address": "Address",
   "gui.oc2.internet_gateway.peer": "VXLAN Remote Peer",
   "gui.oc2.internet_gateway.port": "VXLAN Port",
   "gui.oc2.internet_gateway.vni": "VXLAN VNI",
   "gui.oc2.internet_gateway.nat": "NAT",
-  "gui.oc2.internet_gateway.vxlan": "VXLAN", 
+  "gui.oc2.internet_gateway.vxlan": "VXLAN",
 
   "manual.oc2.home": "Home",
   "manual.oc2.blocks": "Blocks",

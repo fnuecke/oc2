@@ -3,6 +3,7 @@
 package li.cil.oc2.common.network.message;
 
 import dev.architectury.networking.NetworkManager;
+import li.cil.oc2.common.Config;
 import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
 import li.cil.oc2.common.network.MessageUtils;
 import net.minecraft.core.BlockPos;
@@ -27,20 +28,22 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         settings = new InternetGatewayBlockEntity.Settings(
+            buffer.readEnum(InternetGatewayBlockEntity.InternetMode.class),
+            buffer.readInt(),
             buffer.readUtf(MAX_PEER_LENGTH),
             buffer.readVarInt(),
-            buffer.readVarInt(),
-            InternetGatewayBlockEntity.InternetMode.valueOf(buffer.readUtf())
+            buffer.readVarInt()
         );
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
+        buffer.writeEnum(settings.mode());
+        buffer.writeInt(settings.gatewayAddress());
         buffer.writeUtf(settings.vxlanPeer(), MAX_PEER_LENGTH);
         buffer.writeVarInt(settings.vxlanPort());
         buffer.writeVarInt(settings.vxlanVni());
-        buffer.writeUtf(settings.mode().name());
     }
 
     public static final class ToServer extends InternetGatewayConfigurationMessage {
@@ -54,6 +57,9 @@ public abstract class InternetGatewayConfigurationMessage extends AbstractMessag
 
         @Override
         protected void handleMessage(final NetworkManager.PacketContext context) {
+            if (settings.mode() == InternetGatewayBlockEntity.InternetMode.VXLAN && !Config.vxlanEnabled) {
+                return;
+            }
             MessageUtils.withNearbyServerBlockEntityForInteraction(context, pos,
                 InternetGatewayBlockEntity.class,
                 (player, gateway) -> gateway.setConfiguration(settings));

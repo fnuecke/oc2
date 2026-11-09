@@ -33,11 +33,14 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         VXLAN
     }
 
-    public record Settings(String vxlanPeer, int vxlanPort, int vxlanVni, InternetMode mode) {
+    public record Settings(InternetMode mode, int gatewayAddress, String vxlanPeer, int vxlanPort, int vxlanVni) {
+        private static final int DEFAULT_GATEWAY_ADDRESS = 0xC0A800FE; // 192.168.0.254
+        public static final Settings DEFAULT = new Settings(InternetMode.NAT, DEFAULT_GATEWAY_ADDRESS, "", 4789, 0);
     }
 
     private static final String OPERATIONAL_TAG_NAME = "operational";
     private static final String INTERNET_MODE_TAG_NAME = "internet_mode";
+    private static final String GATEWAY_ADDRESS_TAG_NAME = "gateway_address";
     private static final String VXLAN_PEER_TAG_NAME = "vxlan_peer";
     private static final String VXLAN_PORT_TAG_NAME = "vxlan_port";
     private static final String VXLAN_VNI_TAG_NAME = "vxlan_vni";
@@ -46,7 +49,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     private final Deque<byte[]> toInternet = new ArrayDeque<>();
     private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.internetGatewayEnergyStorage);
 
-    private Settings settings = new Settings("", 4789, 0, InternetMode.NAT);
+    private Settings settings = Settings.DEFAULT;
 
     @Nullable
     private GatewayConnection connection;
@@ -87,18 +90,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     }
 
     public void setConfiguration(final Settings settings) {
-        final InternetMode mode = settings.mode();
-        final String peer = settings.vxlanPeer();
-        final int port = settings.vxlanPort();
-        final int vni = settings.vxlanVni();
-
-        if (
-            this.settings == null ||
-            this.settings.mode() != mode ||
-            !this.settings.vxlanPeer().equals(peer) ||
-            this.settings.vxlanPort() != port ||
-            this.settings.vxlanVni() != vni
-        ) {
+        if (!settings.equals(this.settings)) {
             this.settings = settings;
 
             setChanged();
@@ -154,7 +146,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
                 .flatMap(manager -> manager.connect(this, settings))
                 .orElse(null);
             case NAT -> connection = InternetManager.getInstance()
-                .map(manager -> manager.connect(this, describeOrigin()))
+                .map(manager -> manager.connect(this, describeOrigin(), settings.gatewayAddress()))
                 .orElse(null);
         }
     }
@@ -192,10 +184,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.putBoolean(OPERATIONAL_TAG_NAME, isOperational);
-        tag.putString(INTERNET_MODE_TAG_NAME, settings.mode().name());
-        tag.putString(VXLAN_PEER_TAG_NAME, settings.vxlanPeer());
-        tag.putInt(VXLAN_PORT_TAG_NAME, settings.vxlanPort());
-        tag.putInt(VXLAN_VNI_TAG_NAME, settings.vxlanVni());
+        writeSettings(tag);
         return tag;
     }
 
@@ -204,10 +193,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         super.saveAdditional(tag, registries);
 
         tag.put(Constants.ENERGY_TAG_NAME, energy.serializeNBT());
-        tag.putString(INTERNET_MODE_TAG_NAME, settings.mode().name());
-        tag.putString(VXLAN_PEER_TAG_NAME, settings.vxlanPeer());
-        tag.putInt(VXLAN_PORT_TAG_NAME, settings.vxlanPort());
-        tag.putInt(VXLAN_VNI_TAG_NAME, settings.vxlanVni());
+        writeSettings(tag);
     }
 
     @Override
@@ -216,29 +202,32 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
         isOperational = tag.getBoolean(OPERATIONAL_TAG_NAME);
-
-        InternetMode internetMode = settings.mode();
-        String vxlanPeer = settings.vxlanPeer();
-        int vxlanPort = settings.vxlanPort();
-        int vxlanVni = settings.vxlanVni();
-
-        if (tag.contains(INTERNET_MODE_TAG_NAME)) {
-            internetMode = InternetMode.valueOf(tag.getString(INTERNET_MODE_TAG_NAME));
-        }
-        if (tag.contains(VXLAN_PEER_TAG_NAME)) {
-            vxlanPeer = tag.getString(VXLAN_PEER_TAG_NAME);
-        }
-        if (tag.contains(VXLAN_PORT_TAG_NAME)) {
-            vxlanPort = tag.getInt(VXLAN_PORT_TAG_NAME);
-        }
-        if (tag.contains(VXLAN_VNI_TAG_NAME)) {
-            vxlanVni = tag.getInt(VXLAN_VNI_TAG_NAME);
-        }
-
-        settings = new Settings(vxlanPeer, vxlanPort, vxlanVni, internetMode);
+        settings = readSettings(tag);
     }
 
     // --------------------------------------------------------------------- //
+
+    private void writeSettings(final CompoundTag tag) {
+        tag.putString(INTERNET_MODE_TAG_NAME, settings.mode().name());
+        tag.putInt(GATEWAY_ADDRESS_TAG_NAME, settings.gatewayAddress());
+        tag.putString(VXLAN_PEER_TAG_NAME, settings.vxlanPeer());
+        tag.putInt(VXLAN_PORT_TAG_NAME, settings.vxlanPort());
+        tag.putInt(VXLAN_VNI_TAG_NAME, settings.vxlanVni());
+    }
+
+    private static Settings readSettings(final CompoundTag tag) {
+        if (!tag.contains(INTERNET_MODE_TAG_NAME)) {
+            return Settings.DEFAULT; // Migration for saves pre-settings. TODO: remove in 1.21.11.
+        }
+        final InternetMode mode = Config.vxlanEnabled
+            ? InternetMode.valueOf(tag.getString(INTERNET_MODE_TAG_NAME))
+            : InternetMode.NAT;
+        return new Settings(mode,
+            tag.getInt(GATEWAY_ADDRESS_TAG_NAME),
+            tag.getString(VXLAN_PEER_TAG_NAME),
+            tag.getInt(VXLAN_PORT_TAG_NAME),
+            tag.getInt(VXLAN_VNI_TAG_NAME));
+    }
 
     private void enqueue(final Deque<byte[]> queue, final byte[] frame) {
         if (frame.length > InternetConnection.MAX_FRAME_SIZE) {

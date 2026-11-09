@@ -7,9 +7,10 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
 public final class EditBoxNode extends NodeStack {
+    public static final int TEXT_COLOR = 0xFFFFFFFF;
+
     private static final Insets PADDING = new Insets(3, 5, 3, 5);
     private static final int FIELD_HEIGHT = 9;
-    private static final int TEXT_COLOR = 0xFFFFFFFF;
 
     // --------------------------------------------------------------------- //
 

@@ -126,13 +126,14 @@ public class InternetStackIntegrationTests {
 
     @Test
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
-    public void arpProbeIsNeitherAnsweredNorClaimed() throws Exception {
-        send(arpRequest(OTHER_GUEST_MAC, 0, GATEWAY_IP));
+    public void arpProbeIsOnlyAnsweredForTheGatewayAddress() throws Exception {
+        send(arpRequest(OTHER_GUEST_MAC, 0, GUEST_IP));
+        assertTrue(pump().isEmpty(), "a probe for another address must not be answered");
 
-        for (int i = 0; i < 20; ++i) {
-            assertTrue(pump().isEmpty(), "a probe must not be answered");
-            Thread.sleep(5);
-        }
+        send(arpRequest(OTHER_GUEST_MAC, 0, GATEWAY_IP));
+        final byte[] reply = pumpUntilEtherType(ETHERTYPE_ARP);
+        assertArrayEquals(OTHER_GUEST_MAC, destinationMacOf(reply), "a probe for the gateway address must be defended");
+        assertEquals(GATEWAY_IP, arpSenderIpOf(reply));
 
         resolveGateway();
     }
@@ -437,33 +438,23 @@ public class InternetStackIntegrationTests {
 
     @Test
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
-    public void gatewayReleasesProvisionalClaim() throws Exception {
+    public void gatewayOnlyAnswersForItsOwnAddress() throws Exception {
         send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GUEST_IP));
-        pumpUntilEtherType(ETHERTYPE_ARP);
-
-        send(arpRequest(GUEST_MAC, GUEST_IP, GUEST_IP));
-        pump();
+        assertTrue(pump().isEmpty(), "the gateway must not answer for an address that is not its own");
 
         send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GATEWAY_IP));
-        assertEquals(GATEWAY_IP, arpSenderIpOf(pumpUntilEtherType(ETHERTYPE_ARP)),
-            "the gateway should let go of an address that turned out to belong to a guest");
+        assertEquals(GATEWAY_IP, arpSenderIpOf(pumpUntilEtherType(ETHERTYPE_ARP)));
     }
 
     @Test
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
-    public void gatewayDoesNotClaimAnAddressAGuestHolds() throws Exception {
-        send(arpRequest(GUEST_MAC, GUEST_IP, GUEST_IP));
-        pump();
+    public void guestClaimingTheGatewayAddressIsAnswered() throws Exception {
+        send(arpRequest(OTHER_GUEST_MAC, GATEWAY_IP, GATEWAY_IP));
+        final byte[] reply = pumpUntilEtherType(ETHERTYPE_ARP);
+        assertArrayEquals(OTHER_GUEST_MAC, destinationMacOf(reply), "the claim must be defended");
+        assertEquals(GATEWAY_IP, arpSenderIpOf(reply));
 
-        send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GUEST_IP));
-        for (final byte[] frame : pump()) {
-            assertNotEquals(ETHERTYPE_ARP, ByteBuffer.wrap(frame).getShort(12),
-                "the gateway must not answer for an address a guest holds");
-        }
-
-        send(arpRequest(OTHER_GUEST_MAC, OTHER_GUEST_IP, GATEWAY_IP));
-        assertEquals(GATEWAY_IP, arpSenderIpOf(pumpUntilEtherType(ETHERTYPE_ARP)),
-            "the gateway stopped answering for its own address");
+        resolveGateway();
     }
 
     // --------------------------------------------------------------------- //
@@ -480,7 +471,7 @@ public class InternetStackIntegrationTests {
             ports, limits, new TokenBucket(1024, 1024), () -> 1,
             new StreamSession.TcpConfig(8192, 100, 1000), timeoutNanos);
         final NetworkLayer networkLayer = new NetworkLayer(transportLayer, filter);
-        return new LinkLocalLayer(networkLayer);
+        return new LinkLocalLayer(networkLayer, GATEWAY_IP);
     }
 
     private void send(final byte[] frame) {
@@ -546,7 +537,7 @@ public class InternetStackIntegrationTests {
         final byte[] senderMac = new byte[6];
         buffer.get(senderMac);
         assertArrayEquals(gatewayMac, senderMac, "the reply should advertise the gateway's own MAC");
-        assertEquals(GATEWAY_IP, buffer.getInt(), "the gateway should answer to the address it was asked for");
+        assertEquals(GATEWAY_IP, buffer.getInt(), "the gateway should answer with its configured address");
     }
 
     private Socket connect(final short port) throws IOException, InterruptedException {

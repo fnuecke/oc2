@@ -20,7 +20,6 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.StandardProtocolFamily;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.time.Duration;
@@ -54,12 +53,12 @@ public final class VXLANManager {
     // --------------------------------------------------------------------- //
 
     private VXLANManager() throws IOException, AddressParseException {
-        final InetAddress bindAddress = parseAddress(Config.vxlanBindAddress);
+        final InetAddress bindAddress = InternetUtils.parseInetAddress(Config.vxlanBindAddress);
 
         final Set<InetAddress> parsedAllowedPeers = new HashSet<>();
         for (final String peer : Config.vxlanAllowedPeers) {
             try {
-                parsedAllowedPeers.add(parseAddress(peer));
+                parsedAllowedPeers.add(InternetUtils.parseInetAddress(peer));
             } catch (final AddressParseException e) {
                 LOGGER.warn("Ignoring invalid VXLAN allowed peer '{}'.", peer, e);
             }
@@ -136,7 +135,7 @@ public final class VXLANManager {
 
         final InetAddress address;
         try {
-            address = parseAddress(peer);
+            address = InternetUtils.parseInetAddress(peer);
         } catch (final AddressParseException e) {
             return Optional.empty();
         }
@@ -248,20 +247,6 @@ public final class VXLANManager {
                 receiveBuffer.get(HEADER_SIZE, frame);
                 connection.getAdapter().writeInternetFrame(frame);
             }
-        }
-    }
-
-    private static InetAddress parseAddress(final String value) throws AddressParseException {
-        if (!value.contains(":")) {
-            return InternetUtils.toJavaInetAddress(InternetUtils.parseIpv4Address(value)); // unchanged
-        }
-        if (value.contains("%")) {
-            throw new AddressParseException("Scoped IPv6 addresses are not supported");
-        }
-        try {
-            return InetAddress.getByName(value); // a string containing ':' is only ever parsed as a literal
-        } catch (final UnknownHostException e) {
-            throw new AddressParseException(e.getMessage());
         }
     }
 }

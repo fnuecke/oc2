@@ -102,7 +102,7 @@ public class VXLANManagerTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", " ", "garbage"})
+    @ValueSource(strings = {"", " ", "garbage", "localhost", "g:1", "[::1]", "fe80::1%1", "010.0.0.1"})
     public void connectRejectsBlankAndGarbagePeers(final String peer) {
         final VXLANManager manager = startManager();
 
@@ -348,7 +348,8 @@ public class VXLANManagerTests {
     }
 
     private static InternetGatewayBlockEntity.Settings settings(final String peer, final int port, final int vni) {
-        return new InternetGatewayBlockEntity.Settings(peer, port, vni, InternetGatewayBlockEntity.InternetMode.VXLAN);
+        return new InternetGatewayBlockEntity.Settings(InternetGatewayBlockEntity.InternetMode.VXLAN,
+            InternetGatewayBlockEntity.Settings.DEFAULT.gatewayAddress(), peer, port, vni);
     }
 
     private static byte[] vxlanDatagram(final int vni, final boolean vniValid, final byte[] frame) {

@@ -70,6 +70,7 @@ public class VXLANManagerTests {
     public void managerDoesNotStartWhenPortIsInUse() throws IOException {
         try (DatagramChannel occupyingChannel = openLoopbackChannel()) {
             configureEnabledManager();
+            Config.vxlanBindPort = ((InetSocketAddress) occupyingChannel.getLocalAddress()).getPort();
 
             VXLANManager.start();
 
@@ -126,7 +127,7 @@ public class VXLANManagerTests {
 
     @Test
     public void connectAcceptsValidInput() {
-        final VXLANManager manager = startManager();
+        final VXLANManager manager = startManager("127.0.0.1");
 
         final Optional<VXLANConnection> connection = manager.connect(null, settings("127.0.0.1", 4789, 16777215));
 
@@ -157,17 +158,17 @@ public class VXLANManagerTests {
     @Test
     public void deniedPeerDoesNotReceiveFrame() throws IOException {
         final StubAdapter adapter = new StubAdapter();
-        final VXLANManager manager = startManager();
+        final VXLANManager manager = startManager("127.0.0.1");
 
         try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
             peer.setSoTimeout(100);
-            manager.connect(adapter, settings("127.0.0.1", peer.getLocalPort(), 100)).orElseThrow();
+            assertFalse(manager.connect(adapter, settings("127.0.0.2", peer.getLocalPort(), 100)).isPresent());
             adapter.toInternet.add(new byte[]{1, 2, 3});
 
             manager.onServerTick();
 
             assertThrows(SocketTimeoutException.class, () -> peer.receive(new DatagramPacket(new byte[11], 11)));
-            assertTrue(adapter.toInternet.isEmpty());
+            assertEquals(1, adapter.toInternet.size());
         }
     }
 
@@ -245,10 +246,10 @@ public class VXLANManagerTests {
     @Test
     public void deniedSourceDoesNotDeliverDatagram() throws IOException {
         final StubAdapter adapter = new StubAdapter();
-        final VXLANManager manager = startManager();
+        final VXLANManager manager = startManager("127.0.0.1");
         manager.connect(adapter, settings("127.0.0.1", 4789, 100)).orElseThrow();
 
-        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
+        try (DatagramSocket peer = new DatagramSocket(0, InetAddress.getByName("127.0.0.2"))) {
             peer.send(new DatagramPacket(vxlanDatagram(100, true, testFrame()), 8 + 14,
                 InetAddress.getLoopbackAddress(), Config.vxlanBindPort));
 

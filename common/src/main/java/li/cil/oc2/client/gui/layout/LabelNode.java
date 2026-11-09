@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.ToIntFunction;
 
 public class LabelNode extends Node {
     private static final int LABEL_INSET = 1;
@@ -17,6 +18,7 @@ public class LabelNode extends Node {
 
     private final Component text;
     private final boolean allowTruncating;
+    private ToIntFunction<Theme> color = Theme::titleColor;
     @Nullable
     private Component cache;
     private int cacheKey = -1;
@@ -44,6 +46,13 @@ public class LabelNode extends Node {
 
     // --------------------------------------------------------------------- //
 
+    public LabelNode color(final ToIntFunction<Theme> color) {
+        this.color = color;
+        return this;
+    }
+
+    // --------------------------------------------------------------------- //
+
     @Override
     protected int contentWidth() {
         return allowTruncating ? 0 : LABEL_INSET + font().width(text);
@@ -56,7 +65,7 @@ public class LabelNode extends Node {
 
     @Override
     protected void drawForeground(final UiRenderer renderer, final int mouseX, final int mouseY) {
-        renderer.text(getOrBuildComponent(), x + LABEL_INSET, y, renderer.theme().labelColor(), false);
+        renderer.text(getOrBuildComponent(), x + LABEL_INSET, y, color.applyAsInt(renderer.theme()), false);
     }
 
     @Nullable

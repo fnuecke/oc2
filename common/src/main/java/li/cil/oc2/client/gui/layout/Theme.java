@@ -9,21 +9,23 @@ public record Theme(ResourceLocation panel,
                           ResourceLocation slot,
                           ResourceLocation inset,
                           ResourceLocation insetBlack,
+                          int titleColor,
                           int labelColor
 ) {
     public Theme {
-        if ((labelColor >>> 24) == 0) {
-            throw new IllegalArgumentException("Label color must not be fully transparent.");
+        if ((titleColor >>> 24) == 0 || (labelColor >>> 24) == 0) {
+            throw new IllegalArgumentException("Text colors must not be fully transparent.");
         }
     }
 
-    public static Theme of(final String namespace, final int labelColor) {
+    public static Theme of(final String namespace, final int titleColor, final int labelColor) {
         return new Theme(
             ResourceLocation.fromNamespaceAndPath(namespace, "ui/panel"),
             ResourceLocation.fromNamespaceAndPath(namespace, "ui/toolbar"),
             ResourceLocation.fromNamespaceAndPath(namespace, "ui/slot"),
             ResourceLocation.fromNamespaceAndPath(namespace, "ui/inset"),
             ResourceLocation.fromNamespaceAndPath(namespace, "ui/inset_black"),
+            titleColor,
             labelColor);
     }
 }

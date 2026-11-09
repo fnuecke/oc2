@@ -9,7 +9,6 @@ import li.cil.oc2.common.item.SerialInterfaceCardItem;
 import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.SerialInterfaceCardConfigurationMessage;
 import li.cil.oc2.common.serial.SerialFrame;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -22,9 +21,6 @@ import static li.cil.oc2.common.util.TranslationUtils.text;
 public final class SerialInterfaceCardScreen extends AbstractSideConfigurationScreen {
     private static final Component ADDRESS_TEXT = text("gui.{mod}.serial_interface_card.address");
 
-    private static final int ADDRESS_WIDTH = 38;
-    private static final int ADDRESS_HEIGHT = 16;
-
     // --------------------------------------------------------------------- //
 
     public SerialInterfaceCardScreen(final Player player, final InteractionHand hand) {
@@ -35,12 +31,14 @@ public final class SerialInterfaceCardScreen extends AbstractSideConfigurationSc
 
     @Override
     protected Node[] createControls() {
-        final EditBox addressBox = new EditBox(Minecraft.getInstance().font, 0, 0, ADDRESS_WIDTH, ADDRESS_HEIGHT, ADDRESS_TEXT);
+        final EditBoxNode addressNode = new EditBoxNode(ADDRESS_TEXT);
+        addressNode.width(Size.GROW);
+        final EditBox addressBox = addressNode.editBox();
         addressBox.setFilter(SerialInterfaceCardScreen::isNumber);
         addressBox.setValue(Integer.toString(SerialInterfaceCardItem.getAddress(getCard())));
         addressBox.setResponder(value -> sendAddress(addressBox, value));
         return new Node[]{
-            NodeStack.horizontal(new LabelNode(ADDRESS_TEXT), new WidgetNode(addressBox)).alignment(Align.START, Align.CENTER)
+            Ui.field(ADDRESS_TEXT, addressNode)
         };
     }
 

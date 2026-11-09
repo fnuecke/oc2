@@ -74,8 +74,8 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
         return new Window(
             NodeStack.vertical(
                 LabelNode.truncating(title),
-                Ui.section(ADDRESS_LABEL, addressNode),
-                Ui.section(BAUD_RATE_LABEL, new WidgetNode(new BaudRateButton()).width(Size.GROW))
+                Ui.field(ADDRESS_LABEL, addressNode),
+                Ui.field(BAUD_RATE_LABEL, new WidgetNode(new BaudRateButton()).width(Size.GROW))
             ).width(Size.fixed(CONTENT_WIDTH)),
             Ui.toolbar(new WidgetNode(backButton)));
     }

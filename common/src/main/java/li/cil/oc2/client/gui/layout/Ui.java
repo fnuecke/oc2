@@ -22,6 +22,10 @@ public final class Ui {
         return NodeStack.vertical(LabelNode.truncating(title), content).spacing(LABEL_GAP).width(Size.GROW);
     }
 
+    public static NodeStack field(final Component label, final Node content) {
+        return NodeStack.vertical(LabelNode.truncating(label).color(Theme::labelColor), content).spacing(LABEL_GAP).width(Size.GROW);
+    }
+
     public static NodeStack insetBlack(final Node content) {
         return NodeStack.vertical(content).padding(1).background(Theme::insetBlack);
     }

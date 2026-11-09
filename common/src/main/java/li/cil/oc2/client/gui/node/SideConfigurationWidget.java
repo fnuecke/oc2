@@ -31,7 +31,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4fStack;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -172,24 +171,19 @@ public final class SideConfigurationWidget extends AbstractWidget {
 
             final Vector3f renderRotation = toRenderRotation(rotation);
 
-            final Matrix4fStack stack = RenderSystem.getModelViewStack();
-            stack.pushMatrix();
-            stack.translate(x, y, BLOCK_RENDER_SIZE);
-            stack.rotate(fromXYZDegrees(renderRotation));
-            stack.scale(BLOCK_RENDER_SIZE, -BLOCK_RENDER_SIZE, BLOCK_RENDER_SIZE);
-            RenderSystem.applyModelViewMatrix();
+            final PoseStack poseStack = new PoseStack();
+            poseStack.translate(x, y, BLOCK_RENDER_SIZE);
+            poseStack.mulPose(fromXYZDegrees(renderRotation));
+            poseStack.scale(BLOCK_RENDER_SIZE, -BLOCK_RENDER_SIZE, BLOCK_RENDER_SIZE);
 
             final MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-            renderBlock(bufferSource);
-            renderOverlays(new PoseStack(), bufferSource);
+            renderBlock(poseStack, bufferSource);
+            renderOverlays(poseStack, bufferSource);
             bufferSource.endBatch();
-
-            stack.popMatrix();
-            RenderSystem.applyModelViewMatrix();
         }
 
-        private void renderBlock(final MultiBufferSource.BufferSource bufferSource) {
-            itemRenderer.render(computerItemStack, ItemDisplayContext.NONE, false, new PoseStack(), bufferSource, 0xF000F0, OverlayTexture.NO_OVERLAY, model);
+        private void renderBlock(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource) {
+            itemRenderer.render(computerItemStack, ItemDisplayContext.NONE, false, poseStack, bufferSource, 0xF000F0, OverlayTexture.NO_OVERLAY, model);
         }
 
         private void renderOverlays(final PoseStack poseStack, final MultiBufferSource.BufferSource bufferSource) {
@@ -200,7 +194,6 @@ public final class SideConfigurationWidget extends AbstractWidget {
                 }
 
                 poseStack.pushPose();
-                poseStack.setIdentity();
 
                 poseStack.translate(-side.getStepX() * 0.51, side.getStepY() * 0.51, -side.getStepZ() * 0.51);
 

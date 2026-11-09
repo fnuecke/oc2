@@ -12,7 +12,7 @@ import static li.cil.oc2.client.gui.Textures.*;
 public final class Sprites {
     private static final int BORDER = 8;
 
-    public static final Theme THEME = Theme.of(API.MOD_ID, 0xFF404040);
+    public static final Theme THEME = Theme.of(API.MOD_ID, 0xFF404040, 0xFFAAAAAA);
 
     public static final NineSliceSprite GENERIC_BUTTON_BASE = new NineSliceSprite(GENERIC_BUTTON_TEXTURE, 80, 20, 0, 0, BORDER);
     public static final NineSliceSprite GENERIC_BUTTON_PRESSED = new NineSliceSprite(GENERIC_BUTTON_TEXTURE, 80, 20, 0, 20, BORDER);

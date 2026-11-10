@@ -9,6 +9,6 @@ rootProject.name = "oc2_example_third_party_block"
 
 includeBuild("../..") {
     dependencySubstitution {
-        substitute(module("li.cil.oc2:oc2-1.21.1-fabric")).using(project(":fabric"))
+        substitute(module("li.cil.oc2:oc2-1.21.11-fabric")).using(project(":fabric"))
     }
 }

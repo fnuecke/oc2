@@ -13,7 +13,7 @@
     "depends": {
         "fabricloader": ">=0.19",
         "fabric-api": "*",
-        "minecraft": "1.21.1"
+        "minecraft": "1.21.11"
     },
     "suggests": {
         "oc2": "*"

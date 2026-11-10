@@ -15,7 +15,7 @@ public final class Registration implements FabricRegistrationInitializer {
     @SuppressWarnings("unchecked")
     public void registerObjects() {
         final Registry<BlockDeviceProvider> registry =
-            (Registry<BlockDeviceProvider>) BuiltInRegistries.REGISTRY.get(Registries.BLOCK_DEVICE_PROVIDER.location());
+            (Registry<BlockDeviceProvider>) BuiltInRegistries.REGISTRY.getValue(Registries.BLOCK_DEVICE_PROVIDER.identifier());
         Registry.register(registry, Identifier.fromNamespaceAndPath(MOD_ID, "furnace"), new FurnaceDeviceProvider());
     }
 }

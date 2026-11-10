@@ -12,7 +12,7 @@ rootProject.name = "oc2_example_third_party_block"
 
 includeBuild("../..") {
     dependencySubstitution {
-        substitute(module("li.cil.oc2:oc2-1.21.1-neoforge")).using(project(":neoforge"))
+        substitute(module("li.cil.oc2:oc2-1.21.11-neoforge")).using(project(":neoforge"))
     }
 }
 gradle.rootProject {

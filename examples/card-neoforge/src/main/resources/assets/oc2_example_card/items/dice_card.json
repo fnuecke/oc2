@@ -1,0 +1,6 @@
+{
+    "model": {
+        "type": "minecraft:model",
+        "model": "oc2_example_card:item/dice_card"
+    }
+}

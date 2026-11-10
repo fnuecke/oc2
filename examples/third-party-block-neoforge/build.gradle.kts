@@ -21,7 +21,7 @@ repositories {
 }
 
 neoForge {
-    version = "21.1.248"
+    version = "21.11.45"
 
     runs {
         register("client") {
@@ -41,8 +41,8 @@ neoForge {
 }
 
 dependencies {
-    implementation("li.cil.oc2:oc2-1.21.1-neoforge:0.7.1") { isTransitive = false }
+    implementation("li.cil.oc2:oc2-1.21.11-neoforge:0.7.1") { isTransitive = false }
 
-    runtimeOnly("dev.architectury:architectury-neoforge:13.0.11")
-    runtimeOnly("li.cil.markdown_manual:markdown_manual-1.21.1-neoforge:1.2.7")
+    runtimeOnly("dev.architectury:architectury-neoforge:19.0.1")
+    runtimeOnly("li.cil.markdown_manual:markdown_manual-1.21.11-neoforge:1.2.7")
 }

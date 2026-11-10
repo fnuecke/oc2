@@ -2,7 +2,6 @@ package com.example.blockentity;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
@@ -20,11 +19,10 @@ public final class ExampleMod {
         DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MOD_ID);
 
     public static final DeferredBlock<CounterBlock> COUNTER =
-        BLOCKS.register("counter", () -> new CounterBlock(BlockBehaviour.Properties.of()));
+        BLOCKS.registerBlock("counter", CounterBlock::new);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CounterBlockEntity>> COUNTER_BLOCK_ENTITY =
-        BLOCK_ENTITY_TYPES.register("counter", () ->
-            BlockEntityType.Builder.of(CounterBlockEntity::new, COUNTER.get()).build(null));
+        BLOCK_ENTITY_TYPES.register("counter", () -> new BlockEntityType<>(CounterBlockEntity::new, COUNTER.get()));
 
     public ExampleMod(final IEventBus modEventBus) {
         ITEMS.registerSimpleBlockItem(COUNTER);

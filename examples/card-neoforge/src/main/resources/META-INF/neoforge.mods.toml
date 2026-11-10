@@ -10,12 +10,12 @@ displayName = "OC2 Example: Card"
 [[dependencies.oc2_example_card]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.1,)"
+versionRange = "[21.11,)"
 
 [[dependencies.oc2_example_card]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.1]"
+versionRange = "[1.21.11]"
 
 [[dependencies.oc2_example_card]]
 modId = "oc2"

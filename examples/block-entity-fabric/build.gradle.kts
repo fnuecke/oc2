@@ -26,15 +26,15 @@ repositories {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:1.21.1")
+    minecraft("com.mojang:minecraft:1.21.11")
     mappings(loom.officialMojangMappings())
     modImplementation("net.fabricmc:fabric-loader:0.19.3")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:0.116.15+1.21.1")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:0.141.6+1.21.11")
 
-    modImplementation("li.cil.oc2:oc2-1.21.1-fabric:0.7.1") { isTransitive = false }
+    modImplementation("li.cil.oc2:oc2-1.21.11-fabric:0.7.1") { isTransitive = false }
 
-    modLocalRuntime("dev.architectury:architectury-fabric:13.0.11")
-    modLocalRuntime("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:21.1.6")
-    modLocalRuntime("teamreborn:energy:4.1.0") { isTransitive = false }
-    modLocalRuntime("li.cil.markdown_manual:markdown_manual-1.21.1-fabric:1.2.7")
+    modLocalRuntime("dev.architectury:architectury-fabric:19.0.1")
+    modLocalRuntime("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:21.11.1")
+    modLocalRuntime("teamreborn:energy:4.2.0") { isTransitive = false }
+    modLocalRuntime("li.cil.markdown_manual:markdown_manual-1.21.11-fabric:1.2.7")
 }

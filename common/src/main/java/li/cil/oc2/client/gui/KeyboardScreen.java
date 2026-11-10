@@ -15,6 +15,7 @@ import li.cil.oc2.common.network.message.KeyboardKeepAliveMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.player.LocalPlayer;
@@ -24,7 +25,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import org.lwjgl.glfw.GLFW;
 
-public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBlockEntity> {
+public final class KeyboardScreen extends Screen {
     private static final int BORDER_SIZE = 4;
     private static final float ARM_SWING_RATE = 0.8f;
     private static final int BORDER_COLOR = 0xFFFFFFFF;
@@ -33,6 +34,7 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
 
     // --------------------------------------------------------------------- //
 
+    private final KeyboardBlockEntity keyboard;
     private final IntSet pressedKeys = new IntOpenHashSet();
     private int keepAliveCountdown;
 
@@ -45,7 +47,8 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     // --------------------------------------------------------------------- //
 
     public KeyboardScreen(final KeyboardBlockEntity keyboard) {
-        super(Items.KEYBOARD.get().getName(), keyboard);
+        super(Items.KEYBOARD.get().getName());
+        this.keyboard = keyboard;
     }
 
     // --------------------------------------------------------------------- //
@@ -63,8 +66,19 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     }
 
     @Override
-    protected void safeTick() {
-        sendKeepAlive();
+    public void tick() {
+        super.tick();
+
+        if (AbstractBlockEntityScreen.isStillValid(keyboard)) {
+            sendKeepAlive();
+        } else {
+            onClose();
+        }
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
     }
 
     @Override
@@ -101,7 +115,9 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     }
 
     @Override
-    protected void renderFg(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
+        super.render(graphics, mouseX, mouseY, partialTicks);
+
         renderBorderOverlay(graphics);
 
         graphics.drawWordWrap(font, CLOSE_INFO,
@@ -141,7 +157,7 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     private void sendKeepAlive() {
         if (--keepAliveCountdown <= 0) {
             keepAliveCountdown = KeyboardDevice.USER_KEEPALIVE_EVERY;
-            Network.sendToServer(new KeyboardKeepAliveMessage(blockEntity));
+            Network.sendToServer(new KeyboardKeepAliveMessage(keyboard));
         }
     }
 
@@ -155,7 +171,7 @@ public final class KeyboardScreen extends AbstractBlockEntityScreen<KeyboardBloc
     private void sendKeyState(final int keycode, final boolean isDown) {
         if (KeyCodeMapping.MAPPING.containsKey(keycode)) {
             final int evdevCode = KeyCodeMapping.MAPPING.get(keycode);
-            Network.sendToServer(new KeyboardInputMessage(blockEntity, evdevCode, isDown));
+            Network.sendToServer(new KeyboardInputMessage(keyboard, evdevCode, isDown));
         }
     }
 

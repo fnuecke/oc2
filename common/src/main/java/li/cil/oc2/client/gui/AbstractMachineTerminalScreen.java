@@ -2,88 +2,38 @@
 
 package li.cil.oc2.client.gui;
 
-import li.cil.oc2.client.gui.util.TooltipRenderer;
-import li.cil.oc2.client.gui.widget.ImageButton;
-import li.cil.oc2.client.gui.widget.PowerButton;
-import li.cil.oc2.client.gui.widget.ToggleImageButton;
-import li.cil.oc2.common.Constants;
+import li.cil.oc2.client.gui.layout.Node;
+import li.cil.oc2.client.gui.layout.Ui;
+import li.cil.oc2.client.gui.layout.UiContainerScreen;
+import li.cil.oc2.client.gui.layout.WidgetNode;
+import li.cil.oc2.client.gui.layout.Window;
+import li.cil.oc2.client.gui.node.TerminalWidget;
 import li.cil.oc2.common.container.AbstractMachineTerminalContainer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.entity.player.Inventory;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
-
 @Environment(EnvType.CLIENT)
-public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTerminalContainer> extends AbstractModContainerScreen<T> {
-    private static final int CONTROLS_TOP = 8;
-    private static final int ENERGY_TOP = CONTROLS_TOP + Sprites.SIDEBAR_3.height + 4;
-
-    private final TerminalWidget terminalWidget;
+public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTerminalContainer> extends UiContainerScreen<T> {
+    protected final TerminalWidget terminalWidget;
 
     // --------------------------------------------------------------------- //
 
     protected AbstractMachineTerminalScreen(final T container, final Inventory playerInventory, final Component title) {
-        super(container, playerInventory, title);
-        this.terminalWidget = new TerminalWidget(new TerminalWidget.Parent() {
-            @Override
-            public int getWidth() {
-                return width;
-            }
-
-            @Override
-            public int getHeight() {
-                return height;
-            }
-
-            @Override
-            public boolean shouldRenderTerminal() {
-                return container.getVirtualMachine().isRunning();
-            }
-
-            @Override
-            public void sendTerminalInputToServer(ByteBuffer input) {
-                getMenu().sendTerminalInputToServer(input);
-            }
-        }, getMenu().getTerminal());
-        imageWidth = Sprites.TERMINAL_SCREEN.width;
-        imageHeight = Sprites.TERMINAL_SCREEN.height;
+        super(container, playerInventory, title, Sprites.THEME);
+        this.terminalWidget = new TerminalWidget(container.getTerminal(),
+            () -> container.getVirtualMachine().isRunning(),
+            () -> container.getVirtualMachine().getError(),
+            container::sendTerminalInputToServer);
     }
 
     // --------------------------------------------------------------------- //
-
-    public List<Rect2i> getExtraAreas() {
-        final List<Rect2i> list = new ArrayList<>();
-        list.add(new Rect2i(
-            leftPos - Sprites.SIDEBAR_3.width, topPos + CONTROLS_TOP,
-            Sprites.SIDEBAR_3.width, Sprites.SIDEBAR_3.height
-        ));
-
-        if (shouldRenderEnergyBar()) {
-            list.add(new Rect2i(
-                leftPos - Sprites.SIDEBAR_2.width, topPos + ENERGY_TOP,
-                Sprites.SIDEBAR_2.width, Sprites.SIDEBAR_2.height
-            ));
-        }
-
-        return list;
-    }
 
     @Override
     public void containerTick() {
@@ -94,7 +44,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
     @Override
     public boolean mouseClicked(final MouseButtonEvent event, final boolean isDoubleClick) {
-        return terminalWidget.mouseClicked(event) ||
+        return terminalWidget.mouseClicked(event, isDoubleClick) ||
             super.mouseClicked(event, isDoubleClick);
     }
 
@@ -106,7 +56,7 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
 
     @Override
     public boolean mouseScrolled(final double mouseX, final double mouseY, final double deltaX, final double deltaY) {
-        return terminalWidget.mouseScrolled(mouseX, mouseY, deltaY) ||
+        return terminalWidget.mouseScrolled(mouseX, mouseY, deltaX, deltaY) ||
             super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
     }
 
@@ -131,111 +81,30 @@ public abstract class AbstractMachineTerminalScreen<T extends AbstractMachineTer
         return super.keyPressed(event);
     }
 
+    // --------------------------------------------------------------------- //
+
+    protected Node createContent() {
+        return Ui.insetBlack(new WidgetNode(terminalWidget));
+    }
+
     @Override
-    public void init() {
+    protected Window createWindow() {
+        return new Window(createContent(), MachineScreens.toolbar(menu,
+            InputCapture.button(),
+            MachineScreens.openInventoryButton(menu)));
+    }
+
+    @Override
+    protected void init() {
         super.init();
-        terminalWidget.init();
 
         final EditBox focusIndicatorEditBox = new EditBox(font, 0, 0, 0, 0, CommonComponents.EMPTY);
         focusIndicatorEditBox.setFocused(true);
         setFocusIndicatorEditBox(focusIndicatorEditBox);
-
-        addRenderableWidget(new PowerButton(leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4, menu));
-
-        addRenderableWidget(new ToggleImageButton(
-            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14,
-            12, 12,
-            Sprites.INPUT_BUTTON_BASE,
-            Sprites.INPUT_BUTTON_PRESSED,
-            Sprites.INPUT_BUTTON_ACTIVE
-        ) {
-            @Override
-            public void onPress(final InputWithModifiers input) {
-                super.onPress(input);
-                InputCapture.toggle();
-            }
-
-            @Override
-            public boolean isToggled() {
-                return InputCapture.isEnabled();
-            }
-        }).withTooltip(
-            Component.translatable(Constants.TERMINAL_CAPTURE_INPUT_CAPTION),
-            Component.translatable(Constants.TERMINAL_CAPTURE_INPUT_DESCRIPTION)
-        );
-
-        addRenderableWidget(new ImageButton(
-            leftPos - Sprites.SIDEBAR_3.width + 4, topPos + CONTROLS_TOP + 4 + 14 + 14,
-            12, 12,
-            Sprites.INVENTORY_BUTTON_INACTIVE,
-            Sprites.INVENTORY_BUTTON_ACTIVE
-        ) {
-            @Override
-            public void onPress(final InputWithModifiers input) {
-                menu.switchToInventory();
-            }
-        }).withTooltip(Component.translatable(Constants.MACHINE_OPEN_INVENTORY_CAPTION));
     }
-
-    // --------------------------------------------------------------------- //
 
     // We use this text box to indicate to Forge that we want all input, and event handlers should not be allowed
     // to steal input from us (e.g. via custom key bindings). Since Forge is lazy and just uses getDeclaredFields
     // to get private fields, which completely skips fields in base classes, we require subclasses to hold the field...
     protected abstract void setFocusIndicatorEditBox(final EditBox editBox);
-
-    @Override
-    protected void renderFg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {
-        super.renderFg(graphics, partialTicks, mouseX, mouseY);
-
-        if (shouldRenderEnergyBar()) {
-            final int x = leftPos - Sprites.SIDEBAR_2.width + 4;
-            final int y = topPos + ENERGY_TOP + 4;
-            Sprites.ENERGY_BAR.drawFillY(graphics, x, y, menu.getEnergy() / (float) menu.getEnergyCapacity());
-        }
-
-        terminalWidget.render(graphics, mouseX, mouseY, menu.getVirtualMachine().getError());
-    }
-
-    @Override
-    protected void renderBg(final GuiGraphics graphics, final float partialTicks, final int mouseX, final int mouseY) {
-        Sprites.SIDEBAR_3.draw(graphics, leftPos - Sprites.SIDEBAR_3.width, topPos + CONTROLS_TOP);
-
-        if (shouldRenderEnergyBar()) {
-            final int x = leftPos - Sprites.SIDEBAR_2.width;
-            final int y = topPos + ENERGY_TOP;
-            Sprites.SIDEBAR_2.draw(graphics, x, y);
-            Sprites.ENERGY_BASE.draw(graphics, x + 4, y + 4);
-        }
-
-        terminalWidget.renderBackground(graphics, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderTooltip(final GuiGraphics graphics, final int mouseX, final int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
-
-        if (shouldRenderEnergyBar()) {
-            if (isMouseOver(mouseX, mouseY, -Sprites.SIDEBAR_2.width + 4, ENERGY_TOP + 4, Sprites.ENERGY_BAR.width, Sprites.ENERGY_BAR.height)) {
-                final List<? extends FormattedText> tooltip = asList(
-                    Component.translatable(Constants.TOOLTIP_ENERGY,
-                        withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
-                    Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION,
-                        withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))
-                );
-                TooltipRenderer.drawTooltip(graphics, tooltip, mouseX, mouseY, 200);
-            }
-        }
-    }
-
-    @Override
-    protected void renderLabels(final GuiGraphics graphics, final int mouseX, final int mouseY) {
-        // This is required to prevent the labels from being rendered
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private boolean shouldRenderEnergyBar() {
-        return menu.getEnergyCapacity() > 0;
-    }
 }

@@ -13,10 +13,8 @@ import javax.annotation.Nullable;
 
 public abstract class AbstractContainer extends AbstractContainerMenu {
     protected static final int HOTBAR_SIZE = 9;
-    protected static final int SLOT_SIZE = 18;
     protected static final int PLAYER_INVENTORY_ROWS = 3;
     protected static final int PLAYER_INVENTORY_COLUMNS = 9;
-    protected static final int PLAYER_INVENTORY_HOTBAR_SPACING = 4;
 
     public AbstractContainer(@Nullable final MenuType<?> type, final int id) {
         super(type, id);
@@ -109,48 +107,10 @@ public abstract class AbstractContainer extends AbstractContainerMenu {
         return from.getItem().getCount() < stack.getCount() ? from.getItem() : ItemStack.EMPTY;
     }
 
-    protected int createPlayerInventoryAndHotbarSlots(final Inventory inventory, final int startX, final int startY) {
-        final int nextIndex = createHotbarSlots(inventory, 0, startX, startY + PLAYER_INVENTORY_ROWS * SLOT_SIZE + PLAYER_INVENTORY_HOTBAR_SPACING);
-        return createPlayerInventorySlots(inventory, nextIndex, startX, startY);
-    }
-
-    protected int createPlayerInventorySlots(final Inventory inventory, final int startIndex, final int startX, final int startY) {
-        for (int row = 0; row < PLAYER_INVENTORY_ROWS; ++row) {
-            for (int column = 0; column < PLAYER_INVENTORY_COLUMNS; ++column) {
-                final int index = startIndex + row * PLAYER_INVENTORY_COLUMNS + column;
-                final int x = startX + column * SLOT_SIZE;
-                final int y = startY + row * SLOT_SIZE;
-
-                final Slot slot;
-                if (isSlotLocked(inventory, index)) {
-                    slot = new LockedSlot(inventory, index, x, y);
-                } else {
-                    slot = new Slot(inventory, index, x, y);
-                }
-
-                this.addSlot(slot);
-            }
+    protected void createPlayerInventorySlots(final Inventory inventory) {
+        for (int index = 0; index < HOTBAR_SIZE + PLAYER_INVENTORY_ROWS * PLAYER_INVENTORY_COLUMNS; index++) {
+            addSlot(isSlotLocked(inventory, index) ? new LockedSlot(inventory, index, 0, 0) : new Slot(inventory, index, 0, 0));
         }
-
-        return startIndex + PLAYER_INVENTORY_ROWS * PLAYER_INVENTORY_COLUMNS;
-    }
-
-    protected int createHotbarSlots(final Inventory inventory, final int startIndex, final int startX, final int startY) {
-        for (int i = 0; i < HOTBAR_SIZE; ++i) {
-            final int index = startIndex + i;
-            final int x = startX + i * SLOT_SIZE;
-
-            final Slot slot;
-            if (isSlotLocked(inventory, index)) {
-                slot = new LockedSlot(inventory, index, x, startY);
-            } else {
-                slot = new Slot(inventory, index, x, startY);
-            }
-
-            this.addSlot(slot);
-        }
-
-        return startIndex + HOTBAR_SIZE;
     }
 
     protected boolean isSlotLocked(final Inventory inventory, final int slot) {

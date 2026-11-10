@@ -2,6 +2,7 @@
 
 package li.cil.oc2.client.gui;
 
+import li.cil.oc2.client.gui.layout.*;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.blockentity.BusCableBlockEntity;
@@ -10,9 +11,7 @@ import li.cil.oc2.common.network.Network;
 import li.cil.oc2.common.network.message.BusInterfaceNameMessage;
 import li.cil.sedna.api.device.bus.DeviceDescription;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.core.Direction;
@@ -22,20 +21,15 @@ import org.lwjgl.glfw.GLFW;
 
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
-public final class BusInterfaceScreen extends Screen {
-    private static final int TEXT_LEFT = 9;
-    private static final int TEXT_TOP = 11;
-    private static final int CONFIRM_LEFT = 206;
-    private static final int CONFIRM_TOP = 9;
-    private static final int CANCEL_LEFT = 219;
-    private static final int CANCEL_TOP = 9;
+public final class BusInterfaceScreen extends UiScreen {
+    private static final int NAME_WIDTH = 198;
+
+    // --------------------------------------------------------------------- //
 
     private final BusCableBlockEntity busCable;
     private final Direction side;
-
-    private EditBox nameField;
-
-    private int left, top;
+    private final EditBoxNode nameNode;
+    private final EditBox nameField;
 
     // --------------------------------------------------------------------- //
 
@@ -46,57 +40,20 @@ public final class BusInterfaceScreen extends Screen {
     // --------------------------------------------------------------------- //
 
     public BusInterfaceScreen(final BusCableBlockEntity busCable, final Direction side) {
-        super(Items.BUS_INTERFACE.get().getName());
+        super(Items.BUS_INTERFACE.get().getName(), Sprites.THEME);
         this.busCable = busCable;
         this.side = side;
-    }
 
-    // --------------------------------------------------------------------- //
-
-    @Override
-    protected void init() {
-        super.init();
-
-        left = (width - Sprites.BUS_INTERFACE_SCREEN.width) / 2;
-        top = (height - Sprites.BUS_INTERFACE_SCREEN.height) / 2;
-
-        nameField = new EditBox(font, left + TEXT_LEFT, top + TEXT_TOP, 192, 12, text("{mod}.gui.bus_interface_name"));
+        nameNode = new EditBoxNode(text("{mod}.gui.bus_interface_name"));
+        nameNode.width(Size.fixed(NAME_WIDTH));
+        nameField = nameNode.editBox();
         nameField.setCanLoseFocus(false);
-        nameField.setTextColor(0xFFFFFFFF);
-        nameField.setBordered(false);
         nameField.setMaxLength(32);
         nameField.setFilter(value -> value.isEmpty() || DeviceDescription.isValidName(value));
         nameField.setValue(busCable.getInterfaceName(side));
-        addWidget(nameField);
-        setInitialFocus(nameField);
-
-        addRenderableWidget(new ImageButton(
-            left + CONFIRM_LEFT, top + CONFIRM_TOP,
-            Sprites.CONFIRM_BASE.width, Sprites.CONFIRM_BASE.height,
-            Sprites.CONFIRM_BASE,
-            Sprites.CONFIRM_PRESSED
-        ) {
-            @Override
-            public void onPress(final InputWithModifiers input) {
-                super.onPress(input);
-                setInterfaceName(nameField.getValue());
-                onClose();
-            }
-        }).withTooltip(Component.translatable(Constants.TOOLTIP_CONFIRM));
-
-        addRenderableWidget(new ImageButton(
-            left + CANCEL_LEFT, top + CANCEL_TOP,
-            Sprites.CANCEL_BASE.width, Sprites.CANCEL_BASE.height,
-            Sprites.CANCEL_BASE,
-            Sprites.CANCEL_PRESSED
-        ) {
-            @Override
-            public void onPress(final InputWithModifiers input) {
-                super.onPress(input);
-                onClose();
-            }
-        }).withTooltip(Component.translatable(Constants.TOOLTIP_CANCEL));
     }
+
+    // --------------------------------------------------------------------- //
 
     @Override
     public void tick() {
@@ -122,22 +79,48 @@ public final class BusInterfaceScreen extends Screen {
         return nameField.keyPressed(event) || super.keyPressed(event);
     }
 
+    // --------------------------------------------------------------------- //
+
     @Override
-    public void renderBackground(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        renderTransparentBackground(graphics);
-        Sprites.BUS_INTERFACE_SCREEN.draw(graphics, left, top);
+    protected Window createWindow() {
+        final ImageButton confirmButton = new ImageButton(0, 0,
+            Sprites.CONFIRM_BASE.width, Sprites.CONFIRM_BASE.height,
+            Sprites.CONFIRM_BASE,
+            Sprites.CONFIRM_PRESSED
+        ) {
+            @Override
+            public void onPress(final InputWithModifiers input) {
+                super.onPress(input);
+                setInterfaceName(nameField.getValue());
+                onClose();
+            }
+        };
+        confirmButton.withTooltip(Component.translatable(Constants.TOOLTIP_CONFIRM));
+
+        final ImageButton cancelButton = new ImageButton(0, 0,
+            Sprites.CANCEL_BASE.width, Sprites.CANCEL_BASE.height,
+            Sprites.CANCEL_BASE,
+            Sprites.CANCEL_PRESSED
+        ) {
+            @Override
+            public void onPress(final InputWithModifiers input) {
+                super.onPress(input);
+                onClose();
+            }
+        };
+        cancelButton.withTooltip(Component.translatable(Constants.TOOLTIP_CANCEL));
+
+        return new Window(NodeStack.horizontal(
+            nameNode,
+            new WidgetNode(confirmButton),
+            new WidgetNode(cancelButton)
+        ).alignment(Align.START, Align.CENTER));
     }
 
     @Override
-    public void render(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        super.render(graphics, mouseX, mouseY, partialTicks);
-
-        nameField.render(graphics, mouseX, mouseY, partialTicks);
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
+    protected void init() {
+        super.init();
+        setInitialFocus(nameField);
     }
 
     // --------------------------------------------------------------------- //

@@ -159,6 +159,14 @@
 
   "gui.oc2.open_configuration.capt": "Settings",
 
+  "gui.oc2.internet_gateway.mode": "Internet Mode",
+  "gui.oc2.internet_gateway.address": "Address",
+  "gui.oc2.internet_gateway.peer": "VXLAN Remote Peer",
+  "gui.oc2.internet_gateway.port": "VXLAN Port",
+  "gui.oc2.internet_gateway.vni": "VXLAN VNI",
+  "gui.oc2.internet_gateway.nat": "NAT",
+  "gui.oc2.internet_gateway.vxlan": "VXLAN",
+
   "manual.oc2.home": "Home",
   "manual.oc2.blocks": "Blocks",
   "manual.oc2.items": "Items",
@@ -174,12 +182,11 @@
 
   "tooltip.oc2.device_needs_reboot": "Requires reboot",
   "tooltip.oc2.can_be_configured": "Can be configured",
-  "tooltip.oc2.flash_memory_missing": "A flash memory containing a firmware is required to boot.",
-  "tooltip.oc2.memory_missing": "Some memory is required to load the flash memory for execution to boot.",
-  "tooltip.oc2.hard_drive_missing": "Most systems will require a root file system to boot.",
+  "tooltip.oc2.device_required": "Missing %s, required to boot.",
+  "tooltip.oc2.device_suggested": "Missing %s, usually needed to boot.",
   "tooltip.oc2.energy": "Energy: %s",
   "tooltip.oc2.energyConsumption": "Energy Consumption: %s/t",
-  "tooltip.oc2.fluid": "%s: %s",
+  "tooltip.oc2.fluid": "%1$s: %2$s",
   "tooltip.oc2.fluid_empty": "Empty",
   "tooltip.oc2.data_corrupted": "Data Corrupted",
   "tooltip.oc2.data_corrupted.hint": "Bit rot has claimed the contents of this device. Craft it together with a wrench to format it.",

@@ -90,7 +90,7 @@ public abstract class ImageButton extends AbstractButton {
             }
 
             if ((System.currentTimeMillis() - hoveringStartedAt) > TOOLTIP_DELAY) {
-                TooltipRenderer.drawTooltip(graphics, lines, mouseX, mouseY, 200);
+                TooltipRenderer.setTooltip(graphics, lines, mouseX, mouseY, 200);
             }
         } else {
             hoveringStartedAt = 0;

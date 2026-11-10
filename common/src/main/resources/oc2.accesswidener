@@ -30,3 +30,5 @@ accessible	class	net/minecraft/client/gui/screens/MenuScreens$ScreenConstructor
 accessible	field	net/minecraft/world/item/crafting/ShapelessRecipe	ingredients	Ljava/util/List;
 accessible	method	net/minecraft/server/level/ServerPlayerGameMode	setGameModeForPlayer	(Lnet/minecraft/world/level/GameType;Lnet/minecraft/world/level/GameType;)V
 accessible	field	net/minecraft/client/gui/GuiGraphics	guiRenderState	Lnet/minecraft/client/gui/render/state/GuiRenderState;
+mutable	field	net/minecraft/world/inventory/Slot	x	I
+mutable	field	net/minecraft/world/inventory/Slot	y	I

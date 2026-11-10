@@ -2,15 +2,20 @@
 
 package li.cil.oc2.common.blockentity;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import li.cil.oc2.api.capabilities.NetworkInterface;
 import li.cil.oc2.common.Config;
 import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.capabilities.Capabilities;
 import li.cil.oc2.common.energy.FixedEnergyHandler;
+import li.cil.oc2.common.inet.GatewayConnection;
 import li.cil.oc2.common.inet.InternetAdapter;
 import li.cil.oc2.common.inet.InternetConnection;
 import li.cil.oc2.common.inet.InternetManager;
+import li.cil.oc2.common.inet.vxlan.VXLANManager;
 import li.cil.oc2.common.network.Network;
+import li.cil.oc2.common.network.message.InternetGatewayConfigurationMessage;
 import li.cil.oc2.common.network.message.InternetGatewayStateMessage;
 import li.cil.oc2.common.util.ChunkUtils;
 import net.minecraft.core.BlockPos;
@@ -27,15 +32,48 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public final class InternetGatewayBlockEntity extends ModBlockEntity implements NetworkInterface, InternetAdapter, TickableBlockEntity {
+    public enum InternetMode {
+        NAT,
+        VXLAN
+    }
+
+    public record Settings(InternetMode mode, int gatewayAddress, String vxlanPeer, int vxlanPort, int vxlanVni) {
+        private static final int DEFAULT_GATEWAY_ADDRESS = 0xC0A800FE; // 192.168.0.254
+
+        public static Settings defaults() {
+            final String peer = Config.vxlanAllowedPeers.isEmpty() ? "" : Config.vxlanAllowedPeers.getFirst();
+            return new Settings(InternetMode.NAT, DEFAULT_GATEWAY_ADDRESS, peer, 4789, 0);
+        }
+    }
+
+    private static final int ENERGY_SYNC_INTERVAL = 20;
+
     private static final String OPERATIONAL_TAG_NAME = "operational";
+    private static final String SYNCED_ENERGY_TAG_NAME = "synced_energy";
+    private static final String SETTINGS_TAG_NAME = "settings";
+    private static final String INTERNET_MODE_TAG_NAME = "internet_mode";
+    private static final String GATEWAY_ADDRESS_TAG_NAME = "gateway_address";
+    private static final String VXLAN_PEER_TAG_NAME = "vxlan_peer";
+    private static final String VXLAN_PORT_TAG_NAME = "vxlan_port";
+    private static final String VXLAN_VNI_TAG_NAME = "vxlan_vni";
+    private static final Codec<Settings> SETTINGS_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+        Codec.STRING.xmap(InternetMode::valueOf, InternetMode::name).fieldOf(INTERNET_MODE_TAG_NAME).forGetter(Settings::mode),
+        Codec.INT.fieldOf(GATEWAY_ADDRESS_TAG_NAME).forGetter(Settings::gatewayAddress),
+        Codec.STRING.fieldOf(VXLAN_PEER_TAG_NAME).forGetter(Settings::vxlanPeer),
+        Codec.INT.fieldOf(VXLAN_PORT_TAG_NAME).forGetter(Settings::vxlanPort),
+        Codec.INT.fieldOf(VXLAN_VNI_TAG_NAME).forGetter(Settings::vxlanVni)
+    ).apply(instance, Settings::new));
 
     private final Deque<byte[]> toNetwork = new ArrayDeque<>();
     private final Deque<byte[]> toInternet = new ArrayDeque<>();
     private final FixedEnergyHandler energy = new FixedEnergyHandler(Config.internetGatewayEnergyStorage);
 
+    private Settings settings = Settings.defaults();
+
     @Nullable
-    private InternetConnection connection;
+    private GatewayConnection connection;
     private boolean isOperational;
+    private long syncedEnergy;
 
     // --------------------------------------------------------------------- //
 
@@ -50,16 +88,47 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         return isOperational;
     }
 
-    public void setOperationalClient(final boolean value) {
-        isOperational = value;
+    public long getEnergyStoredClient() {
+        return syncedEnergy;
+    }
+
+    public void setStateClient(final boolean isOperational, final long energy) {
+        this.isOperational = isOperational;
+        this.syncedEnergy = energy;
     }
 
     @Override
     public void serverTick() {
-        final boolean value = computeIsOperational();
-        if (value != isOperational) {
-            isOperational = value;
-            Network.sendToClientsTrackingBlockEntity(new InternetGatewayStateMessage(this, isOperational), this);
+        final boolean newIsOperational = computeIsOperational();
+        final long energy = this.energy.getEnergyStored();
+        final long newSyncedEnergy = level.getGameTime() % ENERGY_SYNC_INTERVAL == 0 ? energy : syncedEnergy;
+        if (newIsOperational != isOperational || newSyncedEnergy != syncedEnergy) {
+            isOperational = newIsOperational;
+            syncedEnergy = newSyncedEnergy;
+            Network.sendToClientsTrackingBlockEntity(new InternetGatewayStateMessage(this, isOperational, syncedEnergy), this);
+        }
+    }
+
+    public Settings getSettings() {
+        return settings;
+    }
+
+    public void setConfigurationClient(final Settings settings) {
+        this.settings = settings;
+    }
+
+    public void setConfiguration(final Settings settings) {
+        if (!settings.equals(this.settings)) {
+            this.settings = settings;
+
+            setChanged();
+            stop();
+            load();
+
+            Network.sendToClientsTrackingBlockEntity(
+                new InternetGatewayConfigurationMessage.ToClient(this, settings),
+                this
+            );
         }
     }
 
@@ -99,22 +168,37 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
     // --------------------------------------------------------------------- //
 
-    @Override
-    protected void loadServer() {
-        super.loadServer();
-        InternetManager.getInstance().ifPresent(manager -> connection = manager.connect(this, describeOrigin()));
+    private void load() {
+        switch (settings.mode()) {
+            case VXLAN -> connection = VXLANManager.getInstance()
+                .flatMap(manager -> manager.connect(this, settings))
+                .orElse(null);
+            case NAT -> connection = InternetManager.getInstance()
+                .map(manager -> manager.connect(this, describeOrigin(), settings.gatewayAddress()))
+                .orElse(null);
+        }
     }
 
     @Override
-    protected void unloadServer(final boolean isDestroyed) {
-        super.unloadServer(isDestroyed);
-        final InternetConnection connection = this.connection;
+    protected void loadServer() {
+        super.loadServer();
+        load();
+    }
+
+    private void stop() {
+        final GatewayConnection connection = this.connection;
         if (connection != null) {
             connection.stop();
             this.connection = null;
         }
         toNetwork.clear();
         toInternet.clear();
+    }
+
+    @Override
+    protected void unloadServer(final boolean isDestroyed) {
+        super.unloadServer(isDestroyed);
+        stop();
     }
 
     @Override
@@ -128,7 +212,8 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.putBoolean(OPERATIONAL_TAG_NAME, isOperational);
-
+        tag.putLong(SYNCED_ENERGY_TAG_NAME, syncedEnergy);
+        tag.store(SETTINGS_TAG_NAME, SETTINGS_CODEC, settings);
         return tag;
     }
 
@@ -137,6 +222,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         super.saveAdditional(output);
 
         energy.serialize(output.child(Constants.ENERGY_TAG_NAME));
+        output.store(SETTINGS_TAG_NAME, SETTINGS_CODEC, settings);
     }
 
     @Override
@@ -145,6 +231,10 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
         energy.deserialize(input.childOrEmpty(Constants.ENERGY_TAG_NAME));
         isOperational = input.getBooleanOr(OPERATIONAL_TAG_NAME, false);
+        syncedEnergy = input.getLongOr(SYNCED_ENERGY_TAG_NAME, 0);
+        settings = input.read(SETTINGS_TAG_NAME, SETTINGS_CODEC)
+            .map(value -> Config.isVxlanEnabled() ? value : new Settings(InternetMode.NAT, value.gatewayAddress(), value.vxlanPeer(), value.vxlanPort(), value.vxlanVni()))
+            .orElseGet(Settings::defaults);
     }
 
     // --------------------------------------------------------------------- //

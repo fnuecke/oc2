@@ -180,7 +180,7 @@ public final class BlockDeviceDataRegistry {
         setDatapackData(Map.of());
     }
 
-    private static void reload(final ResourceManager resourceManager) {
+    private static Map<Identifier, DatapackBlockDeviceData> load(final ResourceManager resourceManager) {
         final Map<Identifier, DatapackBlockDeviceData> values = new LinkedHashMap<>();
 
         LOGGER.info("Searching for datapack block devices...");
@@ -219,7 +219,7 @@ public final class BlockDeviceDataRegistry {
             }
         }
 
-        setDatapackData(values);
+        return values;
     }
 
     private static void setDatapackData(Map<Identifier, DatapackBlockDeviceData> values) {
@@ -248,9 +248,12 @@ public final class BlockDeviceDataRegistry {
         @Override
         public CompletableFuture<Void> reload(final SharedState sharedState, final Executor backgroundExecutor, final PreparationBarrier stage, final Executor gameExecutor) {
             return CompletableFuture
-                .runAsync(() -> BlockDeviceDataRegistry.reload(sharedState.resourceManager()), backgroundExecutor)
+                .supplyAsync(() -> BlockDeviceDataRegistry.load(sharedState.resourceManager()), backgroundExecutor)
                 .thenCompose(stage::wait)
-                .thenRun(BlockDeviceDataRegistry::sendToPlayers);
+                .thenAcceptAsync(values -> {
+                    setDatapackData(values);
+                    sendToPlayers();
+                }, gameExecutor);
         }
     }
 

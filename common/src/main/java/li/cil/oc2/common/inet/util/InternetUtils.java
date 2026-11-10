@@ -2,6 +2,8 @@
 
 package li.cil.oc2.common.inet.util;
 
+import com.google.common.net.InetAddresses;
+
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -99,6 +101,18 @@ public final class InternetUtils {
             address = (address << 8) | octet;
         }
         return address;
+    }
+
+    public static InetAddress parseInetAddress(final String string) throws AddressParseException {
+        if (string.contains("%")) {
+            throw new AddressParseException("Scoped IPv6 addresses are not supported: " + string);
+        }
+        try {
+            // Do NOT switch this to something that does name lookups, called from server thread!
+            return InetAddresses.forString(string);
+        } catch (final IllegalArgumentException e) {
+            throw new AddressParseException("Not an IP address: " + string);
+        }
     }
 
     // --------------------------------------------------------------------- //

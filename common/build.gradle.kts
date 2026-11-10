@@ -38,6 +38,8 @@ dependencies {
 }
 
 registerBlockModelsTask()
+registerLangTranslationTasks()
+registerManualTranslationTasks()
 
 tasks {
     register<Zip>("packageScripts") {

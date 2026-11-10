@@ -3,6 +3,7 @@
 package li.cil.oc2.common.block;
 
 import com.mojang.serialization.MapCodec;
+import li.cil.oc2.client.gui.InternetGatewayConfigurationScreen;
 import li.cil.oc2.common.blockentity.BlockEntities;
 import li.cil.oc2.common.blockentity.InternetGatewayBlockEntity;
 import li.cil.oc2.common.blockentity.TickableBlockEntity;
@@ -11,6 +12,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -23,6 +26,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
 
@@ -51,6 +55,20 @@ public final class InternetGatewayBlock extends HorizontalDirectionalBlock imple
     @Override
     public BlockState getStateForPlacement(final BlockPlaceContext context) {
         return super.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(final BlockState state, final Level level, final BlockPos pos, final Player player, final BlockHitResult hit) {
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof final InternetGatewayBlockEntity gateway) {
+            if (level.isClientSide()) {
+                InternetGatewayConfigurationScreen.open(gateway);
+            }
+
+            return InteractionResult.SUCCESS;
+        }
+
+        return super.useWithoutItem(state, level, pos, player, hit);
     }
 
     @Override

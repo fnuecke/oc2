@@ -57,6 +57,8 @@ public final class Network {
         registerMessage(ChargerStateMessage.class, ChargerStateMessage::new, NetworkManager.serverToClient());
         registerMessage(NetworkConnectorConnectionsMessage.class, NetworkConnectorConnectionsMessage::new, NetworkManager.serverToClient());
         registerMessage(InternetGatewayStateMessage.class, InternetGatewayStateMessage::new, NetworkManager.serverToClient());
+        registerMessage(InternetGatewayConfigurationMessage.ToServer.class, InternetGatewayConfigurationMessage.ToServer::new, NetworkManager.clientToServer());
+        registerMessage(InternetGatewayConfigurationMessage.ToClient.class, InternetGatewayConfigurationMessage.ToClient::new, NetworkManager.serverToClient());
         registerMessage(DiskDriveFloppyMessage.class, DiskDriveFloppyMessage::new, NetworkManager.serverToClient());
         registerMessage(FlashDriveFlashMemoryMessage.class, FlashDriveFlashMemoryMessage::new, NetworkManager.serverToClient());
 

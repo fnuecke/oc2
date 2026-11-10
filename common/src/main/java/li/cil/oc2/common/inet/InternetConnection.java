@@ -13,7 +13,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class InternetConnection {
+public final class InternetConnection implements GatewayConnection {
     public static final int FRAME_QUEUE_SIZE = 64;
     public static final int MAX_FRAME_SIZE = LinkLocalLayer.FRAME_SIZE;
 
@@ -41,6 +41,7 @@ public final class InternetConnection {
 
     // --------------------------------------------------------------------- //
 
+    @Override
     public void stop() {
         stopRequested.set(true);
     }

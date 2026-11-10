@@ -3,6 +3,7 @@
 package li.cil.oc2.common.neoforge;
 
 import li.cil.oc2.api.API;
+import li.cil.oc2.client.gui.DeviceHints;
 import li.cil.oc2.client.manual.Manuals;
 import li.cil.oc2.common.Main;
 import net.neoforged.api.distmarker.Dist;
@@ -20,6 +21,7 @@ public final class MainNeoForge {
         Main.initialize();
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             Manuals.initialize();
+            DeviceHints.initialize();
         }
     }
 }

@@ -11,12 +11,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 public final class InternetGatewayStateMessage extends AbstractMessage {
     private BlockPos pos;
     private boolean isOperational;
+    private long energy;
 
     // --------------------------------------------------------------------- //
 
-    public InternetGatewayStateMessage(final InternetGatewayBlockEntity gateway, final boolean isOperational) {
+    public InternetGatewayStateMessage(final InternetGatewayBlockEntity gateway, final boolean isOperational, final long energy) {
         this.pos = gateway.getBlockPos();
         this.isOperational = isOperational;
+        this.energy = energy;
     }
 
     public InternetGatewayStateMessage(final RegistryFriendlyByteBuf buffer) {
@@ -29,12 +31,14 @@ public final class InternetGatewayStateMessage extends AbstractMessage {
     public void fromBytes(final RegistryFriendlyByteBuf buffer) {
         pos = buffer.readBlockPos();
         isOperational = buffer.readBoolean();
+        energy = buffer.readVarLong();
     }
 
     @Override
     public void toBytes(final RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(pos);
         buffer.writeBoolean(isOperational);
+        buffer.writeVarLong(energy);
     }
 
     // --------------------------------------------------------------------- //
@@ -42,6 +46,6 @@ public final class InternetGatewayStateMessage extends AbstractMessage {
     @Override
     protected void handleMessage(final NetworkManager.PacketContext context) {
         MessageUtils.withClientBlockEntityAt(pos, InternetGatewayBlockEntity.class,
-            gateway -> gateway.setOperationalClient(isOperational));
+            gateway -> gateway.setStateClient(isOperational, energy));
     }
 }

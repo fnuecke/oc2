@@ -1,0 +1,6 @@
+{
+  "item": {
+    "items": "#oc2:devices/cpu"
+  },
+  "requires": ["#oc2:devices/flash_memory"]
+}

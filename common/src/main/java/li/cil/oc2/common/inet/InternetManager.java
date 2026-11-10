@@ -130,9 +130,9 @@ public final class InternetManager {
         return Optional.ofNullable(instance);
     }
 
-    public InternetConnection connect(final InternetAdapter adapter, final String originDescription) {
+    public InternetConnection connect(final InternetAdapter adapter, final String originDescription, final int gatewayIpAddress) {
         final InternetConnection connection =
-            new InternetConnection(adapter, buildStack(originDescription));
+            new InternetConnection(adapter, buildStack(originDescription, gatewayIpAddress));
         connections.add(connection);
         return connection;
     }
@@ -193,7 +193,7 @@ public final class InternetManager {
         return thread;
     }
 
-    private LinkLocalLayer buildStack(final String originDescription) {
+    private LinkLocalLayer buildStack(final String originDescription, final int gatewayIpAddress) {
         final SessionLayer sessionLayer = new SocketSessionLayer(originDescription, socketManager, reachabilityProbe);
         final TransportLayer transportLayer = new TransportLayer(sessionLayer, portFilter, limits,
             new TokenBucket(SESSIONS_PER_GATEWAY, NEW_SESSIONS_PER_SECOND),
@@ -201,7 +201,7 @@ public final class InternetManager {
             StreamSession.TcpConfig.DEFAULT,
             TimeUnit.MILLISECONDS.toNanos(SESSION_TIMEOUT_MS));
         final NetworkLayer networkLayer = new NetworkLayer(transportLayer, addressFilter);
-        return new LinkLocalLayer(networkLayer);
+        return new LinkLocalLayer(networkLayer, gatewayIpAddress);
     }
 
     private void runWorkerTick() {

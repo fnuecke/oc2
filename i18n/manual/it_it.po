@@ -1,0 +1,6616 @@
+# Translations for oc2.
+msgid ""
+msgstr ""
+"Project-Id-Version: oc2\n"
+"Language: it_it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: basics.md
+msgid "Basics"
+msgstr ""
+
+#: basics.md
+msgid ""
+"This entry describes the general concepts behind [computers]({1}): which "
+"processors and operating systems there are, and how software talks to "
+"devices. For step-by-step instructions, see the [getting started guide]({2})."
+msgstr ""
+
+#: basics.md
+msgid "Architectures"
+msgstr ""
+
+#: basics.md
+msgid "Computers need a processor (CPU) to run. There are two architectures:"
+msgstr ""
+
+#: basics.md
+msgid "[RISC-V]({1}), a 64-bit processor. It runs OpenOS II and Linux."
+msgstr ""
+
+#: basics.md
+msgid ""
+"[Z80]({1}), an 8-bit processor. It runs CP/M. It is cheaper, but much more "
+"limited."
+msgstr ""
+
+#: basics.md
+msgid "Operating Systems"
+msgstr ""
+
+#: basics.md
+msgid "Three operating systems (OS) are supplied:"
+msgstr ""
+
+#: basics.md
+msgid "[OpenOS II]({1}), a small OS with a shell and programs written in Lua."
+msgstr ""
+
+#: basics.md
+msgid ""
+"[Linux]({1}), a small Linux distribution with common command line tools, "
+"Lua, MicroPython and a C compiler."
+msgstr ""
+
+#: basics.md
+msgid "[CP/M]({1}), CP/M 2.2 with an assembler, a linker and a line editor."
+msgstr ""
+
+#: basics.md
+msgid "Native Devices"
+msgstr ""
+
+#: basics.md
+msgid ""
+"Native devices are memory-mapped devices on RISC-V and port-mapped devices "
+"on Z80. This means they are mapped to some area in physical memory or to a "
+"dedicated device port. The OS uses its own drivers to talk to them. Examples "
+"are [hard drives]({1}), the [network interface card]({2}) and the [sound "
+"card]({3})."
+msgstr ""
+
+#: basics.md
+msgid ""
+"Native devices may only be used by one computer at a time, so block devices "
+"only have one face that connects to the bus, usually their back or bottom "
+"side."
+msgstr ""
+
+#: basics.md
+msgid ""
+"Which devices are available, and where those devices live, is communicated "
+"to the software running on the computer using a flattened device tree on "
+"RISC-V, and an enumeration window on Z80. The device tree also stores the "
+"size of the installed [memory]({1}). Since this data structure gets copied "
+"during boot, it cannot be updated later on. This is the reason computers "
+"must be rebooted when changes to native devices are made. Devices for which "
+"this is the case will typically have a corresponding note in their tooltip."
+msgstr ""
+
+#: basics.md
+msgid "Native devices are supported by:"
+msgstr ""
+
+#: basics.md
+msgid ""
+"OpenOS II, all native devices except the network interface card and network "
+"tunnel devices."
+msgstr ""
+
+#: basics.md
+msgid "Linux, all native devices."
+msgstr ""
+
+#: basics.md
+msgid "CP/M, disk drives and serial interface cards."
+msgstr ""
+
+#: basics.md
+msgid "HLAPI and MLAPI Devices"
+msgstr ""
+
+#: basics.md
+msgid ""
+"Most devices are high-level API ([HLAPI]({1})) or mid-level API ([MLAPI]"
+"({2})) devices, such as the [redstone interface]({3}). They all share a "
+"single controller, which is present in every computer. The controller "
+"collects messages from the devices and dispatches messages to them. Unlike "
+"native devices, these devices can be added and removed while the computer is "
+"running."
+msgstr ""
+
+#: basics.md
+msgid ""
+"The HLAPI uses JSON messages over a serial device. Programs call device "
+"methods by name, and the `devices` Lua library takes care of the protocol. "
+"It is supported by:"
+msgstr ""
+
+#: basics.md block/disk_drive.md block/keyboard.md block/terminal.md
+#: item/serial_interface_card.md item/sound_card.md systems/openos2.md
+msgid "OpenOS II"
+msgstr ""
+
+#: basics.md block/disk_drive.md block/keyboard.md block/terminal.md
+#: item/serial_interface_card.md item/sound_card.md systems/linux.md
+msgid "Linux"
+msgstr ""
+
+#: basics.md
+msgid ""
+"The MLAPI uses a register-based binary protocol, on an I/O port on the Z80 "
+"and in a memory page on RISC-V. Programs pick a function by number, and its "
+"arguments and results are plain bytes. Most HLAPI devices also offer the "
+"MLAPI. It is supported by:"
+msgstr ""
+
+#: basics.md
+msgid "CP/M, using the `OCAPI.INC` library"
+msgstr ""
+
+#: basics.md
+msgid "Linux, using the `mlapi.h` C header"
+msgstr ""
+
+#: basics.md
+msgid ""
+"Due to the nature of the employed protocols, data rate is rather limited. "
+"Most devices therefore only provide comparatively simple APIs which do not "
+"require sending large amounts of data either way."
+msgstr ""
+
+#: basics.md block/computer.md robotics.md
+msgid "Energy"
+msgstr ""
+
+#: basics.md
+msgid ""
+"Most components contribute to the overall energy consumption of a computer. "
+"To conserve energy, being deliberate bout the components used is essential."
+msgstr ""
+
+#: block/bus_cable.md
+msgid "Bus Cable"
+msgstr ""
+
+#: block/bus_cable.md
+msgid "![Party Bus]({1})"
+msgstr ""
+
+#: block/bus_cable.md
+msgid "The bus cable connects [bus interfaces]({1}) to a computer."
+msgstr ""
+
+#: block/bus_cable.md
+msgid ""
+"Placed cables may be hidden by placing any regular decorative block on them. "
+"Remove a facade block by using a [wrench]({1}) on it."
+msgstr ""
+
+#: block/bus_interface.md
+msgid "Bus Interface"
+msgstr ""
+
+#: block/bus_interface.md
+msgid "![Plug and play]({1})"
+msgstr ""
+
+#: block/bus_interface.md
+msgid ""
+"Bus interfaces connect external devices to [computers]({1}). This includes "
+"explicit device blocks, such as the [redstone interface]({2}). Some generic "
+"functionality blocks of blocks is also available, such as information on "
+"energy storage."
+msgstr ""
+
+#: block/bus_interface.md
+msgid ""
+"It is possible to configure an explicit name for a bus interface using a "
+"[wrench]({1}). This is useful when attaching multiple devices of the same "
+"type to a computer: when searching devices by type name "
+"(`devices:find(typeName)` on the HLAPI, `OCFIND` on the MLAPI), these custom "
+"names will also work. On the HLAPI, multiple devices on a single face are "
+"merged. On the MLAPI they are not, because method indices could collide. Use "
+"both label and type name to find the desired device. Names are limited to "
+"printable ASCII characters."
+msgstr ""
+
+#: block/bus_interface.md
+msgid ""
+"Note that [computers]({1}) must also be explicitly connected to a [bus]({2}) "
+"with a bus connector."
+msgstr ""
+
+#: block/charger.md device/charger.md
+msgid "Charger"
+msgstr ""
+
+#: block/charger.md
+msgid "![Codename: Leeroy]({1})"
+msgstr ""
+
+#: block/charger.md
+msgid ""
+"The charger transfers energy from a connected power source to energy "
+"consumers on top of it."
+msgstr ""
+
+#: block/charger.md
+msgid ""
+"The employed wireless energy transfer mechanism supports any consumer "
+"accepting RF energy. In particular, blocks and entities, as well as items in "
+"regular item containers (such as blocks and entities) will be charged."
+msgstr ""
+
+#: block/charger.md
+msgid ""
+"This device is particularly useful to recharge [robots]({1}) or energy "
+"consuming devices in your inventory."
+msgstr ""
+
+#: block/charger.md block/redstone_interface.md block/transposer.md
+#: item/block_operations_module.md item/crafting_module.md
+#: item/file_import_export_card.md item/inventory_operations_module.md
+#: item/redstone_interface_card.md item/robot.md item/scanner_module.md
+#: item/serial_interface_card.md item/tank_operations_module.md
+msgid "API"
+msgstr ""
+
+#: block/charger.md
+msgid ""
+"Programs can check on the charger through the `charger` device. See the "
+"[charger device]({1}) reference for its methods."
+msgstr ""
+
+#: block/computer.md
+msgid "Computer"
+msgstr ""
+
+#: block/computer.md
+msgid "![1 + 1 = 10]({1})"
+msgstr ""
+
+#: block/computer.md
+msgid ""
+"Computers provide a basis for building hardware capable of running an "
+"operating system or low-level software."
+msgstr ""
+
+#: block/computer.md
+msgid ""
+"Read the [getting started guide]({1}) for a short explanation on how to get "
+"a working computer."
+msgstr ""
+
+#: block/computer.md block/terminal.md
+msgid "Configuration"
+msgstr ""
+
+#: block/computer.md
+msgid ""
+"Configure the components in a computer in its inventory screen. To access "
+"this screen, either open the computer with a [wrench]({1}), or switch to the "
+"inventory screen using the toggle button to the left of the terminal screen."
+msgstr ""
+
+#: block/computer.md
+msgid "Connectivity"
+msgstr ""
+
+#: block/computer.md
+msgid ""
+"To connect external devices to a computer, use [bus interfaces]({1}) and "
+"[bus cables]({2}). Note that computers must be explicitly connected to a bus "
+"with a bus interface."
+msgstr ""
+
+#: block/computer.md
+msgid ""
+"Usually, computers will require energy to run. Most modern energy generators "
+"producing RF energy should be compatible. Computers have a small built-in "
+"energy storage. However, this will usually not be sufficient to keep the "
+"machine running for any prolonged amount of time."
+msgstr ""
+
+#: block/disk_drive.md
+msgid "Disk Drive"
+msgstr ""
+
+#: block/disk_drive.md
+msgid "![Taking it for a spin]({1})"
+msgstr ""
+
+#: block/disk_drive.md
+msgid ""
+"The disk drive provides an option for quick media exchange. [Floppy disks]"
+"({1}) can be added and removed at runtime, unlike [hard drives]({2})."
+msgstr ""
+
+#: block/disk_drive.md block/keyboard.md block/projector.md item/hard_drive.md
+#: item/memory.md item/network_interface_card.md item/network_tunnel_card.md
+#: item/serial_interface_card.md item/sound_card.md
+msgid ""
+"Computers *have to be shut down* before installing or removing this "
+"component. Installing it while the computer is running will have no effect, "
+"removing it may lead to system errors."
+msgstr ""
+
+#: block/disk_drive.md
+msgid ""
+"See the [OpenOS II guide]({1}) for more on drives. Disk drives appear as `/"
+"dev/vdX` devices, following any installed hard drives. Floppies are mounted "
+"automatically, at `/mnt/<label>` or at `/mnt/<n>` without a label. Run "
+"`format /dev/vdX` to format a new floppy. Close open files before removing a "
+"floppy, to avoid data loss."
+msgstr ""
+
+#: block/disk_drive.md
+msgid ""
+"See the [Linux guide]({1}) for more on drives. Disk drives appear as `/dev/"
+"vdX` devices, following any installed hard drives. They are not "
+"automatically formatted or mounted, they will only appear as raw block "
+"devices:"
+msgstr ""
+
+#: block/disk_drive.md
+msgid ""
+"`mke2fs /dev/vdX` formats a floppy disk. Run this when first installing the "
+"disk. *Will erase data on floppy!*"
+msgstr ""
+
+#: block/disk_drive.md
+msgid ""
+"`mount /dev/vdX <mount directory>` mounts a floppy disk after formatting it. "
+"Make sure the directory you want to mount it to exists and is empty."
+msgstr ""
+
+#: block/disk_drive.md
+msgid ""
+"`umount <mount directory>` unmounts a floppy disk. Make sure to run this "
+"before removing the floppy from the disk drive, to avoid data loss."
+msgstr ""
+
+#: block/disk_drive.md block/terminal.md item/serial_interface_card.md
+#: systems/cpm.md
+msgid "CP/M"
+msgstr ""
+
+#: block/disk_drive.md
+msgid ""
+"See the [CP/M guide]({1}) for more on drives. Drives are lettered in the "
+"order they are found, starting at `A:`. The disk the machine booted from "
+"always comes first."
+msgstr ""
+
+#: block/flash_drive.md
+msgid "Flash Drive"
+msgstr ""
+
+#: block/flash_drive.md
+msgid "![Savior of the Universe]({1})"
+msgstr ""
+
+#: block/flash_drive.md
+msgid ""
+"The flash drive exposes [flash memory]({1}) to a [computer]({2}) as a plain "
+"block device. Where the [disk drive]({3}) provides access to floppies, this "
+"one provides access to flash memory. In particular, this enables use of "
+"custom firmware."
+msgstr ""
+
+#: block/flash_drive.md
+msgid ""
+"Flash memory can be inserted and removed at runtime. The drive itself "
+"cannot: computers *have to be shut down* before installing or removing it."
+msgstr ""
+
+#: block/flash_drive.md
+msgid ""
+"On OpenOS II and Linux, the drive appears as a `/dev/vdX` device, following "
+"any installed hard drives, just like a floppy disk drive. It is a raw block "
+"device. CP/M does not support it."
+msgstr ""
+
+#: block/flash_drive.md
+msgid ""
+"To write your firmware to the flash memory, *erasing what was there before*:"
+msgstr ""
+
+#: block/index.md
+msgid "Blocks"
+msgstr ""
+
+#: block/index.md
+msgid ""
+"This index lists all documented blocks. If you're looking for an item, see "
+"the [item index]({1}) instead."
+msgstr ""
+
+#: block/index.md
+msgid ""
+"To quickly access the manual entry for a block in the world, simply use this "
+"[manual]({1}) on the block."
+msgstr ""
+
+#: block/index.md
+msgid ""
+"Note: most device blocks accept a bus connection on one face only, the one "
+"with a port on it; a [bus interface]({1}) can only connect to this face. "
+"There are exceptions, such as the [redstone interface]({2}) and the "
+"[transposer]({3}), which connect from multiple sides."
+msgstr ""
+
+#: block/index.md
+msgid "[Bus Cable]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Bus Interface]({1})"
+msgstr ""
+
+#: block/index.md device/index.md
+msgid "[Charger]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Computer]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Disk Drive]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Internet Gateway]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Flash Drive]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Keyboard]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Network Connector]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Network Hub]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Projector]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Redstone Interface]({1})"
+msgstr ""
+
+#: block/index.md
+msgid "[Terminal]({1})"
+msgstr ""
+
+#: block/index.md device/index.md
+msgid "[Transposer]({1})"
+msgstr ""
+
+#: block/internet_gateway.md
+msgid "Internet Gateway"
+msgstr ""
+
+#: block/internet_gateway.md
+msgid "![Wired]({1})"
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"The internet gateway connects a network of [network connectors]({1}) to the "
+"world outside the game, so every [computer]({2}) on that network can use it. "
+"Attach it to a [network connector]({3}) the same way a computer is attached."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"**Servers decide whether this works at all.** Operators choose which "
+"addresses are allowed, and can switch it off entirely."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"The gateway consumes energy for every packet it transmits, in both "
+"directions, and drops packets when insufficiently powered."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid "Setting Up a Computer"
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"Computers access the gateway through an ordinary [network interface card]"
+"({1}). Note that only [Linux]({2}) supports networking."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"The gateway has a configurable address, `192.168.0.254` by default. Open the "
+"settings screen by using it."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"The gateway does not provide a DHCP service, so computers have to be "
+"assigned addresses explicitly, or by running a DHCP server on one of the "
+"computers. To use the gateway with a manually set address:"
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"It also does not provide name servers, so set one in `/etc/resolv.conf`. "
+"Name lookups then travel as ordinary traffic, and are subject to the same "
+"address restrictions as everything else."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"The commands above last until the next reboot. `setup-network.lua` does all "
+"of this and writes it to `/etc/network/interfaces`, so it survives a reboot. "
+"It will also offer to run a DHCP server on the computer. Every other "
+"computer on the network then needs no setup at all: it asks the DHCP server "
+"for an address, the route out and a name server."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"TCP, UDP and ping are supported. Connections can only be opened outwards: "
+"nothing on the internet can connect to a computer."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"`https://` addresses work, but **without certificate verification**, because "
+"Linux does not ship a list of trusted authorities. The traffic is protected "
+"from passive observers, but there is no guarantee the remote is not a man-in-"
+"the-middle. Treat it accordingly, and do not send passwords you care about "
+"through it."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"Connections do not survive the chunk unloading or the server restarting. "
+"Treat this as a temporary connection failure and handle it accordingly."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid "VXLAN"
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"A second mode can be enabled in the mods' server configuration, Virtual "
+"Extensible LAN (VXLAN). In this mode the gateway connects the computers to a "
+"network that the server operator set up outside the game. Computers then "
+"appear on that network directly, without network address translation (NAT) "
+"or the restrictions above. Whether that network provides addresses, routes "
+"and name servers depends on its setup."
+msgstr ""
+
+#: block/internet_gateway.md
+msgid ""
+"When available, switch the mode in the gateway's settings screen, then enter "
+"the remote peer, port and VXLAN network identifier (VNI). Ask your server "
+"operator for these values."
+msgstr ""
+
+#: block/keyboard.md
+msgid "Keyboard"
+msgstr ""
+
+#: block/keyboard.md
+msgid "![To click or not to click]({1})"
+msgstr ""
+
+#: block/keyboard.md
+msgid ""
+"The keyboard allows key presses to be picked up by [computers]({1}). "
+"Keyboards may be placed anywhere, as long as they're connected to the "
+"computer via a bus. CP/M does not support them."
+msgstr ""
+
+#: block/keyboard.md
+msgid ""
+"To start typing on a keyboard, simply interact with it. Experienced typists "
+"will find they do not need to look at the keys while typing (you can still "
+"look around while using the keyboard). Interact again to stop using the "
+"keyboard."
+msgstr ""
+
+#: block/keyboard.md
+msgid ""
+"Unlike the terminal screen, keyboards send key positions (scancodes), which "
+"the computer interprets using its own layout, defaulting to US. If that "
+"gives you the wrong characters, load a matching layout as described below."
+msgstr ""
+
+#: block/keyboard.md item/sound_card.md
+msgid "See the [OpenOS II guide]({1}) for general usage."
+msgstr ""
+
+#: block/keyboard.md
+msgid ""
+"OpenOS II does not show a console on a projector, the keyboard has to be "
+"used by programs manually. Each key press arrives as a `key_down` signal, "
+"each release as a `key_up` signal. Run `keytest` to see the values. In Lua:"
+msgstr ""
+
+#: block/keyboard.md
+msgid ""
+"`char` is the character as a number, `-1` for keys without one. `code` "
+"matches the Linux key code."
+msgstr ""
+
+#: block/keyboard.md
+msgid "To load another layout, `us`, `de`, `fr` or `uk`:"
+msgstr ""
+
+#: block/keyboard.md
+msgid ""
+"The layout is reset on the next reboot. Add it to `/.shrc` to load it "
+"automatically."
+msgstr ""
+
+#: block/keyboard.md item/sound_card.md
+msgid "See the [Linux guide]({1}) for general usage."
+msgstr ""
+
+#: block/keyboard.md
+msgid ""
+"The keyboard provides events via the `evdev` system. Its primary use-case is "
+"in combination with a [projector]({1}): key presses are sent to the terminal "
+"session displayed there, without additional configuration."
+msgstr ""
+
+#: block/keyboard.md
+msgid "To load another layout:"
+msgstr ""
+
+#: block/keyboard.md
+msgid "Check that directory for a list of available layouts."
+msgstr ""
+
+#: block/network_connector.md
+msgid "Network Connector"
+msgstr ""
+
+#: block/network_connector.md
+msgid "![The data must flow]({1})"
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"The network connector is a fundamental part for building a network "
+"connecting different [computers]({1}). Use [network cables]({2}) to connect "
+"connectors with each other."
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"Each connector will represent one \"hop\" for relayed packets. Packets may "
+"only travel a limited number of hops before they are dropped."
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"Note that each connector only supports up to two attached network cables. "
+"Chain multiple connectors to increase the range that can be spanned."
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"Create a simple multi-computer network by chaining the connectors attached "
+"to the computers. To create a mesh network, use a [network hub]({1}). The "
+"hub connects all attached connectors with each other."
+msgstr ""
+
+#: block/network_connector.md
+msgid "Third-Party Computers"
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"Connectors may be used to enable serial communication with computers "
+"manufactured by other vendors. When attached to a third-party computer, the "
+"connector will provide an endpoint that allows sending and receiving serial "
+"data."
+msgstr ""
+
+#: block/network_connector.md
+msgid "ComputerCraft"
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"To connect to computers of the ComputerCraft brand, connectors may be "
+"mounted on computers and will be recognized as a peripheral of type "
+"`oc2_serial_interface`. Sends data using `write(data)`; it which returns how "
+"many bytes fit into the send buffer. Read data using `read([count])`; it "
+"returns the received bytes along with how many of them were corrupted, or "
+"nothing when there was no data."
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"`available()` allows querying how much data is ready, `clear()` drops the "
+"receive buffer."
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"When new data arrives, the event `oc2_serial_data` is queued with the "
+"peripheral's name. Use this to avoid polling."
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"The baud rate and address are read and set with `getBaudRate()`, "
+"`setBaudRate(rate)` for rates from 300 to 115200, `getAddress()` and "
+"`setAddress(address)` for addresses from 0 to 254, and the error counters of "
+"the [serial device]({1}) are available as well. After a reload the "
+"peripheral is reset to 9600 baud with a fresh address. Set them up on "
+"program start."
+msgstr ""
+
+#: block/network_connector.md
+msgid "TIS-3D"
+msgstr ""
+
+#: block/network_connector.md
+msgid ""
+"For the TIS-3D computer, a connector mounted on a serial port module will "
+"enable data exchange. Each value written is sent as one byte, each byte "
+"received is read as one value, with the high byte non-zero when the byte was "
+"corrupted on the line. For further details, see the protocol's page in the "
+"TIS-3D manual."
+msgstr ""
+
+#: block/network_hub.md
+msgid "Network Hub"
+msgstr ""
+
+#: block/network_hub.md
+msgid "![One to five]({1})"
+msgstr ""
+
+#: block/network_hub.md
+msgid ""
+"The network hub connects multiple [network connectors]({1}) with each other. "
+"It forwards any packet arriving at any attached connector to all other "
+"attached connectors. This forwarding operation will consume one hop, "
+"reducing the packet's time to live."
+msgstr ""
+
+#: block/projector.md
+msgid "Projector"
+msgstr ""
+
+#: block/projector.md
+msgid "![Shadow on the wall]({1})"
+msgstr ""
+
+#: block/projector.md
+msgid ""
+"The projector provides a framebuffer device to [computers]({1}). They have a "
+"resolution of 640 by 480 pixels, with the color format r5g6b5: 5 bits for "
+"the red color component, 6 bits for the green color component and 5 bits for "
+"the blue color component."
+msgstr ""
+
+#: block/projector.md
+msgid ""
+"Projectors need to be powered directly to function. The device bus cannot "
+"provide enough energy on its own. When insufficiently powered, this is "
+"indicated by a red glow in the projector's lens."
+msgstr ""
+
+#: block/projector.md
+msgid ""
+"On OpenOS II and Linux, projectors appear as `/dev/fbX` devices. To send "
+"data to the framebuffer, write to these devices. For example, to clear a "
+"framebuffer, write 614400 zeros to it, two bytes for each pixel: `head -c "
+"614400 /dev/zero > /dev/fb0`. CP/M does not support projectors."
+msgstr ""
+
+#: block/projector.md
+msgid ""
+"On Linux, the first connected framebuffer shows a virtual terminal, and a "
+"[keyboard]({1}) may be used to send input to it."
+msgstr ""
+
+#: block/redstone_interface.md
+msgid "Redstone Interface"
+msgstr ""
+
+#: block/redstone_interface.md
+msgid "![Everything Red]({1})"
+msgstr ""
+
+#: block/redstone_interface.md
+msgid ""
+"The redstone interface provides an omnidirectional bus to receive and emit "
+"redstone signals."
+msgstr ""
+
+#: block/redstone_interface.md
+msgid ""
+"Use this to interact with primitive devices, such as doors and lamps, or "
+"other machinery offering a redstone based protocol."
+msgstr ""
+
+#: block/redstone_interface.md
+msgid ""
+"Programs control the redstone interface through the `redstone` device. See "
+"the [redstone device]({1}) reference for its methods and how sides are named."
+msgstr ""
+
+#: block/terminal.md
+msgid "Terminal"
+msgstr ""
+
+#: block/terminal.md
+msgid "![Remote viewing]({1})"
+msgstr ""
+
+#: block/terminal.md
+msgid ""
+"A terminal is a standalone screen and keyboard without the rest of the "
+"computer, connected to a serial bus using a [network connector]({1}). It "
+"reads and writes serial data verbatim. Use a [serial card]({2}) in a "
+"computer to enable interaction with the computer."
+msgstr ""
+
+#: block/terminal.md
+msgid "The console can be moved to a terminal:"
+msgstr ""
+
+#: block/terminal.md
+msgid ""
+"The shell then runs on the terminal, and the computer's own screen stays "
+"unchanged. It can be moved back using `console /dev/ttyS0`. To do this "
+"automatically at boot time, in `/init.d/50-console.lua`:"
+msgstr ""
+
+#: block/terminal.md
+msgid ""
+"The default on both ends is 9600 baud. For faster output, set the same rate "
+"in the terminal's settings and with `stty -F /dev/ttyS1 115200`."
+msgstr ""
+
+#: block/terminal.md
+msgid "Use `getty` to spawn a session on the terminal:"
+msgstr ""
+
+#: block/terminal.md
+msgid "Switch to an external terminal like so:"
+msgstr ""
+
+#: block/terminal.md
+msgid ""
+"Configure the terminal address and baud rate in its settings screen. To "
+"access this screen, either open the terminal with a [wrench]({1}), or switch "
+"to the settings screen using the toggle button on the left of the terminal "
+"screen."
+msgstr ""
+
+#: block/transposer.md device/transposer.md
+msgid "Transposer"
+msgstr ""
+
+#: block/transposer.md
+msgid "![Less posing, more rights]({1})"
+msgstr ""
+
+#: block/transposer.md
+msgid ""
+"The transposer moves items and fluids between containers next to it. This "
+"includes chests, cauldrons and machines supporting automation. Moving to or "
+"from an unblocked side drops items into the world and picks them up again, "
+"or fills with and drains fluids."
+msgstr ""
+
+#: block/transposer.md
+msgid ""
+"It can be controlled using both the [high-level API]({1}) and the [mid-level "
+"API]({2}). For example:"
+msgstr ""
+
+#: block/transposer.md
+msgid ""
+"Programs control the transposer through the `transposer` device. See the "
+"[transposer device]({1}) reference for its methods."
+msgstr ""
+
+#: device/beacon.md
+msgid "Beacon"
+msgstr ""
+
+#: device/beacon.md device/beehive.md device/block_operations.md
+#: device/brewing_stand.md device/charger.md device/comparator.md
+#: device/composter.md device/crafter.md device/crafting.md
+#: device/energy_storage.md device/file_import_export.md
+#: device/fluid_handler.md device/furnace.md device/inventory_operations.md
+#: device/item_handler.md device/jukebox.md device/lectern.md
+#: device/note_block.md device/redstone.md device/robot.md device/scanner.md
+#: device/serial.md device/sign.md device/spawner.md device/tank_operations.md
+#: device/transposer.md hlapi.md
+msgid "High-level API"
+msgstr ""
+
+#: device/beacon.md
+msgid "Device name: `beacon`"
+msgstr ""
+
+#: device/beacon.md
+msgid "Provided by beacons connected to a [bus interface]({1})."
+msgstr ""
+
+#: device/beacon.md device/beehive.md device/block_operations.md
+#: device/brewing_stand.md device/charger.md device/comparator.md
+#: device/composter.md device/crafter.md device/crafting.md
+#: device/energy_storage.md device/file_import_export.md
+#: device/fluid_handler.md device/furnace.md device/inventory_operations.md
+#: device/item_handler.md device/jukebox.md device/lectern.md
+#: device/note_block.md device/redstone.md device/robot.md device/scanner.md
+#: device/serial.md device/sign.md device/spawner.md device/system.md
+#: device/tank_operations.md device/transposer.md hlapi.md
+msgid "Methods"
+msgstr ""
+
+#: device/beacon.md
+msgid "Gets how many levels the pyramid below the beacon has."
+msgstr ""
+
+#: device/beacon.md
+msgid "Returns the levels, from `0` to `4`."
+msgstr ""
+
+#: device/beacon.md
+msgid "Gets the primary effect the beacon grants."
+msgstr ""
+
+#: device/beacon.md
+msgid "Returns the name of the effect, such as `minecraft:speed`, if set."
+msgstr ""
+
+#: device/beacon.md
+msgid "Gets the secondary effect the beacon grants."
+msgstr ""
+
+#: device/beacon.md
+msgid ""
+"Returns the name of the effect, such as `minecraft:regeneration`, if set."
+msgstr ""
+
+#: device/beacon.md device/beehive.md device/block_operations.md
+#: device/brewing_stand.md device/charger.md device/comparator.md
+#: device/composter.md device/crafter.md device/crafting.md
+#: device/energy_storage.md device/fluid_handler.md device/furnace.md
+#: device/inventory_operations.md device/item_handler.md device/jukebox.md
+#: device/lectern.md device/note_block.md device/redstone.md device/robot.md
+#: device/scanner.md device/serial.md device/sign.md device/spawner.md
+#: device/system.md device/tank_operations.md device/transposer.md mlapi.md
+msgid "Mid-level API"
+msgstr ""
+
+#: device/beacon.md
+msgid "Device name: `BEACON`"
+msgstr ""
+
+#: device/beacon.md
+msgid "Reads how many levels the pyramid below the beacon has."
+msgstr ""
+
+#: device/beacon.md
+msgid "Returns one byte, the levels."
+msgstr ""
+
+#: device/beacon.md
+msgid "Reads the primary effect the beacon grants."
+msgstr ""
+
+#: device/beacon.md
+msgid ""
+"Returns the name, such as `minecraft:speed`, if set. Read while `OCDAV` is "
+"set to read fully."
+msgstr ""
+
+#: device/beacon.md
+msgid "Reads the secondary effect the beacon grants."
+msgstr ""
+
+#: device/beehive.md
+msgid "Beehive"
+msgstr ""
+
+#: device/beehive.md
+msgid "Device name: `beehive`"
+msgstr ""
+
+#: device/beehive.md
+msgid "Provided by beehives and bee nests connected to a [bus interface]({1})."
+msgstr ""
+
+#: device/beehive.md
+msgid "Gets how many bees are inside the hive."
+msgstr ""
+
+#: device/beehive.md
+msgid "Returns the number of bees."
+msgstr ""
+
+#: device/beehive.md
+msgid "Gets how much honey the hive holds."
+msgstr ""
+
+#: device/beehive.md
+msgid "Returns the honey level, from `0` to `5`."
+msgstr ""
+
+#: device/beehive.md
+msgid "Gets whether bees are currently sedated."
+msgstr ""
+
+#: device/beehive.md
+msgid "Returns `true` while the bees are calm."
+msgstr ""
+
+#: device/beehive.md
+msgid "Device name: `BHIVE`"
+msgstr ""
+
+#: device/beehive.md
+msgid "Returns one byte, the honey level, from `0` to `5`."
+msgstr ""
+
+#: device/beehive.md
+msgid "Returns one byte, the number of bees."
+msgstr ""
+
+#: device/beehive.md
+msgid "Returns one byte, `1` while bees are sedated, `0` otherwise."
+msgstr ""
+
+#: device/block_operations.md
+msgid "Block Operations"
+msgstr ""
+
+#: device/block_operations.md
+msgid "Device name: `block_operations`"
+msgstr ""
+
+#: device/block_operations.md
+msgid "Provided by the [block operations module]({1}) to robots."
+msgstr ""
+
+#: device/block_operations.md device/redstone.md device/robot.md
+#: device/scanner.md
+msgid "Sides"
+msgstr ""
+
+#: device/block_operations.md device/inventory_operations.md
+#: device/tank_operations.md
+msgid ""
+"The side parameter in the following methods represents a direction from the "
+"perspective of the robot. Valid values are: `front`, `up` and `down`."
+msgstr ""
+
+#: device/block_operations.md networking.md
+msgid "Tools"
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"The module swings whatever is in the robot's currently selected inventory "
+"slot, exactly as a player holding that item would. A pickaxe mines stone, a "
+"shovel digs dirt, an axe chops wood, and an empty slot means no tool."
+msgstr ""
+
+#: device/block_operations.md
+msgid "The tool controls what can be broken and how long it takes to break it."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"Note that the tool will take damage and eventually break. Check its "
+"durability regularly if you'd rather repair it."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"Unbreakable blocks, such as bedrock, and blocks that would take longer than "
+"fifteen seconds cannot be broken."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"Gets the remaining durability of the tool in the currently selected "
+"inventory slot."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"Returns the remaining durability, or zero if the slot is empty or holds "
+"something that cannot take damage."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"Tries to break a block in the specified direction using the tool in the "
+"currently selected inventory slot. Collected blocks will be inserted "
+"starting after the currently selected inventory slot. If a slot is full, the "
+"next slot will be used. If the inventory has no space for the dropped block, "
+"it will drop into the world."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"`side`: the relative direction to break a block in. Optional, defaults to "
+"`front`. One of `front`, `up` or `down`."
+msgstr ""
+
+#: device/block_operations.md
+msgid "Returns whether the operation was successful."
+msgstr ""
+
+#: device/block_operations.md device/crafting.md device/inventory_operations.md
+#: device/scanner.md device/tank_operations.md device/transposer.md
+msgid "Energy cost: `1`"
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"Tries to place a block in the specified direction. Blocks will be placed "
+"from the currently selected inventory slot. If the slot is empty, no block "
+"will be placed."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"`side`: the relative direction to place the block in. Optional, defaults to "
+"`front`. One of `front`, `up` or `down`."
+msgstr ""
+
+#: device/block_operations.md
+msgid "Device name: `BLKOPS`"
+msgstr ""
+
+#: device/block_operations.md device/inventory_operations.md
+msgid "Sides are numbered: `0` front, `1` up and `2` down."
+msgstr ""
+
+#: device/block_operations.md
+msgid "Takes one byte, the side to break a block in."
+msgstr ""
+
+#: device/block_operations.md
+msgid "Returns one byte, `1` if the operation was successful, `0` otherwise."
+msgstr ""
+
+#: device/block_operations.md
+msgid "Takes one byte, the side to place the block in."
+msgstr ""
+
+#: device/block_operations.md
+msgid ""
+"Returns four bytes, the remaining durability, or zero if the slot is empty "
+"or holds something that cannot take damage."
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Brewing Stand"
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Device name: `brewing_stand`"
+msgstr ""
+
+#: device/brewing_stand.md
+msgid ""
+"Provided by brewing stands connected to a [bus interface]({1}). The stand's "
+"slots are available through the [item handler]({2}) device."
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Gets how much longer the current brew takes, in ticks."
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Returns the remaining time. `0` when not brewing."
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Gets how many more brews the stand's fuel lasts for."
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Returns the remaining brews."
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Device name: `BREW`"
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Returns two bytes, the time, low byte first. `0` when not brewing."
+msgstr ""
+
+#: device/brewing_stand.md
+msgid "Returns one byte, the remaining brews."
+msgstr ""
+
+#: device/charger.md
+msgid "Device name: `charger`"
+msgstr ""
+
+#: device/charger.md
+msgid "Provided by the [charger]({1}) block."
+msgstr ""
+
+#: device/charger.md
+msgid ""
+"Gets whether the charger is currently transferring energy to something on "
+"top of it."
+msgstr ""
+
+#: device/charger.md
+msgid "Returns whether energy is being transferred."
+msgstr ""
+
+#: device/charger.md
+msgid "Device name: `CHARGR`"
+msgstr ""
+
+#: device/charger.md
+msgid "Returns one byte, `1` if energy is being transferred, `0` otherwise."
+msgstr ""
+
+#: device/comparator.md
+msgid "Comparator"
+msgstr ""
+
+#: device/comparator.md
+msgid "Device name: `comparator`"
+msgstr ""
+
+#: device/comparator.md
+msgid "Provided by redstone comparators connected to a [bus interface]({1})."
+msgstr ""
+
+#: device/comparator.md
+msgid "Gets the mode the comparator is in."
+msgstr ""
+
+#: device/comparator.md
+msgid "Returns `compare` or `subtract`."
+msgstr ""
+
+#: device/comparator.md
+msgid "Gets the signal strength the comparator outputs."
+msgstr ""
+
+#: device/comparator.md
+msgid "Returns the signal strength, from `0` to `15`."
+msgstr ""
+
+#: device/comparator.md
+msgid "Sets the mode the comparator is in."
+msgstr ""
+
+#: device/comparator.md
+msgid "`mode`: `compare` or `subtract`."
+msgstr ""
+
+#: device/comparator.md
+msgid "Device name: `CMPRTR`"
+msgstr ""
+
+#: device/comparator.md
+msgid "Returns one byte, the signal strength, from `0` to `15`."
+msgstr ""
+
+#: device/comparator.md
+msgid "Returns one byte, `0` is `compare`, `1` is `subtract`."
+msgstr ""
+
+#: device/comparator.md
+msgid "Takes one byte, `0` is `compare`, `1` is `subtract`."
+msgstr ""
+
+#: device/composter.md
+msgid "Composter"
+msgstr ""
+
+#: device/composter.md
+msgid "Device name: `composter`"
+msgstr ""
+
+#: device/composter.md
+msgid "Provided by composters connected to a [bus interface]({1})."
+msgstr ""
+
+#: device/composter.md
+msgid "Gets how full the composter is."
+msgstr ""
+
+#: device/composter.md
+msgid "Returns the level, from `0` to `8`."
+msgstr ""
+
+#: device/composter.md
+msgid "Device name: `CMPSTR`"
+msgstr ""
+
+#: device/composter.md
+msgid "Returns one byte, the level, from `0` to `8`."
+msgstr ""
+
+#: device/crafter.md
+msgid "Crafter"
+msgstr ""
+
+#: device/crafter.md
+msgid "Device name: `crafter`"
+msgstr ""
+
+#: device/crafter.md
+msgid ""
+"Provided by crafters connected to a [bus interface]({1}). The grid slots are "
+"available through the [item handler]({2}) device."
+msgstr ""
+
+#: device/crafter.md
+msgid "Gets what the crafter would currently craft."
+msgstr ""
+
+#: device/crafter.md
+msgid ""
+"Returns a table with the item information. Returns nothing if the grid "
+"matches no recipe."
+msgstr ""
+
+#: device/crafter.md
+msgid "Gets whether a slot of the grid is enabled."
+msgstr ""
+
+#: device/crafter.md
+msgid "`slot`: the slot index."
+msgstr ""
+
+#: device/crafter.md
+msgid "Returns `true` if the slot is enabled."
+msgstr ""
+
+#: device/crafter.md
+msgid "Sets whether a grid slot is enabled. Slot must be empty to be disabled."
+msgstr ""
+
+#: device/crafter.md
+msgid "`enabled`: whether to enable the slot."
+msgstr ""
+
+#: device/crafter.md
+msgid "Device name: `CRAFTR`"
+msgstr ""
+
+#: device/crafter.md
+msgid ""
+"Item ids are two bytes, low byte first; [`SYSTEM`]({1}) provides name lookup."
+msgstr ""
+
+#: device/crafter.md
+msgid "Takes one byte, the slot index."
+msgstr ""
+
+#: device/crafter.md
+msgid "Returns one byte, `1` if enabled, else `0`."
+msgstr ""
+
+#: device/crafter.md
+msgid ""
+"Takes two bytes, the slot index, and `0` to disable or `1` to enable it."
+msgstr ""
+
+#: device/crafter.md
+msgid ""
+"Returns three bytes: the item as two bytes, `0` if the grid matches no "
+"recipe, else the number of items."
+msgstr ""
+
+#: device/crafting.md
+msgid "Crafting"
+msgstr ""
+
+#: device/crafting.md
+msgid "Device name: `crafting`"
+msgstr ""
+
+#: device/crafting.md
+msgid "Provided by the [crafting module]({1}) to robots."
+msgstr ""
+
+#: device/crafting.md
+msgid ""
+"The top part of the robot's inventory, slots `0` to `8`, serves as the "
+"crafting grid. Crafted items go into the bottom row, starting at the "
+"selected slot."
+msgstr ""
+
+#: device/crafting.md
+msgid ""
+"Tries to craft once from the crafting grid. Fails if the grid matches no "
+"recipe or the result does not fit into the bottom row."
+msgstr ""
+
+#: device/crafting.md
+msgid "Returns the number of items crafted, or `0` if crafting failed."
+msgstr ""
+
+#: device/crafting.md
+msgid "Device name: `CRFTNG`"
+msgstr ""
+
+#: device/crafting.md
+msgid "Returns one byte, the number of items crafted, `0` if crafting failed."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Energy Storage"
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Device name: `energy_storage`"
+msgstr ""
+
+#: device/energy_storage.md
+msgid ""
+"Provided by any energy storage connected through a [bus interface]({1}), "
+"such as a [charger]({2})."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Gets whether energy can be taken out of the storage."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Returns whether the storage allows extracting energy."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Gets whether energy can be put into the storage."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Returns whether the storage allows receiving energy."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Gets how much energy is currently stored."
+msgstr ""
+
+#: device/energy_storage.md device/robot.md item/robot.md
+msgid "Returns the stored amount of energy."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Gets how much energy can be stored at most."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Returns the capacity of the storage."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Device name: `ENERGY`"
+msgstr ""
+
+#: device/energy_storage.md
+msgid ""
+"Amounts are four bytes, low byte first. Amounts past `0xFFFFFFFF` read as "
+"`0xFFFFFFFF`."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Returns four bytes, the stored amount of energy."
+msgstr ""
+
+#: device/energy_storage.md
+msgid "Returns four bytes, the capacity of the storage."
+msgstr ""
+
+#: device/energy_storage.md
+msgid ""
+"Returns one byte, `1` if the storage allows extracting energy, `0` otherwise."
+msgstr ""
+
+#: device/energy_storage.md
+msgid ""
+"Returns one byte, `1` if the storage allows receiving energy, `0` otherwise."
+msgstr ""
+
+#: device/file_import_export.md
+msgid "File Import Export"
+msgstr ""
+
+#: device/file_import_export.md
+msgid "Device name: `file_import_export`"
+msgstr ""
+
+#: device/file_import_export.md
+msgid "Provided by the [file import/export card]({1})."
+msgstr ""
+
+#: device/file_import_export.md
+msgid "Exporting"
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Call `beginExportFile()` with a name, append the contents with "
+"`writeExportFile()`, then call `finishExportFile()`. Every user at the "
+"terminal is offered to save the file. Files are limited to 512 KiB."
+msgstr ""
+
+#: device/file_import_export.md
+msgid "Importing"
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Call `requestImportFile()` to prompt every user at the terminal for a file. "
+"Poll `beginImportFile()` until it returns the file's name and size; the "
+"first file a user picks wins, and the prompts on other clients are canceled. "
+"Then call `readImportFile()` until it returns nothing. `reset()` cancels "
+"either operation."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Methods fail with an error when called in the wrong order, or when the users "
+"canceled."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Begins exporting a file. Provide its contents with writeExportFile() and "
+"complete the export with finishExportFile(). Fails if the device is "
+"currently exporting or importing."
+msgstr ""
+
+#: device/file_import_export.md
+msgid "`name`: the name of the file being exported."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Checks whether a requested file has arrived and, if so, starts reading it. "
+"Poll this after requestImportFile(). Fails if no import was requested, or "
+"every user canceled."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Returns a table with the file's `name` and `size`, or nothing while no file "
+"was picked yet."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Finishes the export and offers every user at the terminal to save the file. "
+"Fails if the device is not currently exporting."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Reads the next chunk of the file being imported. Fails if beginImportFile() "
+"did not succeed yet."
+msgstr ""
+
+#: device/file_import_export.md
+msgid "Returns up to 4 KiB of data, or nothing once the whole file was read."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Begins an import by prompting every user at the terminal to pick a file. "
+"Fails if the device is currently exporting or importing."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Returns whether anyone was prompted; `false` when nobody is using the "
+"terminal."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Cancels any export or import in progress and returns the device to its idle "
+"state."
+msgstr ""
+
+#: device/file_import_export.md
+msgid ""
+"Appends data to the file being exported. Fails if the device is not "
+"currently exporting, or the file grows past 512 KiB."
+msgstr ""
+
+#: device/file_import_export.md
+msgid "`data`: the data to append to the file being exported."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Fluid Handler"
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Device name: `fluid_handler`"
+msgstr ""
+
+#: device/fluid_handler.md
+msgid ""
+"Provided by any tank connected through a [bus interface]({1}), including "
+"cauldrons and the tanks of other mods. To move fluids between tanks, use a "
+"[transposer]({2}). Amounts are in millibuckets, a bucket being 1000."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid ""
+"With several tanks connected, `find` may return any of them. To grab a "
+"specific one, give the bus interface in front of the one you want a name "
+"with a [wrench]({1}), and find it by that name instead."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Gets what is in the specified tank."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "`tank`: the number of the tank to look at."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid ""
+"Returns a table with the fluid `id`, such as `minecraft:water`, and the "
+"`amount` in millibuckets. Returns nothing for an empty tank."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Gets how much the specified tank can hold."
+msgstr ""
+
+#: device/fluid_handler.md device/tank_operations.md device/transposer.md
+msgid "Returns the capacity in millibuckets."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Gets how many tanks the container has."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Returns the number of tanks."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Device name: `FLUIDS`"
+msgstr ""
+
+#: device/fluid_handler.md
+msgid ""
+"Each container is listed separately. When several are connected, label the "
+"bus interface and pass both the label and `FLUIDS` to `OCFIND`, or check "
+"what `DEVS` lists."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid ""
+"Fluid ids are two bytes, low byte first; [`SYSTEM`]({1}) provides name "
+"lookup. An empty tank reads as fluid 0. Amounts are four bytes, low byte "
+"first."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Reads how many tanks the container has."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Returns one byte, the tank count, at most 255."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Reads a run of tanks in one call."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid ""
+"Ask for 1 to 42 tanks; more than that fails with `OCEARG`, since the reply "
+"would not fit. Reading stops at the end of the container, so asking for 42 "
+"tanks starting at 0 gives you as many as there are."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Takes two bytes, the tank to start at and how many tanks to read."
+msgstr ""
+
+#: device/fluid_handler.md device/tank_operations.md device/transposer.md
+msgid ""
+"Returns six bytes per tank: the fluid as two bytes and the amount as four "
+"bytes."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Reads how much the tank can hold."
+msgstr ""
+
+#: device/fluid_handler.md
+msgid "Takes one byte, the tank."
+msgstr ""
+
+#: device/fluid_handler.md device/tank_operations.md device/transposer.md
+msgid "Returns four bytes, the capacity."
+msgstr ""
+
+#: device/furnace.md
+msgid "Furnace"
+msgstr ""
+
+#: device/furnace.md
+msgid "Device name: `furnace`"
+msgstr ""
+
+#: device/furnace.md
+msgid ""
+"Provided by furnaces, smokers and blast furnaces connected to a [bus "
+"interface]({1}). Times are in ticks. Slots are available through the [item "
+"handler]({2}) device."
+msgstr ""
+
+#: device/furnace.md
+msgid "Gets how long the current fuel burns in total."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns the burn time of the last consumed fuel."
+msgstr ""
+
+#: device/furnace.md
+msgid "Gets how much longer the current fuel burns."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns the remaining burn time."
+msgstr ""
+
+#: device/furnace.md
+msgid "Gets how long the current item has been cooking."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns the cooking progress."
+msgstr ""
+
+#: device/furnace.md
+msgid "Gets how long the current item needs to cook."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns the time the item needs."
+msgstr ""
+
+#: device/furnace.md
+msgid "Gets whether the furnace is burning fuel."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns whether fuel is currently burning."
+msgstr ""
+
+#: device/furnace.md
+msgid "Device name: `FRNACE`"
+msgstr ""
+
+#: device/furnace.md device/jukebox.md
+msgid "Times are two bytes, low byte first, capped at 65535."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns two bytes, the remaining burn time."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns two bytes, the burn time of the last consumed fuel."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns two bytes, the cooking progress."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns two bytes, the time the item needs."
+msgstr ""
+
+#: device/furnace.md
+msgid "Returns one byte, `1` while fuel is currently burning, `0` otherwise."
+msgstr ""
+
+#: device/index.md systems/cpm.md systems/linux.md systems/openos2.md
+msgid "Devices"
+msgstr ""
+
+#: device/index.md
+msgid ""
+"This is the reference for the devices computers can control. Every device "
+"listed here offers its methods through the [high-level API]({1}) to OpenOS "
+"II and Linux; some also offer them through the [mid-level API]({2}) to CP/M "
+"and Linux. Each page names the device as a guest sees it, and lists its "
+"methods with their parameters and results."
+msgstr ""
+
+#: device/index.md
+msgid ""
+"These pages are generated from the devices themselves, so they always match "
+"the installed version."
+msgstr ""
+
+#: device/index.md
+msgid "[Beacon]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Beehive]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Block Operations]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Brewing Stand]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Comparator]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Composter]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Crafter]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Crafting]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Energy Storage]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[File Import Export]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Fluid Handler]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Furnace]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Inventory Operations]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Item Handler]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Jukebox]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Lectern]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Note Block]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Redstone]({1})"
+msgstr ""
+
+#: device/index.md item/index.md
+msgid "[Robot]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Scanner]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Serial]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Sign]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Spawner]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[System]({1})"
+msgstr ""
+
+#: device/index.md
+msgid "[Tank Operations]({1})"
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Inventory Operations"
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Device name: `inventory_operations`"
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Provided by the [inventory operations module]({1}) to robots."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Allows operating the internal inventory, as well as inspecting and operating "
+"block and entity containers. If neither external container type is present, "
+"space permitting, items are dropped into the world or picked up."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Sides without a container report no inventory, which allows predicting world "
+"interaction, e.g. to ensure things are never dumped into the world."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Tries to drop items from the selected slot in the specified direction. Items "
+"are dropped into an inventory, or into the world if no inventory is present."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "`count`: the number of items to drop."
+msgstr ""
+
+#: device/inventory_operations.md device/tank_operations.md
+msgid "`side`: `front`, `up` or `down`. Optional, defaults to `front`."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Returns the number of items dropped."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Tries to drop items from the selected slot into the specified slot of an "
+"inventory in the specified direction. Items are only dropped into an "
+"inventory, never into the world."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "`intoSlot`: the slot to insert items into."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid "Gets how many slots the inventory on the specified side has."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid ""
+"Returns the number of slots, or `0` if there is no inventory on that side."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid ""
+"Gets how many items the specified slot of the inventory on the specified "
+"side can hold."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "`slot`: the slot to inspect."
+msgstr ""
+
+#: device/inventory_operations.md device/item_handler.md device/transposer.md
+msgid "Returns the most items the slot takes."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid ""
+"Gets what is in the specified slot of the inventory on the specified side."
+msgstr ""
+
+#: device/inventory_operations.md device/item_handler.md device/transposer.md
+msgid ""
+"Returns a table with the item information. Returns nothing for an empty slot."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Tries to move the specified number of items from one robot inventory slot to "
+"another."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "`fromSlot`: the slot to extract items from."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "`count`: the number of items to move."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Returns the number of items moved."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Tries to move items out of a container item in the selected slot into the "
+"specified robot inventory slot."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Tries to move items from the specified robot inventory slot into a container "
+"item, such as a shulker box, in the selected slot."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "`fromSlot`: the slot to take items from."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Tries to take the specified number of items from the specified direction. "
+"Items are taken from an inventory, or from the world if no inventory is "
+"present."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "`count`: the number of items to take."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Returns the number of items taken."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Tries to take the specified number of items from the specified slot of an "
+"inventory in the specified direction. Items are only taken from an "
+"inventory, never from the world."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Device name: `INVOPS`"
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Takes three bytes, the slot to extract items from, the slot to insert items "
+"into, and the number of items to move."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Returns one byte, the number of items moved."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Takes two bytes: the number of items to drop, and the side to drop them in."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Returns one byte, the number of items dropped."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Takes three bytes: the slot to insert items into, the number of items to "
+"drop, and the side of the inventory."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Takes two bytes: the number of items to take, and the side to take them from."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid "Returns one byte, the number of items taken."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Takes three bytes: the slot to take items from, the number of items to take, "
+"and the side of the inventory."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Takes two bytes: the slot to extract items from, and the number of items to "
+"move."
+msgstr ""
+
+#: device/inventory_operations.md
+msgid ""
+"Takes two bytes: the slot to insert items into, and the number of items to "
+"move."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid "Reads how many slots the inventory on that side has."
+msgstr ""
+
+#: device/inventory_operations.md device/redstone.md device/robot.md
+#: device/scanner.md device/tank_operations.md device/transposer.md
+msgid "Takes one byte, the side."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid ""
+"Returns one byte, the slot count, at most 255. A side without an inventory "
+"reads as 0."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid "Reads a run of slots of the inventory on that side."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid ""
+"Takes three bytes, the side, the slot to start at and how many slots to "
+"read, from 1 to 64."
+msgstr ""
+
+#: device/inventory_operations.md device/item_handler.md device/transposer.md
+msgid ""
+"Returns four bytes per slot: the item as two bytes, the number of items up "
+"to 255, and damage."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid "Reads how much a slot of the inventory on that side can hold."
+msgstr ""
+
+#: device/inventory_operations.md device/transposer.md
+msgid "Takes two bytes, the side and the slot."
+msgstr ""
+
+#: device/inventory_operations.md device/item_handler.md device/transposer.md
+msgid "Returns one byte, the limit, at most 255."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Item Handler"
+msgstr ""
+
+#: device/item_handler.md
+msgid "Device name: `item_handler`"
+msgstr ""
+
+#: device/item_handler.md
+msgid ""
+"Provided by any inventory connected through a [bus interface]({1}), such as "
+"a chest. To move items between inventories, use a [transposer]({2})."
+msgstr ""
+
+#: device/item_handler.md
+msgid ""
+"With several inventories connected, `find` may return any of them. To grab a "
+"specific one, give the bus interface in front of the one you want a name "
+"with a [wrench]({1}), and find it by that name instead."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Gets how many slots the inventory has."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Returns the number of slots."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Gets how many items the specified slot can hold."
+msgstr ""
+
+#: device/item_handler.md
+msgid "`slot`: the number of the slot to look at."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Gets what is in the specified slot."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Device name: `ITEMS`"
+msgstr ""
+
+#: device/item_handler.md
+msgid ""
+"Each inventory is listed separately. When several are connected, label the "
+"bus interface and pass both the label and `ITEMS` to `OCFIND`, or check what "
+"`DEVS` lists."
+msgstr ""
+
+#: device/item_handler.md
+msgid ""
+"Item ids are two bytes, low byte first; [`SYSTEM`]({1}) provides name "
+"lookup. An empty slot reads as item 0."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Reads how many slots the inventory has."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Returns one byte, the slot count, at most 255."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Reads a run of slots in one call."
+msgstr ""
+
+#: device/item_handler.md
+msgid ""
+"Ask for 1 to 64 slots; more than that fails with `OCEARG`, since the reply "
+"would not fit. Reading stops at the end of the inventory, so asking for 64 "
+"slots starting at 0 gives you as many as there are. Damage is in [0, 255], "
+"where 0 means undamaged, or an item that does not take damage at all, and "
+"255 means about to break."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Takes two bytes, the slot to start at and how many slots to read."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Reads how much the slot can hold."
+msgstr ""
+
+#: device/item_handler.md
+msgid "Takes one byte, the slot."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Jukebox"
+msgstr ""
+
+#: device/jukebox.md
+msgid "Device name: `jukebox`"
+msgstr ""
+
+#: device/jukebox.md
+msgid ""
+"Provided by jukeboxes connected to a [bus interface]({1}). Times are in "
+"ticks."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Gets how long the jukebox has been playing the current song."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Returns the time since the song started."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Gets the song the jukebox is playing."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Returns the name of the song, such as `minecraft:cat`, if any."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Gets how long the song the jukebox is playing lasts."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Returns the length of the song."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Gets whether the jukebox is playing a song."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Returns whether a track is playing."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Device name: `JUKEBX`"
+msgstr ""
+
+#: device/jukebox.md
+msgid "Returns one byte, `1` while a track is playing, `0` otherwise."
+msgstr ""
+
+#: device/jukebox.md
+msgid ""
+"Returns the name of the song, such as `minecraft:cat`, if any. Read while "
+"`OCDAV` is set to read fully."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Reads how long the song the jukebox is playing lasts."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Returns two bytes, the length of the song."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Reads how long the jukebox has been playing the current song."
+msgstr ""
+
+#: device/jukebox.md
+msgid "Returns two bytes, the time since the song started."
+msgstr ""
+
+#: device/lectern.md
+msgid "Lectern"
+msgstr ""
+
+#: device/lectern.md
+msgid "Device name: `lectern`"
+msgstr ""
+
+#: device/lectern.md
+msgid ""
+"Provided by lecterns connected to a [bus interface]({1}). Pages are numbered "
+"from `0`."
+msgstr ""
+
+#: device/lectern.md
+msgid "Gets the page the book on the lectern is open at."
+msgstr ""
+
+#: device/lectern.md
+msgid "Returns the page."
+msgstr ""
+
+#: device/lectern.md
+msgid "Gets how many pages the book on the lectern has."
+msgstr ""
+
+#: device/lectern.md
+msgid "Returns the number of pages, `0` when empty."
+msgstr ""
+
+#: device/lectern.md
+msgid "Device name: `LECTRN`"
+msgstr ""
+
+#: device/lectern.md
+msgid "Returns one byte, the page."
+msgstr ""
+
+#: device/lectern.md
+msgid "Returns one byte, the number of pages, `0` when empty."
+msgstr ""
+
+#: device/note_block.md
+msgid "Note Block"
+msgstr ""
+
+#: device/note_block.md
+msgid "Device name: `note_block`"
+msgstr ""
+
+#: device/note_block.md
+msgid "Provided by note blocks connected to a [bus interface]({1})."
+msgstr ""
+
+#: device/note_block.md
+msgid ""
+"The device changes what the note block is set to. It does not play it, use "
+"redstone signals for that."
+msgstr ""
+
+#: device/note_block.md
+msgid ""
+"Instrument names include: `harp` or `bass`, `bell`, `chime`, `flute`, "
+"`guitar`, `pling`, `xylophone`, `bit`."
+msgstr ""
+
+#: device/note_block.md
+msgid ""
+"Note that the instrument configuration is transient. Environmental changes "
+"will override it back to its natural configuration."
+msgstr ""
+
+#: device/note_block.md
+msgid "Gets the name of the instrument the block plays."
+msgstr ""
+
+#: device/note_block.md
+msgid "Returns the instrument name."
+msgstr ""
+
+#: device/note_block.md
+msgid "Gets the note the block is tuned to."
+msgstr ""
+
+#: device/note_block.md
+msgid "Returns a note from `0` to `24`."
+msgstr ""
+
+#: device/note_block.md
+msgid "Sets the instrument the block plays."
+msgstr ""
+
+#: device/note_block.md
+msgid "`instrument`: the instrument name."
+msgstr ""
+
+#: device/note_block.md
+msgid "Tunes the block to a note."
+msgstr ""
+
+#: device/note_block.md
+msgid "`note`: the note to tune to, from `0` to `24`."
+msgstr ""
+
+#: device/note_block.md
+msgid "Device name: `NOTE`"
+msgstr ""
+
+#: device/note_block.md
+msgid "Returns one byte, the note, from `0` to `24`."
+msgstr ""
+
+#: device/note_block.md
+msgid "Takes one byte, the note, from `0` to `24`."
+msgstr ""
+
+#: device/note_block.md
+msgid "Returns the instrument name. Read while `OCDAV` is set to read fully."
+msgstr ""
+
+#: device/note_block.md
+msgid "Takes the instrument name."
+msgstr ""
+
+#: device/redstone.md
+msgid "Redstone"
+msgstr ""
+
+#: device/redstone.md
+msgid "Device name: `redstone`"
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"Provided by the [redstone interface]({1}) block and the [redstone interface "
+"card]({2})."
+msgstr ""
+
+#: device/redstone.md
+msgid "The side parameter in the following methods comes in two forms."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"Relative sides turn with the block, or with the computer holding the card. "
+"Each face of the redstone interface block has an indicator for convenience; "
+"the primary face is the one with a single marking. When looking at the "
+"primary face:"
+msgstr ""
+
+#: device/redstone.md
+msgid "`front` is the face we are looking at."
+msgstr ""
+
+#: device/redstone.md
+msgid "`back` is the face behind the block."
+msgstr ""
+
+#: device/redstone.md
+msgid "`left` is the face to our left."
+msgstr ""
+
+#: device/redstone.md
+msgid "`right` is the face to our right."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"Absolute sides always mean the same direction in the world, no matter how "
+"the block is placed: `north`, `south`, `west` and `east`."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"`up` and `down` are the top and bottom faces, and mean the same thing either "
+"way."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"Sides may also be given as a number instead of a name. Numbers are relative: "
+"`0` is `down`, `1` is `up`, `2` is `back`, `3` is `front`, `4` is `left` and "
+"`5` is `right`."
+msgstr ""
+
+#: device/redstone.md device/robot.md
+msgid "Events"
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"The device sends `redstoneChanged` when the received signal on a side "
+"changes, so a program can wait for it instead of polling. For example:"
+msgstr ""
+
+#: device/redstone.md
+msgid "`side` is the relative name of the side, as in the \"Sides\" section."
+msgstr ""
+
+#: device/redstone.md
+msgid "`value` is the new signal strength."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"The device's own output counts towards the received signal, so setting an "
+"output may send this event as well."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"Gets the received redstone signal for the specified side. The device's own "
+"output on that side counts towards the received signal."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"`side`: the side, by name (`front`, `back`, `left`, `right`, `up`, `down`, "
+"`north`, `south`, `west`, `east`) or by relative index."
+msgstr ""
+
+#: device/redstone.md
+msgid "Returns the current input signal strength."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"Gets the emitted redstone signal for the specified side. This is the value "
+"last set via setRedstoneOutput()."
+msgstr ""
+
+#: device/redstone.md
+msgid "Returns the current output signal strength."
+msgstr ""
+
+#: device/redstone.md
+msgid "Sets the emitted redstone signal for the specified side."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"`value`: the signal strength to set, in the range of [0, 15]. Values outside "
+"are clamped."
+msgstr ""
+
+#: device/redstone.md
+msgid "Device name: `REDSTN`"
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"Sides are numbered as in the \"Sides\" section above, and levels are in [0, "
+"15]."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"`1 redstoneChanged` is sent when the received signal on a side changes. The "
+"value's low byte is the side, the high byte the new level."
+msgstr ""
+
+#: device/redstone.md
+msgid ""
+"`REDSTN.Z80` on the CP/M boot disk is an example consumer of the API. The "
+"[mid-level API]({1}) entry explains how to build and run it."
+msgstr ""
+
+#: device/redstone.md
+msgid "Reads the level received on that side."
+msgstr ""
+
+#: device/redstone.md
+msgid "Returns one byte, the level."
+msgstr ""
+
+#: device/redstone.md
+msgid "Reads the level currently being sent on that side."
+msgstr ""
+
+#: device/redstone.md
+msgid "Sets the level sent on that side."
+msgstr ""
+
+#: device/redstone.md
+msgid "Takes two bytes, the side and the level."
+msgstr ""
+
+#: device/robot.md item/robot.md
+msgid "Robot"
+msgstr ""
+
+#: device/robot.md
+msgid "Device name: `robot`"
+msgstr ""
+
+#: device/robot.md
+msgid "Provided by the [robot]({1})."
+msgstr ""
+
+#: device/robot.md
+msgid "Directions"
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"The direction parameter in the following methods represents a direction "
+"relative to the robot. Valid values are: `forward`, `backward`, `upward`, "
+"`downward` for movement actions, `left` and `right` for rotation actions. "
+"These directions are always from the point of view of the robot at the time "
+"it executes an action."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Short form aliases of these values can be used for convenience: `back`, "
+"`up`, `down`. For extreme brevity, the initial letter of each direction can "
+"be used as well."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"The side parameter of `detect()` represents a face of the robot rather than "
+"a movement direction. Valid values are: `front`, `up` and `down`."
+msgstr ""
+
+#: device/robot.md robotics.md
+msgid "Position"
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"`getFacing()` reports a compass direction: `north`, `east`, `south` or "
+"`west`. `getPosition()` reports where the robot is relative to its origin, "
+"in blocks. `x` grows towards east, `y` upward and `z` towards south. The "
+"origin is where the robot was placed, until `calibratePosition()` moves it "
+"to where the robot is now. The position stays correct however the robot gets "
+"moved, pistons included. Breaking the robot clears the origin, changing "
+"dimension resets it to the new position."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Note that the `robot` Lua library described in the [robot]({1}) entry offers "
+"useful wrappers for all of these methods. It is recommended to use the "
+"library instead of interacting with the device directly."
+msgstr ""
+
+#: device/robot.md
+msgid "Makes the robot's current position its reference origin."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Reports what occupies the space on the specified side of the robot. This "
+"only tells you whether the space is free, not what is in it."
+msgstr ""
+
+#: device/robot.md device/scanner.md
+msgid "`side`: the side to look at: `front`, `up` or `down`."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Returns `solid` if something there blocks movement, `fluid` if the space "
+"holds a fluid the robot can move through, or `air` if the space is free. "
+"Blocks the robot can pass through, such as grass, count as `air`."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the result of the action with the specified id. Action ids can be "
+"obtained from `getLastActionId()`. Only a limited number of past action "
+"results are available."
+msgstr ""
+
+#: device/robot.md
+msgid "`actionId`: the id of the action to get the result for."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Returns the result for the specified action id, or nothing if unavailable. "
+"When available, possible values are: `INCOMPLETE`, `SUCCESS` and `FAILURE`."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the maximum amount of energy that can be stored in the robot's internal "
+"energy storage."
+msgstr ""
+
+#: device/robot.md item/robot.md
+msgid "Returns the maximum amount of energy stored."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the current amount of energy stored in the robot's internal energy "
+"storage."
+msgstr ""
+
+#: device/robot.md
+msgid "Gets the compass direction the robot is facing."
+msgstr ""
+
+#: device/robot.md item/robot.md
+msgid "Returns `north`, `east`, `south` or `west`."
+msgstr ""
+
+#: device/robot.md
+msgid "Gets what is in the robot's tank."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns a description of the fluid in the tank."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the opaque id of the last enqueued action. Call this after a successful "
+"`move()` or `turn()` call to obtain the id associated with the enqueued "
+"action."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns the id of the last enqueued action."
+msgstr ""
+
+#: device/robot.md
+msgid "Gets the robot's position relative to its origin."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns the offset from the origin in `x`, `y` and `z`, in blocks."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the number of actions currently waiting in the action queue to be "
+"processed. Use this to wait for actions to finish when enqueueing fails."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns the number of currently pending actions."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the currently selected robot inventory slot. This is used by many "
+"modules as an implicit input."
+msgstr ""
+
+#: device/robot.md item/robot.md
+msgid "Returns the index of the selected inventory slot."
+msgstr ""
+
+#: device/robot.md
+msgid "Gets a description of the item in the specified slot."
+msgstr ""
+
+#: device/robot.md
+msgid "`slot`: the index of the slot to get the item description for."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns a description of the item in the slot."
+msgstr ""
+
+#: device/robot.md
+msgid "Gets the color of the status light on the front of the robot."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns the current color, as a packed `0xRRGGBB` value."
+msgstr ""
+
+#: device/robot.md
+msgid "Gets how far the status light is filled."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns the current fill value, in the range of [0, 1]."
+msgstr ""
+
+#: device/robot.md
+msgid "Tries to enqueue a movement action in the specified direction."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"`direction`: the direction to move in: `forward`, `backward`, `upward` or "
+"`downward`, or a short form."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns whether the action was enqueued successfully."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Sets the currently selected robot inventory slot. This is used by many "
+"modules as an implicit input."
+msgstr ""
+
+#: device/robot.md
+msgid "`slot`: the index of the inventory slot to select."
+msgstr ""
+
+#: device/robot.md item/robot.md
+msgid ""
+"Returns the index of the newly selected slot. This may differ from `slot` if "
+"the specified value was invalid."
+msgstr ""
+
+#: device/robot.md
+msgid "Sets the color of the status light on the front of the robot."
+msgstr ""
+
+#: device/robot.md
+msgid "`color`: the color to set, as a packed `0xRRGGBB` value."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns the color that was applied."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Sets how far the status light is filled. It fills from the bottom, so zero "
+"hides it entirely and one fills it."
+msgstr ""
+
+#: device/robot.md
+msgid "`value`: the fill value to set, will be clamped to [0, 1]."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns the fill value that was applied."
+msgstr ""
+
+#: device/robot.md
+msgid "Tries to enqueue a turn action towards the specified direction."
+msgstr ""
+
+#: device/robot.md
+msgid "`direction`: the direction to turn towards: `left` or `right`."
+msgstr ""
+
+#: device/robot.md
+msgid "Device name: `ROBOT`"
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Directions and sides are numbered. Movement directions are `0` forward, `1` "
+"backward, `2` upward and `3` downward. Rotation directions are `0` left and "
+"`1` right. Sides for `detect` are `0` front, `1` up and `2` down. Anything "
+"outside those ranges fails with `OCEARG`. Facings are `0` north, `1` east, "
+"`2` south and `3` west. Item and fluid ids are two bytes, low byte first; "
+"[`SYSTEM`]({1}) provides name lookup."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"`1 actionCompleted` is sent when an action finishes. The value is its id; "
+"`getActionResult` tells how it turned out."
+msgstr ""
+
+#: device/robot.md
+msgid "Reports what occupies the space on that side."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns one byte: `0` air, `1` fluid, `2` solid. Only `2` stops a move."
+msgstr ""
+
+#: device/robot.md
+msgid "Reads how much energy the robot has left."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns four bytes, the amount, low byte first."
+msgstr ""
+
+#: device/robot.md
+msgid "Reads how much energy the robot holds when full."
+msgstr ""
+
+#: device/robot.md
+msgid "Reads which inventory slot is selected."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns one byte, the slot."
+msgstr ""
+
+#: device/robot.md
+msgid "Selects an inventory slot."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Takes one byte, the slot. A slot the robot does not have is clamped into "
+"range."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns one byte, the slot in effect after the call."
+msgstr ""
+
+#: device/robot.md
+msgid "Reads what is in an inventory slot."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Takes one byte, the slot. A slot the robot does not have fails with `OCEARG`."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Returns four bytes, one slot record in the form the `ITEMS` device uses: the "
+"item as two bytes, the number of items, and damage."
+msgstr ""
+
+#: device/robot.md
+msgid "Takes one byte, the direction."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Returns one byte, `1` when the action was enqueued, `0` when the queue was "
+"full or the robot was not ready."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the opaque id of the last enqueued action. Call this after a successful "
+"`move` or `turn` call to obtain the id associated with the enqueued action."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns two bytes, the id, low byte first."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns one byte, the count."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Gets the result of the action with the specified id. Returns `1` until the "
+"action finishes. May be awaited using the `actionCompleted` event."
+msgstr ""
+
+#: device/robot.md
+msgid "Takes two bytes, the id."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Returns one byte: `0` unknown, `1` incomplete, `2` success, `3` failure."
+msgstr ""
+
+#: device/robot.md
+msgid "Reads the color of the status light."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns three bytes, the red, green and blue components."
+msgstr ""
+
+#: device/robot.md
+msgid "Sets the color of the status light."
+msgstr ""
+
+#: device/robot.md
+msgid "Takes three bytes, the red, green and blue components."
+msgstr ""
+
+#: device/robot.md
+msgid "Reads how far the status light is filled."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns one byte, the fill value, where `0` is empty and `255` is full."
+msgstr ""
+
+#: device/robot.md
+msgid "Sets how far the status light is filled."
+msgstr ""
+
+#: device/robot.md
+msgid "Takes one byte, the fill value, where `0` is empty and `255` is full."
+msgstr ""
+
+#: device/robot.md
+msgid "Reads what is in the robot's tank."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Returns six bytes: the fluid as two bytes and the amount as four bytes. An "
+"empty tank reads as fluid 0."
+msgstr ""
+
+#: device/robot.md
+msgid "Returns one byte, the facing."
+msgstr ""
+
+#: device/robot.md
+msgid ""
+"Returns six bytes, the signed two byte offsets `x`, `y` and `z`, each low "
+"byte first."
+msgstr ""
+
+#: device/scanner.md
+msgid "Scanner"
+msgstr ""
+
+#: device/scanner.md
+msgid "Device name: `scanner`"
+msgstr ""
+
+#: device/scanner.md
+msgid "Provided by the [scanner module]({1}) to robots."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"The side parameter of `inspect()` represents a face of the robot. Valid "
+"values are: `front`, `up` and `down`."
+msgstr ""
+
+#: device/scanner.md
+msgid "Scanning"
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"`scan()` measures the hardness of every block in a cube of seven by seven by "
+"seven blocks with the robot at its center. Positions use the axes of the "
+"robot's `getPosition()`: `x` grows towards east, `y` upward and `z` towards "
+"south."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"The result holds one byte per block. Blocks are ordered by `y`, then `z`, "
+"then `x`, each from `-3` to `3`, so the result is a stack of horizontal "
+"layers from bottom to top, and `x` changes fastest. The block at offset `x`, "
+"`y`, `z` from the robot is at index `(y + 3) * 7 * 7 + (z + 3) * 7 + (x + "
+"3)`, counting from zero. Since Lua counts from one, this is equivalent to "
+"`string.byte(hardness, index + 1)`."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Each byte encodes air as `0`, any fluid as `254` and unbreakable or "
+"unscannable blocks as `255`. Regular blocks are encoded as hardness mapped "
+"into the `1` to `253` range."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"After a scan, the scanner needs five seconds to recharge. Scanning while it "
+"recharges fails."
+msgstr ""
+
+#: device/scanner.md
+msgid "Fluids"
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Fluids are always reported by their source fluid, such as `minecraft:water`."
+msgstr ""
+
+#: device/scanner.md
+msgid "Entities"
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Entities are reported by identifier, such as `minecraft:sheep`, closest "
+"first. At most twenty are listed."
+msgstr ""
+
+#: device/scanner.md
+msgid "Checks whether the robot's space gets full sky light."
+msgstr ""
+
+#: device/scanner.md
+msgid "Returns whether the sky is visible."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Identifies the block, fluid and entities in the space on the specified side "
+"of the robot."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Returns a table with the `block` and `fluid`, if present, and a list of "
+"`entities`."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Measures the hardness of the blocks around the robot and lists nearby "
+"entities."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Returns a table with the block `hardness` as binary data, see above, and the "
+"list of `entities` in the scanned cube."
+msgstr ""
+
+#: device/scanner.md
+msgid "Energy cost: `10`"
+msgstr ""
+
+#: device/scanner.md
+msgid "Device name: `SCANNR`"
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Sides are numbered: `0` front, `1` up and `2` down. Block and fluid ids are "
+"two bytes, low byte first; [`SYSTEM`]({1}) provides name lookup. Block `0` "
+"is air, fluid `0` is no fluid."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"A scan is read one layer at a time. Layers are horizontal and numbered `0` "
+"to `6` from bottom to top, each holds 49 bytes ordered from north to south, "
+"then from west to east. Byte values are as described for the high-level API."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Returns five bytes: the block as two bytes, the fluid as two bytes, and the "
+"number of entities."
+msgstr ""
+
+#: device/scanner.md
+msgid ""
+"Measures the hardness of the blocks around the robot and lists nearby "
+"entities. Read the result with `getScanLayer`."
+msgstr ""
+
+#: device/scanner.md
+msgid "Returns one byte, the number of entities in the scanned cube."
+msgstr ""
+
+#: device/scanner.md
+msgid "Reads one layer of the last scan. Fails if there was no scan yet."
+msgstr ""
+
+#: device/scanner.md
+msgid "Takes one byte, the layer."
+msgstr ""
+
+#: device/scanner.md
+msgid "Returns 49 bytes, the hardness of each block in the layer."
+msgstr ""
+
+#: device/scanner.md
+msgid "Returns one byte, `1` if the sky is visible, `0` otherwise."
+msgstr ""
+
+#: device/serial.md
+msgid "Serial"
+msgstr ""
+
+#: device/serial.md
+msgid "Device name: `serial`"
+msgstr ""
+
+#: device/serial.md
+msgid "Provided by the [serial interface card]({1})."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"The serial port itself is driven through the operating system, see the "
+"card's page. This device reports the card's configuration and error "
+"counters, for example to tell serial ports apart or to detect collisions."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Counters reset when the computer starts. Device order here may differ from "
+"the order the cards were installed in, so match them up by "
+"`getBaseAddress()`."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Gets the address this card is set to. The hardware ignores it; software may "
+"use it to address endpoints on a shared segment."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns the address, in [0, 255]."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Gets where this card's serial port registers are mapped, to tell which port "
+"belongs to which card when there is more than one."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns the memory address on RISC-V, the I/O port on the Z80."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Gets the baud rate the serial port is configured to. Every endpoint on a "
+"segment must be set to the same rate."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Returns the baud rate in bits per second, or `0` while the computer is off."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Gets how often traffic arrived at a baud rate this port is not set to, "
+"including this computer's own port being set to a different rate."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns the number of data errors since the computer started."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Gets how many received bytes were lost because this computer did not read "
+"them in time."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns the number of bytes lost since the computer started."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Gets how often received data was corrupted because several endpoints sent at "
+"the same time. These are the collisions the receiver sees."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns the number of receiver collisions since the computer started."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Gets how often sent data was corrupted because several endpoints sent at the "
+"same time. These are the collisions the sender sees. Read it before sending "
+"and again once the port finished sending: a change means the send failed."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns the number of sender collisions since the computer started."
+msgstr ""
+
+#: device/serial.md
+msgid "Device name: `SERIAL`"
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Counters are clamped to two bytes. Values wider than a byte are low byte "
+"first."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Device order here may differ from the order the cards were installed in, so "
+"match them up by `getBaseAddress`."
+msgstr ""
+
+#: device/serial.md
+msgid "Reads the address this card is set to."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns one byte, the address."
+msgstr ""
+
+#: device/serial.md
+msgid "Reads the baud rate the serial port is configured to."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns four bytes, the baud rate in bits per second."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Reads how many received bytes were lost because this computer did not read "
+"them in time."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns two bytes, the count."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Reads how often received data was corrupted by other endpoints sending at "
+"the same time."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Reads how often sent data was corrupted by other endpoints sending at the "
+"same time. A change after a send means it failed."
+msgstr ""
+
+#: device/serial.md
+msgid "Reads how often traffic arrived at a baud rate this port is not set to."
+msgstr ""
+
+#: device/serial.md
+msgid ""
+"Reads the I/O port this card's serial port registers start at, to tell cards "
+"apart."
+msgstr ""
+
+#: device/serial.md
+msgid "Returns one byte, the port."
+msgstr ""
+
+#: device/sign.md
+msgid "Sign"
+msgstr ""
+
+#: device/sign.md
+msgid "Device name: `sign`"
+msgstr ""
+
+#: device/sign.md
+msgid ""
+"Provided by signs connected to a [bus interface]({1}). Signs can have text "
+"on their `front` and `back`."
+msgstr ""
+
+#: device/sign.md
+msgid "Gets the color of the text on a side of the sign."
+msgstr ""
+
+#: device/sign.md
+msgid "`side`: `front` or `back`."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns the name of the color."
+msgstr ""
+
+#: device/sign.md
+msgid "Gets the text on a side of the sign."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns the current text lines."
+msgstr ""
+
+#: device/sign.md
+msgid "Gets whether the text on a side of the sign glows."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns `true` if the text glows."
+msgstr ""
+
+#: device/sign.md
+msgid "Gets whether the sign is read-only."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns whether the sign is read-only."
+msgstr ""
+
+#: device/sign.md
+msgid "Sets the text on a side of the sign."
+msgstr ""
+
+#: device/sign.md
+msgid "`lines`: up to four lines of text."
+msgstr ""
+
+#: device/sign.md
+msgid "Device name: `SIGN`"
+msgstr ""
+
+#: device/sign.md
+msgid "Sides are numbered: `0` for front, `1` for back."
+msgstr ""
+
+#: device/sign.md
+msgid ""
+"Colors are numbered as dyes: `0` white, `1` orange, `2` magenta, `3` light "
+"blue, `4` yellow, `5` lime, `6` pink, `7` gray, `8` light gray, `9` cyan, "
+"`10` purple, `11` blue, `12` brown, `13` green, `14` red, `15` black."
+msgstr ""
+
+#: device/sign.md
+msgid "Gets a line of text on a side of the sign."
+msgstr ""
+
+#: device/sign.md
+msgid "Takes two bytes, the side, `0` for front, `1` for back, and the line."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns the text. Read while `OCDAV` is set to read fully."
+msgstr ""
+
+#: device/sign.md
+msgid "Sets a line of text on a side of the sign."
+msgstr ""
+
+#: device/sign.md
+msgid ""
+"Takes the side, `0` for front, `1` for back, and the line as one byte each, "
+"then the text."
+msgstr ""
+
+#: device/sign.md
+msgid "Takes one byte, `0` for front, `1` for back."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns one byte, the color code."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns one byte, `1` if the text glows, `0` otherwise."
+msgstr ""
+
+#: device/sign.md
+msgid "Returns one byte, `1` if read-only, `0` otherwise."
+msgstr ""
+
+#: device/spawner.md
+msgid "Spawner"
+msgstr ""
+
+#: device/spawner.md
+msgid "Device name: `spawner`"
+msgstr ""
+
+#: device/spawner.md
+msgid "Provided by monster spawners connected to a [bus interface]({1})."
+msgstr ""
+
+#: device/spawner.md
+msgid "Gets what the spawner spawns next."
+msgstr ""
+
+#: device/spawner.md
+msgid "Returns the name of the creature, such as `minecraft:zombie`, if any."
+msgstr ""
+
+#: device/spawner.md
+msgid "Device name: `SPAWNR`"
+msgstr ""
+
+#: device/spawner.md
+msgid ""
+"Returns the name of the creature, such as `minecraft:zombie`, if any. Read "
+"while `OCDAV` is set to read fully."
+msgstr ""
+
+#: device/system.md
+msgid "System"
+msgstr ""
+
+#: device/system.md
+msgid "Device name: `SYSTEM`"
+msgstr ""
+
+#: device/system.md
+msgid "Provided by every computer and robot, always as MLAPI-device index 0."
+msgstr ""
+
+#: device/system.md
+msgid ""
+"Items, fluids and blocks are identified by ids to save bus bandwidth. An id "
+"is stable within a world, but not across changes to the installed mods. Ids "
+"are two bytes, low byte first."
+msgstr ""
+
+#: device/system.md
+msgid "An unknown id or name fails with `OCEARG`."
+msgstr ""
+
+#: device/system.md
+msgid "Reads the name of an item."
+msgstr ""
+
+#: device/system.md
+msgid "Takes two bytes, the item id."
+msgstr ""
+
+#: device/system.md
+msgid ""
+"Returns the name, such as `minecraft:redstone`. Read while `OCDAV` is set to "
+"read fully."
+msgstr ""
+
+#: device/system.md
+msgid "Looks an item up by name."
+msgstr ""
+
+#: device/system.md
+msgid ""
+"Takes the name, with or without a zero byte at the end. Leave off the "
+"`minecraft:` and it is assumed."
+msgstr ""
+
+#: device/system.md
+msgid "Returns two bytes, the item id."
+msgstr ""
+
+#: device/system.md
+msgid "Reads the name of a fluid."
+msgstr ""
+
+#: device/system.md
+msgid "Takes two bytes, the fluid id."
+msgstr ""
+
+#: device/system.md
+msgid ""
+"Returns the name, such as `minecraft:water`. Read while `OCDAV` is set to "
+"read fully."
+msgstr ""
+
+#: device/system.md
+msgid "Looks a fluid up by name."
+msgstr ""
+
+#: device/system.md
+msgid "Returns two bytes, the fluid id."
+msgstr ""
+
+#: device/system.md
+msgid "Reads the name of a block."
+msgstr ""
+
+#: device/system.md
+msgid "Takes two bytes, the block id."
+msgstr ""
+
+#: device/system.md
+msgid ""
+"Returns the name, such as `minecraft:stone`. Read while `OCDAV` is set to "
+"read fully."
+msgstr ""
+
+#: device/system.md
+msgid "Looks a block up by name."
+msgstr ""
+
+#: device/system.md
+msgid "Returns two bytes, the block id."
+msgstr ""
+
+#: device/tank_operations.md
+msgid "Tank Operations"
+msgstr ""
+
+#: device/tank_operations.md
+msgid "Device name: `tank_operations`"
+msgstr ""
+
+#: device/tank_operations.md
+msgid "Provided by the [tank operations module]({1}) to robots."
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Allows operating the robot's tank, as well as inspecting and operating block "
+"and entity tanks. If neither external tank type is present, space "
+"permitting, fluids are poured or drained, one bucket at a time."
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Sides without a container report no tank, which allows predicting world "
+"interaction, e.g. to ensure things are never dumped into the world."
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Tries to move fluid from a tank in the specified direction into the robot's "
+"tank."
+msgstr ""
+
+#: device/tank_operations.md
+msgid "`amount`: the most millibuckets to move."
+msgstr ""
+
+#: device/tank_operations.md
+msgid "Returns the amount moved in millibuckets."
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Tries to move fluid from the robot's tank into a tank in the specified "
+"direction."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid ""
+"Gets what is in the specified tank of the container on the specified side."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid "`tank`: the number of the tank to inspect."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid ""
+"Returns a table with the fluid `id` and the `amount` in millibuckets. "
+"Returns nothing for an empty tank."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid ""
+"Gets how much the specified tank of the container on the specified side can "
+"hold."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid "Gets how many tanks the fluid container on the specified side has."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid ""
+"Returns the number of tanks, or `0` if there is no fluid container on that "
+"side."
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Tries to move fluid from the container item in the selected slot into the "
+"robot's tank."
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Tries to move fluid from the robot's tank into the container item, such as a "
+"bucket, in the selected slot."
+msgstr ""
+
+#: device/tank_operations.md
+msgid "Device name: `TNKOPS`"
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Sides are numbered: `0` front, `1` up and `2` down. Fluid ids are two bytes, "
+"low byte first; [`SYSTEM`]({1}) provides name lookup. Amounts are "
+"millibuckets, four bytes, low byte first."
+msgstr ""
+
+#: device/tank_operations.md
+msgid ""
+"Takes five bytes: four bytes for the most millibuckets to move, and the side."
+msgstr ""
+
+#: device/tank_operations.md
+msgid "Returns four bytes, the amount moved."
+msgstr ""
+
+#: device/tank_operations.md
+msgid "Takes four bytes, the most millibuckets to move."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid "Reads how many tanks the container on that side has."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid ""
+"Returns one byte, the tank count, at most 255. A side without a fluid "
+"container reads as 0."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid "Reads a run of tanks of the container on that side."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid ""
+"Takes three bytes, the side, the tank to start at and how many tanks to "
+"read, from 1 to 42."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid "Reads how much a tank of the container on that side can hold."
+msgstr ""
+
+#: device/tank_operations.md device/transposer.md
+msgid "Takes two bytes, the side and the tank."
+msgstr ""
+
+#: device/transposer.md
+msgid "Device name: `transposer`"
+msgstr ""
+
+#: device/transposer.md
+msgid "Provided by the [transposer]({1}) block."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Allows inspecting and operating on block and entity containers. If neither "
+"are present, space permitting, items are dropped into the world or picked "
+"up, fluids are poured or drained, one bucket at a time."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Sides without a container report no inventory or tank, which allows "
+"predicting world interaction, e.g. to ensure things are never dumped into "
+"the world."
+msgstr ""
+
+#: device/transposer.md
+msgid "`side`: the side of the container to inspect."
+msgstr ""
+
+#: device/transposer.md
+msgid "`side`: the side of the inventory to inspect."
+msgstr ""
+
+#: device/transposer.md
+msgid "`slot`: the number of the slot to inspect."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Moves fluid from one container to another. It moves as much as the source "
+"yields and the target accepts, up to `amount`. A bucket is 1000."
+msgstr ""
+
+#: device/transposer.md
+msgid "`sourceSide`: the side of the container to drain."
+msgstr ""
+
+#: device/transposer.md
+msgid "`targetSide`: the side of the container to fill."
+msgstr ""
+
+#: device/transposer.md
+msgid "`amount`: maximum amount to move, in millibuckets."
+msgstr ""
+
+#: device/transposer.md
+msgid "Returns the amount transferred in millibuckets."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Moves items from one inventory to another, from and into any slot. It moves "
+"as many items as the first source slot that yields anything gives and the "
+"first target slot that accepts anything takes, up to `count`."
+msgstr ""
+
+#: device/transposer.md
+msgid "`sourceSide`: the side of the inventory to take items from."
+msgstr ""
+
+#: device/transposer.md
+msgid "`targetSide`: the side of the inventory to put items into."
+msgstr ""
+
+#: device/transposer.md
+msgid "`count`: the most items to move."
+msgstr ""
+
+#: device/transposer.md
+msgid "Returns the number of items transferred."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Moves items from one inventory slot to another. It moves as many items as "
+"the source slot yields and the target slot accepts, up to `count`. Only uses "
+"inventories, never open space."
+msgstr ""
+
+#: device/transposer.md
+msgid "`sourceSlot`: the number of the slot to take items from."
+msgstr ""
+
+#: device/transposer.md
+msgid "`targetSlot`: the number of the slot to put items into."
+msgstr ""
+
+#: device/transposer.md
+msgid "Device name: `TRANSP`"
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Sides are numbered as in the \"Sides\" section above. Item and fluid ids are "
+"two bytes, low byte first; [`SYSTEM`]({1}) provides name lookup. Amounts are "
+"millibuckets, four bytes, low byte first."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"A side with neither a container nor available space, or a protected side, "
+"fails with `OCEARG`."
+msgstr ""
+
+#: device/transposer.md
+msgid "Moves up to `count` items between two slots."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Takes five bytes, the side and slot to take from, the side and slot to put "
+"into, and how many items to move at most."
+msgstr ""
+
+#: device/transposer.md
+msgid "Returns one byte, how many items were moved."
+msgstr ""
+
+#: device/transposer.md
+msgid "Moves up to `count` items from any slot into any slot."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Takes three bytes, the side to take from, the side to put into, and how many "
+"items to move at most."
+msgstr ""
+
+#: device/transposer.md
+msgid "Moves up to `amount` millibuckets between two containers."
+msgstr ""
+
+#: device/transposer.md
+msgid ""
+"Takes six bytes, the side to drain, the side to fill, and four bytes for how "
+"much to move at most."
+msgstr ""
+
+#: device/transposer.md
+msgid "Returns four bytes, how much was moved."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Controlling devices using Lua is a core concept when using [computers]({1}). "
+"Many devices are so-called high-level API (HLAPI) devices. This means they "
+"are not controlled using native drivers, but via a simple RPC system, "
+"employing JSON messages over a serial device."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Everything in this entry applies to [OpenOS II]({1}) and [Linux]({2}), "
+"unless noted otherwise. To access devices from [CP/M]({3}), see the [mid-"
+"level API]({4}) (MLAPI) entry."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"If multiple devices of the same type are connected, `find` may return any of "
+"them. To grab a specific one, assign the bus interface in front of the "
+"desired device a name, by using a [wrench]({1}), then find it by that name "
+"instead. Multiple names can be passed: `find(\"storage\", \"item_handler\")` "
+"only matches a device with both."
+msgstr ""
+
+#: hlapi.md
+msgid "For the methods available on devices, see the [list of devices]({1})."
+msgstr ""
+
+#: hlapi.md
+msgid "The Devices Library"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"OpenOS II and Linux include libraries to make HLAPI devices more easily "
+"accessible. The `devices` library provides utilities for discovering devices "
+"and calling methods on them, as well as obtaining documentation on devices, "
+"when available."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Note: this document will use Lua to provide an overview, examples and API "
+"documentation. On Linux, an equivalent library with API parity is also "
+"available for MicroPython."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"To use the `devices` library, import it using `require(\"devices\")`. What "
+"you get back is an object, so its methods are called with colon notation: "
+"store it in a variable, then call `d:list()` rather than `d.list()`."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`list():table` returns a list of all currently available devices. Each entry "
+"in the returned table represents a single device, including its type names "
+"and unique identifier."
+msgstr ""
+
+#: hlapi.md
+msgid "Returns the list of connected HLAPI devices."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`get(id:string):Device` returns a wrapper for a device with the specified "
+"identifier. This is similar to `find` but takes a specific identifier "
+"instead of a type name."
+msgstr ""
+
+#: hlapi.md
+msgid "`id` is the unique identifier of the device."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Returns a wrapper for the specified device, or nothing if no device has that "
+"identifier."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`find(typeName:string...):Device` returns a wrapper for a device that has "
+"all the specified names. Names are device types, device names and aliases "
+"set in [Bus Interfaces]({1}). If more than one matching device exists, it is "
+"undefined which one will be returned."
+msgstr ""
+
+#: hlapi.md
+msgid "`typeName` is one or more names the device must have."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Returns a wrapper for a matching device, or nothing if no device has all "
+"specified names."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`methods(id:string):table` returns the list of methods offered by the device "
+"with the specified identifier. To obtain the list of methods in a more "
+"readable way, get the device wrapper and convert it to a string, instead. "
+"Also see the section on the device wrapper type."
+msgstr ""
+
+#: hlapi.md
+msgid "Returns the list of methods offered by the device."
+msgstr ""
+
+#: hlapi.md
+msgid "Throws an error if obtaining the method list failed."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`invoke(id:string, methodName:string, ...):any` calls the method with the "
+"specified name on the device with the specified identifier. Passes along any "
+"extra parameters. Using this method directly is not recommended. Prefer "
+"obtaining a device wrapper and invoking the method through it. Also see the "
+"section on the device wrapper type."
+msgstr ""
+
+#: hlapi.md
+msgid "`methodName` is the name of the method to invoke."
+msgstr ""
+
+#: hlapi.md
+msgid "`...` are parameters to pass to the method."
+msgstr ""
+
+#: hlapi.md
+msgid "Returns the result of the method."
+msgstr ""
+
+#: hlapi.md
+msgid "Throws an error if invocation failed, or the method threw an exception."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`waitEvent(timeout:number, eventType:string):table` waits for the next event "
+"sent by a device, such as a [robot]({1}) finishing an action."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`timeout` is how long to wait for, in milliseconds. Pass `nil` to wait for "
+"as long as it takes."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`eventType` is an optional event name. When specified, events of any other "
+"type are discarded while waiting."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Returns the event, a table with a `type` and a `data` entry, plus a "
+"`deviceId` when a device sent it, or nothing if the timeout ran out first. "
+"Events and method results travel separately, so an event may arrive before "
+"the result of the call that caused it."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`blob(data:string):Blob` wraps binary data so that it may be passed to a "
+"device method. Parameters are otherwise sent as text, which would corrupt "
+"anything that is not."
+msgstr ""
+
+#: hlapi.md
+msgid "`data` is the bytes to wrap."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Returns a value to pass as a parameter, as in "
+"`device:writeExportFile(d:blob(bytes))`."
+msgstr ""
+
+#: hlapi.md
+msgid "The Device Wrapper"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Devices returned from the `devices` library are objects of type `Device`. "
+"This is a wrapper storing the device identifier."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Its main purpose is to enable seamless invocation of methods exposed by this "
+"device, as well as a convenient way to access documentation, if available."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"To invoke a method on such a wrapper, use colon notation, and the method's "
+"name. For example:"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"`wrapper:waitEvent(timeout:number, eventType:string):table` works like "
+"`waitEvent` on the library, but only returns events sent by this device. "
+"Events from other devices are discarded while waiting."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"To obtain the documentation of the device, `tostring` it. In the interactive "
+"Lua prompt, enter the variable's name, e.g. `wrapper`."
+msgstr ""
+
+#: hlapi.md
+msgid "Running Several Scripts at Once"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"On OpenOS II, all programs and background jobs share one connection to the "
+"devices."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"On Linux, the serial devices used for the RPC system can only be opened by "
+"one program at a time. A small background service, `oc2busd`, opens them "
+"once when the computer boots and relays messages for everything else. While "
+"it's running, as many scripts as you like can use the `devices` library at "
+"the same time."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Calls are still carried out one at a time, in the order they arrive, so two "
+"scripts controlling the same device will not interleave halfway through an "
+"operation."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Events, such as a [robot]({1}) finishing an action, are delivered to *every* "
+"listening script. A script that starts in the middle of an action may "
+"therefore see events for something it did not begin, so check that an event "
+"refers to the action you are waiting on. `waitEvent` takes an event name for "
+"early filtering."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"On Linux, each `require(\"devices\")` gives a script one connection to the "
+"service. To hold more than one at the same time, for example to keep a long-"
+"running call from holding up everything else, open further ones explicitly:"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Close such a connection with `bus:close()` once it is no longer needed. The "
+"one behind `require(\"devices\")` is best left alone, since everything else "
+"in the script shares it."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"If the service is not running, the `devices` library falls back to opening "
+"the serial devices directly. Everything keeps working, but only one program "
+"at a time can use it. The service writes to the system log, so `cat /var/log/"
+"messages` will say why it stopped."
+msgstr ""
+
+#: hlapi.md mlapi.md robotics.md
+msgid "Example"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"For this example we will control a [redstone interface block]({1}). First, "
+"place the block and connect it to the computer using [bus cables]({2}) and "
+"[bus interfaces]({3})."
+msgstr ""
+
+#: hlapi.md
+msgid "![Redstone interface setup]({1})"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"We place a redstone lamp on top of the redstone interface to have a visual "
+"indicator that our commands work."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"To verify the connection between device and computer, run the command "
+"`lsdev.lua` from the command line. This lists the identifiers and type names "
+"of all connected HLAPI devices. One of these should have the type `redstone` "
+"among its type names."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Start Lua in interactive mode by running just `lua` from the command line."
+msgstr ""
+
+#: hlapi.md
+msgid "![Lua in interactive mode]({1})"
+msgstr ""
+
+#: hlapi.md
+msgid "Include the devices library and store it in a variable named `d`:"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"Then get the `Device` wrapper for the redstone interface block and store it "
+"in a variable named `r`:"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"The `redstone` in this call is the device type name, the same we checked for "
+"just earlier using `lsdev.lua`."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"We now have a wrapper for the redstone interface block on which we may call "
+"methods. To get a list of the available methods, enter `r`."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"For our example, we're interested in the `setRedstoneOutput` method. It "
+"allows setting the signal emitted from the redstone interface."
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"To light up our lamp, we want to emit a redstone signal from the top face of "
+"the redstone interface block:"
+msgstr ""
+
+#: hlapi.md
+msgid "The lamp should now light up!"
+msgstr ""
+
+#: hlapi.md
+msgid "![Lit redstone lamp]({1})"
+msgstr ""
+
+#: hlapi.md
+msgid ""
+"With this, you have the tools to learn the names of connected devices, which "
+"methods they offer and how to obtain their documentation. Go ahead and "
+"experiment with the other methods of the redstone interface to read incoming "
+"redstone signals, or try out other devices!"
+msgstr ""
+
+#: index.md item/manual.md
+msgid "The Computerists Handbook"
+msgstr ""
+
+#: index.md
+msgid ""
+"Hello, greetings, welcome! If you've come here, you either stumbled in by "
+"accident, are interested in [building your first computer]({1}), or maybe "
+"you are looking for information on a particular [block]({2}) or [item]({3})?"
+msgstr ""
+
+#: index.md
+msgid "Overview"
+msgstr ""
+
+#: index.md
+msgid ""
+"[Computers]({1}) offer a variety of uses, from recreational to large-scale, "
+"highly customizable automation of other machines and devices."
+msgstr ""
+
+#: index.md
+msgid ""
+"At the heart of each computer lies its processor and accompanying operating "
+"system. The [RISC-V processor]({1}) runs OpenOS II or Linux, the [Z80 "
+"processor]({2}) runs CP/M. Programs control devices such as the [redstone "
+"interface block]({3}) through the high-level API ([HLAPI]({4})) or the mid-"
+"level API ([MLAPI]({5})). The [basics]({6}) entry explains these concepts."
+msgstr ""
+
+#: index.md systems/index.md
+msgid "Getting Started"
+msgstr ""
+
+#: index.md
+msgid ""
+"If you just want to get running quickly, read the [getting started guide]"
+"({1}). It describes how to build your first computer, and links a guide for "
+"each operating system on how to start working with it. To learn more about "
+"some topic in particular, see the referenced topical pages in the "
+"\"Reference\" section."
+msgstr ""
+
+#: index.md
+msgid "Reference"
+msgstr ""
+
+#: index.md
+msgid ""
+"This manual contains reference information on the blocks and items related "
+"to computers and the like."
+msgstr ""
+
+#: index.md
+msgid ""
+"If you're looking for information on a particular block or item, have a look "
+"at the respective glossaries:"
+msgstr ""
+
+#: index.md
+msgid "[List of blocks]({1})"
+msgstr ""
+
+#: index.md
+msgid "[List of items]({1})"
+msgstr ""
+
+#: index.md
+msgid "[List of devices]({1})"
+msgstr ""
+
+#: index.md
+msgid ""
+"If you're interested in a particular topic, there are some overview entries "
+"for the more common ones:"
+msgstr ""
+
+#: index.md
+msgid "[Basics]({1})"
+msgstr ""
+
+#: index.md
+msgid "[Getting Started]({1})"
+msgstr ""
+
+#: index.md
+msgid "[High-level API]({1})"
+msgstr ""
+
+#: index.md
+msgid "[Mid-level API]({1})"
+msgstr ""
+
+#: index.md
+msgid "[Robotics]({1})"
+msgstr ""
+
+#: index.md
+msgid "[Networking]({1})"
+msgstr ""
+
+#: item/block_operations_module.md
+msgid "Block Operations Module"
+msgstr ""
+
+#: item/block_operations_module.md
+msgid "![Break it, quick replace it]({1})"
+msgstr ""
+
+#: item/block_operations_module.md
+msgid ""
+"The block operations module provides to [robots]({1}) the ability to break "
+"and place blocks in the world."
+msgstr ""
+
+#: item/block_operations_module.md
+msgid ""
+"Programs control the module through the `block_operations` device. See the "
+"[block operations device]({1}) reference for its methods."
+msgstr ""
+
+#: item/cpu_riscv.md
+msgid "RISC-V Processor"
+msgstr ""
+
+#: item/cpu_riscv.md
+msgid "![The part that does the thinking.]({1})"
+msgstr ""
+
+#: item/cpu_riscv.md item/cpu_z80.md
+msgid ""
+"The processor is what a [computer]({1}) or [robot]({2}) actually computes "
+"with. Without one in its processor slot, a machine will not start."
+msgstr ""
+
+#: item/cpu_riscv.md
+msgid ""
+"This is the 64-bit RISC-V processor. It runs [OpenOS II]({1}) and [Linux]"
+"({2}). Crafting it together with blank flash memory or a hard drive writes "
+"the firmware or an operating system to them, see the guides for details."
+msgstr ""
+
+#: item/cpu_riscv.md
+msgid "Also see the [Z80 processor]({1})."
+msgstr ""
+
+#: item/cpu_z80.md
+msgid "Z80 Processor"
+msgstr ""
+
+#: item/cpu_z80.md
+msgid "![Part think.]({1})"
+msgstr ""
+
+#: item/cpu_z80.md
+msgid ""
+"This is an 8-bit Z80 processor. It runs [CP/M]({1}). It comes with 64K of "
+"built-in memory, so it needs very little hardware around it. Devices "
+"available through the [MLAPI]({2}), such as the [redstone interface]({3}), "
+"work as expected. [Memory]({4}) modules, hard drives, network cards and the "
+"other native devices go unused, as the Z80 has no use or drivers for them. "
+"They can stay on the bus regardless."
+msgstr ""
+
+#: item/cpu_z80.md
+msgid ""
+"Crafting it with blank flash memory writes the CP/M loader. Crafting it with "
+"a blank floppy writes the CP/M system."
+msgstr ""
+
+#: item/cpu_z80.md
+msgid "Also see the [RISC-V processor]({1})."
+msgstr ""
+
+#: item/crafting_module.md
+msgid "Crafting Module"
+msgstr ""
+
+#: item/crafting_module.md
+msgid "![Some assembly required]({1})"
+msgstr ""
+
+#: item/crafting_module.md
+msgid ""
+"The crafting module provides to [robots]({1}) the ability to craft items. "
+"The top part of the robot's inventory serves as the crafting grid. Crafted "
+"items are inserted into the bottom row, starting at the selected slot."
+msgstr ""
+
+#: item/crafting_module.md
+msgid ""
+"Programs control the module through the `crafting` device. See the [crafting "
+"device]({1}) reference for its methods."
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid "File Import/Export Card"
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid "![Tear down this wall!]({1})"
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid "The file import/export card allows breaking the fourth wall. It allows:"
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid "uploading files from your real computer into a virtual [computer]({1})."
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid "downloading files from a virtual computer onto your real computer."
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid ""
+"For added convenience, OpenOS II and Linux provide two utility scripts for "
+"these operations, `import.lua` and `export.lua`. On OpenOS II, they can be "
+"run as `import` and `export`. CP/M does not support this card."
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid ""
+"`import.lua` will, when run, prompt for a file to upload to the virtual "
+"computer. The file will be stored in the current working directory. If a "
+"file with the name of the imported file already exists, the option to "
+"provide an alternative name will be offered."
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid ""
+"`export.lua` takes as its parameter the path to a file in a virtual "
+"computer. It then downloads this file to your real computer and offers a "
+"save dialog, offering the choice of where to save the downloaded file, or to "
+"cancel the operation."
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid ""
+"Both scripts will prompt all users currently interacting with the computer's "
+"terminal. For upload operations (`import.lua`), the first uploaded file will "
+"be used. The prompts on other clients will be canceled. For download "
+"operations all clients will be offered to save the exported file."
+msgstr ""
+
+#: item/file_import_export_card.md
+msgid ""
+"Programs drive the card through the `file_import_export` device, which is "
+"what `import.lua` and `export.lua` use. See the [file import/export device]"
+"({1}) reference for its methods."
+msgstr ""
+
+#: item/flash_memory.md
+msgid "Flash Memory"
+msgstr ""
+
+#: item/flash_memory.md
+msgid "![Not that Flash]({1})"
+msgstr ""
+
+#: item/flash_memory.md
+msgid ""
+"Flash memory contains the initial code loaded into a [computer's]({1}) "
+"memory upon boot. It holds the firmware, which is just large enough to find "
+"the system it starts and load it from a drive."
+msgstr ""
+
+#: item/flash_memory.md
+msgid ""
+"Blank flash memory holds no firmware. To write firmware to it, craft it "
+"together with the processor that firmware is built for: a [RISC-V processor]"
+"({1}) writes the Sedna firmware, which boots OpenOS II and Linux, a [Z80 "
+"processor]({2}) writes the CP/M firmware."
+msgstr ""
+
+#: item/flash_memory.md
+msgid ""
+"Neither firmware includes a system of its own, so a machine needs the "
+"matching medium as well: a [hard drive]({1}) for OpenOS II or Linux, a "
+"[floppy]({2}) for CP/M."
+msgstr ""
+
+#: item/flash_memory.md
+msgid ""
+"You are not limited to the supplied firmwares. A [flash drive]({1}) provides "
+"flash memory to a computer as a plain block device, so a machine can write "
+"whatever you like onto it."
+msgstr ""
+
+#: item/flash_memory.md
+msgid ""
+"Crafting programmed flash memory with a [wrench]({1}) erases it back to "
+"blank flash memory, discarding the firmware and anything stored on it."
+msgstr ""
+
+#: item/floppy.md
+msgid "Floppy"
+msgstr ""
+
+#: item/floppy.md
+msgid "![It's not the floppy that bends]({1})"
+msgstr ""
+
+#: item/floppy.md
+msgid ""
+"Floppy disks are removable media. This means they can be inserted and "
+"removed from [disk drives]({1}) without the [computer]({2}) using the disk "
+"drive having to reboot to use them."
+msgstr ""
+
+#: item/floppy.md
+msgid ""
+"Crafting a blank floppy together with a [Z80 processor]({1}) writes the CP/M "
+"system to it. That is the disk a Z80 machine boots from. Crafting a written "
+"floppy with a [wrench]({2}) erases it back to a blank one."
+msgstr ""
+
+#: item/floppy.md
+msgid "[Robots]({1}) have a floppy slot, as they cannot use disk drives."
+msgstr ""
+
+#: item/floppy.md
+msgid ""
+"Please see the [disk drive]({1}) manual entry for some useful commands when "
+"working with floppies."
+msgstr ""
+
+#: item/floppy.md
+msgid ""
+"Storage media are not perfect, and a floppy left unused for a long time may "
+"suffer from bit rot and lose its contents. Format corrupted floppies using "
+"the [wrench]({1}). Interestingly, this only seems to happen when there are a "
+"lot of storage devices in the world."
+msgstr ""
+
+#: item/hard_drive.md
+msgid "Hard Drive"
+msgstr ""
+
+#: item/hard_drive.md
+msgid "![Going in circles]({1})"
+msgstr ""
+
+#: item/hard_drive.md
+msgid ""
+"Hard drives are the main storage device used for data storage in [computers]"
+"({1}) and [robots]({2})."
+msgstr ""
+
+#: item/hard_drive.md
+msgid ""
+"Usually computers use a firmware that requires some hard drive to complete "
+"the boot process. See the [flash memory]({1}) entry for more details. "
+"Crafting a hard drive together with a [RISC-V processor]({2}) writes an "
+"operating system to it:"
+msgstr ""
+
+#: item/hard_drive.md
+msgid "2M hard drive: [OpenOS II]({1})."
+msgstr ""
+
+#: item/hard_drive.md
+msgid "8M hard drive: [Linux]({1})."
+msgstr ""
+
+#: item/hard_drive.md
+msgid ""
+"Crafting either of these drives with a [wrench]({1}) wipes it back to an "
+"empty drive."
+msgstr ""
+
+#: item/hard_drive.md
+msgid ""
+"OpenOS II and Linux show additional hard drives as `/dev/vdb`, `/dev/vdc` "
+"and so on. See the guides on how to format and mount them. CP/M does not "
+"support hard drives."
+msgstr ""
+
+#: item/hard_drive.md
+msgid ""
+"Storage media are not perfect, and a drive left unused for a long time may "
+"suffer from bit rot and lose its contents. Format corrupted drives using the "
+"[wrench]({1}). Interestingly, this only seems to happen when there are a lot "
+"of storage devices in the world."
+msgstr ""
+
+#: item/index.md
+msgid "Items"
+msgstr ""
+
+#: item/index.md
+msgid ""
+"This index lists all documented items. If you're looking for a block, see "
+"the [block index]({1}) instead."
+msgstr ""
+
+#: item/index.md
+msgid "[The Computerist's Handbook]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Block Operations Module]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Crafting Module]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[File Import/Export Card]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Flash Memory]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Floppy]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Hard Drive]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Inventory Operations Module]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Memory]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Network Cable]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Network Interface Card]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Network Tunnel Card]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Network Tunnel Module]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Redstone Interface Card]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[RISC-V Processor]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Scanner Module]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Scrench]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Serial Interface Card]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Sound Card]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Tank Operations Module]({1})"
+msgstr ""
+
+#: item/index.md
+msgid "[Z80 Processor]({1})"
+msgstr ""
+
+#: item/inventory_operations_module.md
+msgid "Inventory Operations Module"
+msgstr ""
+
+#: item/inventory_operations_module.md
+msgid "![What's yours is mine]({1})"
+msgstr ""
+
+#: item/inventory_operations_module.md
+msgid ""
+"The inventory operations module provides to [robots]({1}) the ability to "
+"insert and extract items from inventories in the world. This supports block "
+"and entity inventories, as well as container items in the robot's inventory, "
+"such as shulker boxes. Without an inventory present, given sufficient space, "
+"it allows dropping or taking items into and from the world."
+msgstr ""
+
+#: item/inventory_operations_module.md
+msgid ""
+"Programs control the module through the `inventory_operations` device. See "
+"the [inventory operations device]({1}) reference for its methods."
+msgstr ""
+
+#: item/manual.md
+msgid "![Nobody reads me anyway...]({1})"
+msgstr ""
+
+#: item/manual.md
+msgid ""
+"You handy quick-reference for all topics concerning [computers]({1}) and "
+"devices related to them. It's what you're currently reading!"
+msgstr ""
+
+#: item/manual.md
+msgid ""
+"For convenience, using the manual on any known block in the world will open "
+"the corresponding manual page."
+msgstr ""
+
+#: item/memory.md
+msgid "Memory"
+msgstr ""
+
+#: item/memory.md
+msgid "![Random Access Memories]({1})"
+msgstr ""
+
+#: item/memory.md
+msgid ""
+"The random access memory (RAM) device provides working memory to [computers]"
+"({1}) and [robots]({2})."
+msgstr ""
+
+#: item/memory.md
+msgid ""
+"As opposed to [hard drives]({1}), this memory is volatile and will be "
+"cleared when a computer powers down. It is theoretically possible for "
+"computers to function without RAM, by software only using the stack for data "
+"storage. However, typically software requires RAM to function. In "
+"particular, the [firmware]({2}) contained in newly obtained computers "
+"requires a decent amount to function."
+msgstr ""
+
+#: item/memory.md
+msgid ""
+"How much memory is needed depends on the operating system. OpenOS II runs "
+"with a single 2M module, Linux needs at least 8M. The [Z80 processor]({1}) "
+"has memory built in, so CP/M needs no module. Also see the [getting started]"
+"({2}) manual entry."
+msgstr ""
+
+#: item/network_cable.md
+msgid "Network Cable"
+msgstr ""
+
+#: item/network_cable.md
+msgid "![What the CAT!?]({1})"
+msgstr ""
+
+#: item/network_cable.md
+msgid ""
+"Network cables connect pairs of [network connectors]({1}). This makes it "
+"possible to conveniently bridge large distances. To place a network cable, "
+"use it on the two network connectors to connect, one after the other."
+msgstr ""
+
+#: item/network_cable.md
+msgid ""
+"Cables have a maximum length. It may be necessary to use network connectors "
+"as repeaters to increase the effective range of network cables."
+msgstr ""
+
+#: item/network_interface_card.md
+msgid "Network Interface Card"
+msgstr ""
+
+#: item/network_interface_card.md
+msgid "![Talk to strangers]({1})"
+msgstr ""
+
+#: item/network_interface_card.md
+msgid ""
+"The network interface card (NIC) allows [computers]({1}) to send messages to "
+"and receive messages from [network connectors]({2}) attached to the computer."
+msgstr ""
+
+#: item/network_interface_card.md item/serial_interface_card.md
+msgid ""
+"These cards can be configured to only connect to selected sides (use while "
+"holding). This allows using multiple cards to build a custom router, for "
+"example."
+msgstr ""
+
+#: item/network_interface_card.md item/network_tunnel_card.md
+#: item/network_tunnel_module.md
+msgid ""
+"Only [Linux]({1}) supports this device. It provides a regular ethernet "
+"device. Network setup can either be performed manually, or using the "
+"convenience script `setup-network.lua`. This script provides the option to "
+"either use a fixed-address setup, or a DHCP setup. For a DHCP setup, exactly "
+"one computer in the network must act as a DHCP server. See [networking]({2}) "
+"for details."
+msgstr ""
+
+#: item/network_interface_card.md item/network_tunnel_card.md
+#: item/network_tunnel_module.md
+msgid ""
+"After initial setup, use the command `ifconfig` to see the currently used IP "
+"address."
+msgstr ""
+
+#: item/network_tunnel_card.md
+msgid "Network Tunnel Card"
+msgstr ""
+
+#: item/network_tunnel_card.md item/network_tunnel_module.md
+msgid "![Tunnel vision?]({1})"
+msgstr ""
+
+#: item/network_tunnel_card.md
+msgid ""
+"The network tunnel card allows [computers]({1}) to send messages to and "
+"receive messages from another tunnel device (tunnel cards and [tunnel "
+"modules]({2})) linked to the card."
+msgstr ""
+
+#: item/network_tunnel_card.md item/network_tunnel_module.md
+msgid ""
+"To link two tunnel devices, open their configuration interface (use while "
+"holding), and insert the other tunnel device to link to. This allows linking "
+"any two network tunnel devices."
+msgstr ""
+
+#: item/network_tunnel_module.md
+msgid "Network Tunnel Module"
+msgstr ""
+
+#: item/network_tunnel_module.md
+msgid ""
+"The network tunnel module allows [robots]({1}) to send messages to and "
+"receive messages from another tunnel device (tunnel modules and [tunnel "
+"cards]({2})) linked to the module."
+msgstr ""
+
+#: item/network_tunnel_module.md
+msgid ""
+"Robots *have to be shut down* before installing or removing this component. "
+"Installing it while the robot is running will have no effect, removing it "
+"may lead to system errors."
+msgstr ""
+
+#: item/redstone_interface_card.md
+msgid "Redstone Interface Card"
+msgstr ""
+
+#: item/redstone_interface_card.md
+msgid "![Got signal?]({1})"
+msgstr ""
+
+#: item/redstone_interface_card.md
+msgid ""
+"The redstone interface card is a more compact version of the [redstone "
+"interface block]({1}). It enables users to build more compact designs."
+msgstr ""
+
+#: item/redstone_interface_card.md
+msgid ""
+"The general functionality is identical to the block version. The front of "
+"the [computer]({1}) represents the primary face as described in the redstone "
+"interface block's manual entry."
+msgstr ""
+
+#: item/redstone_interface_card.md
+msgid ""
+"Programs control the card through the `redstone` device, the same device the "
+"redstone interface block provides. See the [redstone device]({1}) reference "
+"for its methods and how sides are named."
+msgstr ""
+
+#: item/robot.md
+msgid "![I, for one, welcome our new robot overlords]({1})"
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"Robots are essentially mobile [computers]({1}). Due to their non-stationary "
+"nature, there is some behavior that differs from regular computers. They "
+"cannot connect to [bus interfaces]({2}). Instead of card devices, they "
+"support module devices. These are specialized devices taking into account "
+"the robots' mobility. In place of a second [hard drive]({3}) bay they have a "
+"[floppy]({4}) slot, since they cannot use [disk drives]({5})."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"Robots have a fixed-size inventory, a fluid tank, and sport a state-of-the-"
+"art energy storage. Only the regular inventory and the tank of robots can be "
+"automatically filled and emptied, for example by a hopper or a pump. The "
+"component inventory of the robot must be manually configured."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"In their default configuration, robots cannot interact with their own "
+"inventory. Use an [inventory operations module]({1}) to enable robots to "
+"move items in their own inventory, as well as to insert and extract items to "
+"and from other inventories. Use a [tank operations module]({2}) to do the "
+"same with fluids and the robot's tank."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"To recharge a robot, it is recommended to make use the [charger]({1}). It is "
+"possible for robots to recharge themselves by simply moving on top of a "
+"charger. Alternatively, they may be placed into an inventory on top of the "
+"charger."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"OpenOS II and Linux provide a utility Lua library, `robot`, that eases "
+"controlling robots. The underlying API offers asynchronous methods for "
+"movement. The library implements synchronous alternatives, making sequential "
+"programming more convenient."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"For an overview of how robots move, how they draw energy and how to script "
+"them, see the [robotics]({1}) entry."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"Programs control the robot through the `robot` device. See the [robot device]"
+"({1}) reference for its methods."
+msgstr ""
+
+#: item/robot.md
+msgid "Library"
+msgstr ""
+
+#: item/robot.md
+msgid "Library name: `robot`"
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"This is a Lua library. It can be used on OpenOS II and Linux. For example:"
+msgstr ""
+
+#: item/robot.md
+msgid "`facing():string` returns the compass direction the robot is facing."
+msgstr ""
+
+#: item/robot.md
+msgid "`position():table` returns the robot's position relative to its origin."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"Returns a table with `x`, `y` and `z`, in blocks. See the \"Position\" "
+"section of the [robot device]({1})."
+msgstr ""
+
+#: item/robot.md
+msgid "`calibrate()` makes the robot's current position its origin."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`energy():number` returns the current amount of energy stored in the robot's "
+"internal energy storage."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`capacity():number` returns the maximum amount of energy that can be stored "
+"in the robot's internal energy storage."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`slot():number` returns the currently selected robot inventory slot. This is "
+"used by many modules as an implicit input."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`slot(slot:number):number` sets the currently selected robot inventory slot. "
+"This is used by many modules as an implicit input."
+msgstr ""
+
+#: item/robot.md
+msgid "`slot` is the index of the inventory slot to select."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`stack([slot:number]):table` gets a description of the item in the specified "
+"slot."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`slot` is the index of the slot to get the item description for. Optional, "
+"defaults to `slot()`."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`statusColor([color:number]):number` gets, and optionally sets, the color of "
+"the status light."
+msgstr ""
+
+#: item/robot.md
+msgid "`color` is the color to set, as a packed `0xRRGGBB` value. Optional."
+msgstr ""
+
+#: item/robot.md
+msgid "Returns the color in effect after the call."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`statusValue([value:number]):number` gets, and optionally sets, how far the "
+"status light is filled."
+msgstr ""
+
+#: item/robot.md
+msgid "`value` is the fill value to set, in the range of [0, 1]. Optional."
+msgstr ""
+
+#: item/robot.md
+msgid "Returns the fill value in effect after the call."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`detect(side):string` reports what occupies the space on the specified side "
+"of the robot."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`side` is the side to look at. See the \"Sides\" section of the [robot "
+"device]({1})."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"Returns `solid`, `fluid` or `air`. Since only `solid` stops the robot, "
+"`detect(side) ~= \"solid\"` tells you a move that way will not be blocked."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`move(direction[,timeout:number]):boolean` tries to move into the specified "
+"direction. Blocks until the movement operation has completed."
+msgstr ""
+
+#: item/robot.md
+msgid "`direction` is the direction to move in."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`timeout` is how long to wait for, in milliseconds. Optional, defaults to "
+"30000."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"Returns whether the operation was successful. Returns `false` if the timeout "
+"ran out first."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`moveAsync(direction[,timeout:number]):boolean` tries to asynchronously move "
+"into the specified direction. Blocks until the action was successfully "
+"enqueued."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`timeout` is how long to wait for a free slot in the action queue, in "
+"milliseconds. Optional, defaults to 30000."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"Returns whether the action was enqueued. Returns `false` if the timeout ran "
+"out first."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`turn(direction[,timeout:number]):boolean` tries to turn towards the "
+"specified direction. Blocks until the rotation operation has completed."
+msgstr ""
+
+#: item/robot.md
+msgid "`direction` is the direction to turn towards."
+msgstr ""
+
+#: item/robot.md
+msgid ""
+"`turnAsync(direction[,timeout:number]):boolean` tries to asynchronously turn "
+"into the specified direction. Blocks until the action was successfully "
+"enqueued."
+msgstr ""
+
+#: item/scanner_module.md
+msgid "Scanner Module"
+msgstr ""
+
+#: item/scanner_module.md
+msgid "![That's inside the room!]({1})"
+msgstr ""
+
+#: item/scanner_module.md
+msgid ""
+"The scanner module lets [robots]({1}) inspect what is around them. Where the "
+"robot's built-in `detect` only rudimentary data, the scanner can provide "
+"specifics about the block, the fluid and any creatures and objects."
+msgstr ""
+
+#: item/scanner_module.md
+msgid ""
+"It can also scan the wider area around the robot, measuring block hardness "
+"and detecting entities in a 7x7x7 cube around the robot. This has been "
+"successfully employed find cavities and ore deposits."
+msgstr ""
+
+#: item/scanner_module.md
+msgid ""
+"Scan results are relative to the robot and aligned to the built-in compass. "
+"Also see the \"Position\" section of the [robot device]({1})."
+msgstr ""
+
+#: item/scanner_module.md
+msgid ""
+"Programs control the module through the `scanner` device. See the [scanner "
+"device]({1}) reference for its methods and the layout of scan results."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "Serial Interface Card"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "![Serial experiments]({1})"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"The serial interface card allows [computers]({1}) to read and write serial "
+"data from a serial port. Serial data is transmitted on a bus established by "
+"[network cables]({2})."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"A segment is every endpoint connected through [network connectors]({1}) and "
+"[network hubs]({2}). It is *multi-drop*: everything one endpoint writes will "
+"be readable by every other endpoint. With more than two participants, "
+"software needs to filter."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"In addition to connectivity, this also allows setting an **address.** This "
+"is an arbitrary number in [0, 255) that allows identifying different cards "
+"on a bus. Hardware ignores it; software may use it to establish a protocol "
+"on top of it. This is purely for convenience."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"Baud rate must be configured in software and must match between endpoints on "
+"a shared bus. The default after a reset is 9600. Misconfiguration will "
+"result in corrupted data. Higher baud rates are more likely to cause "
+"collisions unless a protocol prevents this, and weaker systems may not "
+"process received data fast enough."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"The ports are named as on Linux, starting at `/dev/ttyS1`. `stty -F /dev/"
+"ttyS1 9600` sets the rate. The `oc2.serial` library works the same as on "
+"Linux, see below."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"The card is a plain serial port. The first one in a machine is `/dev/ttyS1`, "
+"because `ttyS0` is the built-in terminal. Set the rate endpoints on the "
+"segment should commonly use:"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"The `oc2.serial` library wraps that, and also reads the address of the card "
+"via the HLAPI:"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "There is also a MicroPython version with the same API."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"CP/M uses the first card as its reader and punch, so BDOS functions 3 and 4 "
+"go through it."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"`STAT CON:=TTY:` switches to the first card as the console, for example to "
+"use the computer from a [terminal]({1})."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "`STAT CON:=CRT:` goes back to the built-in one."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"`SERBAUD` in `SERIAL.INC` sets another rate from a divisor: 384 is 300 baud, "
+"96 is 1200, 12 is 9600, 6 is 19200, 1 is 115200."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"`TERM` is a dumb terminal on the card: everything typed is written, "
+"everything read is printed. `Ctrl-]` quits. Corrupted data prints as `~`."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"`SERIAL.INC` provides utilities for user programs: finding a card's port as "
+"well as IO on it, with status results."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "`SERCHAT.Z80` on the system disk is an example program."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "Suggested multi-endpoint framing"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"The serial port reads and writes raw bytes from and to the bus. To associate "
+"data with endpoints, the library expects the following framing:"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"The checksum is `to + from + length` plus every payload byte, overflowing. "
+"Address 255 means everyone."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "Failure modes"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"Unlike the [network card]({1}), errors are not automatically compensated, so "
+"programs must handle them accordingly. The following errors categories exist:"
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"**Overrun**: the machine is not reading the port fast enough, bytes are "
+"dropped."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"**Contention**: received data was corrupted because too many senders flooded "
+"the bus at the same time."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"**Collision**: sent data was corrupted because too many senders flooded the "
+"bus at the same time."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "**Noise**: traffic arrived at a baud rate this port is not set to."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid "Error counts can be read via the HLAPI and MLAPI, see below."
+msgstr ""
+
+#: item/serial_interface_card.md
+msgid ""
+"Programs can read the card's address, baud rate, port location and error "
+"counters through the `serial` device. See the [serial device]({1}) reference "
+"for its methods. **Important**: device order in the HLAPI and MLAPI may "
+"differ from the order devices were mounted, i.e. the order they are listed "
+"in the device tree/enumeration window."
+msgstr ""
+
+#: item/sound_card.md
+msgid "Sound Card"
+msgstr ""
+
+#: item/sound_card.md
+msgid "![Less sound of silence]({1})"
+msgstr ""
+
+#: item/sound_card.md
+msgid ""
+"The sound card provides a means for computers to emit arbitrary audio "
+"signals. The card supports mono audio at up to 22050 samples per second. CP/"
+"M does not support it."
+msgstr ""
+
+#: item/sound_card.md
+msgid ""
+"The first sound card provides three devices, all playing mono audio at 11025 "
+"samples per second:"
+msgstr ""
+
+#: item/sound_card.md
+msgid "`/dev/dsp` takes one unsigned byte per sample."
+msgstr ""
+
+#: item/sound_card.md
+msgid "`/dev/dspW` takes signed 16-bit samples, little endian."
+msgstr ""
+
+#: item/sound_card.md
+msgid "`/dev/audio` takes one mu-law encoded byte per sample."
+msgstr ""
+
+#: item/sound_card.md
+msgid ""
+"The format and rate cannot be changed. Audio must be 11025 samples per "
+"second. Raw samples can be written to the devices directly, e.g.:"
+msgstr ""
+
+#: item/sound_card.md
+msgid ""
+"Sound cards typically appear as `/dev/dsp` devices. The simplest way to play "
+"audio is to write raw samples to the device:"
+msgstr ""
+
+#: item/sound_card.md
+msgid ""
+"Opened like this, `/dev/dsp` expects mono audio at 8000 samples per second, "
+"one unsigned byte per sample. Audio in any other format has to be converted "
+"first, or the program playing it has to configure the device to match."
+msgstr ""
+
+#: item/tank_operations_module.md
+msgid "Tank Operations Module"
+msgstr ""
+
+#: item/tank_operations_module.md
+msgid "![Bigger on the inside]({1})"
+msgstr ""
+
+#: item/tank_operations_module.md
+msgid ""
+"The tank operations module provides to [robots]({1}) the ability to insert "
+"and extract fluids from tanks in the world. This supports block and entity "
+"tanks, as well as container items in the robot's inventory. Without a tank "
+"present, given sufficient space, it allows filling or draining fluids into "
+"and from the world."
+msgstr ""
+
+#: item/tank_operations_module.md
+msgid ""
+"Programs control the module through the `tank_operations` device. See the "
+"[tank operations device]({1}) reference for its methods."
+msgstr ""
+
+#: item/wrench.md
+msgid "Scrench"
+msgstr ""
+
+#: item/wrench.md
+msgid "![Screw it!]({1})"
+msgstr ""
+
+#: item/wrench.md
+msgid ""
+"The wrench-screwdriver multi-tool, nicknamed \"Scrench\", can be used to "
+"directly access the configuration of some blocks, such as [computers]({1})."
+msgstr ""
+
+#: item/wrench.md
+msgid ""
+"It is required to configure some devices such as [bus interfaces]({1}). It "
+"may also be used to quickly dismantle some devices, such as [cables]({2})."
+msgstr ""
+
+#: item/wrench.md
+msgid "This tool can also be used to remove facades from cables."
+msgstr ""
+
+#: item/wrench.md
+msgid ""
+"It also erases programmed [flash memory]({1}) and [hard drives]({2}), "
+"returning them to blank ones."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"The mid-level API (MLAPI) is a low-level friendly way of interacting with "
+"devices. Its primary consumer is programs running on [CP/M]({1}), but "
+"programs on [Linux]({2}) can make use of it, as well, see below. OpenOS II "
+"does not support it. It usually makes available a subset of the devices "
+"accessible via the [high-level API]({3}) (HLAPI), in a form an 8-bit machine "
+"can access comfortably: a function is picked by number, and its arguments "
+"and results are plain bytes."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"For the function codes each device offers, see the [list of devices]({1})."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Everything here is done through ports, so it works from assembly. Two "
+"libraries on the boot disk save you writing the tedious parts, `DEVLIB.INC` "
+"for finding general devices and `OCAPI.INC` for finding and calling mid-"
+"level API devices. Include them at the end of your sources:"
+msgstr ""
+
+#: mlapi.md
+msgid "Finding a Device"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Devices are findable through an enumeration window at a fixed port. "
+"`DEVS.COM` prints what's on there, which is a good first check that a device "
+"is connected at all."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Every MLAPI device answers on the same port and is told apart by an MLAPI-"
+"device index. `OCFIND` in `OCAPI.INC` does the lookup by device name, device "
+"type or bus interface label:"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`HL` points at a list of names, each terminated by a zero, with one extra, "
+"final zero indicating the end of the list. A device must match all, e.g. a "
+"label and a device name: `db 'storage',0,'ITEMS',0,0`"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`B` is which one to find, counting from zero, for when there are multiple "
+"matching devices"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"On success the carry flag is clear, `A` holds the port to talk to and `E` "
+"holds the MLAPI-device index"
+msgstr ""
+
+#: mlapi.md
+msgid "On failure the carry flag is set"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Write `E` to the `OCSEL` register to pick the device, then work from the "
+"port in `A`. Selecting stays valid until you select something else. Read the "
+"index again after devices change on the bus, since it can shift."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Every computer and robot has a [`SYSTEM`]({1}) device. Other devices "
+"identify items, fluids and blocks by ids to save bus bandwidth. "
+"Corresponding names can be looked up using this `SYSTEM` device and vice "
+"versa. It is always MLAPI-device index 0, so it can be used without prior "
+"`OCFIND`."
+msgstr ""
+
+#: mlapi.md
+msgid "Making a Call"
+msgstr ""
+
+#: mlapi.md
+msgid "The port `OCFIND` returned has four registers, named in `OCAPI.INC`:"
+msgstr ""
+
+#: mlapi.md
+msgid "`OCSEL` selects the MLAPI-device"
+msgstr ""
+
+#: mlapi.md
+msgid "`OCFUN` takes a function code and starts a call"
+msgstr ""
+
+#: mlapi.md
+msgid "`OCDAT` takes argument bytes, and gives back result bytes"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`OCSTA` reports status, and takes `OCEXEC` to run the call or `OCABRT` to "
+"abandon it"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"A call goes: write the function code to `OCFUN`, write each argument byte to "
+"`OCDAT`, write `OCEXEC` to `OCSTA`. Then poll `OCSTA` until `OCBUSY` clears, "
+"and read result bytes from `OCDAT` while `OCDAV` is set."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Many calls may take some time to execute, so make sure to poll and don't "
+"just continue. Only one call runs at a time, and while `OCBUSY` is set only "
+"writes to `OCSTA` are accepted."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"When `OCERR` is set in the status, the call failed and `OCDAT` gives the "
+"reason:"
+msgstr ""
+
+#: mlapi.md
+msgid "`OCENOD`, no such MLAPI-device"
+msgstr ""
+
+#: mlapi.md
+msgid "`OCENOF`, no such function"
+msgstr ""
+
+#: mlapi.md
+msgid "`OCEARG`, the arguments were not what the function wanted"
+msgstr ""
+
+#: mlapi.md
+msgid "`OCEINT`, the device failed internally"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"The registers hold a single selection and a single call, so keep to one at a "
+"time and make no calls from interrupt handlers."
+msgstr ""
+
+#: mlapi.md
+msgid "Waiting for Events"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Some devices report changes by themselves, such as the [redstone interface]"
+"({1}) when the signal it receives changes. The device documentation found in "
+"the [list of devices]({2}) usually lists the device's events."
+msgstr ""
+
+#: mlapi.md
+msgid "The following registers deal with events:"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`OCEVC` switches them on: write `OCEVQ` to have events queued, and add "
+"`OCEVI` to also get an interrupt"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`OCEVD` gives back the oldest event, one byte per read: the MLAPI-device "
+"index, the event code, then a two-byte value"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Bit `OCEVP` in `OCEVC` is set while events are waiting. Events arriving "
+"while the queue is full are lost, and bit `OCEVO` is set every time it "
+"happens."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"On the Z80, with the interrupt switched on, `HALT` sleeps until the next "
+"event, and your interrupt handler reads it. `REDWAIT.Z80` on the boot disk "
+"does this: it waits for a redstone signal to change, then prints the side "
+"and the new level. Build it like `REDSTN.Z80` below."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`REDSTN.Z80` on the boot disk drives a [redstone interface]({1}), and its "
+"comments include the equivalent C, if that reads more easily. Writing to a "
+"floppy needs a [disk drive]({2}). Build it while staying on `A:`:"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"The first command assembles the source. `/O` puts the result in "
+"`B:REDSTN.REL` and `/E` drops the error log. The second links that into "
+"`B:REDSTN.COM`, which CP/M can run:"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"This sets the output on side 1, upwards, to 15. Put a redstone lamp above "
+"the computer and it lights up. Leave off the level to read the levels back "
+"instead:"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"To write your own, `ED` on the boot disk creates and edits source files, as "
+"in `ED B:PROG.Z80`."
+msgstr ""
+
+#: mlapi.md
+msgid "On Linux"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Linux offers the same registers as a memory page in the file `/dev/uio0`, "
+"which needs `root` privileges to open. The C header `mlapi.h` provides "
+"utilities to find and map this memory area; layout is then the same as "
+"described above. It also provides a helper to find a device by its names, "
+"`mlapi_find(0, \"storage\", \"ITEMS\")`, which matches devices the same way "
+"as `OCFIND`, and to make a call. It lives in `/mnt/builtin/include`, where "
+"`tcc` should pick it up automatically."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`/mnt/builtin/example/redstone.c` does the same as `REDSTN.Z80` does on the "
+"Z80. Run it directly:"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"Without arguments, it does what `REDWAIT.Z80` does: `mlapi_events_wait` in "
+"`mlapi.h` sleeps until the next event."
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"`/mnt/builtin/example/devices.c` lists every device with its index and names:"
+msgstr ""
+
+#: mlapi.md
+msgid ""
+"There is one selection and one call for the whole computer. Only let one "
+"program use the page at a time."
+msgstr ""
+
+#: networking.md
+msgid "Networking"
+msgstr ""
+
+#: networking.md
+msgid ""
+"To set up a [computer]({1}) network, use [network connectors]({2}) and "
+"[network cables]({3}) to connect the connectors. Finally, make sure a "
+"[network interface card]({4}) is installed in each computer that should be "
+"part of the network."
+msgstr ""
+
+#: networking.md
+msgid "Only [Linux]({1}) supports networking."
+msgstr ""
+
+#: networking.md
+msgid ""
+"Connectors have to be attached to any face but the front face of a computer. "
+"This allows the network card installed in it to send and receive packets "
+"through the connector."
+msgstr ""
+
+#: networking.md
+msgid ""
+"Connectors connected with cables will forward packets to each other. For "
+"more complex network setups, a [network hub]({1}) may be necessary. It "
+"allows connecting multiple connectors with each other."
+msgstr ""
+
+#: networking.md
+msgid "Hops"
+msgstr ""
+
+#: networking.md
+msgid ""
+"Network packets can only travel a certain maximum number of \"hops\". A hop "
+"can generally be understood as a single forwarding operation. For example, a "
+"connector forwarding a packet uses one hop. A network hub forwarding a "
+"packet to each connector the packet did not arrive from uses one hop. Once "
+"the number of remaining hops reaches zero, the packet is no longer "
+"forwarded. This avoids packets going in circles forever for networks with "
+"cycles. That said, this is a safeguard mechanism. No network should contain "
+"cycles, as this will also lead to the same packet arriving multiple times on "
+"receiving computers."
+msgstr ""
+
+#: networking.md
+msgid "Computer Setup"
+msgstr ""
+
+#: networking.md
+msgid ""
+"To set up a computer for networking, first ensure a network card is present. "
+"After this, run the command `setup-network.lua`. This will provide a wizard "
+"to configure how the computer should connect to the network. Alternatively, "
+"if you know what you're doing, set up network as you would on any regular "
+"Linux installation."
+msgstr ""
+
+#: networking.md
+msgid "DHCP"
+msgstr ""
+
+#: networking.md
+msgid ""
+"DHCP is a protocol which allows a simplified network setup. Only one "
+"computer will need to have a statically configured network address, all "
+"other computers in the network may have their addresses assigned to them "
+"automatically. When going for this setup, ensure there is only a single "
+"computer that acts as a DHCP server. Also ensure that no computer uses a "
+"static IP address that falls into the range of dynamically distributed IP "
+"addresses."
+msgstr ""
+
+#: networking.md
+msgid ""
+"`setup-network.lua` starts the DHCP server when you configure a computer as "
+"one. It does not survive a reboot. See the \"Daemons\" section below for how "
+"to start it again, or how to make it start on its own."
+msgstr ""
+
+#: networking.md
+msgid ""
+"Once you have a network setup running, with multiple computers in one "
+"network, you have all the options in the world. For example, you can copy "
+"files between computers using `scp`, log in to a remote computer using `ssh` "
+"and write custom network programs in Lua using the `socket` library. For "
+"samples on how to use the `socket` library, please see the [samples in the "
+"official repository]({1})."
+msgstr ""
+
+#: networking.md
+msgid ""
+"Note that `scp` and `ssh` are the client tools. Connecting to a computer "
+"*from* elsewhere needs a server running on it. See the \"Daemons\" section "
+"below."
+msgstr ""
+
+#: networking.md
+msgid "The Internet"
+msgstr ""
+
+#: networking.md
+msgid ""
+"For access outside the game, a network needs an [internet gateway]({1}) on "
+"it. Computers then use their ordinary [network interface cards]({2}) and "
+"route through it."
+msgstr ""
+
+#: networking.md
+msgid ""
+"The gateway offers no DHCP and no name server, so set an address, a route "
+"and a name server yourself. See the [internet gateway]({1}) entry for an "
+"example."
+msgstr ""
+
+#: networking.md
+msgid "Daemons"
+msgstr ""
+
+#: networking.md
+msgid ""
+"The network daemons are shipped but not started at boot. Start the one you "
+"need by hand:"
+msgstr ""
+
+#: networking.md
+msgid "`/etc/init.d/dropbear start` for the `ssh` and `scp` server"
+msgstr ""
+
+#: networking.md
+msgid "`/etc/init.d/telnet start` for the `telnet` server"
+msgstr ""
+
+#: networking.md
+msgid "`/etc/init.d/dnsmasq start` for the DHCP server"
+msgstr ""
+
+#: networking.md
+msgid ""
+"The `ssh` server refuses to let anyone in while an account has a blank "
+"password, which is what `root` ships with. Set one with `passwd` before "
+"connecting for the first time. The `telnet` server has no such restriction, "
+"and accepts the blank password as-is, so anyone who can connect to the "
+"computer can log into it."
+msgstr ""
+
+#: networking.md
+msgid ""
+"None of these survive a reboot. To start one at boot, give its script a boot-"
+"sequence prefix:"
+msgstr ""
+
+#: robotics.md
+msgid "Robotics"
+msgstr ""
+
+#: robotics.md
+msgid ""
+"[Robots]({1}) are [computers]({2}) that can move. Everything in the [basics]"
+"({3}) and [HLAPI]({4})/[MLAPI]({5}) entries applies to them as well. For the "
+"full method reference, see the [robot]({6}) entry."
+msgstr ""
+
+#: robotics.md
+msgid "Building a Robot"
+msgstr ""
+
+#: robotics.md
+msgid "A robot is configured much like a computer, with two differences."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"It cannot connect to [bus cables]({1}), so all its devices must be installed "
+"in the robot itself. In place of cards, robots take modules such as the "
+"[block operations module]({2})."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"It has two inventories. One for internal components: the processor, memory, "
+"modules. This one must be maintained by hand. Another, regular inventory, "
+"which is the robot's main storage. This is what automated interaction works "
+"with, such as when using a hopper. It also has a built-in tank, which may be "
+"automated like the storage inventory, e.g. using a transposer."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"A robot draws energy from its internal storage for as long as its computer "
+"runs. Consumption depends on the installed components; moving and turning "
+"cost nothing on top of that. When it runs out, the computer stops with an "
+"out-of-energy error, wherever the robot is."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"Recharge using a [charger]({1}). A robot can move onto one by itself, so an "
+"unattended recharge is easy to script. Breaking a robot and picking it up "
+"preserves its energy, its inventory, including the installed components, and "
+"its tank."
+msgstr ""
+
+#: robotics.md
+msgid "Action Queue"
+msgstr ""
+
+#: robotics.md
+msgid ""
+"`move` and `turn` do not move the robot synchronously. They append an action "
+"to a queue and return whether there was room for it. The robot then runs the "
+"queue one action at a time. Moving one block takes a second, turning ninety "
+"degrees takes a second."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"Every enqueued action gets an id, available from `getLastActionId()`. Once "
+"the robot has finished it, `getActionResult(id)` reports `SUCCESS` or "
+"`FAILURE`, and the computer receives a `robotActionCompleted` event with the "
+"same information. Until then the result is `INCOMPLETE`. Only the last "
+"sixteen results are kept."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"A move into an obstacle is not rejected up front. The robot starts moving, "
+"hits the obstacle, returns to its original position and reports `FAILURE`. "
+"Shutting the computer down clears both the queue and the stored results."
+msgstr ""
+
+#: robotics.md
+msgid "Directions and Sides"
+msgstr ""
+
+#: robotics.md
+msgid "Movement and module operations use different terminology."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"Movement takes `forward`, `backward`, `upward` and `downward`; rotation "
+"takes `left` and `right`. Module operations take a side, which is one of "
+"`front`, `up` and `down`. There is no `forward` side and no `front` "
+"direction."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"Both accept short forms. `up`, `down`, `back` and `ahead` work for movement, "
+"and the single letters `f`, `b`, `u`, `d`, `l` and `r` work wherever the "
+"corresponding long form does."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"Robots have a built-in compass and keep track of where they are. "
+"`getFacing()` reports `north`, `east`, `south` or `west`. `getPosition()` "
+"reports the offset from the robot's origin in blocks: `x` grows towards "
+"east, `y` upward and `z` towards south."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"The origin is initialized when the robot is placed. `calibratePosition()` "
+"resets it to where the robot is at that moment. The position stays correct "
+"even when the robot is moved by external measures."
+msgstr ""
+
+#: robotics.md
+msgid "The robot Library"
+msgstr ""
+
+#: robotics.md
+msgid ""
+"Driving the action queue by hand is tedious, so OpenOS II and Linux ship a "
+"`robot` library that waits for completion:"
+msgstr ""
+
+#: robotics.md
+msgid ""
+"`move` and `turn` block until the action has completed and return whether it "
+"succeeded. `moveAsync` and `turnAsync` block only until the action is in the "
+"queue. All four take an optional timeout in milliseconds, defaulting to "
+"thirty seconds, and return `false` if it runs out. For the asynchronous "
+"pair, a timeout means the queue stayed full for that long."
+msgstr ""
+
+#: robotics.md
+msgid ""
+"On Linux, an equivalent library is available for MicroPython. On CP/M, use "
+"the `robot` device through the [MLAPI]({1})."
+msgstr ""
+
+#: robotics.md
+msgid "This walks the robot around a three by three square:"
+msgstr ""
+
+#: robotics.md
+msgid ""
+"This digs a straight tunnel, stopping as soon as it cannot get any further. "
+"It needs a block operations module and a pickaxe in the selected slot:"
+msgstr ""
+
+#: robotics.md
+msgid ""
+"A move takes a second, usually enough for the module's cooldown to expire. "
+"On a block that takes longer to break, the next `excavate` returns `false` "
+"without doing anything, the move that follows fails, and the loop stops "
+"early. Retry the excavation to dig through those as well."
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"CP/M 2.2 runs on the [Z80 processor]({1}). It is a much cheaper, but also "
+"much more limited environment. Programs are written in Z80 assembly, and "
+"assembled and linked on the computer itself. It supports [disk drives]({2}), "
+"[serial interface cards]({3}) and [MLAPI]({4}) devices. Hard drives, network "
+"cards and the other native devices are ignored without effect."
+msgstr ""
+
+#: systems/cpm.md systems/linux.md systems/openos2.md
+msgid "Parts"
+msgstr ""
+
+#: systems/cpm.md systems/linux.md systems/openos2.md
+msgid ""
+"Build the computer as described in [getting started]({1}), using these parts:"
+msgstr ""
+
+#: systems/cpm.md systems/linux.md systems/openos2.md
+msgid "1x [computer]({1})"
+msgstr ""
+
+#: systems/cpm.md
+msgid "1x [Z80 processor]({1})"
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"1x **CP/M 2.2** [flash memory]({1}), crafted from flash memory and a Z80 "
+"processor"
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"1x [disk drive]({1}) on the bus, holding a **CP/M 2.2** [floppy]({2}), "
+"crafted from a floppy and a Z80 processor"
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"A [robot]({1}) has a floppy slot of its own, so it can have a system disk "
+"without a disk drive."
+msgstr ""
+
+#: systems/cpm.md systems/openos2.md
+msgid "Starting Up"
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"Power the computer and turn it on. The loader in the flash memory finds the "
+"system floppy and boots CP/M to its prompt, `A>`. Run `DIR` to see what came "
+"on the disk:"
+msgstr ""
+
+#: systems/cpm.md
+msgid "`DEVS.COM` prints the devices the computer can see."
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"`DEVLIB.INC`, `OCAPI.INC` and `SERIAL.INC` are libraries for your own "
+"programs."
+msgstr ""
+
+#: systems/cpm.md
+msgid "`REDSTN.Z80`, `REDWAIT.Z80` and `SERCHAT.Z80` are example programs."
+msgstr ""
+
+#: systems/cpm.md
+msgid "`ZMAC.COM` and `ZML.COM` are the assembler and the linker."
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"`ED.COM` is a line editor, `STAT.COM` shows free space and device "
+"assignments."
+msgstr ""
+
+#: systems/cpm.md
+msgid "`TERM.COM` is a terminal for the serial interface card."
+msgstr ""
+
+#: systems/cpm.md systems/linux.md systems/openos2.md
+msgid "Drives"
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"Drives are lettered in the order they are found, starting at `A:`. The "
+"floppy the computer booted from always comes first. Add another [disk drive]"
+"({1}) with a blank [floppy]({2}) for more room, it shows up as `B:`. Type "
+"`B:` to switch to it."
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"The prompt has a few built-in commands: `DIR` lists files, `TYPE` prints a "
+"text file, `ERA` deletes files and `REN NEW.TXT=OLD.TXT` renames a file."
+msgstr ""
+
+#: systems/cpm.md
+msgid "Building Programs"
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"`ED B:PROG.Z80` creates and edits a source file. To assemble and link a "
+"program onto `B:`, while staying on `A:`:"
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"The first command assembles the source, the second links it into "
+"`B:REDSTN.COM`. The [mid-level API]({1}) entry explains the options and what "
+"this example does."
+msgstr ""
+
+#: systems/cpm.md
+msgid ""
+"To control devices such as the [redstone interface]({1}), see the [mid-level "
+"API]({2}). To use the computer from a [terminal]({3}), see the [serial "
+"interface card]({4})."
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"This guide describes how to get a [computer]({1}) up and running. Building "
+"and powering a computer works the same for every operating system (OS), it "
+"is described below. What parts to install and how to use the system depends "
+"on the OS. Each has its own guide:"
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"[OpenOS II]({1}) runs on the [RISC-V processor]({2}). It is a small Lua-"
+"based system, it boots with a single 2M memory module."
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"[Linux]({1}) runs on the RISC-V processor as well. It offers the most "
+"features and needs the most memory and storage."
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"[CP/M]({1}) runs on the [Z80 processor]({2}). It makes for a cheap start, "
+"with programs written in assembly."
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"It is strongly suggested to start with OpenOS II, as it is the most "
+"accessible. To go deeper, pick Linux for networking, MicroPython or C, or CP/"
+"M for assembly on an 8-bit machine. For the concepts behind processors and "
+"devices, see the [basics]({1})."
+msgstr ""
+
+#: systems/index.md
+msgid "Building"
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"First things first, you need an actual computer case, plus the components "
+"listed in the guide for your OS. Once you have all this, place down the "
+"computer. Open its inventory screen using a [wrench]({1}). Alternatively, "
+"open the terminal screen, then use the toggle button to the left to switch "
+"to the inventory screen. Here, place the processor, flash memory and, for "
+"OpenOS II and Linux, the memory and hard drive into the computer. CP/M boots "
+"from a floppy in a disk drive on the bus. A computer without a processor "
+"will not start."
+msgstr ""
+
+#: systems/index.md
+msgid "![Computer inventory]({1})"
+msgstr ""
+
+#: systems/index.md
+msgid "Starting"
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"To power up your freshly built computer, you'll usually need to supply it "
+"with some power. Have a look at the energy bar to the left of the terminal "
+"or inventory screen. Its tooltip informs you of the current amount of energy "
+"stored in the computer, and the amount of energy it requires per tick to "
+"keep running."
+msgstr ""
+
+#: systems/index.md
+msgid "![Computer energy info]({1})"
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"When you've ensured the required amount of energy is available, switch to "
+"the terminal screen and hit the power button to the top left. Alternatively "
+"use the computer while sneaking. The computer should now boot! Continue in "
+"the guide for your OS."
+msgstr ""
+
+#: systems/index.md
+msgid "Feature Overview"
+msgstr ""
+
+#: systems/index.md
+msgid ""
+"Different operating systems support different hardware. This is a brief "
+"overview of what works where:"
+msgstr ""
+
+#: systems/index.md
+msgid "[Hard drives]({1}): OpenOS II, Linux"
+msgstr ""
+
+#: systems/index.md
+msgid "[Floppies]({1}) in a [disk drive]({2}): all"
+msgstr ""
+
+#: systems/index.md
+msgid "[Flash drive]({1}): OpenOS II, Linux"
+msgstr ""
+
+#: systems/index.md
+msgid "[File import/export]({1}): OpenOS II, Linux"
+msgstr ""
+
+#: systems/index.md
+msgid "[Network]({1}): Linux"
+msgstr ""
+
+#: systems/index.md
+msgid "[Sound card]({1}): OpenOS II, Linux"
+msgstr ""
+
+#: systems/index.md
+msgid "[Projector]({1}): OpenOS II (programs only), Linux (with a console)"
+msgstr ""
+
+#: systems/index.md
+msgid "[Keyboard]({1}): OpenOS II (programs only), Linux (console input)"
+msgstr ""
+
+#: systems/index.md
+msgid "[Serial interface card]({1}): all"
+msgstr ""
+
+#: systems/index.md
+msgid "[Terminal]({1}) as a console: OpenOS II, Linux, CP/M"
+msgstr ""
+
+#: systems/index.md
+msgid "[HLAPI]({1}) devices: OpenOS II, Linux"
+msgstr ""
+
+#: systems/index.md
+msgid "[MLAPI]({1}) devices: CP/M, Linux"
+msgstr ""
+
+#: systems/index.md
+msgid "[Robots]({1}): all"
+msgstr ""
+
+#: systems/index.md
+msgid "Good luck, and most importantly, have fun!"
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"Linux runs on the [RISC-V processor]({1}). It is a small distribution with "
+"the common command line tools from busybox, Lua, MicroPython and the `tcc` C "
+"compiler. It supports every device in this manual."
+msgstr ""
+
+#: systems/linux.md systems/openos2.md
+msgid "1x [RISC-V processor]({1})"
+msgstr ""
+
+#: systems/linux.md systems/openos2.md
+msgid ""
+"1x **Sedna Firmware** [flash memory]({1}), crafted from flash memory and a "
+"RISC-V processor"
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"1x **Sedna Linux** [hard drive]({1}), crafted from an 8M hard drive and a "
+"RISC-V processor"
+msgstr ""
+
+#: systems/linux.md
+msgid "3x 4M [memory]({1})"
+msgstr ""
+
+#: systems/linux.md
+msgid "Linux needs at least 8M of memory, 10M are highly recommended."
+msgstr ""
+
+#: systems/linux.md
+msgid "Logging In"
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"Power the computer, turn it on and wait until you're prompted for a login."
+msgstr ""
+
+#: systems/linux.md
+msgid "![Login prompt]({1})"
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"Enter `root` as the user name and press enter. The `root` account has no "
+"password."
+msgstr ""
+
+#: systems/linux.md systems/openos2.md
+msgid "The System"
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"The shell and most tools come from busybox, so the usual commands such as "
+"`ls`, `cp`, `cat` and `less` work as on any other Linux. To edit files, use "
+"`vi` or `nano`."
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"To run a Lua script, use `lua script.lua`. Run `lua` without arguments for "
+"the interactive prompt. MicroPython works the same, via `micropython`. "
+"Compile and run C programs with `tcc -run program.c`."
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"To turn the computer off from the shell, run `poweroff`. `reboot` restarts "
+"it."
+msgstr ""
+
+#: systems/linux.md systems/openos2.md
+msgid ""
+"The boot drive is `/dev/vda`. Additional [hard drives]({1}), [disk drives]"
+"({2}) and [flash drives]({3}) follow as `/dev/vdb`, `/dev/vdc` and so on."
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"They are *not* automatically mounted. Use `mount /dev/vdb /mnt/data` to "
+"mount tem. The directory must exist and should be empty. Use `umount /mnt/"
+"data` unmounts it."
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"A new drive needs a file system first. Run `mke2fs /dev/vdb` to create one. "
+"Formatting a drive *erases all data on it!*"
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"Floppies can be swapped at any time. Unmount before removing a floppy, to "
+"avoid data loss."
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"To control devices such as the [redstone interface]({1}) from Lua or "
+"MicroPython, use the `devices` library, see the [high-level API]({2}). C "
+"programs can also use the [mid-level API]({3}). `lsdev` lists the connected "
+"devices."
+msgstr ""
+
+#: systems/linux.md systems/openos2.md
+msgid ""
+"The built-in file system at `/mnt/builtin` also provides `import` and "
+"`export` for the [file import/export card]({1}), and the `robot` library for "
+"[robots]({2})."
+msgstr ""
+
+#: systems/linux.md systems/openos2.md
+msgid "Clocks"
+msgstr ""
+
+#: systems/linux.md
+msgid ""
+"Computers provide two hardware clock (RTC) devices. The first one counts "
+"time in a scale most users will think in. It is used by default, for example "
+"by `date` and `time`. The second one measures time as it works in the world "
+"the computer runs in. To obtain the current world time, use `hwclock -f /dev/"
+"rtc1`."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"OpenOS II runs on the [RISC-V processor]({1}). It is a small operating "
+"system with a shell and programs written in Lua. It should feel fairly "
+"familiar if you've used OpenOS before. It needs far less memory and storage "
+"than [Linux]({2}), but has no networking."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"1x **OpenOS II** [hard drive]({1}), crafted from a 2M hard drive and a RISC-"
+"V processor"
+msgstr ""
+
+#: systems/openos2.md
+msgid "1x 2M [memory]({1})"
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"Power the computer and turn it on. OpenOS II boots and shows its prompt, `/ "
+"# `. There is no login, there are no users. The prompt shows the current "
+"directory. Well done, you now have a computer that's ready for use!"
+msgstr ""
+
+#: systems/openos2.md
+msgid "The shell works much like one would on Linux:"
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"`ls /bin /mnt/builtin/bin` lists the installed programs. Most programs print "
+"their usage with `--help`."
+msgstr ""
+
+#: systems/openos2.md
+msgid "Up and Down go through the history, Tab completes commands and paths."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"`|` passes the output of one program to the next, `>` and `>>` write it to a "
+"file, `<` reads from one."
+msgstr ""
+
+#: systems/openos2.md
+msgid "`;`, `&&` and `||` chain commands. `*` and `?` match file names."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"`cmd &` runs a command in the background. `jobs` lists these, `kill` ends "
+"one."
+msgstr ""
+
+#: systems/openos2.md
+msgid "Ctrl+C stops the running program."
+msgstr ""
+
+#: systems/openos2.md
+msgid "To turn the computer off, run `shutdown`. `reboot` restarts it."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"Commands placed in `/.shrc` run whenever the shell starts, e.g. aliases "
+"(`alias ll='ls -l'`) or a keyboard layout."
+msgstr ""
+
+#: systems/openos2.md
+msgid "Writing Programs"
+msgstr ""
+
+#: systems/openos2.md
+msgid "To edit a file, run `edit <file>`. Ctrl+S saves, Ctrl+W closes."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"A program is a Lua file. Use `lua <file>` to run them, `lua` alone starts "
+"the interactive prompt. Programs in `/bin`, `/mnt/builtin/bin` and the "
+"current directory run by name, without the `.lua` extension. The program "
+"gets its arguments as `...`:"
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"`require` loads libraries from `/lib`, from the built-in file system at `/"
+"mnt/builtin/lib/lua`, and from the current directory."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"Drives are mounted automatically, at `/mnt/<label>` if the medium has a "
+"label, else at `/mnt/1`, `/mnt/2` and so on."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"A new drive needs a file system first. Run `format /dev/vdb` to create one, "
+"optionally passing a label as a second argument. It's also possible to use "
+"`label` to change the label later. Formatting a drive *erases all data on it!"
+"*"
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"Floppies can be swapped at any time. Close open files on a floppy before "
+"removing it, to avoid data loss."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"To control devices such as the [redstone interface]({1}), use the `devices` "
+"library, see the [high-level API]({2}). `lsdev` lists the connected devices."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"The [sound card]({1}), [projector]({2}) and [keyboard]({3}) are available to "
+"programs. See their respective entries on how to use them."
+msgstr ""
+
+#: systems/openos2.md
+msgid ""
+"Computers provide two hardware clock (RTC) devices. The first one counts "
+"time in a scale most users will think in. It is used by default, for example "
+"by `date` and `time`. The second one measures time as it works in the world "
+"the computer runs in. To obtain the current world time, use `date -w`."
+msgstr ""

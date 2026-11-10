@@ -44,7 +44,6 @@ public final class Z80Fixture {
     public Z80Fixture install() {
         computer.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_Z80.get()));
         computer.install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_Z80.getId()));
-        computer.install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_SMALL.get()));
         drive.insert(Items.FLOPPY.get().withData(BlockDeviceDataRegistry.CPM.getId()));
         return this;
     }

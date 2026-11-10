@@ -15,6 +15,7 @@ import li.cil.oc2.common.bus.device.rpc.RPCTypeAdapters;
 import li.cil.oc2.common.container.Containers;
 import li.cil.oc2.common.entity.Entities;
 import li.cil.oc2.common.inet.InternetManager;
+import li.cil.oc2.common.inet.vxlan.VXLANManager;
 import li.cil.oc2.common.item.ItemGroup;
 import li.cil.oc2.common.item.Items;
 import li.cil.oc2.common.item.crafting.RecipeSerializers;
@@ -76,6 +77,7 @@ public final class Main {
         RPCItemStackTagFilters.initialize();
         NetworkTunnelDevice.TunnelManager.initialize();
         InternetManager.initialize();
+        VXLANManager.initialize();
     }
 
     private Main() {

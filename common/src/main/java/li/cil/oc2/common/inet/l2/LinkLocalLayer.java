@@ -32,13 +32,13 @@ public final class LinkLocalLayer {
     private final Map<Integer, MacAddress> guestMacAddresses = new LinkedHashMap<>();
     private final Deque<PendingArpReply> pendingArpReplies = new ArrayDeque<>();
     private final MacAddress gatewayMacAddress = randomMacAddress();
-    private int gatewayIpAddress;
-    private boolean hasGatewayIpAddress;
+    private final int gatewayIpAddress;
 
     // --------------------------------------------------------------------- //
 
-    public LinkLocalLayer(final NetworkLayer networkLayer) {
+    public LinkLocalLayer(final NetworkLayer networkLayer, final int gatewayIpAddress) {
         this.networkLayer = networkLayer;
+        this.gatewayIpAddress = gatewayIpAddress;
     }
 
     // --------------------------------------------------------------------- //
@@ -155,32 +155,16 @@ public final class LinkLocalLayer {
 
         final MacAddress senderMac = new MacAddress(senderMacPrefix, senderMacAddress);
 
-        if (senderIpAddress == 0) {
-            // An ARP probe: the sender holds no address yet and is testing whether one is free.
-            // Answering would tell a DHCP client the address is taken and make it decline its lease.
+        if (targetIpAddress != gatewayIpAddress) {
+            if (senderIpAddress != 0 && targetIpAddress == senderIpAddress) {
+                learnGuest(senderIpAddress, senderMac);
+            }
             return;
         }
 
-        if (targetIpAddress == senderIpAddress) {
-            // A gratuitous ARP, announcing the guest's own address rather than asking for ours.
+        if (senderIpAddress != 0 && senderIpAddress != gatewayIpAddress) {
             learnGuest(senderIpAddress, senderMac);
-            return;
         }
-
-        if (guestMacAddresses.containsKey(targetIpAddress)) {
-            // Another machine on the segment holds this address. Answering would take its identity
-            // over, and would latch us onto an address that is not ours.
-            return;
-        }
-
-        if (hasGatewayIpAddress && targetIpAddress != gatewayIpAddress) {
-            // The guest is looking for some other host on its subnet, which is not us.
-            return;
-        }
-
-        learnGuest(senderIpAddress, senderMac);
-        gatewayIpAddress = targetIpAddress;
-        hasGatewayIpAddress = true;
 
         if (pendingArpReplies.size() >= MAX_PENDING_ARP_REPLIES) {
             return;
@@ -189,18 +173,6 @@ public final class LinkLocalLayer {
     }
 
     private void learnGuest(final int ipAddress, final MacAddress macAddress) {
-        if (ipAddress == 0) {
-            // The unspecified address, as a DHCP client uses until it has a lease. It identifies
-            // nobody, so remembering it would only cost a real entry its place.
-            return;
-        }
-
-        if (hasGatewayIpAddress && ipAddress == gatewayIpAddress) {
-            // We answered for this address before its owner spoke up. It is theirs, so let go of it
-            // and take the next address a guest asks us for instead.
-            hasGatewayIpAddress = false;
-        }
-
         guestMacAddresses.remove(ipAddress);
 
         if (guestMacAddresses.size() >= MAX_GUESTS) {

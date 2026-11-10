@@ -220,7 +220,6 @@ public final class RobotIoTests {
                 robot.charge();
                 robot.install(DeviceTypes.CPU.get(), new ItemStack(Items.CPU_Z80.get()));
                 robot.install(DeviceTypes.FLASH_MEMORY.get(), Items.FLASH_MEMORY.get().withData(BlockDeviceDataRegistry.FIRMWARE_Z80.getId()));
-                robot.install(DeviceTypes.MEMORY.get(), new ItemStack(Items.MEMORY_SMALL.get()));
                 robot.install(DeviceTypes.FLOPPY.get(), Items.FLOPPY.get().withData(BlockDeviceDataRegistry.CPM.getId()));
             })
             .thenExecuteAfter(20, robot::start)

@@ -2,75 +2,9 @@
 
 package li.cil.oc2.client.gui.util;
 
-import li.cil.oc2.api.bus.device.DeviceType;
-import li.cil.oc2.api.bus.device.DeviceTypes;
-import li.cil.oc2.client.gui.widget.Sprite;
-import li.cil.oc2.common.container.DeviceTypeSlotItemHandler;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.Slot;
-
-import javax.annotation.Nullable;
-import java.util.*;
-
-import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class GuiUtils {
-    @Nullable
-    private static Map<DeviceType, Component> warningByDeviceType;
-
-    private static Map<DeviceType, Component> getWarningByDeviceType() {
-        // Lazy init to make sure init is done and the type keys are set.
-        if (warningByDeviceType == null) {
-            final HashMap<DeviceType, Component> map = new HashMap<>();
-
-            map.put(DeviceTypes.FLASH_MEMORY.get(), text("tooltip.{mod}.flash_memory_missing"));
-            map.put(DeviceTypes.MEMORY.get(), text("tooltip.{mod}.memory_missing"));
-            map.put(DeviceTypes.HARD_DRIVE.get(), text("tooltip.{mod}.hard_drive_missing"));
-
-            warningByDeviceType = map;
-        }
-
-        return warningByDeviceType;
-    }
-
-    private static final int SLOT_SIZE = 18;
-    private static final int DEVICE_INFO_ICON_SIZE = 28;
-    private static final int RELATIVE_ICON_POSITION = (SLOT_SIZE - DEVICE_INFO_ICON_SIZE) / 2;
-
-    // --------------------------------------------------------------------- //
-
-    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoIcon(final GuiGraphics graphics, final AbstractContainerScreen<TContainer> screen, final DeviceType type, final Sprite icon) {
-        findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> icon.draw(graphics,
-            screen.leftPos + slot.x - 1 + RELATIVE_ICON_POSITION,
-            screen.topPos + slot.y - 1 + RELATIVE_ICON_POSITION));
-    }
-
-    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final GuiGraphics graphics, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type) {
-        renderMissingDeviceInfoTooltip(graphics, screen, mouseX, mouseY, type, Objects.requireNonNull(getWarningByDeviceType().get(type)));
-    }
-
-    public static <TContainer extends AbstractContainerMenu> void renderMissingDeviceInfoTooltip(final GuiGraphics graphics, final AbstractContainerScreen<TContainer> screen, final int mouseX, final int mouseY, final DeviceType type, final Component tooltip) {
-        final boolean isCursorHoldingStack = !screen.getMenu().getCarried().isEmpty();
-        if (isCursorHoldingStack) {
-            return;
-        }
-
-        final Slot hoveredSlot = screen.hoveredSlot;
-        if (hoveredSlot != null && hoveredSlot.hasItem()) {
-            return;
-        }
-
-        findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(screen.getMenu(), type).ifPresent(slot -> {
-            if (slot == hoveredSlot) {
-                TooltipRenderer.drawTooltip(graphics, Collections.singletonList(tooltip), mouseX, mouseY);
-            }
-        });
-    }
-
     public static boolean clampToRange(final EditBox field, final int minimum, final int maximum) {
         final String value = field.getValue();
         if (value.isEmpty()) {
@@ -86,24 +20,5 @@ public final class GuiUtils {
 
         field.setValue(clamped);
         return true;
-    }
-
-    // --------------------------------------------------------------------- //
-
-    private static Optional<DeviceTypeSlotItemHandler> findFirstSlotOfTypeIfAllSlotsOfTypeEmpty(final AbstractContainerMenu container, final DeviceType type) {
-        DeviceTypeSlotItemHandler firstSlot = null;
-        for (final Slot slot : container.slots) {
-            if (slot instanceof final DeviceTypeSlotItemHandler typedSlot) {
-                final DeviceType slotType = typedSlot.getDeviceType();
-                if (slotType == type) {
-                    if (slot.hasItem()) {
-                        return Optional.empty();
-                    } else if (firstSlot == null) {
-                        firstSlot = typedSlot;
-                    }
-                }
-            }
-        }
-        return Optional.ofNullable(firstSlot);
     }
 }

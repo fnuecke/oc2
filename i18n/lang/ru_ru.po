@@ -1,0 +1,754 @@
+# Translations for oc2.
+msgid ""
+msgstr ""
+"Project-Id-Version: oc2\n"
+"Language: ru_ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "itemGroup.oc2.common"
+msgid "OpenComputers II"
+msgstr "OpenComputers II"
+
+msgctxt "block.oc2.computer"
+msgid "Computer"
+msgstr "Компьютер"
+
+msgctxt "block.oc2.computer.desc"
+msgid "Runs software from Flash Memory and Hard Disks."
+msgstr "Выполняет программы из карт памяти и жестких дисков."
+
+msgctxt "block.oc2.computer.preconfigured"
+msgid "Preconfigured Computer"
+msgstr "Собранный компьютер"
+
+msgctxt "block.oc2.bus_cable"
+msgid "Bus Cable"
+msgstr "Интерфейсный кабель"
+
+msgctxt "block.oc2.bus_cable.desc"
+msgid "Connects Bus Interfaces."
+msgstr "Соединяет интерфейсные шины."
+
+msgctxt "block.oc2.network_connector"
+msgid "Network Connector"
+msgstr "Сетевой разъем"
+
+msgctxt "block.oc2.network_connector.desc"
+msgid "Transmits network packets via Network Cables."
+msgstr "Передает пакеты через сетевые кабели."
+
+msgctxt "block.oc2.internet_gateway"
+msgid "Internet Gateway"
+msgstr ""
+
+msgctxt "block.oc2.internet_gateway.desc"
+msgid "Connects a network to the internet."
+msgstr ""
+
+msgctxt "block.oc2.network_hub"
+msgid "Network Hub"
+msgstr "Сетевой концентратор"
+
+msgctxt "block.oc2.network_hub.desc"
+msgid "Distributes network packets among all attached Network Connectors."
+msgstr "Передает пакеты на все подключенные к нему сетевые разъемы."
+
+msgctxt "block.oc2.redstone_interface"
+msgid "Redstone Interface"
+msgstr "Красный интерфейс"
+
+msgctxt "block.oc2.redstone_interface.desc"
+msgid "Emits and reads redstone signals."
+msgstr "Подает и считывает редстоун сигналы."
+
+msgctxt "block.oc2.transposer"
+msgid "Transposer"
+msgstr ""
+
+msgctxt "block.oc2.transposer.desc"
+msgid "Moves items between adjacent inventories."
+msgstr ""
+
+msgctxt "block.oc2.disk_drive"
+msgid "Disk Drive"
+msgstr "Дисковод"
+
+msgctxt "block.oc2.disk_drive.desc"
+msgid "Used to access Floppy Disks."
+msgstr "Нужен для работы с дискетами."
+
+msgctxt "block.oc2.flash_drive"
+msgid "Flash Drive"
+msgstr ""
+
+msgctxt "block.oc2.flash_drive.desc"
+msgid "Used to access Flash Memory."
+msgstr ""
+
+msgctxt "block.oc2.terminal"
+msgid "Terminal"
+msgstr ""
+
+msgctxt "block.oc2.terminal.desc"
+msgid "User input and output over a serial bus."
+msgstr ""
+
+msgctxt "block.oc2.charger"
+msgid "Charger"
+msgstr "Зарядное устройство"
+
+msgctxt "block.oc2.charger.desc"
+msgid "Charges entities and items in containers on top of it."
+msgstr "Заряжает сущности и предметы в контейнерах над ним."
+
+msgctxt "block.oc2.creative_energy"
+msgid "Infinite Energy Cube"
+msgstr "Энергокуб бесконечности"
+
+msgctxt "block.oc2.creative_energy.desc"
+msgid "Provides unlimited energy to adjacent blocks. Intended for testing."
+msgstr ""
+"Подает бесконечную энергию на соседние блоки. Применять только в тестовых "
+"целях."
+
+msgctxt "block.oc2.projector"
+msgid "Projector"
+msgstr "Проектор"
+
+msgctxt "block.oc2.projector.desc"
+msgid "Projects images onto surfaces in front of it."
+msgstr "Проецирует изображения на поверхности перед ним."
+
+msgctxt "block.oc2.keyboard"
+msgid "Keyboard"
+msgstr "Клавиатура"
+
+msgctxt "block.oc2.keyboard.desc"
+msgid "Allows keyboard input when using a projector."
+msgstr "Позволяет вводить текст при использовании проектора."
+
+msgctxt "item.oc2.wrench"
+msgid "Scrench"
+msgstr "Ключ"
+
+msgctxt "item.oc2.wrench.desc"
+msgid "Configures devices and dismantles them (while sneaking)."
+msgstr "Конфигурирует и демонтирует (если присесть) устройства."
+
+msgctxt "item.oc2.manual"
+msgid "The Computerist's Handbook"
+msgstr "Справочник компьютерщика"
+
+msgctxt "item.oc2.manual.desc"
+msgid "Holds information on all things needed when working with Computers."
+msgstr "Содержит информацию о всем, что нужно для работы с компьютерами."
+
+msgctxt "item.oc2.bus_interface"
+msgid "Bus Interface"
+msgstr "Интерфейсная шина"
+
+msgctxt "item.oc2.bus_interface.desc"
+msgid "Connects external devices to Computers."
+msgstr "Соединяет внешние устройства с компьютерами."
+
+msgctxt "item.oc2.network_cable"
+msgid "Network Cable"
+msgstr "Сетевой кабель"
+
+msgctxt "item.oc2.network_cable.desc"
+msgid "Connects Network Connectors."
+msgstr "Соединяет сетевые разъемы."
+
+msgctxt "item.oc2.memory"
+msgid "Memory"
+msgstr "Память"
+
+msgctxt "item.oc2.memory.desc"
+msgid "Random Access Memory (RAM) used in Computers and Robots."
+msgstr ""
+"Оперативное Запоминающее Устройство (ОЗУ). Используется в компьютерах и "
+"роботах."
+
+msgctxt "item.oc2.hard_drive"
+msgid "Hard Drive"
+msgstr "Жесткий диск"
+
+msgctxt "item.oc2.hard_drive.desc"
+msgid "Mass storage for operating systems and data."
+msgstr "Накопитель для операционных систем и данных."
+
+msgctxt "item.oc2.floppy"
+msgid "Floppy Disk"
+msgstr "Дискета"
+
+msgctxt "item.oc2.floppy.desc"
+msgid "Portable storage used to transfer data between Computers."
+msgstr "Съемный накопитель для переноса данных между компьютерами."
+
+msgctxt "item.oc2.flash_memory"
+msgid "Flash Memory"
+msgstr "Карта памяти"
+
+msgctxt "item.oc2.flash_memory.desc"
+msgid "Readonly storage for firmware."
+msgstr "Накопитель для прошивки."
+
+msgctxt "item.oc2.cpu_z80"
+msgid "Z80 Processor"
+msgstr ""
+
+msgctxt "item.oc2.cpu_z80.desc"
+msgid "An 8-bit processor. Runs CP/M."
+msgstr ""
+
+msgctxt "item.oc2.cpu_riscv"
+msgid "RISC-V Processor"
+msgstr ""
+
+msgctxt "item.oc2.cpu_riscv.desc"
+msgid "A 64-bit processor. Runs OpenOS II and Linux."
+msgstr ""
+
+msgctxt "item.oc2.redstone_interface_card"
+msgid "Redstone Interface Card"
+msgstr "Красная интерфейсная карта"
+
+msgctxt "item.oc2.redstone_interface_card.desc"
+msgid "Emits and reads redstone signals through the Computer."
+msgstr "Подает и считывает редстоун сигналы от блока компьютера."
+
+msgctxt "item.oc2.network_interface_card"
+msgid "Network Interface Card"
+msgstr "Сетевая интерфейсная карта"
+
+msgctxt "item.oc2.network_interface_card.desc"
+msgid "Sends and receives network packets via attached Network Connectors."
+msgstr "Отсылает и принимает пакеты через сетевой разъем."
+
+msgctxt "item.oc2.sided_device.is_configured"
+msgid "Has connectivity configuration."
+msgstr "Установлены настройки соединения."
+
+msgctxt "item.oc2.serial_interface_card"
+msgid "Serial Interface Card"
+msgstr ""
+
+msgctxt "item.oc2.serial_interface_card.desc"
+msgid ""
+"Sends and receives serial communication via attached Network Connectors."
+msgstr ""
+
+msgctxt "item.oc2.serial_interface_card.configuration"
+msgid "Address: %s"
+msgstr ""
+
+msgctxt "item.oc2.network_tunnel_card"
+msgid "Network Tunnel Card"
+msgstr "Сетевая туннельная карта"
+
+msgctxt "item.oc2.network_tunnel_card.desc"
+msgid "Sends and receives network packets to a linked device."
+msgstr "Отсылает и принимает пакеты с привязанного устройства."
+
+msgctxt "item.oc2.file_import_export_card"
+msgid "File Import/Export Card"
+msgstr "Карта импорта/экспорта файлов"
+
+msgctxt "item.oc2.file_import_export_card.desc"
+msgid "Imports and exports files from and into your real file system."
+msgstr "Импортирует и экспортирует файлы между вашим реальным компьютером."
+
+msgctxt "item.oc2.robot"
+msgid "Robot"
+msgstr "Робот"
+
+msgctxt "item.oc2.robot.desc"
+msgid "A mobile Computer. Use a Scrench to pick it back up."
+msgstr "Портативный компьютер. Используйте ключ, чтобы убрать его"
+
+msgctxt "item.oc2.robot.preconfigured"
+msgid "Preconfigured Robot"
+msgstr ""
+
+msgctxt "item.oc2.crafting_module"
+msgid "Crafting Module"
+msgstr ""
+
+msgctxt "item.oc2.crafting_module.desc"
+msgid "Crafts items in the Robot's inventory."
+msgstr ""
+
+msgctxt "item.oc2.inventory_operations_module"
+msgid "Inventory Operations Module"
+msgstr "Модуль управления инвентарем"
+
+msgctxt "item.oc2.inventory_operations_module.desc"
+msgid "Moves items in, into and out of the Robot's inventory."
+msgstr "Позволяет роботу управлять своим инвентарем."
+
+msgctxt "item.oc2.tank_operations_module"
+msgid "Tank Operations Module"
+msgstr ""
+
+msgctxt "item.oc2.tank_operations_module.desc"
+msgid "Moves fluids into and out of the Robot's tank."
+msgstr ""
+
+msgctxt "item.oc2.block_operations_module"
+msgid "Block Operations Module"
+msgstr "Модуль управления блоками"
+
+msgctxt "item.oc2.block_operations_module.desc"
+msgid "Breaks and places blocks."
+msgstr "Ломает и ставит блоки."
+
+msgctxt "item.oc2.scanner_module"
+msgid "Scanner Module"
+msgstr ""
+
+msgctxt "item.oc2.scanner_module.desc"
+msgid "Identifies adjacent blocks and measures the hardness of nearby ones."
+msgstr ""
+
+msgctxt "item.oc2.sound_card"
+msgid "Sound Card"
+msgstr "Звуковая карта"
+
+msgctxt "item.oc2.sound_card.desc"
+msgid "Lets a computer do the beeps and boops."
+msgstr ""
+
+msgctxt "item.oc2.network_tunnel_module"
+msgid "Network Tunnel Module"
+msgstr "Сетевой туннельный модуль"
+
+msgctxt "item.oc2.network_tunnel_module.desc"
+msgid "Sends and receives network packets to a linked device."
+msgstr "Отсылает и принимает пакеты с привязанного устройства."
+
+msgctxt "item.oc2.transistor"
+msgid "Transistor"
+msgstr "Транзистор"
+
+msgctxt "item.oc2.transistor.desc"
+msgid "Crafting material."
+msgstr "Материал для крафта."
+
+msgctxt "item.oc2.circuit_board"
+msgid "Circuit Board"
+msgstr "Печатная плата"
+
+msgctxt "item.oc2.circuit_board.desc"
+msgid "Crafting material."
+msgstr "Материал для крафта."
+
+msgctxt "entity.oc2.robot"
+msgid "Robot"
+msgstr "Робот"
+
+msgctxt "tag.item.oc2.devices"
+msgid "Devices"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.cpu"
+msgid "Processors"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.memory"
+msgid "Memory"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.hard_drive"
+msgid "Hard Drives"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.flash_memory"
+msgid "Flash Memory"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.floppy"
+msgid "Floppy Disks"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.card"
+msgid "Cards"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.robot_module"
+msgid "Robot Modules"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.network_tunnel"
+msgid "Network Tunnels"
+msgstr ""
+
+msgctxt "tag.item.oc2.cables"
+msgid "Cables"
+msgstr ""
+
+msgctxt "tag.item.oc2.wrenches"
+msgid "Wrenches"
+msgstr ""
+
+msgctxt "tag.item.oc2.configurable"
+msgid "Configurable Devices"
+msgstr ""
+
+msgctxt "tag.item.oc2.device_needs_reboot"
+msgid "Devices Requiring Reboot"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.unknown"
+msgid "Unknown Error"
+msgstr "Неизвестная ошибка"
+
+msgctxt "gui.oc2.computer.error.missing_cpu"
+msgid "Missing Processor"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.missing_firmware"
+msgid "Missing Firmware"
+msgstr "Отсутствует прошивка"
+
+msgctxt "gui.oc2.computer.error.device_does_not_fit"
+msgid "Device Does Not Fit This Processor"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.insufficient_memory"
+msgid "Insufficient Memory"
+msgstr "Недостаточно памяти"
+
+msgctxt "gui.oc2.computer.error.storage_corrupted"
+msgid "Drive Data Corrupted"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.storage_full"
+msgid "Global Storage Limit Reached"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.memory_corrupted"
+msgid "Memory Corrupted"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.state_lost"
+msgid "Machine State Lost"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.storage_inconsistent"
+msgid "Drive Data Unverified"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.halted"
+msgid "Halted"
+msgstr ""
+
+msgctxt "gui.oc2.computer.bus_state.incomplete"
+msgid "Bus Incomplete"
+msgstr "Шина не заполнена"
+
+msgctxt "gui.oc2.computer.bus_state.too_complex"
+msgid "Bus Too Complex"
+msgstr "Слишком много устройств"
+
+msgctxt "gui.oc2.computer.bus_state.multiple_controllers"
+msgid "Multiple Bus Controllers"
+msgstr "Много контроллеров шины"
+
+msgctxt "gui.oc2.computer.error.not_enough_energy"
+msgid "Not Enough Energy"
+msgstr "Недостаточно энергии"
+
+msgctxt "gui.oc2.computer.capture_input.capt"
+msgid "Capture Input"
+msgstr "Захват ввода"
+
+msgctxt "gui.oc2.computer.capture_input.desc"
+msgid ""
+"When enabled, as long as the mouse cursor is hovering the terminal contents, "
+"all input will be captured, including the escape key."
+msgstr ""
+"Пока курсор находится в пределах окна терминала, ввод (включая нажатие на "
+"ESC) будет захватываться."
+
+msgctxt "gui.oc2.computer.power.on"
+msgid "Power on"
+msgstr ""
+
+msgctxt "gui.oc2.computer.power.shutdown"
+msgid "Shutdown"
+msgstr ""
+
+msgctxt "gui.oc2.computer.power.reboot"
+msgid "Shift: Reboot"
+msgstr ""
+
+msgctxt "gui.oc2.computer.power.power_off"
+msgid "Ctrl: Power off"
+msgstr ""
+
+msgctxt "gui.oc2.machine.open_inventory.capt"
+msgid "Open Inventory"
+msgstr "Открыть инвентарь"
+
+msgctxt "gui.oc2.machine.open_terminal.capt"
+msgid "Open Terminal"
+msgstr "Открыть терминал"
+
+msgctxt "gui.oc2.device_type.cpu"
+msgid "Processor"
+msgstr ""
+
+msgctxt "gui.oc2.device_type.memory"
+msgid "Memory"
+msgstr "Память"
+
+msgctxt "gui.oc2.device_type.hard_drive"
+msgid "Hard Drive"
+msgstr "Жесткий диск"
+
+msgctxt "gui.oc2.device_type.flash_memory"
+msgid "Flash Memory"
+msgstr "Карта памяти"
+
+msgctxt "gui.oc2.device_type.floppy"
+msgid "Floppy"
+msgstr ""
+
+msgctxt "gui.oc2.device_type.card"
+msgid "Card"
+msgstr "Карта"
+
+msgctxt "gui.oc2.file_chooser.title.load"
+msgid "Open file"
+msgstr "Открыть файл"
+
+msgctxt "gui.oc2.file_chooser.title.save"
+msgid "Save file"
+msgstr "Сохранить файл"
+
+msgctxt "gui.oc2.file_chooser.text_field.filename"
+msgid "File name"
+msgstr "Имя файла"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.load"
+msgid "Open"
+msgstr "Открыть"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.save"
+msgid "Save"
+msgstr "Сохранить"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.overwrite"
+msgid "Overwrite"
+msgstr "Перезаписать"
+
+msgctxt "gui.oc2.file_chooser.cancel_button"
+msgid "Cancel"
+msgstr "Отмена"
+
+msgctxt "gui.oc2.sided_device.side_state"
+msgid "Connectivity: %s"
+msgstr "Соединение: %s"
+
+msgctxt "gui.oc2.sided_device.connectivity.enabled"
+msgid "Enabled"
+msgstr "Включено"
+
+msgctxt "gui.oc2.sided_device.connectivity.disabled"
+msgid "Disabled"
+msgstr "Выключено"
+
+msgctxt "gui.oc2.sided_device.help"
+msgid "Drag to rotate. Click faces to toggle connectivity."
+msgstr "Потяните для поворота. Клик на сторону переключит соединение."
+
+msgctxt "gui.oc2.terminal.address"
+msgid "Address"
+msgstr ""
+
+msgctxt "gui.oc2.terminal.baud_rate"
+msgid "Baud Rate"
+msgstr ""
+
+msgctxt "gui.oc2.serial_interface_card.address"
+msgid "Address"
+msgstr ""
+
+msgctxt "gui.oc2.keyboard.close_info"
+msgid "Right click to close."
+msgstr "Для закрытия нажмите ПКМ."
+
+msgctxt "gui.oc2.network_tunnel.link"
+msgid "Link"
+msgstr "Привязать"
+
+msgctxt "gui.oc2.open_configuration.capt"
+msgid "Settings"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.mode"
+msgid "Internet Mode"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.address"
+msgid "Address"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.peer"
+msgid "VXLAN Remote Peer"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.port"
+msgid "VXLAN Port"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.vni"
+msgid "VXLAN VNI"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.nat"
+msgid "NAT"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.vxlan"
+msgid "VXLAN"
+msgstr ""
+
+msgctxt "manual.oc2.home"
+msgid "Home"
+msgstr "Главная страница"
+
+msgctxt "manual.oc2.blocks"
+msgid "Blocks"
+msgstr "Блоки"
+
+msgctxt "manual.oc2.items"
+msgid "Items"
+msgstr "Предметы"
+
+msgctxt "manual.oc2.api"
+msgid "API"
+msgstr ""
+
+msgctxt "manual.oc2.serial_protocols.serial_interface"
+msgid "OpenComputers II Serial Interface"
+msgstr ""
+
+msgctxt "message.oc2.connector.error.full"
+msgid "Cannot attach more cables."
+msgstr "Подключено слишком много кабелей."
+
+msgctxt "message.oc2.connector.error.too_far"
+msgid "Distance between connectors is too large."
+msgstr "Дистанция между разъемами слишком велика."
+
+msgctxt "message.oc2.connector.error.obstructed"
+msgid "No clear line of sight between connectors."
+msgstr "Между разъемами присутствует преграда."
+
+msgctxt "message.oc2.import_file.file_too_large"
+msgid "File is too large."
+msgstr "Файл слишком большой."
+
+msgctxt "message.oc2.invalid_facade_block"
+msgid "This block cannot be used as a facade."
+msgstr "Этот блок нельзя использовать как фасад."
+
+msgctxt "tooltip.oc2.device_needs_reboot"
+msgid "Requires reboot"
+msgstr "Требуется перезагрузка"
+
+msgctxt "tooltip.oc2.can_be_configured"
+msgid "Can be configured"
+msgstr ""
+
+msgctxt "tooltip.oc2.device_required"
+msgid "Missing %s, required to boot."
+msgstr ""
+
+msgctxt "tooltip.oc2.device_suggested"
+msgid "Missing %s, usually needed to boot."
+msgstr ""
+
+msgctxt "tooltip.oc2.energy"
+msgid "Energy: %s"
+msgstr "Энергия: %s"
+
+msgctxt "tooltip.oc2.energyConsumption"
+msgid "Energy Consumption: %s/t"
+msgstr "Потребление энергии: %s/t"
+
+msgctxt "tooltip.oc2.fluid"
+msgid "%1$s: %2$s"
+msgstr ""
+
+msgctxt "tooltip.oc2.fluid_empty"
+msgid "Empty"
+msgstr ""
+
+msgctxt "tooltip.oc2.data_corrupted"
+msgid "Data Corrupted"
+msgstr ""
+
+msgctxt "tooltip.oc2.data_corrupted.hint"
+msgid ""
+"Bit rot has claimed the contents of this device. Craft it together with a "
+"wrench to format it."
+msgstr ""
+
+msgctxt "tooltip.oc2.data_inconsistent"
+msgid "Data Unverified"
+msgstr ""
+
+msgctxt "tooltip.oc2.data_inconsistent.hint"
+msgid ""
+"This device was in use when the server stopped unexpectedly. Its contents "
+"were kept, but may be damaged. Craft it together with a wrench to keep the "
+"data and use it again."
+msgstr ""
+
+msgctxt "tooltip.oc2.internet_disabled"
+msgid "Internet access is disabled"
+msgstr ""
+
+msgctxt "tooltip.oc2.confirm"
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgctxt "tooltip.oc2.cancel"
+msgid "Cancel"
+msgstr "Отмена"
+
+msgctxt "tooltip.oc2.network_tunnel_id"
+msgid "Tunnel: %s"
+msgstr "Туннель: %s"
+
+msgctxt "subtitles.oc2.computer"
+msgid "Computer fans running"
+msgstr "Запуск вентиляторов"
+
+msgctxt "subtitles.oc2.floppy"
+msgid "Floppy access"
+msgstr "Жужжание дисковода"
+
+msgctxt "subtitles.oc2.floppy_eject"
+msgid "Floppy ejected"
+msgstr "Дискета извлечена"
+
+msgctxt "subtitles.oc2.floppy_insert"
+msgid "Floppy inserted"
+msgstr "Дискета вставлена"
+
+msgctxt "subtitles.oc2.flash_eject"
+msgid "Flash Memory ejected"
+msgstr ""
+
+msgctxt "subtitles.oc2.flash_insert"
+msgid "Flash Memory inserted"
+msgstr ""
+
+msgctxt "subtitles.oc2.hdd"
+msgid "Hard drive access"
+msgstr "Шум жесткого диска"

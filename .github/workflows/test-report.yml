@@ -16,11 +16,11 @@ jobs:
     if: ${{ github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == github.event.repository.default_branch && github.event.workflow_run.conclusion != 'cancelled' }}
 
     steps:
-      - name: Publish game test results
+      - name: Publish test results
         uses: dorny/test-reporter@v3
         with:
-          artifact: /gametest-results-(.*)/
-          name: Game Tests $1
+          artifact: /test-results-(.*)/
+          name: Tests $1
           path: '**/*.xml'
           reporter: java-junit
           fail-on-empty: true

@@ -4,15 +4,24 @@ package li.cil.oc2.common;
 
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.config.*;
+import li.cil.oc2.common.inet.util.AddressParseException;
+import li.cil.oc2.common.inet.util.InternetUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @WorldRestart
 @Type(ConfigType.SERVER)
 public final class Config {
+    private static final Logger LOGGER = LogManager.getLogger(Config.class);
+
     @Path("vm")
     public static long maxAllocatedMemory = 2L * 1024 * Constants.MEGABYTE;
 
@@ -210,6 +219,30 @@ public final class Config {
     @Min(30280)
     public static int internetBytesPerSecondTotal = 512 * 1024;
 
+    @Path("admin.vxlan")
+    @Comment({
+        "Whether VXLAN virtual networks are enabled. If disabled, only the default NAT internet mode is available.",
+        "VXLAN is unauthenticated and unencrypted. Only allow peers on networks you trust: anyone who can reach the bind port,",
+        "and spoof an allowed address can inject frames, and computers can send datagrams to any UDP port on an allowed peer.",
+        "Each frame adds 50 bytes of overhead, so the underlay needs a MTU of at least 1500 bytes to carry a 1450 byte guest payload."
+    })
+    public static boolean vxlanEnabled;
+
+    @Path("admin.vxlan")
+    @Comment("The local address to bind VXLAN sockets to. The default (0.0.0.0) binds to all available IPv4 interfaces. To bind to all IPv6 interfaces instead, use (::).")
+    public static String vxlanBindAddress = "0.0.0.0";
+
+    @Path("admin.vxlan")
+    @Comment("The local port to bind VXLAN sockets to.")
+    @Min(1)
+    @Max(65535)
+    public static int vxlanBindPort = 4789;
+
+    @Path("admin.vxlan")
+    @Comment("The allowed peers for VXLAN that can be chosen by computers. If empty, VXLAN is disabled. The first peer is the default for new gateways. Peers are specified as an IPv4 address, e.g. 192.168.1.1 or IPv6 address, e.g. 2001:db8::1.")
+    @ItemType(String.class)
+    public static List<String> vxlanAllowedPeers = new ArrayList<>();
+
     public static int cpuEnergyPerTick(@Nullable final ArchitectureType architecture) {
         if (architecture == null) {
             return 0;
@@ -242,5 +275,21 @@ public final class Config {
 
     public static boolean internetGatewaysUseEnergy() {
         return internetGatewayEnergyPerPacket > 0 && internetGatewayEnergyStorage > 0;
+    }
+
+    public static boolean isVxlanEnabled() {
+        return vxlanEnabled && !parseVxlanAllowedPeers().isEmpty();
+    }
+
+    public static Set<InetAddress> parseVxlanAllowedPeers() {
+        final Set<InetAddress> peers = new HashSet<>();
+        for (final String peer : vxlanAllowedPeers) {
+            try {
+                peers.add(InternetUtils.parseInetAddress(peer));
+            } catch (final AddressParseException e) {
+                LOGGER.warn("Ignoring invalid VXLAN allowed peer '{}'.", peer, e);
+            }
+        }
+        return peers;
     }
 }

@@ -17,6 +17,30 @@ The mod also uses stuff maintained outside this repository:
 - [buildroot](https://github.com/fnuecke/buildroot), the RISC-V firmware and Linux disk image.
 - [CP/M](https://github.com/fnuecke/sedna-cpm), the Z80 firmware and CP/M disk image.
 
+### Translations
+
+The mod translations are managed via [Weblate](https://weblate.h.cil.li/projects/oc2/). You can log in using your Github account.
+
+Use Weblate for all translations. Do not contribute changes to the `.po` files as PRs directly. The changes are periodically integrated back into the repo via bot-driven PRs.
+
+Contributions fixing the English base texts should be direct PRs. This includes `lang/en_us.json`, files in `doc/en_us` and device annotations in code. Annotation docs are extracted into the generated `doc/en_us/device` dir, so don't edit files in there directly.
+
+When changing or adding new texts in English, make sure to run `./gradlew :neoforge:runData` and `./gradlew build` to regenerate the template files (`.pot`) and commit them. The pipeline will complain otherwise.
+
+### Verification
+
+To save some time and not rely on pipelines to check conformity, you can run the `lint` task locally to see if checks are happy:
+
+```sh
+./gradlew lint
+```
+
+Also consider running the game tests when making bigger changes (or adding a game test):
+
+```sh
+./gradlew gameTest
+```
+
 ### Design
 
 1. **Immersion**. For lack of a better word. The mod should avoid breaking the fourth wall.
@@ -41,8 +65,13 @@ The mod also uses stuff maintained outside this repository:
     3. Features mustn't need host configuration/dependencies. That was the whole point of writing an emulator in Java.
     4. Prefer good defaults over config values. In OC1 the config surface exploded to infinity, making it incredibly hard to test.
 
-When adding a new block/item, document it (on-device as well as ingame manual). If useful, add game tests for it.
+> [!NOTE]
+> When adding a new block/item, document it (on-device as well as ingame manual). If useful, add game tests for it.
+
+### Use of LLMs
+
+Anything submitted as a PR must have been reviewed and verified by you beforehand. Do not submit LLM output as-is/unseen. As a rule of thumb, only use LLMs as a tool, not a colleague/employee.
 
 ### License
 
-By contributing, you accept that the code is licensed under the MIT license.
+By contributing, you accept that the code is licensed under the MIT license. Assets and translations are in the public domain (CC0 1.0 Universal).

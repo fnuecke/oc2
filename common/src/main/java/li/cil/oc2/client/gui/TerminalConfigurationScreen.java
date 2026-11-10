@@ -2,6 +2,7 @@
 
 package li.cil.oc2.client.gui;
 
+import li.cil.oc2.client.gui.layout.*;
 import li.cil.oc2.client.gui.util.GuiUtils;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.common.Constants;
@@ -12,7 +13,6 @@ import li.cil.oc2.common.network.message.TerminalConfigurationMessage;
 import li.cil.oc2.common.network.message.TerminalKeepAliveMessage;
 import li.cil.oc2.common.serial.SerialFrame;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
@@ -20,16 +20,8 @@ import net.minecraft.network.chat.Component;
 import static li.cil.oc2.common.util.TranslationUtils.text;
 
 public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen<TerminalBlockEntity> {
-    private static final int MARGIN = 8;
-    private static final int FIELD_HEIGHT = 12;
-    private static final int LINE_HEIGHT = 26;
+    private static final int CONTENT_WIDTH = 80;
     private static final int BUTTON_HEIGHT = 16;
-    private static final int ADDRESS_TOP = MARGIN + LINE_HEIGHT;
-    private static final int BAUD_RATE_TOP = ADDRESS_TOP + LINE_HEIGHT + 2;
-    private static final int HEIGHT = BAUD_RATE_TOP + BUTTON_HEIGHT + MARGIN;
-    private static final int LABEL_OFFSET = 10;
-    private static final int TITLE_COLOR = 0xFF404040;
-    private static final int LABEL_COLOR = 0xFFAAAAAA;
 
     private static final Component ADDRESS_LABEL = text("gui.{mod}.terminal.address");
     private static final Component BAUD_RATE_LABEL = text("gui.{mod}.terminal.baud_rate");
@@ -40,7 +32,8 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
 
     private int keepAliveCountdown;
 
-    private EditBox addressField;
+    private final EditBoxNode addressNode;
+    private final EditBox addressField;
     private int baudRateIndex;
 
     // --------------------------------------------------------------------- //
@@ -53,52 +46,12 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
 
     public TerminalConfigurationScreen(final TerminalBlockEntity terminal) {
         super(Items.TERMINAL.get().getName(), terminal);
-        imageHeight = HEIGHT;
+        baudRateIndex = indexOfNearestBaudRate(terminal.getBaudRate());
+        addressNode = createAddressNode(terminal.getAddress());
+        addressField = addressNode.editBox();
     }
 
     // --------------------------------------------------------------------- //
-
-    @Override
-    protected void safeTick() {
-        sendKeepAlive();
-    }
-
-    @Override
-    public void renderBg(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        Sprites.SIDEBAR_1.draw(graphics, leftPos - Sprites.SIDEBAR_1.width, topPos + CONTROLS_TOP);
-        Sprites.GENERIC_SCREEN.draw(graphics, leftPos, topPos, imageWidth, imageHeight);
-    }
-
-    @Override
-    public void renderFg(final GuiGraphics graphics, final int mouseX, final int mouseY, final float partialTicks) {
-        graphics.drawString(font, title, leftPos + MARGIN, topPos + MARGIN, TITLE_COLOR, false);
-        graphics.drawString(font, ADDRESS_LABEL, leftPos + MARGIN, topPos + ADDRESS_TOP - LABEL_OFFSET, LABEL_COLOR);
-        graphics.drawString(font, BAUD_RATE_LABEL, leftPos + MARGIN, topPos + BAUD_RATE_TOP - LABEL_OFFSET, LABEL_COLOR);
-    }
-
-    @Override
-    protected void init() {
-        super.init();
-
-        baudRateIndex = indexOfNearestBaudRate(blockEntity.getBaudRate());
-
-        addressField = addAddressField(topPos + ADDRESS_TOP, blockEntity.getAddress());
-        addRenderableWidget(new BaudRateButton(leftPos + MARGIN, topPos + BAUD_RATE_TOP, imageWidth - MARGIN * 2, BUTTON_HEIGHT));
-
-        setInitialFocus(addressField);
-
-        addRenderableWidget(new ImageButton(
-            leftPos - Sprites.SIDEBAR_1.width + 4, topPos + CONTROLS_TOP + 4,
-            12, 12,
-            Sprites.CONFIG_BUTTON_ACTIVE,
-            Sprites.CONFIG_BUTTON_INACTIVE
-        ) {
-            @Override
-            public void onPress(final InputWithModifiers input) {
-                minecraft.setScreen(new TerminalScreen(blockEntity));
-            }
-        }).withTooltip(Component.translatable(Constants.MACHINE_OPEN_TERMINAL_CAPTION));
-    }
 
     @Override
     public void removed() {
@@ -113,6 +66,41 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
 
     // --------------------------------------------------------------------- //
 
+    @Override
+    protected Window createWindow() {
+        final ImageButton backButton = new ImageButton(0, 0, 12, 12,
+            Sprites.CONFIG_BUTTON_ACTIVE,
+            Sprites.CONFIG_BUTTON_INACTIVE
+        ) {
+            @Override
+            public void onPress(final InputWithModifiers input) {
+                minecraft.setScreen(new TerminalScreen(blockEntity));
+            }
+        };
+        backButton.withTooltip(Component.translatable(Constants.MACHINE_OPEN_TERMINAL_CAPTION));
+
+        return new Window(
+            NodeStack.vertical(
+                LabelNode.truncating(title),
+                Ui.field(ADDRESS_LABEL, addressNode),
+                Ui.field(BAUD_RATE_LABEL, new WidgetNode(new BaudRateButton()).width(Size.GROW))
+            ).width(Size.fixed(CONTENT_WIDTH)),
+            Ui.toolbar(new WidgetNode(backButton)));
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        setInitialFocus(addressField);
+    }
+
+    @Override
+    protected void safeTick() {
+        sendKeepAlive();
+    }
+
+    // --------------------------------------------------------------------- //
+
     private void sendKeepAlive() {
         if (--keepAliveCountdown <= 0) {
             keepAliveCountdown = TerminalBlockEntity.CLIENT_KEEPALIVE_EVERY;
@@ -120,13 +108,14 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
         }
     }
 
-    private EditBox addAddressField(final int y, final int value) {
-        final EditBox field = new EditBox(font, leftPos + MARGIN, y, imageWidth - MARGIN * 2, FIELD_HEIGHT, ADDRESS_LABEL);
+    private static EditBoxNode createAddressNode(final int value) {
+        final EditBoxNode node = new EditBoxNode(ADDRESS_LABEL);
+        node.width(Size.GROW);
+        final EditBox field = node.editBox();
         field.setFilter(TerminalConfigurationScreen::isNumber);
         field.setValue(String.valueOf(value));
         field.setResponder(text -> GuiUtils.clampToRange(field, 0, SerialFrame.MAX_ADDRESS));
-        addRenderableWidget(field);
-        return field;
+        return node;
     }
 
     private static int indexOfNearestBaudRate(final int baudRate) {
@@ -152,8 +141,8 @@ public final class TerminalConfigurationScreen extends AbstractBlockEntityScreen
     // --------------------------------------------------------------------- //
 
     private final class BaudRateButton extends ImageButton {
-        BaudRateButton(final int x, final int y, final int width, final int height) {
-            super(x, y, width, height, Sprites.GENERIC_BUTTON_BASE, Sprites.GENERIC_BUTTON_PRESSED);
+        BaudRateButton() {
+            super(0, 0, 0, BUTTON_HEIGHT, Sprites.GENERIC_BUTTON_BASE, Sprites.GENERIC_BUTTON_PRESSED);
             cycle(0);
         }
 

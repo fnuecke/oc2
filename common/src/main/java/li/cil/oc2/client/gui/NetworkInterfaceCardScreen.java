@@ -11,7 +11,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 
-import javax.annotation.Nullable;
 
 public final class NetworkInterfaceCardScreen extends AbstractSideConfigurationScreen {
     public static void open(final Player player, final InteractionHand hand) {
@@ -27,8 +26,8 @@ public final class NetworkInterfaceCardScreen extends AbstractSideConfigurationS
     // --------------------------------------------------------------------- //
 
     @Override
-    protected boolean getConfiguration(@Nullable final Direction side) {
-        return side != null && NetworkInterfaceCardItem.getSideConfiguration(player.getItemInHand(hand), side);
+    protected boolean getConfiguration(final Direction side) {
+        return NetworkInterfaceCardItem.getSideConfiguration(player.getItemInHand(hand), side);
     }
 
     @Override

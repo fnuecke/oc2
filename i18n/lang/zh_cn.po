@@ -1,0 +1,748 @@
+# Translations for oc2.
+msgid ""
+msgstr ""
+"Project-Id-Version: oc2\n"
+"Language: zh_cn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "itemGroup.oc2.common"
+msgid "OpenComputers II"
+msgstr "开放式电脑 II"
+
+msgctxt "block.oc2.computer"
+msgid "Computer"
+msgstr "电脑"
+
+msgctxt "block.oc2.computer.desc"
+msgid "Runs software from Flash Memory and Hard Disks."
+msgstr "使用螺丝刀扳手或者兼容的扳手来添加或移除组件。"
+
+msgctxt "block.oc2.computer.preconfigured"
+msgid "Preconfigured Computer"
+msgstr "电脑（已经配置好的）"
+
+msgctxt "block.oc2.bus_cable"
+msgid "Bus Cable"
+msgstr "总线线缆"
+
+msgctxt "block.oc2.bus_cable.desc"
+msgid "Connects Bus Interfaces."
+msgstr "与总线接口结合使用，以将外部设备连接到电脑。"
+
+msgctxt "block.oc2.network_connector"
+msgid "Network Connector"
+msgstr "网络连接口"
+
+msgctxt "block.oc2.network_connector.desc"
+msgid "Transmits network packets via Network Cables."
+msgstr "通过网线传输网络数据包。"
+
+msgctxt "block.oc2.internet_gateway"
+msgid "Internet Gateway"
+msgstr ""
+
+msgctxt "block.oc2.internet_gateway.desc"
+msgid "Connects a network to the internet."
+msgstr ""
+
+msgctxt "block.oc2.network_hub"
+msgid "Network Hub"
+msgstr "网线集线器"
+
+msgctxt "block.oc2.network_hub.desc"
+msgid "Distributes network packets among all attached Network Connectors."
+msgstr "在所有连接的网络连接口之间分配网络数据包。"
+
+msgctxt "block.oc2.redstone_interface"
+msgid "Redstone Interface"
+msgstr "红石接口"
+
+msgctxt "block.oc2.redstone_interface.desc"
+msgid "Emits and reads redstone signals."
+msgstr "发出并读取红石信号。"
+
+msgctxt "block.oc2.transposer"
+msgid "Transposer"
+msgstr ""
+
+msgctxt "block.oc2.transposer.desc"
+msgid "Moves items between adjacent inventories."
+msgstr ""
+
+msgctxt "block.oc2.disk_drive"
+msgid "Disk Drive"
+msgstr "磁盘驱动器"
+
+msgctxt "block.oc2.disk_drive.desc"
+msgid "Used to access Floppy Disks."
+msgstr "使用这个来访问软盘。"
+
+msgctxt "block.oc2.flash_drive"
+msgid "Flash Drive"
+msgstr ""
+
+msgctxt "block.oc2.flash_drive.desc"
+msgid "Used to access Flash Memory."
+msgstr ""
+
+msgctxt "block.oc2.terminal"
+msgid "Terminal"
+msgstr ""
+
+msgctxt "block.oc2.terminal.desc"
+msgid "User input and output over a serial bus."
+msgstr ""
+
+msgctxt "block.oc2.charger"
+msgid "Charger"
+msgstr "充电器"
+
+msgctxt "block.oc2.charger.desc"
+msgid "Charges entities and items in containers on top of it."
+msgstr "通过站在上面给实体和物品充电。"
+
+msgctxt "block.oc2.creative_energy"
+msgid "Infinite Energy Cube"
+msgstr "无限能量方块"
+
+msgctxt "block.oc2.creative_energy.desc"
+msgid "Provides unlimited energy to adjacent blocks. Intended for testing."
+msgstr "提供无限的能量给连接的方块。"
+
+msgctxt "block.oc2.projector"
+msgid "Projector"
+msgstr "投影仪"
+
+msgctxt "block.oc2.projector.desc"
+msgid "Projects images onto surfaces in front of it."
+msgstr "将图像投影到它前面的表面上。"
+
+msgctxt "block.oc2.keyboard"
+msgid "Keyboard"
+msgstr "键盘"
+
+msgctxt "block.oc2.keyboard.desc"
+msgid "Allows keyboard input when using a projector."
+msgstr "允许在使用投影仪时输入按键。"
+
+msgctxt "item.oc2.wrench"
+msgid "Scrench"
+msgstr "螺丝刀扳手"
+
+msgctxt "item.oc2.wrench.desc"
+msgid "Configures devices and dismantles them (while sneaking)."
+msgstr "当潜行时用于配置设备和拆卸设备。"
+
+msgctxt "item.oc2.manual"
+msgid "The Computerist's Handbook"
+msgstr "计算机科学手册"
+
+msgctxt "item.oc2.manual.desc"
+msgid "Holds information on all things needed when working with Computers."
+msgstr "保存有关使用计算机时所需的所有信息。"
+
+msgctxt "item.oc2.bus_interface"
+msgid "Bus Interface"
+msgstr "总线接口"
+
+msgctxt "item.oc2.bus_interface.desc"
+msgid "Connects external devices to Computers."
+msgstr "通过总线线缆来和外部设备通讯。"
+
+msgctxt "item.oc2.network_cable"
+msgid "Network Cable"
+msgstr "网线"
+
+msgctxt "item.oc2.network_cable.desc"
+msgid "Connects Network Connectors."
+msgstr "连接网络接口。"
+
+msgctxt "item.oc2.memory"
+msgid "Memory"
+msgstr "内存条"
+
+msgctxt "item.oc2.memory.desc"
+msgid "Random Access Memory (RAM) used in Computers and Robots."
+msgstr "计算机和机器人中使用的内存（RAM）。"
+
+msgctxt "item.oc2.hard_drive"
+msgid "Hard Drive"
+msgstr "硬盘"
+
+msgctxt "item.oc2.hard_drive.desc"
+msgid "Mass storage for operating systems and data."
+msgstr "用于操作系统和数据的大容量存储。"
+
+msgctxt "item.oc2.floppy"
+msgid "Floppy Disk"
+msgstr "软盘"
+
+msgctxt "item.oc2.floppy.desc"
+msgid "Portable storage used to transfer data between Computers."
+msgstr "用于在计算机之间传输数据的便携式存储。"
+
+msgctxt "item.oc2.flash_memory"
+msgid "Flash Memory"
+msgstr "固件"
+
+msgctxt "item.oc2.flash_memory.desc"
+msgid "Readonly storage for firmware."
+msgstr "固件的只读存储。"
+
+msgctxt "item.oc2.cpu_z80"
+msgid "Z80 Processor"
+msgstr ""
+
+msgctxt "item.oc2.cpu_z80.desc"
+msgid "An 8-bit processor. Runs CP/M."
+msgstr ""
+
+msgctxt "item.oc2.cpu_riscv"
+msgid "RISC-V Processor"
+msgstr ""
+
+msgctxt "item.oc2.cpu_riscv.desc"
+msgid "A 64-bit processor. Runs OpenOS II and Linux."
+msgstr ""
+
+msgctxt "item.oc2.redstone_interface_card"
+msgid "Redstone Interface Card"
+msgstr "红石卡"
+
+msgctxt "item.oc2.redstone_interface_card.desc"
+msgid "Emits and reads redstone signals through the Computer."
+msgstr "通过计算机发出和读取红石信号。"
+
+msgctxt "item.oc2.network_interface_card"
+msgid "Network Interface Card"
+msgstr "网卡"
+
+msgctxt "item.oc2.network_interface_card.desc"
+msgid "Sends and receives network packets via attached Network Connectors."
+msgstr "通过附加的网络接口发送和接收网络数据包。"
+
+msgctxt "item.oc2.sided_device.is_configured"
+msgid "Has connectivity configuration."
+msgstr "已配置。"
+
+msgctxt "item.oc2.serial_interface_card"
+msgid "Serial Interface Card"
+msgstr ""
+
+msgctxt "item.oc2.serial_interface_card.desc"
+msgid ""
+"Sends and receives serial communication via attached Network Connectors."
+msgstr ""
+
+msgctxt "item.oc2.serial_interface_card.configuration"
+msgid "Address: %s"
+msgstr ""
+
+msgctxt "item.oc2.network_tunnel_card"
+msgid "Network Tunnel Card"
+msgstr "网络隧道卡"
+
+msgctxt "item.oc2.network_tunnel_card.desc"
+msgid "Sends and receives network packets to a linked device."
+msgstr "向链接设备发送和接收网络数据包。"
+
+msgctxt "item.oc2.file_import_export_card"
+msgid "File Import/Export Card"
+msgstr "文件导入/导出卡"
+
+msgctxt "item.oc2.file_import_export_card.desc"
+msgid "Imports and exports files from and into your real file system."
+msgstr "可以从真实的文件系统导入/导出文件。"
+
+msgctxt "item.oc2.robot"
+msgid "Robot"
+msgstr "机器人"
+
+msgctxt "item.oc2.robot.desc"
+msgid "A mobile Computer. Use a Scrench to pick it back up."
+msgstr "使用螺丝刀扳手或者兼容的扳手来添加或移除组件。"
+
+msgctxt "item.oc2.robot.preconfigured"
+msgid "Preconfigured Robot"
+msgstr ""
+
+msgctxt "item.oc2.crafting_module"
+msgid "Crafting Module"
+msgstr ""
+
+msgctxt "item.oc2.crafting_module.desc"
+msgid "Crafts items in the Robot's inventory."
+msgstr ""
+
+msgctxt "item.oc2.inventory_operations_module"
+msgid "Inventory Operations Module"
+msgstr "物品栏操作模块"
+
+msgctxt "item.oc2.inventory_operations_module.desc"
+msgid "Moves items in, into and out of the Robot's inventory."
+msgstr "允许机器人存取物品。"
+
+msgctxt "item.oc2.tank_operations_module"
+msgid "Tank Operations Module"
+msgstr ""
+
+msgctxt "item.oc2.tank_operations_module.desc"
+msgid "Moves fluids into and out of the Robot's tank."
+msgstr ""
+
+msgctxt "item.oc2.block_operations_module"
+msgid "Block Operations Module"
+msgstr "方块操作模块"
+
+msgctxt "item.oc2.block_operations_module.desc"
+msgid "Breaks and places blocks."
+msgstr "允许机器人放置/破坏方块。"
+
+msgctxt "item.oc2.scanner_module"
+msgid "Scanner Module"
+msgstr ""
+
+msgctxt "item.oc2.scanner_module.desc"
+msgid "Identifies adjacent blocks and measures the hardness of nearby ones."
+msgstr ""
+
+msgctxt "item.oc2.sound_card"
+msgid "Sound Card"
+msgstr "声卡"
+
+msgctxt "item.oc2.sound_card.desc"
+msgid "Lets a computer do the beeps and boops."
+msgstr ""
+
+msgctxt "item.oc2.network_tunnel_module"
+msgid "Network Tunnel Module"
+msgstr "网络隧道模块"
+
+msgctxt "item.oc2.network_tunnel_module.desc"
+msgid "Sends and receives network packets to a linked device."
+msgstr "向链接设备发送和接收网络数据包。"
+
+msgctxt "item.oc2.transistor"
+msgid "Transistor"
+msgstr "晶体管"
+
+msgctxt "item.oc2.transistor.desc"
+msgid "Crafting material."
+msgstr "合成材料。"
+
+msgctxt "item.oc2.circuit_board"
+msgid "Circuit Board"
+msgstr "电路板"
+
+msgctxt "item.oc2.circuit_board.desc"
+msgid "Crafting material."
+msgstr "合成材料。"
+
+msgctxt "entity.oc2.robot"
+msgid "Robot"
+msgstr "机器人"
+
+msgctxt "tag.item.oc2.devices"
+msgid "Devices"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.cpu"
+msgid "Processors"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.memory"
+msgid "Memory"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.hard_drive"
+msgid "Hard Drives"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.flash_memory"
+msgid "Flash Memory"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.floppy"
+msgid "Floppy Disks"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.card"
+msgid "Cards"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.robot_module"
+msgid "Robot Modules"
+msgstr ""
+
+msgctxt "tag.item.oc2.devices.network_tunnel"
+msgid "Network Tunnels"
+msgstr ""
+
+msgctxt "tag.item.oc2.cables"
+msgid "Cables"
+msgstr ""
+
+msgctxt "tag.item.oc2.wrenches"
+msgid "Wrenches"
+msgstr ""
+
+msgctxt "tag.item.oc2.configurable"
+msgid "Configurable Devices"
+msgstr ""
+
+msgctxt "tag.item.oc2.device_needs_reboot"
+msgid "Devices Requiring Reboot"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.unknown"
+msgid "Unknown Error"
+msgstr "未知错误"
+
+msgctxt "gui.oc2.computer.error.missing_cpu"
+msgid "Missing Processor"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.missing_firmware"
+msgid "Missing Firmware"
+msgstr "丢失固件"
+
+msgctxt "gui.oc2.computer.error.device_does_not_fit"
+msgid "Device Does Not Fit This Processor"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.insufficient_memory"
+msgid "Insufficient Memory"
+msgstr "内存不足"
+
+msgctxt "gui.oc2.computer.error.storage_corrupted"
+msgid "Drive Data Corrupted"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.storage_full"
+msgid "Global Storage Limit Reached"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.memory_corrupted"
+msgid "Memory Corrupted"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.state_lost"
+msgid "Machine State Lost"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.storage_inconsistent"
+msgid "Drive Data Unverified"
+msgstr ""
+
+msgctxt "gui.oc2.computer.error.halted"
+msgid "Halted"
+msgstr ""
+
+msgctxt "gui.oc2.computer.bus_state.incomplete"
+msgid "Bus Incomplete"
+msgstr "总线不完整"
+
+msgctxt "gui.oc2.computer.bus_state.too_complex"
+msgid "Bus Too Complex"
+msgstr "总线太复杂"
+
+msgctxt "gui.oc2.computer.bus_state.multiple_controllers"
+msgid "Multiple Bus Controllers"
+msgstr "检测到多个总线控制器"
+
+msgctxt "gui.oc2.computer.error.not_enough_energy"
+msgid "Not Enough Energy"
+msgstr "能量不足"
+
+msgctxt "gui.oc2.computer.capture_input.capt"
+msgid "Capture Input"
+msgstr "捕获输入"
+
+msgctxt "gui.oc2.computer.capture_input.desc"
+msgid ""
+"When enabled, as long as the mouse cursor is hovering the terminal contents, "
+"all input will be captured, including the escape key."
+msgstr "当开启并且鼠标移动到终端内时，将捕获所有的输入，包括ESC键"
+
+msgctxt "gui.oc2.computer.power.on"
+msgid "Power on"
+msgstr ""
+
+msgctxt "gui.oc2.computer.power.shutdown"
+msgid "Shutdown"
+msgstr ""
+
+msgctxt "gui.oc2.computer.power.reboot"
+msgid "Shift: Reboot"
+msgstr ""
+
+msgctxt "gui.oc2.computer.power.power_off"
+msgid "Ctrl: Power off"
+msgstr ""
+
+msgctxt "gui.oc2.machine.open_inventory.capt"
+msgid "Open Inventory"
+msgstr "打开物品栏"
+
+msgctxt "gui.oc2.machine.open_terminal.capt"
+msgid "Open Terminal"
+msgstr "打开终端"
+
+msgctxt "gui.oc2.device_type.cpu"
+msgid "Processor"
+msgstr ""
+
+msgctxt "gui.oc2.device_type.memory"
+msgid "Memory"
+msgstr "内存条"
+
+msgctxt "gui.oc2.device_type.hard_drive"
+msgid "Hard Drive"
+msgstr "硬盘"
+
+msgctxt "gui.oc2.device_type.flash_memory"
+msgid "Flash Memory"
+msgstr "固件"
+
+msgctxt "gui.oc2.device_type.floppy"
+msgid "Floppy"
+msgstr ""
+
+msgctxt "gui.oc2.device_type.card"
+msgid "Card"
+msgstr "卡"
+
+msgctxt "gui.oc2.file_chooser.title.load"
+msgid "Open file"
+msgstr "打开文件"
+
+msgctxt "gui.oc2.file_chooser.title.save"
+msgid "Save file"
+msgstr "保存文件"
+
+msgctxt "gui.oc2.file_chooser.text_field.filename"
+msgid "File name"
+msgstr "文件名称"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.load"
+msgid "Open"
+msgstr "打开"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.save"
+msgid "Save"
+msgstr "保存"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.overwrite"
+msgid "Overwrite"
+msgstr "覆盖"
+
+msgctxt "gui.oc2.file_chooser.cancel_button"
+msgid "Cancel"
+msgstr "取消"
+
+msgctxt "gui.oc2.sided_device.side_state"
+msgid "Connectivity: %s"
+msgstr "状态：%s"
+
+msgctxt "gui.oc2.sided_device.connectivity.enabled"
+msgid "Enabled"
+msgstr "已启用"
+
+msgctxt "gui.oc2.sided_device.connectivity.disabled"
+msgid "Disabled"
+msgstr "已禁用"
+
+msgctxt "gui.oc2.sided_device.help"
+msgid "Drag to rotate. Click faces to toggle connectivity."
+msgstr "拖动以旋转，点击面以切换状态。"
+
+msgctxt "gui.oc2.terminal.address"
+msgid "Address"
+msgstr ""
+
+msgctxt "gui.oc2.terminal.baud_rate"
+msgid "Baud Rate"
+msgstr ""
+
+msgctxt "gui.oc2.serial_interface_card.address"
+msgid "Address"
+msgstr ""
+
+msgctxt "gui.oc2.keyboard.close_info"
+msgid "Right click to close."
+msgstr "右键以关闭。"
+
+msgctxt "gui.oc2.network_tunnel.link"
+msgid "Link"
+msgstr "链接"
+
+msgctxt "gui.oc2.open_configuration.capt"
+msgid "Settings"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.mode"
+msgid "Internet Mode"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.address"
+msgid "Address"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.peer"
+msgid "VXLAN Remote Peer"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.port"
+msgid "VXLAN Port"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.vni"
+msgid "VXLAN VNI"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.nat"
+msgid "NAT"
+msgstr ""
+
+msgctxt "gui.oc2.internet_gateway.vxlan"
+msgid "VXLAN"
+msgstr ""
+
+msgctxt "manual.oc2.home"
+msgid "Home"
+msgstr "主页"
+
+msgctxt "manual.oc2.blocks"
+msgid "Blocks"
+msgstr "方块"
+
+msgctxt "manual.oc2.items"
+msgid "Items"
+msgstr "物品"
+
+msgctxt "manual.oc2.api"
+msgid "API"
+msgstr ""
+
+msgctxt "manual.oc2.serial_protocols.serial_interface"
+msgid "OpenComputers II Serial Interface"
+msgstr ""
+
+msgctxt "message.oc2.connector.error.full"
+msgid "Cannot attach more cables."
+msgstr "不能放置更多线缆。"
+
+msgctxt "message.oc2.connector.error.too_far"
+msgid "Distance between connectors is too large."
+msgstr "距离太远了。"
+
+msgctxt "message.oc2.connector.error.obstructed"
+msgid "No clear line of sight between connectors."
+msgstr "直线内有方块。"
+
+msgctxt "message.oc2.import_file.file_too_large"
+msgid "File is too large."
+msgstr "文件过大。"
+
+msgctxt "message.oc2.invalid_facade_block"
+msgid "This block cannot be used as a facade."
+msgstr "该方块不能被用作一个面。"
+
+msgctxt "tooltip.oc2.device_needs_reboot"
+msgid "Requires reboot"
+msgstr "需要重启"
+
+msgctxt "tooltip.oc2.can_be_configured"
+msgid "Can be configured"
+msgstr ""
+
+msgctxt "tooltip.oc2.device_required"
+msgid "Missing %s, required to boot."
+msgstr ""
+
+msgctxt "tooltip.oc2.device_suggested"
+msgid "Missing %s, usually needed to boot."
+msgstr ""
+
+msgctxt "tooltip.oc2.energy"
+msgid "Energy: %s"
+msgstr "能量：%s"
+
+msgctxt "tooltip.oc2.energyConsumption"
+msgid "Energy Consumption: %s/t"
+msgstr "能量使用：%s/t"
+
+msgctxt "tooltip.oc2.fluid"
+msgid "%s: %s"
+msgstr ""
+
+msgctxt "tooltip.oc2.fluid_empty"
+msgid "Empty"
+msgstr ""
+
+msgctxt "tooltip.oc2.data_corrupted"
+msgid "Data Corrupted"
+msgstr ""
+
+msgctxt "tooltip.oc2.data_corrupted.hint"
+msgid ""
+"Bit rot has claimed the contents of this device. Craft it together with a "
+"wrench to format it."
+msgstr ""
+
+msgctxt "tooltip.oc2.data_inconsistent"
+msgid "Data Unverified"
+msgstr ""
+
+msgctxt "tooltip.oc2.data_inconsistent.hint"
+msgid ""
+"This device was in use when the server stopped unexpectedly. Its contents "
+"were kept, but may be damaged. Craft it together with a wrench to keep the "
+"data and use it again."
+msgstr ""
+
+msgctxt "tooltip.oc2.internet_disabled"
+msgid "Internet access is disabled"
+msgstr ""
+
+msgctxt "tooltip.oc2.confirm"
+msgid "Confirm"
+msgstr "确认"
+
+msgctxt "tooltip.oc2.cancel"
+msgid "Cancel"
+msgstr "取消"
+
+msgctxt "tooltip.oc2.network_tunnel_id"
+msgid "Tunnel: %s"
+msgstr "隧道 ID：%s"
+
+msgctxt "subtitles.oc2.computer"
+msgid "Computer fans running"
+msgstr "电脑:运行"
+
+msgctxt "subtitles.oc2.floppy"
+msgid "Floppy access"
+msgstr "软盘:访问"
+
+msgctxt "subtitles.oc2.floppy_eject"
+msgid "Floppy ejected"
+msgstr "软盘:弹出"
+
+msgctxt "subtitles.oc2.floppy_insert"
+msgid "Floppy inserted"
+msgstr "软盘:插入"
+
+msgctxt "subtitles.oc2.flash_eject"
+msgid "Flash Memory ejected"
+msgstr ""
+
+msgctxt "subtitles.oc2.flash_insert"
+msgid "Flash Memory inserted"
+msgstr ""
+
+msgctxt "subtitles.oc2.hdd"
+msgid "Hard drive access"
+msgstr "硬盘:访问"

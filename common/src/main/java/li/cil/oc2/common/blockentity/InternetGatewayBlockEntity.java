@@ -42,7 +42,10 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         }
     }
 
+    private static final int ENERGY_SYNC_INTERVAL = 20;
+
     private static final String OPERATIONAL_TAG_NAME = "operational";
+    private static final String SYNCED_ENERGY_TAG_NAME = "synced_energy";
     private static final String INTERNET_MODE_TAG_NAME = "internet_mode";
     private static final String GATEWAY_ADDRESS_TAG_NAME = "gateway_address";
     private static final String VXLAN_PEER_TAG_NAME = "vxlan_peer";
@@ -58,6 +61,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
     @Nullable
     private GatewayConnection connection;
     private boolean isOperational;
+    private long syncedEnergy;
 
     // --------------------------------------------------------------------- //
 
@@ -72,16 +76,24 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         return isOperational;
     }
 
-    public void setOperationalClient(final boolean value) {
-        isOperational = value;
+    public long getEnergyStoredClient() {
+        return syncedEnergy;
+    }
+
+    public void setStateClient(final boolean isOperational, final long energy) {
+        this.isOperational = isOperational;
+        this.syncedEnergy = energy;
     }
 
     @Override
     public void serverTick() {
-        final boolean value = computeIsOperational();
-        if (value != isOperational) {
-            isOperational = value;
-            Network.sendToClientsTrackingBlockEntity(new InternetGatewayStateMessage(this, isOperational), this);
+        final boolean newIsOperational = computeIsOperational();
+        final long energy = this.energy.getEnergyStored();
+        final long newSyncedEnergy = level.getGameTime() % ENERGY_SYNC_INTERVAL == 0 ? energy : syncedEnergy;
+        if (newIsOperational != isOperational || newSyncedEnergy != syncedEnergy) {
+            isOperational = newIsOperational;
+            syncedEnergy = newSyncedEnergy;
+            Network.sendToClientsTrackingBlockEntity(new InternetGatewayStateMessage(this, isOperational, syncedEnergy), this);
         }
     }
 
@@ -188,6 +200,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
         final CompoundTag tag = super.getUpdateTag(registries);
 
         tag.putBoolean(OPERATIONAL_TAG_NAME, isOperational);
+        tag.putLong(SYNCED_ENERGY_TAG_NAME, syncedEnergy);
         writeSettings(tag);
         return tag;
     }
@@ -206,6 +219,7 @@ public final class InternetGatewayBlockEntity extends ModBlockEntity implements 
 
         energy.deserializeNBT(tag.getCompound(Constants.ENERGY_TAG_NAME));
         isOperational = tag.getBoolean(OPERATIONAL_TAG_NAME);
+        syncedEnergy = tag.getLong(SYNCED_ENERGY_TAG_NAME);
         settings = readSettings(tag);
     }
 

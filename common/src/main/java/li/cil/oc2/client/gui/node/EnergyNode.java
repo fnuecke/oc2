@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
+import java.util.function.LongSupplier;
 
 import static li.cil.oc2.common.util.TextFormatUtils.withFormat;
 
@@ -24,11 +25,15 @@ public final class EnergyNode extends ProgressBarNode {
 
     // --------------------------------------------------------------------- //
 
+    public EnergyNode(final LongSupplier energy, final LongSupplier capacity) {
+        super(Axis.VERTICAL, () -> energy.getAsLong() / (double) capacity.getAsLong(), ProgressBarNode.sprite(FILL));
+        tooltip(() -> List.of(energyTooltip(energy, capacity)));
+    }
+
     public EnergyNode(final AbstractMachineContainer menu) {
-        super(Axis.VERTICAL, () -> menu.getEnergy() / (double) menu.getEnergyCapacity(), ProgressBarNode.sprite(FILL));
+        this(menu::getEnergy, menu::getEnergyCapacity);
         tooltip(() -> List.of(
-            Component.translatable(Constants.TOOLTIP_ENERGY,
-                withFormat(menu.getEnergy() + "/" + menu.getEnergyCapacity(), ChatFormatting.GREEN)),
+            energyTooltip(menu::getEnergy, menu::getEnergyCapacity),
             Component.translatable(Constants.TOOLTIP_ENERGY_CONSUMPTION,
                 withFormat(String.valueOf(menu.getEnergyConsumption()), ChatFormatting.GREEN))));
     }
@@ -44,5 +49,12 @@ public final class EnergyNode extends ProgressBarNode {
     @Override
     protected int contentHeight() {
         return HEIGHT;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static Component energyTooltip(final LongSupplier energy, final LongSupplier capacity) {
+        return Component.translatable(Constants.TOOLTIP_ENERGY,
+            withFormat(energy.getAsLong() + "/" + capacity.getAsLong(), ChatFormatting.GREEN));
     }
 }

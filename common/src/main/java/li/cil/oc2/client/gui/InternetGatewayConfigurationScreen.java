@@ -3,6 +3,7 @@
 package li.cil.oc2.client.gui;
 
 import li.cil.oc2.client.gui.layout.*;
+import li.cil.oc2.client.gui.node.EnergyNode;
 import li.cil.oc2.client.gui.util.GuiUtils;
 import li.cil.oc2.client.gui.widget.ImageButton;
 import li.cil.oc2.common.Config;
@@ -106,7 +107,9 @@ public final class InternetGatewayConfigurationScreen extends AbstractBlockEntit
                         Ui.field(VNI_LABEL, vniNode)
                     ).width(Size.GROW)
                 ).width(Size.GROW).visibleWhen(() -> mode == InternetMode.VXLAN)
-            ).width(Size.fixed(CONTENT_WIDTH)));
+            ).width(Size.fixed(CONTENT_WIDTH)),
+            Ui.toolbar(new EnergyNode(blockEntity::getEnergyStoredClient, () -> Config.internetGatewayEnergyStorage))
+                .visibleWhen(Config::internetGatewaysUseEnergy));
     }
 
     @Override

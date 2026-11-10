@@ -232,8 +232,7 @@ msgid "Serial Interface Card"
 msgstr ""
 
 msgctxt "item.oc2.serial_interface_card.desc"
-msgid ""
-"Sends and receives serial communication via attached Network Connectors."
+msgid "Sends and receives serial communication via attached Network Connectors."
 msgstr ""
 
 msgctxt "item.oc2.serial_interface_card.configuration"
@@ -461,9 +460,7 @@ msgid "Capture Input"
 msgstr ""
 
 msgctxt "gui.oc2.computer.capture_input.desc"
-msgid ""
-"When enabled, as long as the mouse cursor is hovering the terminal contents, "
-"all input will be captured, including the escape key."
+msgid "When enabled, as long as the mouse cursor is hovering the terminal contents, all input will be captured, including the escape key."
 msgstr ""
 
 msgctxt "gui.oc2.computer.power.on"
@@ -687,9 +684,7 @@ msgid "Data Corrupted"
 msgstr ""
 
 msgctxt "tooltip.oc2.data_corrupted.hint"
-msgid ""
-"Bit rot has claimed the contents of this device. Craft it together with a "
-"wrench to format it."
+msgid "Bit rot has claimed the contents of this device. Craft it together with a wrench to format it."
 msgstr ""
 
 msgctxt "tooltip.oc2.data_inconsistent"
@@ -697,10 +692,7 @@ msgid "Data Unverified"
 msgstr ""
 
 msgctxt "tooltip.oc2.data_inconsistent.hint"
-msgid ""
-"This device was in use when the server stopped unexpectedly. Its contents "
-"were kept, but may be damaged. Craft it together with a wrench to keep the "
-"data and use it again."
+msgid "This device was in use when the server stopped unexpectedly. Its contents were kept, but may be damaged. Craft it together with a wrench to keep the data and use it again."
 msgstr ""
 
 msgctxt "tooltip.oc2.internet_disabled"

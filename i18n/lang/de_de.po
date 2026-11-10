@@ -1,0 +1,767 @@
+# Translations for oc2.
+msgid ""
+msgstr ""
+"Project-Id-Version: oc2\n"
+"Language: de_de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Florian Nücke <florian@nuecke.de>\n"
+"Language-Team: German <https://weblate.h.cil.li/projects/oc2/strings/de/>\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"PO-Revision-Date: 2026-11-10 17:01+0000\n"
+"X-Generator: Weblate 2026.11.1\n"
+
+msgctxt "itemGroup.oc2.common"
+msgid "OpenComputers II"
+msgstr "OpenComputers II"
+
+msgctxt "block.oc2.computer"
+msgid "Computer"
+msgstr "Computer"
+
+msgctxt "block.oc2.computer.desc"
+msgid "Runs software from Flash Memory and Hard Disks."
+msgstr "Führt Software von Flash-Speicher und Festplatten aus."
+
+msgctxt "block.oc2.computer.preconfigured"
+msgid "Preconfigured Computer"
+msgstr "Vorkonfigurierter Computer"
+
+msgctxt "block.oc2.bus_cable"
+msgid "Bus Cable"
+msgstr "Bus-Kabel"
+
+msgctxt "block.oc2.bus_cable.desc"
+msgid "Connects Bus Interfaces."
+msgstr "Verbindet Bus-Schnittstellen."
+
+msgctxt "block.oc2.network_connector"
+msgid "Network Connector"
+msgstr "Netzwerk-Connector"
+
+msgctxt "block.oc2.network_connector.desc"
+msgid "Transmits network packets via Network Cables."
+msgstr "Überträgt Netzwerkpakete über Netzwerkkabel."
+
+msgctxt "block.oc2.internet_gateway"
+msgid "Internet Gateway"
+msgstr "Internet-Gateway"
+
+msgctxt "block.oc2.internet_gateway.desc"
+msgid "Connects a network to the internet."
+msgstr "Stellt eine Netzwerkverbindung zum Internet her."
+
+msgctxt "block.oc2.network_hub"
+msgid "Network Hub"
+msgstr "Netzwerk-Hub"
+
+msgctxt "block.oc2.network_hub.desc"
+msgid "Distributes network packets among all attached Network Connectors."
+msgstr "Verteilt Netzwerkpakete auf alle angeschlossenen Netzwerkanschlüsse."
+
+msgctxt "block.oc2.redstone_interface"
+msgid "Redstone Interface"
+msgstr "Redstone-Schnittstelle"
+
+msgctxt "block.oc2.redstone_interface.desc"
+msgid "Emits and reads redstone signals."
+msgstr "Sendet und liest Redstone-Signale."
+
+msgctxt "block.oc2.transposer"
+msgid "Transposer"
+msgstr "Transposer"
+
+msgctxt "block.oc2.transposer.desc"
+msgid "Moves items between adjacent inventories."
+msgstr "Verschiebt Gegenstände zwischen benachbarten Inventaren."
+
+msgctxt "block.oc2.disk_drive"
+msgid "Disk Drive"
+msgstr "Laufwerk"
+
+msgctxt "block.oc2.disk_drive.desc"
+msgid "Used to access Floppy Disks."
+msgstr "Wird für den Zugriff auf Disketten verwendet."
+
+msgctxt "block.oc2.flash_drive"
+msgid "Flash Drive"
+msgstr "Speicherkartenleser"
+
+msgctxt "block.oc2.flash_drive.desc"
+msgid "Used to access Flash Memory."
+msgstr "Wird für den Zugriff auf den Flash-Speicher verwendet."
+
+msgctxt "block.oc2.terminal"
+msgid "Terminal"
+msgstr "Terminal"
+
+msgctxt "block.oc2.terminal.desc"
+msgid "User input and output over a serial bus."
+msgstr "Benutzereingaben und -ausgaben über einen seriellen Bus."
+
+msgctxt "block.oc2.charger"
+msgid "Charger"
+msgstr "Ladegerät"
+
+msgctxt "block.oc2.charger.desc"
+msgid "Charges entities and items in containers on top of it."
+msgstr "Lädt Entities und Gegenstände in Behältern über sich."
+
+msgctxt "block.oc2.creative_energy"
+msgid "Infinite Energy Cube"
+msgstr "Endloser Energiewürfel"
+
+msgctxt "block.oc2.creative_energy.desc"
+msgid "Provides unlimited energy to adjacent blocks. Intended for testing."
+msgstr ""
+"Versorgt benachbarte Blöcke mit unbegrenzter Energie. Nur zu Testzwecken "
+"gedacht."
+
+msgctxt "block.oc2.projector"
+msgid "Projector"
+msgstr "Projektor"
+
+msgctxt "block.oc2.projector.desc"
+msgid "Projects images onto surfaces in front of it."
+msgstr "Wirft Bilder auf Oberflächen vor sich."
+
+msgctxt "block.oc2.keyboard"
+msgid "Keyboard"
+msgstr "Tastatur"
+
+msgctxt "block.oc2.keyboard.desc"
+msgid "Allows keyboard input when using a projector."
+msgstr "Ermöglicht die Tastatureingabe bei Verwendung eines Projektors."
+
+msgctxt "item.oc2.wrench"
+msgid "Scrench"
+msgstr "Schraubzieher"
+
+msgctxt "item.oc2.wrench.desc"
+msgid "Configures devices and dismantles them (while sneaking)."
+msgstr "Konfiguriert Geräte und baut sie ab (im Schleichmodus)."
+
+msgctxt "item.oc2.manual"
+msgid "The Computerist's Handbook"
+msgstr "Des Computerists Handbuch"
+
+msgctxt "item.oc2.manual.desc"
+msgid "Holds information on all things needed when working with Computers."
+msgstr ""
+"Enthält Informationen zu allem, was man für die Arbeit mit Computern "
+"benötigt."
+
+msgctxt "item.oc2.bus_interface"
+msgid "Bus Interface"
+msgstr "Bus-Schnittstelle"
+
+msgctxt "item.oc2.bus_interface.desc"
+msgid "Connects external devices to Computers."
+msgstr "Verbindet externe Geräte mit Computern."
+
+msgctxt "item.oc2.network_cable"
+msgid "Network Cable"
+msgstr "Netzwerkkabel"
+
+msgctxt "item.oc2.network_cable.desc"
+msgid "Connects Network Connectors."
+msgstr "Verbindet Netzwerkanschlüsse."
+
+msgctxt "item.oc2.memory"
+msgid "Memory"
+msgstr "Speicher"
+
+msgctxt "item.oc2.memory.desc"
+msgid "Random Access Memory (RAM) used in Computers and Robots."
+msgstr "Arbeitsspeicher (RAM), der in Computern und Robotern verwendet wird."
+
+msgctxt "item.oc2.hard_drive"
+msgid "Hard Drive"
+msgstr "Festplatte"
+
+msgctxt "item.oc2.hard_drive.desc"
+msgid "Mass storage for operating systems and data."
+msgstr "Massenspeicher für Betriebssysteme und Daten."
+
+msgctxt "item.oc2.floppy"
+msgid "Floppy Disk"
+msgstr "Diskette"
+
+msgctxt "item.oc2.floppy.desc"
+msgid "Portable storage used to transfer data between Computers."
+msgstr ""
+"Tragbare Speichermedien, die zur Datenübertragung zwischen Computern "
+"verwendet werden."
+
+msgctxt "item.oc2.flash_memory"
+msgid "Flash Memory"
+msgstr "Flash-Speicher"
+
+msgctxt "item.oc2.flash_memory.desc"
+msgid "Readonly storage for firmware."
+msgstr "Schreibgeschützter Speicher für Firmware."
+
+msgctxt "item.oc2.cpu_z80"
+msgid "Z80 Processor"
+msgstr "Z80-Prozessor"
+
+msgctxt "item.oc2.cpu_z80.desc"
+msgid "An 8-bit processor. Runs CP/M."
+msgstr "Ein 8-Bit-Prozessor. Läuft unter CP/M."
+
+msgctxt "item.oc2.cpu_riscv"
+msgid "RISC-V Processor"
+msgstr "RISC-V-Prozessor"
+
+msgctxt "item.oc2.cpu_riscv.desc"
+msgid "A 64-bit processor. Runs OpenOS II and Linux."
+msgstr "Ein 64-Bit-Prozessor. Läuft unter OpenOS II und Linux."
+
+msgctxt "item.oc2.redstone_interface_card"
+msgid "Redstone Interface Card"
+msgstr "Redstone-Schnittstellenkarte"
+
+msgctxt "item.oc2.redstone_interface_card.desc"
+msgid "Emits and reads redstone signals through the Computer."
+msgstr "Sendet und empfängt Redstone-Signale über den Computer."
+
+msgctxt "item.oc2.network_interface_card"
+msgid "Network Interface Card"
+msgstr "Netzwerkkarte"
+
+msgctxt "item.oc2.network_interface_card.desc"
+msgid "Sends and receives network packets via attached Network Connectors."
+msgstr ""
+"Sendet und empfängt Netzwerkpakete über angeschlossene Netzwerkanschlüsse."
+
+msgctxt "item.oc2.sided_device.is_configured"
+msgid "Has connectivity configuration."
+msgstr "Seiten konfigurierbar."
+
+msgctxt "item.oc2.serial_interface_card"
+msgid "Serial Interface Card"
+msgstr "Serielles Schnittstellenmodul"
+
+msgctxt "item.oc2.serial_interface_card.desc"
+msgid "Sends and receives serial communication via attached Network Connectors."
+msgstr ""
+"Sendet und empfängt serielle Daten über angeschlossene Netzwerkanschlüsse."
+
+msgctxt "item.oc2.serial_interface_card.configuration"
+msgid "Address: %s"
+msgstr "Adresse: %s"
+
+msgctxt "item.oc2.network_tunnel_card"
+msgid "Network Tunnel Card"
+msgstr "Netzwerktunnel-Karte"
+
+msgctxt "item.oc2.network_tunnel_card.desc"
+msgid "Sends and receives network packets to a linked device."
+msgstr "Sendet und empfängt Netzwerkpakete an ein verbundenes Gerät."
+
+msgctxt "item.oc2.file_import_export_card"
+msgid "File Import/Export Card"
+msgstr "Datei-Import/Export-Karte"
+
+msgctxt "item.oc2.file_import_export_card.desc"
+msgid "Imports and exports files from and into your real file system."
+msgstr ""
+"Importiert und exportiert Dateien aus dem realen Dateisystem und in dieses "
+"hinein."
+
+msgctxt "item.oc2.robot"
+msgid "Robot"
+msgstr "Roboter"
+
+msgctxt "item.oc2.robot.desc"
+msgid "A mobile Computer. Use a Scrench to pick it back up."
+msgstr ""
+"Ein mobiler Computer. Benutze einen Schraubzieher, um ihn wieder aufzuheben."
+
+msgctxt "item.oc2.robot.preconfigured"
+msgid "Preconfigured Robot"
+msgstr "Vorkonfigurierter Roboter"
+
+msgctxt "item.oc2.crafting_module"
+msgid "Crafting Module"
+msgstr "Crafting-Modul"
+
+msgctxt "item.oc2.crafting_module.desc"
+msgid "Crafts items in the Robot's inventory."
+msgstr "Craftet Gegenstände im Inventar des Roboters."
+
+msgctxt "item.oc2.inventory_operations_module"
+msgid "Inventory Operations Module"
+msgstr "Modul für Inventaroperationen"
+
+msgctxt "item.oc2.inventory_operations_module.desc"
+msgid "Moves items in, into and out of the Robot's inventory."
+msgstr "Verschiebt Gegenstände im, in das und aus dem Inventar des Roboters."
+
+msgctxt "item.oc2.tank_operations_module"
+msgid "Tank Operations Module"
+msgstr "Tank-Interaktions-Modul"
+
+msgctxt "item.oc2.tank_operations_module.desc"
+msgid "Moves fluids into and out of the Robot's tank."
+msgstr "Führt Flüssigkeiten in den Tank des Roboters hinein und aus ihm heraus."
+
+msgctxt "item.oc2.block_operations_module"
+msgid "Block Operations Module"
+msgstr "Block-Interaktions-Modul"
+
+msgctxt "item.oc2.block_operations_module.desc"
+msgid "Breaks and places blocks."
+msgstr "Gräbt und platziert Blöcke."
+
+msgctxt "item.oc2.scanner_module"
+msgid "Scanner Module"
+msgstr "Scanner-Modul"
+
+msgctxt "item.oc2.scanner_module.desc"
+msgid "Identifies adjacent blocks and measures the hardness of nearby ones."
+msgstr "Erkennt benachbarte Blöcke und misst die Härte derer in der Nähe."
+
+msgctxt "item.oc2.sound_card"
+msgid "Sound Card"
+msgstr "Soundkarte"
+
+msgctxt "item.oc2.sound_card.desc"
+msgid "Lets a computer do the beeps and boops."
+msgstr "Lässt einen Computer Töne haben."
+
+msgctxt "item.oc2.network_tunnel_module"
+msgid "Network Tunnel Module"
+msgstr "Netzwerktunnel-Modul"
+
+msgctxt "item.oc2.network_tunnel_module.desc"
+msgid "Sends and receives network packets to a linked device."
+msgstr "Sendet und empfängt Netzwerkpakete an ein verbundenes Gerät."
+
+msgctxt "item.oc2.transistor"
+msgid "Transistor"
+msgstr "Transistor"
+
+msgctxt "item.oc2.transistor.desc"
+msgid "Crafting material."
+msgstr "Crafting-Material."
+
+msgctxt "item.oc2.circuit_board"
+msgid "Circuit Board"
+msgstr "Leiterplatte"
+
+msgctxt "item.oc2.circuit_board.desc"
+msgid "Crafting material."
+msgstr "Crafting-Material."
+
+msgctxt "entity.oc2.robot"
+msgid "Robot"
+msgstr "Roboter"
+
+msgctxt "tag.item.oc2.devices"
+msgid "Devices"
+msgstr "Geräte"
+
+msgctxt "tag.item.oc2.devices.cpu"
+msgid "Processors"
+msgstr "Prozessoren"
+
+msgctxt "tag.item.oc2.devices.memory"
+msgid "Memory"
+msgstr "Speicher"
+
+msgctxt "tag.item.oc2.devices.hard_drive"
+msgid "Hard Drives"
+msgstr "Festplatten"
+
+msgctxt "tag.item.oc2.devices.flash_memory"
+msgid "Flash Memory"
+msgstr "Flash-Speicher"
+
+msgctxt "tag.item.oc2.devices.floppy"
+msgid "Floppy Disks"
+msgstr "Disketten"
+
+msgctxt "tag.item.oc2.devices.card"
+msgid "Cards"
+msgstr "Karten"
+
+msgctxt "tag.item.oc2.devices.robot_module"
+msgid "Robot Modules"
+msgstr "Roboter-Module"
+
+msgctxt "tag.item.oc2.devices.network_tunnel"
+msgid "Network Tunnels"
+msgstr "Netzwerktunnel"
+
+msgctxt "tag.item.oc2.cables"
+msgid "Cables"
+msgstr "Kabel"
+
+msgctxt "tag.item.oc2.wrenches"
+msgid "Wrenches"
+msgstr "Schraubschlüssel"
+
+msgctxt "tag.item.oc2.configurable"
+msgid "Configurable Devices"
+msgstr "Konfigurierbare Geräte"
+
+msgctxt "tag.item.oc2.device_needs_reboot"
+msgid "Devices Requiring Reboot"
+msgstr "Geräte, die einen Neustart erfordern"
+
+msgctxt "gui.oc2.computer.error.unknown"
+msgid "Unknown Error"
+msgstr "Unbekannter Fehler"
+
+msgctxt "gui.oc2.computer.error.missing_cpu"
+msgid "Missing Processor"
+msgstr "Fehlender Prozessor"
+
+msgctxt "gui.oc2.computer.error.missing_firmware"
+msgid "Missing Firmware"
+msgstr "Fehlende Firmware"
+
+msgctxt "gui.oc2.computer.error.device_does_not_fit"
+msgid "Device Does Not Fit This Processor"
+msgstr "Gerät passt nicht zu diesem Prozessor"
+
+msgctxt "gui.oc2.computer.error.insufficient_memory"
+msgid "Insufficient Memory"
+msgstr "Nicht genügend Arbeitsspeicher"
+
+msgctxt "gui.oc2.computer.error.storage_corrupted"
+msgid "Drive Data Corrupted"
+msgstr "Laufwerksdaten beschädigt"
+
+msgctxt "gui.oc2.computer.error.storage_full"
+msgid "Global Storage Limit Reached"
+msgstr "Globales Speicherlimit erreicht"
+
+msgctxt "gui.oc2.computer.error.memory_corrupted"
+msgid "Memory Corrupted"
+msgstr "Speicher beschädigt"
+
+msgctxt "gui.oc2.computer.error.state_lost"
+msgid "Machine State Lost"
+msgstr "Maschinenzustand verloren"
+
+msgctxt "gui.oc2.computer.error.storage_inconsistent"
+msgid "Drive Data Unverified"
+msgstr "Laufwerksdaten nicht verifiziert"
+
+msgctxt "gui.oc2.computer.error.halted"
+msgid "Halted"
+msgstr "Angehalten"
+
+msgctxt "gui.oc2.computer.bus_state.incomplete"
+msgid "Bus Incomplete"
+msgstr "Bus unvollständig"
+
+msgctxt "gui.oc2.computer.bus_state.too_complex"
+msgid "Bus Too Complex"
+msgstr "Bus zu komplex"
+
+msgctxt "gui.oc2.computer.bus_state.multiple_controllers"
+msgid "Multiple Bus Controllers"
+msgstr "Mehrere Bus-Controller"
+
+msgctxt "gui.oc2.computer.error.not_enough_energy"
+msgid "Not Enough Energy"
+msgstr "Nicht genug Energie"
+
+msgctxt "gui.oc2.computer.capture_input.capt"
+msgid "Capture Input"
+msgstr "Alle Eingaben erfassen"
+
+msgctxt "gui.oc2.computer.capture_input.desc"
+msgid "When enabled, as long as the mouse cursor is hovering the terminal contents, all input will be captured, including the escape key."
+msgstr ""
+"Wenn diese Funktion aktiviert ist, werden alle Eingaben – einschließlich der "
+"Escape-Taste – erfasst, solange sich der Mauszeiger über dem Terminalinhalt "
+"befindet."
+
+msgctxt "gui.oc2.computer.power.on"
+msgid "Power on"
+msgstr "Einschalten"
+
+msgctxt "gui.oc2.computer.power.shutdown"
+msgid "Shutdown"
+msgstr "Herunterfahren"
+
+msgctxt "gui.oc2.computer.power.reboot"
+msgid "Shift: Reboot"
+msgstr "Umschalt: Neustart"
+
+msgctxt "gui.oc2.computer.power.power_off"
+msgid "Ctrl: Power off"
+msgstr "Strg: Ausschalten"
+
+msgctxt "gui.oc2.machine.open_inventory.capt"
+msgid "Open Inventory"
+msgstr "Inventar öffnen"
+
+msgctxt "gui.oc2.machine.open_terminal.capt"
+msgid "Open Terminal"
+msgstr "Terminal öffnen"
+
+msgctxt "gui.oc2.device_type.cpu"
+msgid "Processor"
+msgstr "Prozessor"
+
+msgctxt "gui.oc2.device_type.memory"
+msgid "Memory"
+msgstr "Speicher"
+
+msgctxt "gui.oc2.device_type.hard_drive"
+msgid "Hard Drive"
+msgstr "Festplatte"
+
+msgctxt "gui.oc2.device_type.flash_memory"
+msgid "Flash Memory"
+msgstr "Flash-Speicher"
+
+msgctxt "gui.oc2.device_type.floppy"
+msgid "Floppy"
+msgstr "Diskette"
+
+msgctxt "gui.oc2.device_type.card"
+msgid "Card"
+msgstr "Karte"
+
+msgctxt "gui.oc2.file_chooser.title.load"
+msgid "Open file"
+msgstr "Datei öffnen"
+
+msgctxt "gui.oc2.file_chooser.title.save"
+msgid "Save file"
+msgstr "Datei speichern"
+
+msgctxt "gui.oc2.file_chooser.text_field.filename"
+msgid "File name"
+msgstr "Dateiname"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.load"
+msgid "Open"
+msgstr "Öffnen"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.save"
+msgid "Save"
+msgstr "Speichern"
+
+msgctxt "gui.oc2.file_chooser.confirm_button.overwrite"
+msgid "Overwrite"
+msgstr "Überschreiben"
+
+msgctxt "gui.oc2.file_chooser.cancel_button"
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgctxt "gui.oc2.sided_device.side_state"
+msgid "Connectivity: %s"
+msgstr "Verbindung: %s"
+
+msgctxt "gui.oc2.sided_device.connectivity.enabled"
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgctxt "gui.oc2.sided_device.connectivity.disabled"
+msgid "Disabled"
+msgstr "Deaktiviert"
+
+msgctxt "gui.oc2.sided_device.help"
+msgid "Drag to rotate. Click faces to toggle connectivity."
+msgstr ""
+"Zum Drehen ziehen. Klicke auf die Flächen, um die Verbindung ein- oder "
+"auszuschalten."
+
+msgctxt "gui.oc2.terminal.address"
+msgid "Address"
+msgstr "Adresse"
+
+msgctxt "gui.oc2.terminal.baud_rate"
+msgid "Baud Rate"
+msgstr "Baudrate"
+
+msgctxt "gui.oc2.serial_interface_card.address"
+msgid "Address"
+msgstr "Adresse"
+
+msgctxt "gui.oc2.keyboard.close_info"
+msgid "Right click to close."
+msgstr "Zum Schließen mit der rechten Maustaste klicken."
+
+msgctxt "gui.oc2.network_tunnel.link"
+msgid "Link"
+msgstr "Link"
+
+msgctxt "gui.oc2.open_configuration.capt"
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgctxt "gui.oc2.internet_gateway.mode"
+msgid "Internet Mode"
+msgstr "Internet-Modus"
+
+msgctxt "gui.oc2.internet_gateway.address"
+msgid "Address"
+msgstr "Adresse"
+
+msgctxt "gui.oc2.internet_gateway.peer"
+msgid "VXLAN Remote Peer"
+msgstr "VXLAN-Remote-Peer"
+
+msgctxt "gui.oc2.internet_gateway.port"
+msgid "VXLAN Port"
+msgstr "VXLAN-Port"
+
+msgctxt "gui.oc2.internet_gateway.vni"
+msgid "VXLAN VNI"
+msgstr "VXLAN VNI"
+
+msgctxt "gui.oc2.internet_gateway.nat"
+msgid "NAT"
+msgstr "NAT"
+
+msgctxt "gui.oc2.internet_gateway.vxlan"
+msgid "VXLAN"
+msgstr "VXLAN"
+
+msgctxt "manual.oc2.home"
+msgid "Home"
+msgstr "Startseite"
+
+msgctxt "manual.oc2.blocks"
+msgid "Blocks"
+msgstr "Blöcke"
+
+msgctxt "manual.oc2.items"
+msgid "Items"
+msgstr "Gegenstände"
+
+msgctxt "manual.oc2.api"
+msgid "API"
+msgstr "API"
+
+msgctxt "manual.oc2.serial_protocols.serial_interface"
+msgid "OpenComputers II Serial Interface"
+msgstr "OpenComputers II – Serielle Schnittstelle"
+
+msgctxt "message.oc2.connector.error.full"
+msgid "Cannot attach more cables."
+msgstr "Es können keine weiteren Kabel angeschlossen werden."
+
+msgctxt "message.oc2.connector.error.too_far"
+msgid "Distance between connectors is too large."
+msgstr "Der Abstand zwischen den Connectoren ist zu groß."
+
+msgctxt "message.oc2.connector.error.obstructed"
+msgid "No clear line of sight between connectors."
+msgstr "Keine freie Sichtlinie zwischen den Connectoren."
+
+msgctxt "message.oc2.import_file.file_too_large"
+msgid "File is too large."
+msgstr "Datei ist zu groß."
+
+msgctxt "message.oc2.invalid_facade_block"
+msgid "This block cannot be used as a facade."
+msgstr "Dieser Block kann nicht als Fassade verwendet werden."
+
+msgctxt "tooltip.oc2.device_needs_reboot"
+msgid "Requires reboot"
+msgstr "Erfordert einen Neustart"
+
+msgctxt "tooltip.oc2.can_be_configured"
+msgid "Can be configured"
+msgstr "Kann konfiguriert werden"
+
+msgctxt "tooltip.oc2.device_required"
+msgid "Missing %s, required to boot."
+msgstr "%s fehlt, wird zum Starten benötigt."
+
+msgctxt "tooltip.oc2.device_suggested"
+msgid "Missing %s, usually needed to boot."
+msgstr "%s fehlt, wird normalerweise zum Starten benötigt."
+
+msgctxt "tooltip.oc2.energy"
+msgid "Energy: %s"
+msgstr "Energie: %s"
+
+msgctxt "tooltip.oc2.energyConsumption"
+msgid "Energy Consumption: %s/t"
+msgstr "Energieverbrauch: %s/t"
+
+msgctxt "tooltip.oc2.fluid"
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
+msgctxt "tooltip.oc2.fluid_empty"
+msgid "Empty"
+msgstr "Leer"
+
+msgctxt "tooltip.oc2.data_corrupted"
+msgid "Data Corrupted"
+msgstr "Daten beschädigt"
+
+msgctxt "tooltip.oc2.data_corrupted.hint"
+msgid "Bit rot has claimed the contents of this device. Craft it together with a wrench to format it."
+msgstr ""
+"Bitrot hat den Inhalt dieses Geräts zerstört. Crafte es zusammen mit einem "
+"Schraubzieher, um es zu formatieren."
+
+msgctxt "tooltip.oc2.data_inconsistent"
+msgid "Data Unverified"
+msgstr "Daten nicht verifiziert"
+
+msgctxt "tooltip.oc2.data_inconsistent.hint"
+msgid "This device was in use when the server stopped unexpectedly. Its contents were kept, but may be damaged. Craft it together with a wrench to keep the data and use it again."
+msgstr ""
+"Dieses Gerät war in Gebrauch, als der Server unerwartet abstürzte. Der "
+"Inhalt wurde gespeichert, ist jedoch möglicherweise beschädigt. Crafte es "
+"zusammen mit einem Schraubzieher, um die Daten zu erhalten und es "
+"weiterverwenden zu können."
+
+msgctxt "tooltip.oc2.internet_disabled"
+msgid "Internet access is disabled"
+msgstr "Der Internetzugang ist deaktiviert"
+
+msgctxt "tooltip.oc2.confirm"
+msgid "Confirm"
+msgstr "Bestätigen"
+
+msgctxt "tooltip.oc2.cancel"
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgctxt "tooltip.oc2.network_tunnel_id"
+msgid "Tunnel: %s"
+msgstr "Tunnel: %s"
+
+msgctxt "subtitles.oc2.computer"
+msgid "Computer fans running"
+msgstr "Laufende Computerlüfter"
+
+msgctxt "subtitles.oc2.floppy"
+msgid "Floppy access"
+msgstr "Zugriff auf Disketten"
+
+msgctxt "subtitles.oc2.floppy_eject"
+msgid "Floppy ejected"
+msgstr "Diskette ausgeworfen"
+
+msgctxt "subtitles.oc2.floppy_insert"
+msgid "Floppy inserted"
+msgstr "Diskette eingelegt"
+
+msgctxt "subtitles.oc2.flash_eject"
+msgid "Flash Memory ejected"
+msgstr "Flash-Speicher ausgeworfen"
+
+msgctxt "subtitles.oc2.flash_insert"
+msgid "Flash Memory inserted"
+msgstr "Flash-Speicher eingelegt"
+
+msgctxt "subtitles.oc2.hdd"
+msgid "Hard drive access"
+msgstr "Festplattenzugriff"

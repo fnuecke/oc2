@@ -681,7 +681,7 @@ msgid "Energy Consumption: %s/t"
 msgstr "Потребление энергии: %s/t"
 
 msgctxt "tooltip.oc2.fluid"
-msgid "%s: %s"
+msgid "%1$s: %2$s"
 msgstr ""
 
 msgctxt "tooltip.oc2.fluid_empty"

@@ -186,7 +186,7 @@
   "tooltip.oc2.device_suggested": "Missing %s, usually needed to boot.",
   "tooltip.oc2.energy": "Energy: %s",
   "tooltip.oc2.energyConsumption": "Energy Consumption: %s/t",
-  "tooltip.oc2.fluid": "%s: %s",
+  "tooltip.oc2.fluid": "%1$s: %2$s",
   "tooltip.oc2.fluid_empty": "Empty",
   "tooltip.oc2.data_corrupted": "Data Corrupted",
   "tooltip.oc2.data_corrupted.hint": "Bit rot has claimed the contents of this device. Craft it together with a wrench to format it.",

@@ -107,7 +107,7 @@ public final class MountFailureTests {
         final UUID handle = BlobStorage.allocateHandle();
         final ItemStack stack = new ItemStack(Items.HARD_DRIVE_SMALL.get());
         final VMDeviceRegistry registry = registry();
-        final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
+        final HardDriveDevice device = new HardDriveDevice(stack, false, Optional::empty);
 
         device.deserializeNBT(tagReferencing(handle));
         registry.rebuild(bus(device));
@@ -136,7 +136,7 @@ public final class MountFailureTests {
             final UUID handle = createBlob(blob);
 
             final VMDeviceRegistry registry = registry();
-            final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
+            final HardDriveDevice device = new HardDriveDevice(stack, false, Optional::empty);
             device.deserializeNBT(tagReferencing(handle));
             registry.rebuild(bus(device));
 
@@ -172,7 +172,7 @@ public final class MountFailureTests {
             Config.maxBlobCount = BlobStorage.getBlobCount();
 
             final VMDeviceRegistry registry = registry();
-            final HardDriveDevice device = new HardDriveDevice(stack, 4096, false, Optional::empty);
+            final HardDriveDevice device = new HardDriveDevice(stack, false, Optional::empty);
             registry.rebuild(bus(device));
 
             final VMDeviceLoadResult result = registry.mountDevices();
@@ -205,7 +205,7 @@ public final class MountFailureTests {
         assertStaleStorageNeedsAcknowledgement(new ItemStack(Items.FLASH_MEMORY.get()),
             stack -> new FlashStorageDevice(stack, 4096));
         assertStaleStorageNeedsAcknowledgement(new ItemStack(Items.HARD_DRIVE_SMALL.get()),
-            stack -> new HardDriveDevice(stack, 4096, false, Optional::empty));
+            stack -> new HardDriveDevice(stack, false, Optional::empty));
 
         helper.succeed();
     }

@@ -12,6 +12,7 @@ import li.cil.oc2.common.Constants;
 import li.cil.oc2.common.bus.device.util.IdentityProxy;
 import li.cil.oc2.common.bus.device.util.OptionalAddress;
 import li.cil.oc2.common.bus.device.util.OptionalInterrupt;
+import li.cil.oc2.common.item.AbstractStorageItem;
 import li.cil.oc2.common.serialization.BlobReference;
 import li.cil.oc2.common.serialization.BlobStorage;
 import li.cil.oc2.common.serialization.NBTSerialization;
@@ -30,6 +31,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
@@ -194,6 +196,21 @@ public abstract class AbstractBlockStorageDevice<TBlock extends BlockDevice, TId
                 openJob = null;
             }
         }
+    }
+
+    protected FileChannel openBlob() throws IOException {
+        final boolean isNew = !blob.isValid();
+        final FileChannel channel = blob.open();
+        final long size = channel.size();
+        final ItemStack stack = getStorageItem();
+        final AbstractStorageItem item = (AbstractStorageItem) stack.getItem();
+        final boolean isChanged = isNew || size == 0
+            ? item.initializeCapacity(stack)
+            : item.updateCapacity(stack, (int) Math.min(size, Integer.MAX_VALUE));
+        if (isChanged) {
+            handleStorageChanged();
+        }
+        return channel;
     }
 
     protected abstract int getMappedByteCount();

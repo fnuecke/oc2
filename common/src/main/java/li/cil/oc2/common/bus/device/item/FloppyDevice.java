@@ -25,9 +25,9 @@ public final class FloppyDevice extends HardDriveDevice {
 
     // --------------------------------------------------------------------- //
 
-    public FloppyDevice(final ItemStack identity, final int size, final ArchitectureType architectureType,
+    public FloppyDevice(final ItemStack identity, final ArchitectureType architectureType,
                         @Nullable final BlockDeviceData base, final Supplier<Optional<BlockLocation>> location) {
-        super(identity, size, false, location);
+        super(identity, false, location);
         this.architectureType = architectureType;
         this.base = base;
     }

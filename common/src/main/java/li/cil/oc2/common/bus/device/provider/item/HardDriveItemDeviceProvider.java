@@ -14,7 +14,6 @@ import li.cil.oc2.common.item.HardDriveItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 import net.minecraft.world.item.ItemStack;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvider {
@@ -27,10 +26,10 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
     @Override
     protected Optional<ItemDevice> getItemDevice(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
-        final BlockDeviceData data = getData(query);
+        final BlockDeviceData data = ((HardDriveItem) stack.getItem()).getData(stack);
         return Optional.of(data != null
             ? new HardDriveDeviceWithInitialData(stack, data, false, LocationSupplierUtils.of(query))
-            : new HardDriveDevice(stack, getCapacity(query), false, LocationSupplierUtils.of(query)));
+            : new HardDriveDevice(stack, false, LocationSupplierUtils.of(query)));
     }
 
     @Override
@@ -40,20 +39,8 @@ public final class HardDriveItemDeviceProvider extends AbstractItemDeviceProvide
 
     // --------------------------------------------------------------------- //
 
-    @Nullable
-    private static BlockDeviceData getData(final ItemDeviceQuery query) {
-        final ItemStack stack = query.getItemStack();
-        return ((HardDriveItem) stack.getItem()).getData(stack);
-    }
-
     private static int getCapacity(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
-        final BlockDeviceData data = getData(query);
-        if (data != null) {
-            return (int) Math.max(data.getCapacity(), 0);
-        }
-
-        final HardDriveItem item = (HardDriveItem) stack.getItem();
-        return Math.max(item.getCapacity(stack), 0);
+        return ((HardDriveItem) stack.getItem()).getCapacity(stack);
     }
 }

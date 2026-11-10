@@ -123,6 +123,12 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
     // --------------------------------------------------------------------- //
 
     @Override
+    protected int getImageCapacity(final ItemStack stack) {
+        final BlockDeviceData data = getData(stack);
+        return data != null ? (int) data.getCapacity() : 0;
+    }
+
+    @Override
     protected String getOrCreateDescriptionId() {
         if (descriptionId == null) {
             descriptionId = Util.makeDescriptionId("item", ResourceLocation.fromNamespaceAndPath(API.MOD_ID, "hard_drive"));

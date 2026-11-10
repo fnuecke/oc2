@@ -3,6 +3,7 @@
 package li.cil.oc2.common.bus.device.item;
 
 import li.cil.oc2.common.bus.device.storage.AbstractBlockStorageItemDevice;
+import li.cil.oc2.common.item.AbstractStorageItem;
 import li.cil.oc2.common.util.BlockLocation;
 import li.cil.oc2.common.util.ChunkUtils;
 import li.cil.oc2.common.util.SoundEvents;
@@ -18,15 +19,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 public class HardDriveDevice extends AbstractBlockStorageItemDevice<ByteBufferBlockDevice, ItemStack> {
-    private final int size;
     private final Supplier<Optional<BlockLocation>> location;
     private final ThrottledSoundEmitter soundEmitter;
 
     // --------------------------------------------------------------------- //
 
-    public HardDriveDevice(final ItemStack identity, final int size, final boolean readonly, final Supplier<Optional<BlockLocation>> location) {
+    public HardDriveDevice(final ItemStack identity, final boolean readonly, final Supplier<Optional<BlockLocation>> location) {
         super(identity, readonly);
-        this.size = size;
         this.location = location;
         this.soundEmitter = new ThrottledSoundEmitter(location, SoundEvents.HDD_ACCESS.get())
             .withMinInterval(Duration.ofSeconds(1));
@@ -36,13 +35,14 @@ public class HardDriveDevice extends AbstractBlockStorageItemDevice<ByteBufferBl
 
     @Override
     protected int getMappedByteCount() {
-        return size;
+        return ((AbstractStorageItem) identity.getItem()).getCapacity(identity);
     }
 
     @Override
     protected CompletableFuture<ByteBufferBlockDevice> createBlockDevice() throws IOException {
         // Make sure we can access the data now, so base can handle missing/in use errors.
-        final FileChannel channel = blob.open();
+        final FileChannel channel = openBlob();
+        final int size = getMappedByteCount();
 
         return CompletableFuture.supplyAsync(() -> {
             try {

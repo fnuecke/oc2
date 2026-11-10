@@ -4,7 +4,6 @@ package li.cil.oc2.common.bus.device.provider.item;
 
 import li.cil.oc2.api.API;
 import li.cil.oc2.api.bus.device.ItemDevice;
-import li.cil.oc2.api.bus.device.data.BlockDeviceData;
 import li.cil.oc2.api.bus.device.provider.ItemDeviceQuery;
 import li.cil.oc2.api.bus.device.vm.ArchitectureType;
 import li.cil.oc2.common.Config;
@@ -15,7 +14,6 @@ import li.cil.oc2.common.item.FloppyItem;
 import li.cil.oc2.common.util.LocationSupplierUtils;
 import net.minecraft.world.item.ItemStack;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
@@ -38,7 +36,7 @@ public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
 
         final ItemStack stack = query.getItemStack();
         final FloppyItem item = (FloppyItem) stack.getItem();
-        return Optional.of(new FloppyDevice(stack, getCapacity(query), architectureType.get(),
+        return Optional.of(new FloppyDevice(stack, architectureType.get(),
             item.getData(stack), LocationSupplierUtils.of(query)));
     }
 
@@ -49,20 +47,8 @@ public final class FloppyItemDeviceProvider extends AbstractItemDeviceProvider {
 
     // --------------------------------------------------------------------- //
 
-    @Nullable
-    private static BlockDeviceData getData(final ItemDeviceQuery query) {
-        final ItemStack stack = query.getItemStack();
-        return ((FloppyItem) stack.getItem()).getData(stack);
-    }
-
     private static int getCapacity(final ItemDeviceQuery query) {
         final ItemStack stack = query.getItemStack();
-        final BlockDeviceData data = getData(query);
-        if (data != null) {
-            return (int) Math.max(data.getCapacity(), 0);
-        }
-
-        final FloppyItem item = (FloppyItem) stack.getItem();
-        return Math.max(item.getCapacity(stack), 0);
+        return ((FloppyItem) stack.getItem()).getCapacity(stack);
     }
 }

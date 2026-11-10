@@ -58,16 +58,12 @@ public abstract class AbstractStorageItem extends ModItem {
 
     public int getCapacity(final ItemStack stack) {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
-        if (!tag.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
-            return defaultCapacity.getAsInt();
+        if (tag.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT)) {
+            return clampCapacity(tag.getInt(CAPACITY_TAG_NAME));
         }
 
-        final int capacity = tag.getInt(CAPACITY_TAG_NAME);
-        if (Config.maxBlobCapacity <= 0) {
-            return Math.max(capacity, 0);
-        }
-
-        return Mth.clamp(capacity, 0, Config.maxBlobCapacity);
+        final int imageCapacity = getImageCapacity(stack);
+        return clampCapacity(imageCapacity > 0 ? imageCapacity : defaultCapacity.getAsInt());
     }
 
     public ItemStack withCapacity(final ItemStack stack, final int capacity) {
@@ -77,5 +73,35 @@ public abstract class AbstractStorageItem extends ModItem {
 
     public ItemStack withCapacity(final int capacity) {
         return withCapacity(new ItemStack(this), capacity);
+    }
+
+    public boolean initializeCapacity(final ItemStack stack) {
+        return updateCapacity(stack, clampCapacity(Math.max(getCapacity(stack), getImageCapacity(stack))));
+    }
+
+    public boolean updateCapacity(final ItemStack stack, final int capacity) {
+        final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
+        if (tag.contains(CAPACITY_TAG_NAME, NBTTagIds.TAG_INT) && tag.getInt(CAPACITY_TAG_NAME) == capacity) {
+            return false;
+        }
+
+        withCapacity(stack, capacity);
+        return true;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    protected int getImageCapacity(final ItemStack stack) {
+        return 0;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static int clampCapacity(final int capacity) {
+        if (Config.maxBlobCapacity <= 0) {
+            return Math.max(capacity, 0);
+        }
+
+        return Mth.clamp(capacity, 0, Config.maxBlobCapacity);
     }
 }

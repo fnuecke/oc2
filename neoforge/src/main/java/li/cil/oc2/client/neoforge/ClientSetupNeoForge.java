@@ -41,11 +41,10 @@ import javax.annotation.Nullable;
 public final class ClientSetupNeoForge {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
-        TerminalTextures.initialize();
-        ProjectorDepthRenderer.initialize();
-        SoundCardAudio.initialize();
-
         event.enqueueWork(() -> {
+            TerminalTextures.initialize();
+            ProjectorDepthRenderer.initialize();
+            SoundCardAudio.initialize();
             DeviceHints.initialize();
             CustomItemModelProperties.initialize();
             CustomItemColors.initialize();

@@ -5,6 +5,7 @@ package li.cil.oc2.common.neoforge;
 import li.cil.oc2.api.API;
 import li.cil.oc2.client.manual.Manuals;
 import li.cil.oc2.common.Main;
+import li.cil.oc2.common.network.Network;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -18,6 +19,7 @@ public final class MainNeoForge {
         MOD_CONTAINER = modContainer;
 
         Main.initialize();
+        Network.initialize();
         if (FMLEnvironment.dist == Dist.CLIENT) {
             Manuals.initialize();
         }

@@ -61,7 +61,6 @@ import java.util.concurrent.ExecutionException;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.*;
 
-// No @Mod.EventBusSubscriber: we need to register this manually, because static init throws errors when running data generation.
 public final class ProjectorDepthRenderer {
     private static final int DEPTH_CAPTURE_SIZE = 256;
     private static final int DEPTH_BUFFER_SOURCE_BYTES = 768 * 1024;

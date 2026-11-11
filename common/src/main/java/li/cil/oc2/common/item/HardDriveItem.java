@@ -117,4 +117,12 @@ public final class HardDriveItem extends AbstractStorageItem implements ColoredI
             .append(data.getDisplayName())
             .append(")");
     }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
+    protected int getImageCapacity(final ItemStack stack) {
+        final BlockDeviceData data = getData(stack);
+        return data != null ? (int) data.getCapacity() : 0;
+    }
 }

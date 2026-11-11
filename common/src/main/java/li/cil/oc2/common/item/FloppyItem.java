@@ -98,4 +98,12 @@ public final class FloppyItem extends AbstractStorageItem implements ColoredItem
             .append(data.getDisplayName())
             .append(")");
     }
+
+    // --------------------------------------------------------------------- //
+
+    @Override
+    protected int getImageCapacity(final ItemStack stack) {
+        final BlockDeviceData data = getData(stack);
+        return data != null ? (int) data.getCapacity() : 0;
+    }
 }

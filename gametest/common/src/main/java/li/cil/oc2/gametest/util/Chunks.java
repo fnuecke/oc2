@@ -33,6 +33,15 @@ public final class Chunks {
         }
     }
 
+    public static void assertSceneTicking(final GameTestHelper helper, final BlockPos relativePos) {
+        assertTicking(helper, relativePos);
+        for (final BlockPos target : BlockPos.betweenClosed(relativePos.offset(-1, 0, -1), relativePos.offset(1, 0, 1))) {
+            if (!helper.getLevel().shouldTickBlocksAt(helper.absolutePos(target))) {
+                throw new GameTestAssertException(Component.literal("chunk of " + target + " is not ticking yet"), 0);
+            }
+        }
+    }
+
     public static void assertUnloaded(final GameTestHelper helper, final ChunkPos chunkPos) {
         if (helper.getLevel().hasChunk(chunkPos.x, chunkPos.z)) {
             throw new GameTestAssertException(Component.literal("chunk " + chunkPos + " is still loaded"), 0);

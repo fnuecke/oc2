@@ -77,8 +77,7 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
-        final int capacity = getMediumCapacity(stack);
-        if (capacity <= 0) {
+        if (getMediumCapacity(stack) <= 0) {
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
@@ -90,12 +89,13 @@ public abstract class AbstractRemovableMediaDevice extends AbstractBlockStorageD
 
         final FileChannel channel;
         try {
-            channel = blob.open();
+            channel = openBlob();
         } catch (final BlobStorage.BlobMissingException | BlobStorage.BlobInUseException e) {
             handleDataUnavailable();
             return CompletableFuture.completedFuture(EMPTY_BLOCK_DEVICE);
         }
 
+        final int capacity = getMediumCapacity(stack);
         final MediumInitializer initializer = isNew ? createMediumInitializer(stack) : LEAVE_BLANK;
         return CompletableFuture.supplyAsync(() -> {
             try {

@@ -333,6 +333,13 @@ public final class ModRecipesProvider extends RecipeProvider.Runner {
                 .unlockedBy("has_robot", inventoryChange(Items.ROBOT.get()))
                 .save(output);
 
+            ToolRecipeBuilder
+                .toolRecipe(Items.HARD_DRIVE_MEDIUM.get())
+                .requires(Items.WRENCH.get())
+                .requires(Items.HARD_DRIVE_MEDIUM.get())
+                .unlockedBy("has_hard_drive_medium", inventoryChange(Items.HARD_DRIVE_MEDIUM.get()))
+                .save(output, API.MOD_ID + ":hard_drive_medium_erase");
+
             shaped(RecipeCategory.MISC, Items.HARD_DRIVE_LARGE.get())
                 .pattern("ITI")
                 .pattern("DBD")

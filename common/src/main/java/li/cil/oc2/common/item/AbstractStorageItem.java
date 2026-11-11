@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 
@@ -54,16 +55,13 @@ public abstract class AbstractStorageItem extends ModItem {
 
     public int getCapacity(final ItemStack stack) {
         final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
-        if (!tag.getInt(CAPACITY_TAG_NAME).isPresent()) {
-            return defaultCapacity.getAsInt();
+        final Optional<Integer> capacity = tag.getInt(CAPACITY_TAG_NAME);
+        if (capacity.isPresent()) {
+            return clampCapacity(capacity.get());
         }
 
-        final int capacity = tag.getIntOr(CAPACITY_TAG_NAME, 0);
-        if (Config.maxBlobCapacity <= 0) {
-            return Math.max(capacity, 0);
-        }
-
-        return Mth.clamp(capacity, 0, Config.maxBlobCapacity);
+        final int imageCapacity = getImageCapacity(stack);
+        return clampCapacity(imageCapacity > 0 ? imageCapacity : defaultCapacity.getAsInt());
     }
 
     public ItemStack withCapacity(final ItemStack stack, final int capacity) {
@@ -73,5 +71,35 @@ public abstract class AbstractStorageItem extends ModItem {
 
     public ItemStack withCapacity(final int capacity) {
         return withCapacity(new ItemStack(this), capacity);
+    }
+
+    public boolean initializeCapacity(final ItemStack stack) {
+        return updateCapacity(stack, clampCapacity(Math.max(getCapacity(stack), getImageCapacity(stack))));
+    }
+
+    public boolean updateCapacity(final ItemStack stack, final int capacity) {
+        final CompoundTag tag = ItemStackUtils.getModDataTag(stack);
+        if (tag.getInt(CAPACITY_TAG_NAME).equals(Optional.of(capacity))) {
+            return false;
+        }
+
+        withCapacity(stack, capacity);
+        return true;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    protected int getImageCapacity(final ItemStack stack) {
+        return 0;
+    }
+
+    // --------------------------------------------------------------------- //
+
+    private static int clampCapacity(final int capacity) {
+        if (Config.maxBlobCapacity <= 0) {
+            return Math.max(capacity, 0);
+        }
+
+        return Mth.clamp(capacity, 0, Config.maxBlobCapacity);
     }
 }

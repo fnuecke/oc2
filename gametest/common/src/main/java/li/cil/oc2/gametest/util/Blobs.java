@@ -56,7 +56,8 @@ public final class Blobs {
             throw new GameTestAssertException(Component.literal("Blob storage is not initialized"), 0);
         }
 
-        Files.createFile(directory.resolve(handle.toString()));
+        BlobStorage.close(BlobStorage.open(handle, true));
+        BlobStorage.handleSaved();
         Files.createFile(directory.resolve(handle + ".dirty"));
     }
 

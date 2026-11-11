@@ -43,7 +43,7 @@ public final class ChunkUnloadTests {
         final long[] instructions = new long[1];
         final ComputerBlockEntity[] before = new ComputerBlockEntity[1];
         helper.startSequence()
-            .thenWaitUntil(() -> Chunks.assertTicking(helper, COMPUTER_SCENE))
+            .thenWaitUntil(() -> Chunks.assertSceneTicking(helper, COMPUTER_SCENE))
             .thenExecute(() -> placeMachine(helper, COMPUTER_SCENE))
             .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
@@ -57,7 +57,7 @@ public final class ChunkUnloadTests {
             .thenWaitUntil(() -> Chunks.assertUnloaded(helper, chunkPos))
             .thenWaitUntil(() -> assertTrue(helper, "block entity was unloaded", before[0].isRemoved()))
             .thenExecute(() -> Chunks.hold(helper, chunkPos))
-            .thenWaitUntil(() -> Chunks.assertTicking(helper, COMPUTER_SCENE))
+            .thenWaitUntil(() -> Chunks.assertSceneTicking(helper, COMPUTER_SCENE))
             .thenWaitUntil(() -> computer.assertRunState(VMRunState.RUNNING, "after the chunk came back"))
             .thenExecute(() -> {
                 computer.assertNoError();
@@ -78,7 +78,7 @@ public final class ChunkUnloadTests {
         final int[] writes = new int[1];
         final ComputerBlockEntity[] unloaded = new ComputerBlockEntity[1];
         final GameTestSequence sequence = helper.startSequence()
-            .thenWaitUntil(() -> Chunks.assertTicking(helper, WRITING_COMPUTER_SCENE))
+            .thenWaitUntil(() -> Chunks.assertSceneTicking(helper, WRITING_COMPUTER_SCENE))
             .thenExecute(() -> placeMachine(helper, WRITING_COMPUTER_SCENE))
             .thenExecuteAfter(20, () -> Hardware.installLinux(computer))
             .thenExecuteAfter(20, computer::start)
@@ -110,7 +110,7 @@ public final class ChunkUnloadTests {
                 .thenWaitUntil(() -> Chunks.assertUnloaded(helper, chunkPos))
                 .thenWaitUntil(() -> assertTrue(helper, "block entity was unloaded", unloaded[0].isRemoved()))
                 .thenExecute(() -> Chunks.hold(helper, chunkPos))
-                .thenWaitUntil(() -> Chunks.assertTicking(helper, WRITING_COMPUTER_SCENE))
+                .thenWaitUntil(() -> Chunks.assertSceneTicking(helper, WRITING_COMPUTER_SCENE))
                 .thenWaitUntil(() -> computer.assertRunState(VMRunState.RUNNING, "after the chunk came back"));
         }
 

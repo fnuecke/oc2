@@ -3,7 +3,6 @@
 package li.cil.oc2.common.bus.device.block;
 
 import li.cil.oc2.api.bus.device.data.BlockDeviceData;
-import li.cil.oc2.common.Config;
 import li.cil.oc2.common.bus.device.provider.item.FlashMemoryItemDeviceProvider;
 import li.cil.oc2.common.bus.device.storage.AbstractRemovableMediaDevice;
 import li.cil.oc2.common.bus.device.storage.FloppyMedia;
@@ -24,7 +23,7 @@ public final class FlashDriveDevice extends AbstractRemovableMediaDevice {
             return 0;
         }
 
-        return Math.min(flash.getCapacity(stack), Config.maxBlobCapacity);
+        return flash.getCapacity(stack);
     }
 
     @Override

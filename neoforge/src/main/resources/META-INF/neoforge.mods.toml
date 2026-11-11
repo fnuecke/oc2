@@ -63,5 +63,7 @@ modrinth = "xkOonJ4E"
 curseforge = 437654
 dependencies = [
     "architectury@>=${architecturyVersion}(required){modrinth:lhGA9TYQ}{curseforge:419699}",
-    "markdown_manual@>=${manualVersion}(required){modrinth:nPQ9xkPg}{curseforge:502485}"
+    "markdown_manual@>=${manualVersion}(required){modrinth:nPQ9xkPg}{curseforge:502485}",
+    "computercraft(optional){modrinth:gu7yAYhd}{curseforge:282001}",
+    "tis3d(optional){modrinth:L23x7zL8}{curseforge:238603}"
 ]

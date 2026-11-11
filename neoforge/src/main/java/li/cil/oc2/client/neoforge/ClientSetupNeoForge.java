@@ -36,10 +36,9 @@ import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
 public final class ClientSetupNeoForge {
     @SubscribeEvent
     public static void handleSetupEvent(final FMLClientSetupEvent event) {
-        TerminalTextures.initialize();
-        SoundCardAudio.initialize();
-
         event.enqueueWork(() -> {
+            TerminalTextures.initialize();
+            SoundCardAudio.initialize();
             ModRenderType.initialize();
             ProjectorDepthRenderer.initialize();
             ColorHandlerRegistry.registerBlockColors(new BusCableBlockColor(), Blocks.BUS_CABLE);

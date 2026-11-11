@@ -6,6 +6,7 @@ import li.cil.oc2.api.API;
 import li.cil.oc2.client.gui.DeviceHints;
 import li.cil.oc2.client.manual.Manuals;
 import li.cil.oc2.common.Main;
+import li.cil.oc2.common.network.Network;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -19,6 +20,7 @@ public final class MainNeoForge {
         MOD_CONTAINER = modContainer;
 
         Main.initialize();
+        Network.initialize();
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             Manuals.initialize();
             DeviceHints.initialize();

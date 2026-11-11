@@ -73,7 +73,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-// No @Mod.EventBusSubscriber: we need to register this manually, because static init throws errors when running data generation.
 public final class ProjectorDepthRenderer {
     private static final int DEPTH_CAPTURE_SIZE = 256;
     private static final int DEPTH_BUFFER_SOURCE_BYTES = 768 * 1024;

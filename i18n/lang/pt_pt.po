@@ -6,6 +6,12 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2026-11-11 18:02+0000\n"
+"Last-Translator: DeepL <noreply-mt-deepl@weblate.org>\n"
+"Language-Team: Portuguese (Portugal) <https://weblate.h.cil.li/projects/oc2/"
+"strings/pt_PT/>\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 2026.11.1\n"
 
 msgctxt "itemGroup.oc2.common"
 msgid "OpenComputers II"
@@ -39,13 +45,15 @@ msgctxt "block.oc2.network_connector.desc"
 msgid "Transmits network packets via Network Cables."
 msgstr "Trasmite pacotes de rede entre Cabos de Rede"
 
+#, fuzzy
 msgctxt "block.oc2.internet_gateway"
 msgid "Internet Gateway"
-msgstr ""
+msgstr "Gateway de Internet"
 
+#, fuzzy
 msgctxt "block.oc2.internet_gateway.desc"
 msgid "Connects a network to the internet."
-msgstr ""
+msgstr "Liga uma rede à Internet."
 
 msgctxt "block.oc2.network_hub"
 msgid "Network Hub"
@@ -63,13 +71,15 @@ msgctxt "block.oc2.redstone_interface.desc"
 msgid "Emits and reads redstone signals."
 msgstr "Emite e lê sinais de redstone."
 
+#, fuzzy
 msgctxt "block.oc2.transposer"
 msgid "Transposer"
-msgstr ""
+msgstr "Transposer"
 
+#, fuzzy
 msgctxt "block.oc2.transposer.desc"
 msgid "Moves items between adjacent inventories."
-msgstr ""
+msgstr "Transfere itens entre inventários adjacentes."
 
 msgctxt "block.oc2.disk_drive"
 msgid "Disk Drive"
@@ -79,21 +89,25 @@ msgctxt "block.oc2.disk_drive.desc"
 msgid "Used to access Floppy Disks."
 msgstr "Usado para acessar disquetes."
 
+#, fuzzy
 msgctxt "block.oc2.flash_drive"
 msgid "Flash Drive"
-msgstr ""
+msgstr "Pen USB"
 
+#, fuzzy
 msgctxt "block.oc2.flash_drive.desc"
 msgid "Used to access Flash Memory."
-msgstr ""
+msgstr "Utilizado para aceder à memória Flash."
 
+#, fuzzy
 msgctxt "block.oc2.terminal"
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
+#, fuzzy
 msgctxt "block.oc2.terminal.desc"
 msgid "User input and output over a serial bus."
-msgstr ""
+msgstr "Entrada e saída do utilizador através de um barramento série."
 
 msgctxt "block.oc2.charger"
 msgid "Charger"
@@ -192,21 +206,25 @@ msgctxt "item.oc2.flash_memory.desc"
 msgid "Readonly storage for firmware."
 msgstr "Armazenamento de apenas leitura para firmware."
 
+#, fuzzy
 msgctxt "item.oc2.cpu_z80"
 msgid "Z80 Processor"
-msgstr ""
+msgstr "Processador Z80"
 
+#, fuzzy
 msgctxt "item.oc2.cpu_z80.desc"
 msgid "An 8-bit processor. Runs CP/M."
-msgstr ""
+msgstr "Um processador de 8 bits. Executa o CP/M."
 
+#, fuzzy
 msgctxt "item.oc2.cpu_riscv"
 msgid "RISC-V Processor"
-msgstr ""
+msgstr "Processador RISC-V"
 
+#, fuzzy
 msgctxt "item.oc2.cpu_riscv.desc"
 msgid "A 64-bit processor. Runs OpenOS II and Linux."
-msgstr ""
+msgstr "Um processador de 64 bits. Executa o OpenOS II e o Linux."
 
 msgctxt "item.oc2.redstone_interface_card"
 msgid "Redstone Interface Card"
@@ -229,18 +247,22 @@ msgctxt "item.oc2.sided_device.is_configured"
 msgid "Has connectivity configuration."
 msgstr "Possui configuração de conectividade."
 
+#, fuzzy
 msgctxt "item.oc2.serial_interface_card"
 msgid "Serial Interface Card"
-msgstr ""
+msgstr "Placa de interface serial"
 
+#, fuzzy
 msgctxt "item.oc2.serial_interface_card.desc"
 msgid ""
 "Sends and receives serial communication via attached Network Connectors."
 msgstr ""
+"Envia e recebe comunicação serial através de conectores de rede ligados."
 
+#, fuzzy
 msgctxt "item.oc2.serial_interface_card.configuration"
 msgid "Address: %s"
-msgstr ""
+msgstr "Endereço: %s"
 
 msgctxt "item.oc2.network_tunnel_card"
 msgid "Network Tunnel Card"
@@ -266,17 +288,20 @@ msgctxt "item.oc2.robot.desc"
 msgid "A mobile Computer. Use a Scrench to pick it back up."
 msgstr "Um Computador móvel. Use uma Scrench para o recolher."
 
+#, fuzzy
 msgctxt "item.oc2.robot.preconfigured"
 msgid "Preconfigured Robot"
-msgstr ""
+msgstr "Robô pré-configurado"
 
+#, fuzzy
 msgctxt "item.oc2.crafting_module"
 msgid "Crafting Module"
-msgstr ""
+msgstr "Módulo de Criação"
 
+#, fuzzy
 msgctxt "item.oc2.crafting_module.desc"
 msgid "Crafts items in the Robot's inventory."
-msgstr ""
+msgstr "Cria itens no inventário do robô."
 
 msgctxt "item.oc2.inventory_operations_module"
 msgid "Inventory Operations Module"
@@ -286,13 +311,15 @@ msgctxt "item.oc2.inventory_operations_module.desc"
 msgid "Moves items in, into and out of the Robot's inventory."
 msgstr "Movimenta itens Moves items de, para e dentro do inventário do Robô."
 
+#, fuzzy
 msgctxt "item.oc2.tank_operations_module"
 msgid "Tank Operations Module"
-msgstr ""
+msgstr "Módulo de Operações de Tanques"
 
+#, fuzzy
 msgctxt "item.oc2.tank_operations_module.desc"
 msgid "Moves fluids into and out of the Robot's tank."
-msgstr ""
+msgstr "Transfere fluidos para dentro e para fora do depósito do robô."
 
 msgctxt "item.oc2.block_operations_module"
 msgid "Block Operations Module"
@@ -302,21 +329,24 @@ msgctxt "item.oc2.block_operations_module.desc"
 msgid "Breaks and places blocks."
 msgstr "Quebra e coloca blocos."
 
+#, fuzzy
 msgctxt "item.oc2.scanner_module"
 msgid "Scanner Module"
-msgstr ""
+msgstr "Módulo Scanner"
 
+#, fuzzy
 msgctxt "item.oc2.scanner_module.desc"
 msgid "Identifies adjacent blocks and measures the hardness of nearby ones."
-msgstr ""
+msgstr "Identifica blocos adjacentes e mede a dureza dos blocos próximos."
 
 msgctxt "item.oc2.sound_card"
 msgid "Sound Card"
 msgstr "Cartão de Som"
 
+#, fuzzy
 msgctxt "item.oc2.sound_card.desc"
 msgid "Lets a computer do the beeps and boops."
-msgstr ""
+msgstr "Deixa que seja o computador a emitir os bipes e os sons."
 
 msgctxt "item.oc2.network_tunnel_module"
 msgid "Network Tunnel Module"
@@ -346,101 +376,122 @@ msgctxt "entity.oc2.robot"
 msgid "Robot"
 msgstr "Robô"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices"
 msgid "Devices"
-msgstr ""
+msgstr "Dispositivos"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.cpu"
 msgid "Processors"
-msgstr ""
+msgstr "Processadores"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.memory"
 msgid "Memory"
-msgstr ""
+msgstr "Memória"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.hard_drive"
 msgid "Hard Drives"
-msgstr ""
+msgstr "Discos rígidos"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.flash_memory"
 msgid "Flash Memory"
-msgstr ""
+msgstr "Memória Flash"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.floppy"
 msgid "Floppy Disks"
-msgstr ""
+msgstr "Disquetes"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.card"
 msgid "Cards"
-msgstr ""
+msgstr "Cartões"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.robot_module"
 msgid "Robot Modules"
-msgstr ""
+msgstr "Módulos de robôs"
 
+#, fuzzy
 msgctxt "tag.item.oc2.devices.network_tunnel"
 msgid "Network Tunnels"
-msgstr ""
+msgstr "Túneis de rede"
 
+#, fuzzy
 msgctxt "tag.item.oc2.cables"
 msgid "Cables"
-msgstr ""
+msgstr "Cabos"
 
+#, fuzzy
 msgctxt "tag.item.oc2.wrenches"
 msgid "Wrenches"
-msgstr ""
+msgstr "Chaves inglesas"
 
+#, fuzzy
 msgctxt "tag.item.oc2.configurable"
 msgid "Configurable Devices"
-msgstr ""
+msgstr "Dispositivos configuráveis"
 
+#, fuzzy
 msgctxt "tag.item.oc2.device_needs_reboot"
 msgid "Devices Requiring Reboot"
-msgstr ""
+msgstr "Dispositivos que requerem reinicialização"
 
 msgctxt "gui.oc2.computer.error.unknown"
 msgid "Unknown Error"
 msgstr "Erro Desconhecido"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.missing_cpu"
 msgid "Missing Processor"
-msgstr ""
+msgstr "Processador em falta"
 
 msgctxt "gui.oc2.computer.error.missing_firmware"
 msgid "Missing Firmware"
 msgstr "Firmware em falta"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.device_does_not_fit"
 msgid "Device Does Not Fit This Processor"
-msgstr ""
+msgstr "O dispositivo não é compatível com este processador"
 
 msgctxt "gui.oc2.computer.error.insufficient_memory"
 msgid "Insufficient Memory"
 msgstr "Memória Insuficiente"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.storage_corrupted"
 msgid "Drive Data Corrupted"
-msgstr ""
+msgstr "Dados da unidade corrompidos"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.storage_full"
 msgid "Global Storage Limit Reached"
-msgstr ""
+msgstr "Limite de armazenamento global atingido"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.memory_corrupted"
 msgid "Memory Corrupted"
-msgstr ""
+msgstr "Memória corrompida"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.state_lost"
 msgid "Machine State Lost"
-msgstr ""
+msgstr "Estado da máquina perdido"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.storage_inconsistent"
 msgid "Drive Data Unverified"
-msgstr ""
+msgstr "Dados da unidade não verificados"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.halted"
 msgid "Halted"
-msgstr ""
+msgstr "Suspenso"
 
 msgctxt "gui.oc2.computer.bus_state.incomplete"
 msgid "Bus Incomplete"
@@ -470,21 +521,25 @@ msgstr ""
 "Quando ativado, enquanto o cursor do rato estiver por cima do conteúdo do "
 "terminal, toda a entrada será capturada, incluíndo a tecla de escape."
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.on"
 msgid "Power on"
-msgstr ""
+msgstr "Ligar"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.shutdown"
 msgid "Shutdown"
-msgstr ""
+msgstr "Desligar"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.reboot"
 msgid "Shift: Reboot"
-msgstr ""
+msgstr "Shift: Reiniciar"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.power_off"
 msgid "Ctrl: Power off"
-msgstr ""
+msgstr "Ctrl: Desligar"
 
 msgctxt "gui.oc2.machine.open_inventory.capt"
 msgid "Open Inventory"
@@ -494,9 +549,10 @@ msgctxt "gui.oc2.machine.open_terminal.capt"
 msgid "Open Terminal"
 msgstr "Abrir Terminal"
 
+#, fuzzy
 msgctxt "gui.oc2.device_type.cpu"
 msgid "Processor"
-msgstr ""
+msgstr "Processador"
 
 msgctxt "gui.oc2.device_type.memory"
 msgid "Memory"
@@ -510,9 +566,10 @@ msgctxt "gui.oc2.device_type.flash_memory"
 msgid "Flash Memory"
 msgstr "Memória Flash"
 
+#, fuzzy
 msgctxt "gui.oc2.device_type.floppy"
 msgid "Floppy"
-msgstr ""
+msgstr "Disquete"
 
 msgctxt "gui.oc2.device_type.card"
 msgid "Card"
@@ -562,17 +619,20 @@ msgctxt "gui.oc2.sided_device.help"
 msgid "Drag to rotate. Click faces to toggle connectivity."
 msgstr "Arraste para rodar. Clique nas faces para alternar a conectividade."
 
+#, fuzzy
 msgctxt "gui.oc2.terminal.address"
 msgid "Address"
-msgstr ""
+msgstr "Endereço"
 
+#, fuzzy
 msgctxt "gui.oc2.terminal.baud_rate"
 msgid "Baud Rate"
-msgstr ""
+msgstr "Taxa de transmissão"
 
+#, fuzzy
 msgctxt "gui.oc2.serial_interface_card.address"
 msgid "Address"
-msgstr ""
+msgstr "Endereço"
 
 msgctxt "gui.oc2.keyboard.close_info"
 msgid "Right click to close."
@@ -582,37 +642,45 @@ msgctxt "gui.oc2.network_tunnel.link"
 msgid "Link"
 msgstr "Conectar"
 
+#, fuzzy
 msgctxt "gui.oc2.open_configuration.capt"
 msgid "Settings"
-msgstr ""
+msgstr "Definições"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.mode"
 msgid "Internet Mode"
-msgstr ""
+msgstr "Modo Internet"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.address"
 msgid "Address"
-msgstr ""
+msgstr "Endereço"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.peer"
 msgid "VXLAN Remote Peer"
-msgstr ""
+msgstr "Par remoto VXLAN"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.port"
 msgid "VXLAN Port"
-msgstr ""
+msgstr "Porta VXLAN"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.vni"
 msgid "VXLAN VNI"
-msgstr ""
+msgstr "VXLAN VNI"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.nat"
 msgid "NAT"
-msgstr ""
+msgstr "NAT"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.vxlan"
 msgid "VXLAN"
-msgstr ""
+msgstr "VXLAN"
 
 msgctxt "manual.oc2.home"
 msgid "Home"
@@ -626,13 +694,15 @@ msgctxt "manual.oc2.items"
 msgid "Items"
 msgstr "Items"
 
+#, fuzzy
 msgctxt "manual.oc2.api"
 msgid "API"
-msgstr ""
+msgstr "API"
 
+#, fuzzy
 msgctxt "manual.oc2.serial_protocols.serial_interface"
 msgid "OpenComputers II Serial Interface"
-msgstr ""
+msgstr "Interface serial do OpenComputers II"
 
 msgctxt "message.oc2.connector.error.full"
 msgid "Cannot attach more cables."
@@ -658,17 +728,20 @@ msgctxt "tooltip.oc2.device_needs_reboot"
 msgid "Requires reboot"
 msgstr "Reinício requerido"
 
+#, fuzzy
 msgctxt "tooltip.oc2.can_be_configured"
 msgid "Can be configured"
-msgstr ""
+msgstr "Pode ser configurado"
 
+#, fuzzy
 msgctxt "tooltip.oc2.device_required"
 msgid "Missing %s, required to boot."
-msgstr ""
+msgstr "Falta %s, necessário para o arranque."
 
+#, fuzzy
 msgctxt "tooltip.oc2.device_suggested"
 msgid "Missing %s, usually needed to boot."
-msgstr ""
+msgstr "Falta o %s, normalmente necessário para o arranque."
 
 msgctxt "tooltip.oc2.energy"
 msgid "Energy: %s"
@@ -678,38 +751,51 @@ msgctxt "tooltip.oc2.energyConsumption"
 msgid "Energy Consumption: %s/t"
 msgstr "Consumo de Energia: %s/t"
 
+#, fuzzy
 msgctxt "tooltip.oc2.fluid"
 msgid "%1$s: %2$s"
-msgstr ""
+msgstr "%1$s: %2$s"
 
+#, fuzzy
 msgctxt "tooltip.oc2.fluid_empty"
 msgid "Empty"
-msgstr ""
+msgstr "Vazio"
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_corrupted"
 msgid "Data Corrupted"
-msgstr ""
+msgstr "Dados corrompidos"
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_corrupted.hint"
 msgid ""
 "Bit rot has claimed the contents of this device. Craft it together with a "
 "wrench to format it."
 msgstr ""
+"A deterioração digital afetou o conteúdo deste dispositivo. Cria-o "
+"juntamente com uma chave inglesa para o formatar."
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_inconsistent"
 msgid "Data Unverified"
-msgstr ""
+msgstr "Dados não verificados"
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_inconsistent.hint"
 msgid ""
 "This device was in use when the server stopped unexpectedly. Its contents "
 "were kept, but may be damaged. Craft it together with a wrench to keep the "
 "data and use it again."
 msgstr ""
+"Este dispositivo estava a ser utilizado quando o servidor parou "
+"inesperadamente. O seu conteúdo foi preservado, mas pode estar danificado. "
+"Cria-o juntamente com uma chave inglesa para preservar os dados e voltar a "
+"utilizá-lo."
 
+#, fuzzy
 msgctxt "tooltip.oc2.internet_disabled"
 msgid "Internet access is disabled"
-msgstr ""
+msgstr "O acesso à Internet está desativado"
 
 msgctxt "tooltip.oc2.confirm"
 msgid "Confirm"
@@ -739,13 +825,15 @@ msgctxt "subtitles.oc2.floppy_insert"
 msgid "Floppy inserted"
 msgstr "Disquete inserida"
 
+#, fuzzy
 msgctxt "subtitles.oc2.flash_eject"
 msgid "Flash Memory ejected"
-msgstr ""
+msgstr "Memória Flash ejetada"
 
+#, fuzzy
 msgctxt "subtitles.oc2.flash_insert"
 msgid "Flash Memory inserted"
-msgstr ""
+msgstr "Memória Flash inserida"
 
 msgctxt "subtitles.oc2.hdd"
 msgid "Hard drive access"

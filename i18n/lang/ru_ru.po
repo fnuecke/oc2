@@ -6,6 +6,12 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2026-11-11 18:02+0000\n"
+"Last-Translator: DeepL <noreply-mt-deepl@weblate.org>\n"
+"Language-Team: Russian <https://weblate.h.cil.li/projects/oc2/strings/ru/>\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 2026.11.1\n"
 
 msgctxt "itemGroup.oc2.common"
 msgid "OpenComputers II"
@@ -41,11 +47,11 @@ msgstr "Передает пакеты через сетевые кабели."
 
 msgctxt "block.oc2.internet_gateway"
 msgid "Internet Gateway"
-msgstr ""
+msgstr "Интернет-шлюз"
 
 msgctxt "block.oc2.internet_gateway.desc"
 msgid "Connects a network to the internet."
-msgstr ""
+msgstr "Подключает сеть к интернету."
 
 msgctxt "block.oc2.network_hub"
 msgid "Network Hub"
@@ -65,11 +71,11 @@ msgstr "Подает и считывает редстоун сигналы."
 
 msgctxt "block.oc2.transposer"
 msgid "Transposer"
-msgstr ""
+msgstr "Транспозер"
 
 msgctxt "block.oc2.transposer.desc"
 msgid "Moves items between adjacent inventories."
-msgstr ""
+msgstr "Перемещает предметы между соседними инвентарями."
 
 msgctxt "block.oc2.disk_drive"
 msgid "Disk Drive"
@@ -79,21 +85,23 @@ msgctxt "block.oc2.disk_drive.desc"
 msgid "Used to access Floppy Disks."
 msgstr "Нужен для работы с дискетами."
 
+#, fuzzy
 msgctxt "block.oc2.flash_drive"
 msgid "Flash Drive"
-msgstr ""
+msgstr "Флеш-накопитель"
 
 msgctxt "block.oc2.flash_drive.desc"
 msgid "Used to access Flash Memory."
-msgstr ""
+msgstr "Используется для доступа к флеш-памяти."
 
 msgctxt "block.oc2.terminal"
 msgid "Terminal"
-msgstr ""
+msgstr "Терминал"
 
+#, fuzzy
 msgctxt "block.oc2.terminal.desc"
 msgid "User input and output over a serial bus."
-msgstr ""
+msgstr "Ввод и вывод данных пользователем через последовательную шину."
 
 msgctxt "block.oc2.charger"
 msgid "Charger"
@@ -197,19 +205,19 @@ msgstr "Накопитель для прошивки."
 
 msgctxt "item.oc2.cpu_z80"
 msgid "Z80 Processor"
-msgstr ""
+msgstr "Процессор Z80"
 
 msgctxt "item.oc2.cpu_z80.desc"
 msgid "An 8-bit processor. Runs CP/M."
-msgstr ""
+msgstr "8-битный процессор. Работает под управлением CP/M."
 
 msgctxt "item.oc2.cpu_riscv"
 msgid "RISC-V Processor"
-msgstr ""
+msgstr "Процессор RISC-V"
 
 msgctxt "item.oc2.cpu_riscv.desc"
 msgid "A 64-bit processor. Runs OpenOS II and Linux."
-msgstr ""
+msgstr "64-разрядный процессор. Работает под управлением OpenOS II и Linux."
 
 msgctxt "item.oc2.redstone_interface_card"
 msgid "Redstone Interface Card"
@@ -233,16 +241,18 @@ msgstr "Установлены настройки соединения."
 
 msgctxt "item.oc2.serial_interface_card"
 msgid "Serial Interface Card"
-msgstr ""
+msgstr "Плата последовательного интерфейса"
 
 msgctxt "item.oc2.serial_interface_card.desc"
 msgid ""
 "Sends and receives serial communication via attached Network Connectors."
 msgstr ""
+"Осуществляет передачу и приём последовательных данных через подключённые "
+"сетевые разъёмы."
 
 msgctxt "item.oc2.serial_interface_card.configuration"
 msgid "Address: %s"
-msgstr ""
+msgstr "Адрес: %s"
 
 msgctxt "item.oc2.network_tunnel_card"
 msgid "Network Tunnel Card"
@@ -266,19 +276,22 @@ msgstr "Робот"
 
 msgctxt "item.oc2.robot.desc"
 msgid "A mobile Computer. Use a Scrench to pick it back up."
-msgstr "Портативный компьютер. Используйте ключ, чтобы убрать его"
+msgstr "Портативный компьютер. Используйте ключ, чтобы убрать его."
 
+#, fuzzy
 msgctxt "item.oc2.robot.preconfigured"
 msgid "Preconfigured Robot"
-msgstr ""
+msgstr "Предварительно настроенный робот"
 
+#, fuzzy
 msgctxt "item.oc2.crafting_module"
 msgid "Crafting Module"
-msgstr ""
+msgstr "Модуль крафта"
 
+#, fuzzy
 msgctxt "item.oc2.crafting_module.desc"
 msgid "Crafts items in the Robot's inventory."
-msgstr ""
+msgstr "Создаёт предметы в инвентаре робота."
 
 msgctxt "item.oc2.inventory_operations_module"
 msgid "Inventory Operations Module"
@@ -288,13 +301,15 @@ msgctxt "item.oc2.inventory_operations_module.desc"
 msgid "Moves items in, into and out of the Robot's inventory."
 msgstr "Позволяет роботу управлять своим инвентарем."
 
+#, fuzzy
 msgctxt "item.oc2.tank_operations_module"
 msgid "Tank Operations Module"
-msgstr ""
+msgstr "Модуль управления танком"
 
+#, fuzzy
 msgctxt "item.oc2.tank_operations_module.desc"
 msgid "Moves fluids into and out of the Robot's tank."
-msgstr ""
+msgstr "Перемещает жидкости в резервуар робота и обратно."
 
 msgctxt "item.oc2.block_operations_module"
 msgid "Block Operations Module"
@@ -306,19 +321,21 @@ msgstr "Ломает и ставит блоки."
 
 msgctxt "item.oc2.scanner_module"
 msgid "Scanner Module"
-msgstr ""
+msgstr "Модуль сканера"
 
+#, fuzzy
 msgctxt "item.oc2.scanner_module.desc"
 msgid "Identifies adjacent blocks and measures the hardness of nearby ones."
-msgstr ""
+msgstr "Определяет смежные блоки и измеряет твердость близлежащих."
 
 msgctxt "item.oc2.sound_card"
 msgid "Sound Card"
 msgstr "Звуковая карта"
 
+#, fuzzy
 msgctxt "item.oc2.sound_card.desc"
 msgid "Lets a computer do the beeps and boops."
-msgstr ""
+msgstr "Позволяет компьютеру издавать всякие звуковые сигналы."
 
 msgctxt "item.oc2.network_tunnel_module"
 msgid "Network Tunnel Module"
@@ -350,99 +367,108 @@ msgstr "Робот"
 
 msgctxt "tag.item.oc2.devices"
 msgid "Devices"
-msgstr ""
+msgstr "Устройства"
 
 msgctxt "tag.item.oc2.devices.cpu"
 msgid "Processors"
-msgstr ""
+msgstr "Процессоры"
 
 msgctxt "tag.item.oc2.devices.memory"
 msgid "Memory"
-msgstr ""
+msgstr "Память"
 
 msgctxt "tag.item.oc2.devices.hard_drive"
 msgid "Hard Drives"
-msgstr ""
+msgstr "Жесткие диски"
 
 msgctxt "tag.item.oc2.devices.flash_memory"
 msgid "Flash Memory"
-msgstr ""
+msgstr "Флеш-память"
 
 msgctxt "tag.item.oc2.devices.floppy"
 msgid "Floppy Disks"
-msgstr ""
+msgstr "Дискеты"
 
 msgctxt "tag.item.oc2.devices.card"
 msgid "Cards"
-msgstr ""
+msgstr "Карты"
 
 msgctxt "tag.item.oc2.devices.robot_module"
 msgid "Robot Modules"
-msgstr ""
+msgstr "Модули робота"
 
 msgctxt "tag.item.oc2.devices.network_tunnel"
 msgid "Network Tunnels"
-msgstr ""
+msgstr "Сетевые туннели"
 
 msgctxt "tag.item.oc2.cables"
 msgid "Cables"
-msgstr ""
+msgstr "Кабели"
 
 msgctxt "tag.item.oc2.wrenches"
 msgid "Wrenches"
-msgstr ""
+msgstr "Гаечные ключи"
 
 msgctxt "tag.item.oc2.configurable"
 msgid "Configurable Devices"
-msgstr ""
+msgstr "Настраиваемые устройства"
 
+#, fuzzy
 msgctxt "tag.item.oc2.device_needs_reboot"
 msgid "Devices Requiring Reboot"
-msgstr ""
+msgstr "Устройства, требующие перезагрузки"
 
 msgctxt "gui.oc2.computer.error.unknown"
 msgid "Unknown Error"
 msgstr "Неизвестная ошибка"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.missing_cpu"
 msgid "Missing Processor"
-msgstr ""
+msgstr "Отсутствует процессор"
 
 msgctxt "gui.oc2.computer.error.missing_firmware"
 msgid "Missing Firmware"
 msgstr "Отсутствует прошивка"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.device_does_not_fit"
 msgid "Device Does Not Fit This Processor"
-msgstr ""
+msgstr "Устройство не совместимо с этим процессором"
 
 msgctxt "gui.oc2.computer.error.insufficient_memory"
 msgid "Insufficient Memory"
 msgstr "Недостаточно памяти"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.storage_corrupted"
 msgid "Drive Data Corrupted"
-msgstr ""
+msgstr "Данные диска повреждены"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.storage_full"
 msgid "Global Storage Limit Reached"
-msgstr ""
+msgstr "Достигнут лимит глобального хранилища"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.memory_corrupted"
 msgid "Memory Corrupted"
-msgstr ""
+msgstr "Память повреждена"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.state_lost"
 msgid "Machine State Lost"
-msgstr ""
+msgstr "Состояние машины утрачено"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.storage_inconsistent"
 msgid "Drive Data Unverified"
-msgstr ""
+msgstr "Данные диска не проверены"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.error.halted"
 msgid "Halted"
-msgstr ""
+msgstr "Приостановлено"
 
 msgctxt "gui.oc2.computer.bus_state.incomplete"
 msgid "Bus Incomplete"
@@ -472,21 +498,25 @@ msgstr ""
 "Пока курсор находится в пределах окна терминала, ввод (включая нажатие на "
 "ESC) будет захватываться."
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.on"
 msgid "Power on"
-msgstr ""
+msgstr "Включение питания"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.shutdown"
 msgid "Shutdown"
-msgstr ""
+msgstr "Завершение работы"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.reboot"
 msgid "Shift: Reboot"
-msgstr ""
+msgstr "Shift: Перезагрузка"
 
+#, fuzzy
 msgctxt "gui.oc2.computer.power.power_off"
 msgid "Ctrl: Power off"
-msgstr ""
+msgstr "Ctrl: Выключить"
 
 msgctxt "gui.oc2.machine.open_inventory.capt"
 msgid "Open Inventory"
@@ -496,9 +526,10 @@ msgctxt "gui.oc2.machine.open_terminal.capt"
 msgid "Open Terminal"
 msgstr "Открыть терминал"
 
+#, fuzzy
 msgctxt "gui.oc2.device_type.cpu"
 msgid "Processor"
-msgstr ""
+msgstr "Процессор"
 
 msgctxt "gui.oc2.device_type.memory"
 msgid "Memory"
@@ -512,9 +543,10 @@ msgctxt "gui.oc2.device_type.flash_memory"
 msgid "Flash Memory"
 msgstr "Карта памяти"
 
+#, fuzzy
 msgctxt "gui.oc2.device_type.floppy"
 msgid "Floppy"
-msgstr ""
+msgstr "Дискеты"
 
 msgctxt "gui.oc2.device_type.card"
 msgid "Card"
@@ -564,17 +596,20 @@ msgctxt "gui.oc2.sided_device.help"
 msgid "Drag to rotate. Click faces to toggle connectivity."
 msgstr "Потяните для поворота. Клик на сторону переключит соединение."
 
+#, fuzzy
 msgctxt "gui.oc2.terminal.address"
 msgid "Address"
-msgstr ""
+msgstr "Обращение"
 
+#, fuzzy
 msgctxt "gui.oc2.terminal.baud_rate"
 msgid "Baud Rate"
-msgstr ""
+msgstr "Скорость передачи данных"
 
+#, fuzzy
 msgctxt "gui.oc2.serial_interface_card.address"
 msgid "Address"
-msgstr ""
+msgstr "Обращение"
 
 msgctxt "gui.oc2.keyboard.close_info"
 msgid "Right click to close."
@@ -584,37 +619,45 @@ msgctxt "gui.oc2.network_tunnel.link"
 msgid "Link"
 msgstr "Привязать"
 
+#, fuzzy
 msgctxt "gui.oc2.open_configuration.capt"
 msgid "Settings"
-msgstr ""
+msgstr "Настройки"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.mode"
 msgid "Internet Mode"
-msgstr ""
+msgstr "Режим «Интернет»"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.address"
 msgid "Address"
-msgstr ""
+msgstr "Обращение"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.peer"
 msgid "VXLAN Remote Peer"
-msgstr ""
+msgstr "Удалённый узел VXLAN"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.port"
 msgid "VXLAN Port"
-msgstr ""
+msgstr "Порт VXLAN"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.vni"
 msgid "VXLAN VNI"
-msgstr ""
+msgstr "VXLAN VNI"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.nat"
 msgid "NAT"
-msgstr ""
+msgstr "NAT"
 
+#, fuzzy
 msgctxt "gui.oc2.internet_gateway.vxlan"
 msgid "VXLAN"
-msgstr ""
+msgstr "VXLAN"
 
 msgctxt "manual.oc2.home"
 msgid "Home"
@@ -628,13 +671,15 @@ msgctxt "manual.oc2.items"
 msgid "Items"
 msgstr "Предметы"
 
+#, fuzzy
 msgctxt "manual.oc2.api"
 msgid "API"
-msgstr ""
+msgstr "API"
 
+#, fuzzy
 msgctxt "manual.oc2.serial_protocols.serial_interface"
 msgid "OpenComputers II Serial Interface"
-msgstr ""
+msgstr "Последовательный интерфейс OpenComputers II"
 
 msgctxt "message.oc2.connector.error.full"
 msgid "Cannot attach more cables."
@@ -660,17 +705,20 @@ msgctxt "tooltip.oc2.device_needs_reboot"
 msgid "Requires reboot"
 msgstr "Требуется перезагрузка"
 
+#, fuzzy
 msgctxt "tooltip.oc2.can_be_configured"
 msgid "Can be configured"
-msgstr ""
+msgstr "Можно настроить"
 
+#, fuzzy
 msgctxt "tooltip.oc2.device_required"
 msgid "Missing %s, required to boot."
-msgstr ""
+msgstr "Отсутствует тег %s, необходимый для запуска."
 
+#, fuzzy
 msgctxt "tooltip.oc2.device_suggested"
 msgid "Missing %s, usually needed to boot."
-msgstr ""
+msgstr "Отсутствует тег %s, который обычно необходим для запуска."
 
 msgctxt "tooltip.oc2.energy"
 msgid "Energy: %s"
@@ -680,38 +728,50 @@ msgctxt "tooltip.oc2.energyConsumption"
 msgid "Energy Consumption: %s/t"
 msgstr "Потребление энергии: %s/t"
 
+#, fuzzy
 msgctxt "tooltip.oc2.fluid"
 msgid "%1$s: %2$s"
-msgstr ""
+msgstr "%1$s: %2$s"
 
+#, fuzzy
 msgctxt "tooltip.oc2.fluid_empty"
 msgid "Empty"
-msgstr ""
+msgstr "Пусто"
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_corrupted"
 msgid "Data Corrupted"
-msgstr ""
+msgstr "Данные повреждены"
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_corrupted.hint"
 msgid ""
 "Bit rot has claimed the contents of this device. Craft it together with a "
 "wrench to format it."
 msgstr ""
+"«Бит-гниение» уничтожило содержимое этого устройства. Соберите его вместе с "
+"гаечным ключом, чтобы отформатировать."
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_inconsistent"
 msgid "Data Unverified"
-msgstr ""
+msgstr "Данные не проверены"
 
+#, fuzzy
 msgctxt "tooltip.oc2.data_inconsistent.hint"
 msgid ""
 "This device was in use when the server stopped unexpectedly. Its contents "
 "were kept, but may be damaged. Craft it together with a wrench to keep the "
 "data and use it again."
 msgstr ""
+"Это устройство было в использовании, когда сервер неожиданно вышел из строя. "
+"Его содержимое сохранилось, но может быть повреждено. Соберите его вместе с "
+"гаечным ключом, чтобы сохранить данные и использовать его снова."
 
+#, fuzzy
 msgctxt "tooltip.oc2.internet_disabled"
 msgid "Internet access is disabled"
-msgstr ""
+msgstr "Доступ в Интернет отключен"
 
 msgctxt "tooltip.oc2.confirm"
 msgid "Confirm"
@@ -741,13 +801,15 @@ msgctxt "subtitles.oc2.floppy_insert"
 msgid "Floppy inserted"
 msgstr "Дискета вставлена"
 
+#, fuzzy
 msgctxt "subtitles.oc2.flash_eject"
 msgid "Flash Memory ejected"
-msgstr ""
+msgstr "Флеш-накопитель извлечён"
 
+#, fuzzy
 msgctxt "subtitles.oc2.flash_insert"
 msgid "Flash Memory inserted"
-msgstr ""
+msgstr "Вставлена флеш-память"
 
 msgctxt "subtitles.oc2.hdd"
 msgid "Hard drive access"
